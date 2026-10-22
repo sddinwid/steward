@@ -1,6 +1,19 @@
 {
-  "name": "@steward/module-sdk", "version": "1.0.0", "private": true, "type": "module",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "node --test dist/test/manifest.test.js" },
-  "dependencies": { "ajv": "8.20.0" }
+  "name": "@steward/module-sdk",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/test/manifest.test.js"
+  },
+  "dependencies": {
+    "ajv": "8.20.0"
+  }
 }

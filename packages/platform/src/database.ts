@@ -3,6 +3,7 @@ import type { InstallationConfig } from '@steward/contracts';
 import type { RuntimeConfig } from './config.js';
 import { securityMigration } from './security/migration.js';
 import { moduleMigration } from './module-migration.js';
+import { syncMigration, syncReliabilityMigration } from './sync-migration.js';
 
 // Immutable, ordered migrations. Future changes append migrations; never edit applied SQL.
 const migrations = [{ version: 1, sql: `
@@ -13,7 +14,7 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }];
+` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;
@@ -26,6 +27,10 @@ export class PostgresDatabase implements PlatformDatabase {
       query_timeout: 3000, statement_timeout: 3000, application_name: `steward-${identity.role}` });
     // Idle connection failures must not crash the process or log credentials.
     this.pool.on('error', () => {});
+    // A synchronization exchange deliberately holds an advisory-lock connection
+    // across network I/O. Checked-out clients also emit errors if PostgreSQL
+    // stops; handle those events so liveness survives while queries reject.
+    this.pool.on('connect', client => { client.on('error', () => {}); });
   }
   async migrate(): Promise<void> {
     const client = await this.pool.connect();

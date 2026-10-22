@@ -56,7 +56,7 @@ function nginx(key: string) {
 export async function provisionSecurity(directory: string, sourceRoot: string, trustFile?: string) {
   directory = path.resolve(directory);
   const manifest: Manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8'));
-  if (manifest.provisionerVersion !== 1 || !['0.1.0', '0.2.0', '0.3.0'].includes(manifest.release)) throw new Error('Unsupported base deployment');
+  if (manifest.provisionerVersion !== 1 || !['0.1.0', '0.2.0', '0.3.0', '0.4.0'].includes(manifest.release)) throw new Error('Unsupported base deployment');
   const target = path.join(directory, 'security');
   const lock = path.join(directory, '.security-provision-lock');
   await mkdir(lock);
@@ -110,7 +110,7 @@ export async function provisionSecurity(directory: string, sourceRoot: string, t
       const ownsBuild = manifest.instances.find(c => c.role === i.role)?.key === i.key;
       const build = (kind: string) => ownsBuild ? `\n    build:\n      context: ${quote(sourceRoot)}\n      dockerfile: infra/Dockerfile.${kind}\n      args: { APP: ${i.role} }` : '';
       services.push(`  ${i.key}-api:
-    image: steward-${i.role}-api:0.3.0${build('api')}
+    image: steward-${i.role}-api:0.4.0${build('api')}
     environment:
       STEWARD_ROLE: ${i.role}
       STEWARD_SECURITY_FILE: /etc/steward/security.json
@@ -131,7 +131,7 @@ export async function provisionSecurity(directory: string, sourceRoot: string, t
       enrollment:
         aliases: [${i.key}-api]
   ${i.key}-web:
-    image: steward-${i.role}-web:0.3.0${build('web')}
+    image: steward-${i.role}-web:0.4.0${build('web')}
     ports: ["127.0.0.1:${i.webPort + 1000}:8443"]
     volumes:
       - type: bind
@@ -145,7 +145,7 @@ export async function provisionSecurity(directory: string, sourceRoot: string, t
       for (const [name, file] of [['tls-key', 'tls-key.pem'], ['tls-cert', 'tls-cert.pem'], ['identity-key', 'identity-key.pem']]) secrets.push(`  ${i.key}-${name}:\n    file: ${quote(path.join(finalBase, file!))}`);
     }
     await writeFile(path.join(staging, 'compose.yaml'), `# Additive Phase 2 overlay. Phase 1 deployment and volumes are preserved.\nservices:\n${services.join('\n')}\nnetworks:\n  enrollment: {}\nsecrets:\n${secrets.join('\n')}\n`);
-    await writeFile(path.join(staging, 'manifest.json'), JSON.stringify({ version: 1, release: '0.3.0', deploymentHash }, null, 2) + '\n');
+    await writeFile(path.join(staging, 'manifest.json'), JSON.stringify({ version: 1, release: '0.4.0', deploymentHash }, null, 2) + '\n');
     await rename(staging, target);
     staging = undefined;
     return true;

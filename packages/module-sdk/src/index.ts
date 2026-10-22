@@ -2,11 +2,13 @@ import { createHash, sign, verify } from 'node:crypto';
 import { Ajv } from 'ajv';
 
 export const SDK_VERSION = 1;
+export { outboxSql, captureSql } from './outbox.js';
+export { boundedLookup } from './network.js';
 export interface ApiContribution { operationId: string; method: 'GET' | 'POST' | 'PUT'; path: string; permission: string }
 export interface ScreenContribution {
   screenId: string; title: string; navigationLabel: string;
   listOperation: string; createOperation: string; updateOperation: string;
-  fields: { name: string; label: string; type: 'string' | 'number'; required: boolean; minimum?: number; maxLength?: number }[];
+  fields: { name: string; label: string; type: 'string' | 'number'; required: boolean; readOnly?: boolean; minimum?: number; maxLength?: number }[];
   columns: string[];
 }
 export interface ModulePackageManifest {
@@ -20,6 +22,7 @@ export interface ModulePackageManifest {
   persistence: { isolation: 'dedicated-database'; schemaVersion: number; migrations: { version: number; sha256: string }[]; destructiveRollback: false };
   integrationEvents: { name: string; version: number; direction: 'produced' | 'consumed' }[];
   analyticalCapabilities: { name: string; version: number }[];
+  replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
 export interface ModulePackage {
   formatVersion: 1; publisherId: string; imageId: string; manifest: ModulePackageManifest;
@@ -54,11 +57,21 @@ export function atLeast(version: string, minimum: string): boolean {
   return true;
 }
 const ajv = new Ajv({ strict: true, allErrors: false });
+// Catalogs are reread during polling; cache equivalent schemas without retaining
+// a newly parsed object and generated validator on every exchange forever.
+const schemaValidators = new Map<string, ReturnType<Ajv['compile']>>();
+function configurationValidator(schema: Record<string,unknown>) {
+  const key=canonical(schema);let validate=schemaValidators.get(key);
+  if(!validate){validate=ajv.compile(schema);ajv.removeSchema(schema);if(schemaValidators.size>=100)schemaValidators.delete(schemaValidators.keys().next().value!);schemaValidators.set(key,validate);}
+  return validate;
+}
 function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(object).every(k => keys.includes(k)); }
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication'])) reject('Unsupported module manifest fields');
+  if (m.replication && (m.replication.contractVersion !== 1 || !Array.isArray(m.replication.streams) || !m.replication.streams.length || m.replication.streams.length > 10 || new Set(m.replication.streams.map(s => s.streamId)).size !== m.replication.streams.length || m.replication.streams.some(s =>
+    !onlyKeys(s, ['streamId','table','idColumn','revisionColumn','columns']) || ![s.streamId,s.table,s.idColumn,s.revisionColumn,...s.columns].every(v => /^[a-z][a-z0-9_]{0,49}$/.test(v)) || !s.columns.includes(s.idColumn) || !s.columns.includes(s.revisionColumn) || s.columns.length > 30))) reject('Invalid replication projection');
   if (!Array.isArray(m.dependencies) || m.dependencies.some(d => d.moduleId === m.moduleId || !/^[a-z][a-z0-9.-]{0,79}$/.test(d.moduleId) || !versionPattern.test(d.minimumVersion)) || new Set(m.dependencies.map(d => d.moduleId)).size !== m.dependencies.length) reject('Invalid module dependencies');
   if (!Array.isArray(m.requiredPermissions) || m.requiredPermissions.some(p => p !== 'storage.own-database')) reject('Unsupported module platform permission');
   if (!m.persistence || m.persistence.isolation !== 'dedicated-database' || m.persistence.destructiveRollback !== false || !Number.isInteger(m.persistence.schemaVersion) || m.persistence.schemaVersion < 1 || !Array.isArray(m.persistence.migrations) ||
@@ -68,15 +81,15 @@ export function validateManifest(m: ModulePackageManifest): void {
   if (!Array.isArray(m.ui) || m.ui.length > 10 || m.ui.some(s => !/^[a-z][a-z0-9-]{0,49}$/.test(s.screenId) || typeof s.title !== 'string' || typeof s.navigationLabel !== 'string' ||
     !onlyKeys(s, ['screenId','title','navigationLabel','listOperation','createOperation','updateOperation','fields','columns']) ||
     !m.api.some(a => a.operationId === s.listOperation && a.method === 'GET') || !m.api.some(a => a.operationId === s.createOperation && a.method === 'POST') || !m.api.some(a => a.operationId === s.updateOperation && a.method === 'PUT' && a.path.endsWith('/:id')) || !Array.isArray(s.fields) || s.fields.length > 30 || s.fields.some(f =>
-      !onlyKeys(f, ['name','label','type','required','minimum','maxLength']) || !/^[a-z][a-zA-Z0-9]{0,49}$/.test(f.name) || ['constructor', 'prototype', '__proto__', 'id', 'revision'].includes(f.name) || typeof f.label !== 'string' || !['string', 'number'].includes(f.type) || typeof f.required !== 'boolean') ||
+      !onlyKeys(f, ['name','label','type','required','minimum','maxLength','readOnly']) || !/^[a-z][a-zA-Z0-9_]{0,49}$/.test(f.name) || ['constructor', 'prototype', '__proto__', 'id', 'revision'].includes(f.name) || typeof f.label !== 'string' || !['string', 'number'].includes(f.type) || typeof f.required !== 'boolean') ||
     !Array.isArray(s.columns) || s.columns.some(c => !s.fields.some(f => f.name === c)))) reject('Unsupported declarative UI contribution');
   if (!m.configurationSchema || m.configurationSchema.type !== 'object' || m.configurationSchema.additionalProperties !== false) reject('Configuration must be a closed JSON object schema');
-  ajv.compile(m.configurationSchema);
+  configurationValidator(m.configurationSchema);
   if (!Array.isArray(m.integrationEvents) || m.integrationEvents.some(e => !e.name.startsWith(m.moduleId + '.') || !Number.isInteger(e.version) || e.version < 1 || !['produced', 'consumed'].includes(e.direction)) ||
       !Array.isArray(m.analyticalCapabilities) || m.analyticalCapabilities.some(c => typeof c.name !== 'string' || !Number.isInteger(c.version) || c.version < 1)) reject('Invalid event/analytical declarations');
 }
 export function validateConfiguration(manifest: ModulePackageManifest, configuration: unknown): void {
-  if (!ajv.compile(manifest.configurationSchema)(configuration)) reject('Configuration does not satisfy the module schema');
+  if (!configurationValidator(manifest.configurationSchema)(configuration)) reject('Configuration does not satisfy the module schema');
 }
 export function operationFor(manifest: ModulePackageManifest, method: string, path: string): ApiContribution | undefined {
   return manifest.api.find(op => op.method === method && (op.path === path || (op.path.endsWith('/:id') && new RegExp('^' + op.path.slice(0, -4) + '/[0-9a-f-]{36}$').test(path))));

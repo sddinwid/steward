@@ -9,6 +9,7 @@ export function compose(...args) {
   const files = ['-f', path.join(directory, 'compose.yaml')];
   if (existsSync(path.join(directory, 'security', 'compose.yaml'))) files.push('-f', path.join(directory, 'security', 'compose.yaml'));
   if (existsSync(path.join(directory, 'modules', 'compose.yaml'))) files.push('-f', path.join(directory, 'modules', 'compose.yaml'));
+  if (existsSync(path.join(directory, 'data/compose.yaml'))) files.push('-f', path.join(directory, 'data/compose.yaml'));
   return docker(['compose', ...files, ...args]);
 }
 export function sql(key, query) { return compose('exec', '-T', `${key}-db`, 'psql', '-U', 'postgres', '-d', 'steward', '-At', '-v', 'ON_ERROR_STOP=1', '-c', query); }

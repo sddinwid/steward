@@ -21,6 +21,7 @@ try {
   } else password = (await readFile(values['password-file'], 'utf8')).replace(/[\r\n]+$/, '');
   const files = ['-f', path.join(directory, 'compose.yaml'), '-f', path.join(securityDir, 'compose.yaml')];
   if (existsSync(path.join(directory, 'modules/compose.yaml'))) files.push('-f', path.join(directory, 'modules/compose.yaml'));
+  if (existsSync(path.join(directory, 'data/compose.yaml'))) files.push('-f', path.join(directory, 'data/compose.yaml'));
   execFileSync('docker', ['compose', ...files, 'exec', '-T', `${service}-api`, 'node', 'packages/platform/dist/security/admin-cli.js', '--username', username, '--role', role, '--password-stdin'], { input: password + '\n', stdio: ['pipe', 'pipe', 'pipe'] });
   console.log(`Created ${username} on ${service}. Read the password file privately; the password was not printed.`);
 } catch (e) { console.error(e.message?.startsWith('Usage:') ? e.message : 'Account creation failed. Check the deployment, role, username, password file, and uniqueness.'); process.exitCode = 1; }

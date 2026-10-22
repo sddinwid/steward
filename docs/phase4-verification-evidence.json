@@ -1,0 +1,366 @@
+{
+  "generatedAt": "2026-10-22T19:58:16.552Z",
+  "phase3BaselineCommit": "55ec7ef",
+  "environment": {
+    "node": "v24.13.0",
+    "npm": "10.3.0",
+    "dockerEngine": "29.9.1",
+    "compose": "5.6.0",
+    "host": "Windows / Linux containers",
+    "playwright": "1.58.2"
+  },
+  "unitTests": {
+    "passed": 23,
+    "failed": 0,
+    "skipped": 0
+  },
+  "phase2Regression": {
+    "verifiedAt": "2026-10-22T19:17:43.237Z",
+    "entityId": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+    "enrolledWorker": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+    "requestId": "588d0249-9656-4462-b33c-7a958d5cec45",
+    "assertions": "all passed",
+    "browserPageErrors": 0
+  },
+  "phase3Regression": {
+    "verifiedAt": "2026-10-22T19:15:11.365Z",
+    "checks": [
+      "Resumed verification; first-run absence evidence is retained in phase3-initial-baseline.json",
+      "Running Worker core images contain no Inventory package",
+      "Inventory is a separately built, versioned, signed immutable OCI package",
+      "worker-1: persisted Inventory supports browser creation/editing of real persistent records",
+      "worker-3: persisted Inventory supports browser creation/editing of real persistent records",
+      "Worker 2 remains module-free and unchanged; Worker 1/3 records, databases, and configuration are isolated",
+      "Every core image hash, container ID, and start time is unchanged during publication, installation, activation, and CRUD",
+      "Concurrent and repeated installation requests preserve one installation and one immutable module container",
+      "Unauthenticated, cross-Worker-session, invalid-configuration, and CSRF requests are rejected",
+      "Tampered/unknown-publisher packages, incompatible platform versions, and missing dependencies are rejected before provisioning",
+      "Worker-local module users require explicit API grants; read-only users can list but cannot write or administer, in API and browser",
+      "Deactivation stops the module and hides/rejects its API while preserving records; reactivation restores access",
+      "Real failing SQL migration reports failed state, rolls back its uncommitted transaction, and explicitly recovers with corrected signed version; databases are never dropped",
+      "Provider verifies TLS identity and Worker signatures, rejects exact replay, stale/wrong-installation/altered proofs; sensitive v3 routes are absent on HTTP",
+      "Module has only its own read-only secret subpath, no published port/socket/core credentials, isolated networks, and no permission to connect to the Worker core database",
+      "Worker and module-host restarts preserve enrollment, local administrator session, module configuration, activation, and inventory records without Master login",
+      "All Workers remain healthy/ready with the entire Master stack stopped; Inventory API writes and browser reads continue",
+      "Browser installation and CRUD flows have no uncaught JavaScript errors"
+    ],
+    "ranBeforeSyntheticEnrollment": true
+  },
+  "firstPhase4Run": {
+    "startedAt": "2026-10-22T19:26:31.151Z",
+    "finishedAt": "2026-10-22T19:28:37.712Z",
+    "findingId": "5c8017b6-a242-4456-bcd4-c7ceba9b5043"
+  },
+  "finalPhase4Run": {
+    "startedAt": "2026-10-22T19:51:27.577Z",
+    "finishedAt": "2026-10-22T19:53:36.966Z",
+    "checks": [
+      "All three companies create and edit persistent operational records independently through Chromium",
+      "Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness",
+      "Inventory retains old records, displays 800 stock / 200 reserved / 600 available and synchronizes its declared stock projection",
+      "Repeated real events deduplicate; older revisions never overwrite newer data; same-revision conflicts are rejected",
+      "Signed cross-entity claims, unauthorized analytical access, cross-Worker sessions, stale and replayed transport proofs are rejected",
+      "Master outage does not block operational writes; durable module outboxes and committed records survive Worker SIGKILL/restart",
+      "Killing a PostgreSQL transaction rolls back both its operational write and triggered outbox event atomically",
+      "SIGKILL during an in-flight exchange resumes safely; outage changes catch up incrementally with one inbox entry per event",
+      "Master issues a finding through Chromium; only affected Workers receive it, with entity-filtered supporting references",
+      "Controlled redelivery of actual finding events creates no duplicate local findings and is durably acknowledged",
+      "Offline finding acknowledgment survives process restart, synchronizes back to Master, rejects stale edits and survives later Master lifecycle updates",
+      "Original installation configuration, enrolled Worker 1 certificate and every pre-existing Inventory record remain intact",
+      "All installations remain healthy with their original identities; Chromium has zero uncaught errors"
+    ],
+    "findingId": "0780f168-def6-4d67-bf16-78b8a9c36a1a",
+    "browserPageErrors": 0,
+    "entities": {
+      "worker-1": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+      "worker-2": "8ff40000-0000-4000-8000-000000000002",
+      "worker-3": "8ff40000-0000-4000-8000-000000000003"
+    }
+  },
+  "outageIndependence": {
+    "startedAt": "2026-10-22T19:50:43.608Z",
+    "checks": 540,
+    "restartedWorker": true,
+    "finishedAt": "2026-10-22T19:51:11.034Z"
+  },
+  "firstRunOperationalRecordsSurvivedFullTeardown": true,
+  "provisioning": {
+    "verifiedAt": "2026-10-22T19:55:45.929Z",
+    "assertions": "all passed",
+    "filesPreserved": 69
+  },
+  "secretChecks": {
+    "verifiedAt": "2026-10-22T19:55:53.086Z",
+    "assertions": "all passed",
+    "secretsChecked": 18
+  },
+  "seedIdempotency": {
+    "verifiedAt": "2026-10-22T19:55:26.519Z",
+    "assertions": "all passed",
+    "counts": {
+      "worker-1": 5,
+      "worker-2": 5,
+      "worker-3": 5
+    },
+    "stableIds": true,
+    "preservedEdits": true
+  },
+  "fullTeardownRestart": {
+    "verifiedAt": "2026-10-22T19:33:48.587Z",
+    "assertions": "all passed"
+  },
+  "workers": {
+    "worker-1": {
+      "installationId": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+      "syncStatus": {
+        "singleton": true,
+        "attempts": 0,
+        "next_attempt_at": "2026-10-22T19:58:09.988369+00:00",
+        "last_attempt_at": "2026-10-22T19:58:09.928184+00:00",
+        "last_success_at": "2026-10-22T19:58:09.988369+00:00",
+        "error_code": null
+      },
+      "coreOutboxPending": 0,
+      "modules": [
+        {
+          "moduleId": "cee.inventory",
+          "version": "1.1.0",
+          "state": "active",
+          "configuration": {
+            "quantityUnit": "pieces"
+          },
+          "image": "sha256:c49d3f2b1f83e8ebab67273380ad4d3f855fe29bfcc056227aac9a1a600dc587",
+          "outbox": {
+            "events": 6,
+            "acknowledged": 6,
+            "pending": 0
+          }
+        },
+        {
+          "moduleId": "cee.migration-check",
+          "version": "1.0.1",
+          "state": "disabled",
+          "configuration": {
+            "quantityUnit": "fixtures"
+          },
+          "image": "sha256:f3aae540460239737a4033f06f274da76430db13648c60134c9eed1687284630"
+        },
+        {
+          "moduleId": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "currency": "EUR"
+          },
+          "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+          "outbox": {
+            "events": 15,
+            "acknowledged": 15,
+            "pending": 0
+          }
+        }
+      ]
+    },
+    "worker-2": {
+      "installationId": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+      "syncStatus": {
+        "singleton": true,
+        "attempts": 0,
+        "next_attempt_at": "2026-10-22T19:58:10.895139+00:00",
+        "last_attempt_at": "2026-10-22T19:58:10.855902+00:00",
+        "last_success_at": "2026-10-22T19:58:10.895139+00:00",
+        "error_code": null
+      },
+      "coreOutboxPending": 0,
+      "modules": [
+        {
+          "moduleId": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "currency": "EUR"
+          },
+          "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+          "outbox": {
+            "events": 13,
+            "acknowledged": 13,
+            "pending": 0
+          }
+        }
+      ]
+    },
+    "worker-3": {
+      "installationId": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+      "syncStatus": {
+        "singleton": true,
+        "attempts": 0,
+        "next_attempt_at": "2026-10-22T19:58:12.648921+00:00",
+        "last_attempt_at": "2026-10-22T19:58:12.611009+00:00",
+        "last_success_at": "2026-10-22T19:58:12.648921+00:00",
+        "error_code": null
+      },
+      "coreOutboxPending": 0,
+      "modules": [
+        {
+          "moduleId": "cee.inventory",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "quantityUnit": "boxes"
+          },
+          "image": "sha256:4b4a9640260ee2b20e6f486a0c6be1e701c839306c902d3b616ce85a578178e8"
+        },
+        {
+          "moduleId": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "currency": "EUR"
+          },
+          "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+          "outbox": {
+            "events": 13,
+            "acknowledged": 13,
+            "pending": 0
+          }
+        }
+      ]
+    }
+  },
+  "master": {
+    "analyticalRecords": 21,
+    "inboxEvents": 51,
+    "findings": 4,
+    "relationships": 2,
+    "peers": 3,
+    "findingsPending": 0
+  },
+  "runtime": [
+    {
+      "name": "steward-dev-worker-3-api-1",
+      "image": "sha256:6169c7e1848a9aa33cd614ddb7eaf915212c67eef37d94a2d0cd4d96f50c01c1",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-api-1",
+      "image": "sha256:6169c7e1848a9aa33cd614ddb7eaf915212c67eef37d94a2d0cd4d96f50c01c1",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-api-1",
+      "image": "sha256:6169c7e1848a9aa33cd614ddb7eaf915212c67eef37d94a2d0cd4d96f50c01c1",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-api-1",
+      "image": "sha256:b2973e1c179a9c107a43bcba8343e11656c6b51188e35644b722710c27edf2fd",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-module-host-1",
+      "image": "sha256:01325a806e493790b56048237e9cf7854ab23586a7b30a14ef63c621fb814e8a",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-module-host-1",
+      "image": "sha256:01325a806e493790b56048237e9cf7854ab23586a7b30a14ef63c621fb814e8a",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-module-host-1",
+      "image": "sha256:01325a806e493790b56048237e9cf7854ab23586a7b30a14ef63c621fb814e8a",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-web-1",
+      "image": "sha256:5e3cc81517aea37d6c449fb9413bc73e41b773791207f51220167fb98aa7ba08",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-web-1",
+      "image": "sha256:7ab6f0e205fc37feaa5e3d4d3e7747bc8ef5aae8180abdc5e0508a454accdd59",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-web-1",
+      "image": "sha256:7ab6f0e205fc37feaa5e3d4d3e7747bc8ef5aae8180abdc5e0508a454accdd59",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-web-1",
+      "image": "sha256:7ab6f0e205fc37feaa5e3d4d3e7747bc8ef5aae8180abdc5e0508a454accdd59",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-m_f7b7e9d62f4f73bc531c",
+      "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+      "status": "running",
+      "health": "module readiness tested through authenticated API"
+    },
+    {
+      "name": "steward-dev-worker-1-m_f7b7e9d62f4f73bc531c",
+      "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+      "status": "running",
+      "health": "module readiness tested through authenticated API"
+    },
+    {
+      "name": "steward-dev-worker-3-m_1675588e58787da091eb",
+      "image": "sha256:4b4a9640260ee2b20e6f486a0c6be1e701c839306c902d3b616ce85a578178e8",
+      "status": "running",
+      "health": "module readiness tested through authenticated API"
+    },
+    {
+      "name": "steward-dev-worker-1-m_dc5229d2c1ec486488f6",
+      "image": "sha256:f3aae540460239737a4033f06f274da76430db13648c60134c9eed1687284630",
+      "status": "exited",
+      "health": "module readiness tested through authenticated API"
+    },
+    {
+      "name": "steward-dev-worker-2-m_f7b7e9d62f4f73bc531c",
+      "image": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+      "status": "running",
+      "health": "module readiness tested through authenticated API"
+    },
+    {
+      "name": "steward-dev-worker-1-m_1675588e58787da091eb",
+      "image": "sha256:c49d3f2b1f83e8ebab67273380ad4d3f855fe29bfcc056227aac9a1a600dc587",
+      "status": "running",
+      "health": "module readiness tested through authenticated API"
+    }
+  ]
+}

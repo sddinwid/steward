@@ -1,6 +1,6 @@
 {
   "name": "steward-platform",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer",
-    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory",
+    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations",
     "provision": "node tools/installer/dist/cli.js provision",
     "security:provision": "node tools/installer/dist/security-cli.js",
     "dev:up": "node scripts/compose.mjs up --build -d --wait --wait-timeout 180",
@@ -25,7 +25,12 @@
     "modules:publish": "node scripts/publish-module.mjs",
     "build:inventory": "cd modules/inventory && npm ci && npm run build",
     "test:inventory": "cd modules/inventory && npm test",
-    "verify:phase3": "node scripts/verify-phase3.mjs"
+    "verify:phase3": "node scripts/verify-phase3.mjs",
+    "data:provision": "node tools/installer/dist/data-cli.js",
+    "build:operations": "cd modules/operations && npm ci && npm run build",
+    "test:operations": "cd modules/operations && npm test",
+    "seed:phase4": "node scripts/seed-phase4.mjs",
+    "verify:phase4": "node scripts/verify-phase4.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

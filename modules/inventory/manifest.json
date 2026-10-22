@@ -2,32 +2,127 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.inventory",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Inventory",
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
-  "minimumPlatformVersion": "0.3.0",
+  "minimumPlatformVersion": "0.4.0",
   "dependencies": [],
-  "requiredPermissions": ["storage.own-database"],
-  "api": [
-    { "operationId": "listItems", "method": "GET", "path": "/items", "permission": "cee.inventory.read" },
-    { "operationId": "createItem", "method": "POST", "path": "/items", "permission": "cee.inventory.write" },
-    { "operationId": "updateItem", "method": "PUT", "path": "/items/:id", "permission": "cee.inventory.write" }
+  "requiredPermissions": [
+    "storage.own-database"
   ],
-  "ui": [{
-    "screenId": "items", "title": "Inventory items", "navigationLabel": "Inventory",
-    "listOperation": "listItems", "createOperation": "createItem", "updateOperation": "updateItem",
-    "fields": [
-      { "name": "sku", "label": "SKU", "type": "string", "required": true, "maxLength": 80 },
-      { "name": "name", "label": "Item name", "type": "string", "required": true, "maxLength": 160 },
-      { "name": "quantity", "label": "Quantity", "type": "number", "required": true, "minimum": 0 }
-    ],
-    "columns": ["sku", "name", "quantity"]
-  }],
+  "api": [
+    {
+      "operationId": "listItems",
+      "method": "GET",
+      "path": "/items",
+      "permission": "cee.inventory.read"
+    },
+    {
+      "operationId": "createItem",
+      "method": "POST",
+      "path": "/items",
+      "permission": "cee.inventory.write"
+    },
+    {
+      "operationId": "updateItem",
+      "method": "PUT",
+      "path": "/items/:id",
+      "permission": "cee.inventory.write"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "items",
+      "title": "Inventory items",
+      "navigationLabel": "Inventory",
+      "listOperation": "listItems",
+      "createOperation": "createItem",
+      "updateOperation": "updateItem",
+      "fields": [
+        {
+          "name": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Item name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "reservedQuantity",
+          "label": "Reserved quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "availableQuantity",
+          "label": "Available quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sku",
+        "name",
+        "quantity",
+        "availableQuantity"
+      ]
+    }
+  ],
   "configurationSchema": {
-    "type": "object", "additionalProperties": false, "required": ["quantityUnit"],
-    "properties": { "quantityUnit": { "type": "string", "minLength": 1, "maxLength": 40, "default": "units" } }
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "quantityUnit"
+    ],
+    "properties": {
+      "quantityUnit": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40,
+        "default": "units"
+      }
+    }
   },
-  "persistence": { "isolation": "dedicated-database", "schemaVersion": 1, "migrations": [], "destructiveRollback": false },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 2,
+    "migrations": [],
+    "destructiveRollback": false
+  },
   "integrationEvents": [],
-  "analyticalCapabilities": []
+  "analyticalCapabilities": [],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "items",
+        "table": "inventory_items",
+        "idColumn": "item_id",
+        "revisionColumn": "revision",
+        "columns": [
+          "item_id",
+          "revision",
+          "sku",
+          "name",
+          "quantity",
+          "reserved_quantity"
+        ]
+      }
+    ]
+  }
 }

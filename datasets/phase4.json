@@ -1,0 +1,86 @@
+{
+  "datasetVersion": 1,
+  "description": "Synthetic storage cooperation scenario. All costs monthly in EUR; quantities in cubic metres unless inventory units are stated.",
+  "companies": [
+    {
+      "worker": "worker-1",
+      "role": "manufacturing",
+      "name": "Synthetic Manufacturer",
+      "entityId": null,
+      "records": [
+        {
+          "path": "capacities",
+          "name": "Factory finished goods store",
+          "site": "Industrial district",
+          "capacity_m3": 1200,
+          "utilized_m3": 900,
+          "monthly_operating_cost": 4800,
+          "currency": "EUR",
+          "seedKey": "manufacturing-1"
+        }
+      ]
+    },
+    {
+      "worker": "worker-2",
+      "role": "distribution",
+      "name": "Synthetic Distributor",
+      "entityId": "8ff40000-0000-4000-8000-000000000002",
+      "records": [
+        {
+          "path": "storage",
+          "name": "External warehousing contract",
+          "site": "Regional logistics hub",
+          "required_m3": 500,
+          "utilized_m3": 420,
+          "monthly_external_cost": 10000,
+          "currency": "EUR",
+          "seedKey": "distribution-1"
+        }
+      ]
+    },
+    {
+      "worker": "worker-3",
+      "role": "asset_holding",
+      "name": "Synthetic Asset Holding",
+      "entityId": "8ff40000-0000-4000-8000-000000000003",
+      "records": [
+        {
+          "path": "assets",
+          "name": "Underutilized warehouse",
+          "site": "Regional logistics hub",
+          "capacity_m3": 1500,
+          "utilized_m3": 300,
+          "monthly_operating_cost": 4500,
+          "currency": "EUR",
+          "seedKey": "asset_holding-1"
+        }
+      ]
+    }
+  ],
+  "inventory": {
+    "sku": "SYNTHETIC-FG-001",
+    "name": "Synthetic finished goods",
+    "quantity": 800,
+    "reservedQuantity": 200
+  },
+  "relationships": [
+    {
+      "from": "worker-1",
+      "to": "worker-2",
+      "kind": "supply_partner",
+      "description": "Manufacturer supplies the distributor; independent authoritative records."
+    },
+    {
+      "from": "worker-2",
+      "to": "worker-3",
+      "kind": "potential_storage_partner",
+      "description": "Unused warehouse capacity may substitute external storage, subject to feasibility and incremental operating costs."
+    }
+  ],
+  "assumptions": [
+    "Costs are synthetic and exclude tax, transport, fit-out and one-off conversion costs.",
+    "Available asset capacity is 1200 m³; distributor required storage is 500 m³.",
+    "No savings calculation or AI recommendation is implemented in Phase 4.",
+    "Worker 1 uses its existing enrolled legal entity; the seed does not change its installation identity or enrollment."
+  ]
+}

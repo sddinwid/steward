@@ -21,7 +21,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@steward/module-sdk": "1.0.0",
+    "@steward/module-sdk": "1.1.0",
     "@types/react": "19.3.0"
   }
 }

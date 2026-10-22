@@ -11,12 +11,17 @@ export function createServer(installation: InstallationConfig, database: Platfor
   app.get('/health', async () => ({ status: 'ok', role: installation.role, release: RELEASE }));
   app.get('/ready', async (_request, reply) => {
     try { await database.check(); return { status: 'ready', role: installation.role }; }
-    catch { return reply.code(503).send({ status: 'not_ready', dependency: 'database' }); }
+    catch (error) {
+      const failure=error as Error & {code?:string};
+      const code=failure.message==='Persistence readiness failed'?'IDENTITY_OR_SCHEMA_MISMATCH':failure.message==='Query read timeout'?'DATABASE_QUERY_TIMEOUT':failure.message==='timeout exceeded when trying to connect'?'DATABASE_POOL_TIMEOUT':failure.code??'DATABASE_UNAVAILABLE';
+      _request.log.warn({code},'Database readiness check failed');
+      return reply.code(503).send({ status: 'not_ready', dependency: 'database' });
+    }
   });
   app.get('/api/v1/platform', async (): Promise<PlatformOverview> => ({
     release: RELEASE, installation: structuredClone(installation), modules: await database.modules?.() ?? [],
     ...(administrationOrigin ? { administrationOrigin } : {}),
-    extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: 'not_implemented' }
+    extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: administrationOrigin ? 'available' : 'not_implemented' }
   }));
   app.setErrorHandler((error, request, reply) => {
     const failure = error as Partial<FastifyError>;

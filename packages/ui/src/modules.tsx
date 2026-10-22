@@ -44,8 +44,9 @@ export function ModuleConsole({ api, administrator }: { api: Api; administrator:
         {p.manifest ? <details><summary>Package details</summary><pre>{JSON.stringify(p.manifest, null, 2)}</pre><p>Image: <code>{p.imageId}</code></p></details> : null}
         {p.trusted && p.compatible ? <><label>Configuration for {p.packageId}<textarea aria-label={`Configuration for ${p.packageId}`} rows={3} value={configuration(p)} onChange={e => setConfigurations({ ...configurations, [p.packageId]: e.target.value })} /></label>
           <button disabled={busy} onClick={() => void act(() => api('/v3/modules/install', 'POST', { packageId: p.packageId, operationId: crypto.randomUUID(), configuration: JSON.parse(configuration(p)),
+            upgrade: manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && m.version !== p.manifest.version && !['failed','installing'].includes(m.state)),
             ...(manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && ['failed', 'installing'].includes(m.state)) ? { recover: true } : {}) }))}>
-            {manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && ['failed', 'installing'].includes(m.state)) ? 'Recover' : 'Install'} {p.manifest.name}</button></> : null}
+            {manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && ['failed', 'installing'].includes(m.state)) ? 'Recover' : manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && m.version !== p.manifest.version) ? 'Upgrade to' : 'Install'} {p.manifest.name}</button></> : null}
       </div>) : <p>No trusted module packages have been published.</p>}
       {manager.installed.length ? <details><summary>Module user permissions</summary><p>Local administrators manage modules. Module users receive only explicitly granted module API permissions.</p>
         <div className="form-grid"><label>Module user<select aria-label="Module user" value={scopeAccount} onChange={e => setScopeAccount(e.target.value)}><option value="">Select user</option>{accounts.filter(a => a.role === 'module_user').map(a => <option key={a.account_id} value={a.account_id}>{a.username}</option>)}</select></label>
@@ -75,7 +76,7 @@ function ModuleScreen({ api, module, screen }: { api: Api; module: DiscoveredMod
     e.preventDefault(); setBusy(true); setError('');
     try {
       const operation = editing ? update! : create!;
-      const body = Object.fromEntries(screen.fields.map(f => [f.name, f.type === 'number' ? Number(values[f.name]) : values[f.name] ?? '']));
+      const body = Object.fromEntries(screen.fields.filter(f => !f.readOnly).map(f => [f.name, f.type === 'number' ? Number(values[f.name]) : values[f.name] ?? '']));
       if (editing && editing.revision !== undefined) body.revision = editing.revision;
       await api(base + operation.path.replace(':id', encodeURIComponent(editing?.id ?? '')), operation.method, body);
       setValues({}); setEditing(undefined); await refresh();
@@ -83,7 +84,7 @@ function ModuleScreen({ api, module, screen }: { api: Api; module: DiscoveredMod
   }
   return <section data-testid={`module-screen-${module.moduleId}`}><h2>{screen.title}</h2>{summary ? <p>{summary}</p> : null}
     {error ? <p role="alert" className="form-error">{error}</p> : null}
-    {create || editing && update ? <form className="form-grid" onSubmit={save}>{screen.fields.map(f => <label key={f.name}>{f.label}<input aria-label={f.label} type={f.type === 'number' ? 'number' : 'text'} step={f.type === 'number' ? 'any' : undefined} min={f.minimum} maxLength={f.maxLength} required={f.required} value={values[f.name] ?? ''} onChange={e => setValues({ ...values, [f.name]: e.target.value })} /></label>)}<button disabled={busy} type="submit">{editing ? 'Save changes' : 'Create record'}</button>{editing ? <button type="button" onClick={() => { setEditing(undefined); setValues({}); }}>Cancel edit</button> : null}</form> : null}
+    {create || editing && update ? <form className="form-grid" onSubmit={save}>{screen.fields.filter(f => !f.readOnly).map(f => <label key={f.name}>{f.label}<input aria-label={f.label} type={f.type === 'number' ? 'number' : 'text'} step={f.type === 'number' ? 'any' : undefined} min={f.minimum} maxLength={f.maxLength} required={f.required} value={values[f.name] ?? ''} onChange={e => setValues({ ...values, [f.name]: e.target.value })} /></label>)}<button disabled={busy} type="submit">{editing ? 'Save changes' : 'Create record'}</button>{editing ? <button type="button" onClick={() => { setEditing(undefined); setValues({}); }}>Cancel edit</button> : null}</form> : null}
     <button onClick={() => void refresh().catch(e => setError(e.message))}>Refresh records</button>
     <div className="module-table"><table><thead><tr>{screen.columns.map(c => <th key={c}>{screen.fields.find(f => f.name === c)?.label ?? c}</th>)}{update ? <th>Actions</th> : null}</tr></thead><tbody>{records.map(record => <tr key={record.id}>{screen.columns.map(c => <td key={c}>{String(record[c] ?? '')}</td>)}{update ? <td><button onClick={() => { setEditing(record); setValues(record); }}>Edit record</button></td> : null}</tr>)}</tbody></table></div>
     {!records.length ? <p>No records yet.</p> : null}

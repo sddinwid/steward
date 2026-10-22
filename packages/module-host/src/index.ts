@@ -3,7 +3,7 @@ import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
-import { canonical, digest, verifyPackage, validateConfiguration, operationFor, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
+import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
 
 interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
@@ -12,9 +12,16 @@ interface HostConfig {
 }
 const config: HostConfig = JSON.parse(await readFile(process.env.MODULE_HOST_CONFIG!, 'utf8'));
 const stateRoot = '/var/lib/steward/modules';
-const pool = new pg.Pool({ host: config.databaseHost, user: 'postgres', database: 'postgres', password: (await readFile(config.databasePasswordFile, 'utf8')).trim(),
+const adminConnection = { host: config.databaseHost, user: 'postgres', database: 'postgres', password: (await readFile(config.databasePasswordFile, 'utf8')).trim() };
+const pool = new pg.Pool({ ...adminConnection,
   max: 5, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
 pool.on('error', () => {});
+const resourcePool = new pg.Pool({ ...adminConnection, max: 2, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
+resourcePool.on('error', () => {});
+async function moduleDatabase<T>(id: string, work: (client: pg.Client) => Promise<T>): Promise<T> {
+  const client = new pg.Client({ host: config.databaseHost, user: slug(id), database: slug(id), password: (await readFile(`${stateRoot}/${slug(id)}/db-password`, 'utf8')).trim(), connectionTimeoutMillis: 3000, statement_timeout: 10000 });
+  await client.connect(); try { return await work(client); } finally { await client.end(); }
+}
 await pool.query('CREATE TABLE IF NOT EXISTS module_host_nonces(nonce uuid PRIMARY KEY, expires_at timestamptz NOT NULL)');
 await mkdir(stateRoot, { recursive: true });
 const app = Fastify({ https: { key: await readFile('/run/secrets/tls_key'), cert: await readFile('/run/secrets/tls_cert'), minVersion: 'TLSv1.3' }, logger: false, bodyLimit: 65536, requestTimeout: 60000 });
@@ -68,7 +75,7 @@ async function ready(id: string) {
   }
   failure('MODULE_START_FAILED');
 }
-async function install(descriptor: SignedModulePackage, configuration: unknown) {
+async function install(descriptor: SignedModulePackage, configuration: unknown, upgrade = false) {
   const payload = descriptor.payload; const m = payload.manifest; const id = m.moduleId;
   const inspected = await docker('GET', '/images/' + payload.imageId + '/json', undefined, [200, 404]);
   if (inspected.status !== 200) failure('IMAGE_UNAVAILABLE');
@@ -89,15 +96,15 @@ async function install(descriptor: SignedModulePackage, configuration: unknown) 
   const password = (await readFile(base + '/db-password', 'utf8')).trim();
   const db = slug(id);
   // Identifiers and password are generated, never supplied by a package.
-  if (!(await pool.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [db])).rowCount) await pool.query(`CREATE ROLE ${db} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION`);
-  if (!(await pool.query('SELECT 1 FROM pg_database WHERE datname=$1', [db])).rowCount) await pool.query(`CREATE DATABASE ${db} OWNER ${db}`);
-  await pool.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
-  await pool.query(`GRANT CONNECT ON DATABASE ${db} TO ${db}`);
+  if (!(await resourcePool.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [db])).rowCount) await resourcePool.query(`CREATE ROLE ${db} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION`);
+  if (!(await resourcePool.query('SELECT 1 FROM pg_database WHERE datname=$1', [db])).rowCount) await resourcePool.query(`CREATE DATABASE ${db} OWNER ${db}`);
+  await resourcePool.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
+  await resourcePool.query(`GRANT CONNECT ON DATABASE ${db} TO ${db}`);
   await atomicJson(base + '/runtime.json', { installationId: config.installationId, moduleId: id, version: m.version,
     databaseHost: config.databaseHost, databaseName: db, databaseUser: db, configuration, persistence: m.persistence }, 0o644);
   let container = await ownedContainer(id);
   if (container && container.Image !== payload.imageId) {
-    if (existing.phase === 'active') failure('ACTIVE_UPGRADE_UNSUPPORTED');
+    if (existing.phase === 'active' && !upgrade) failure('ACTIVE_UPGRADE_UNSUPPORTED');
     await docker('POST', '/containers/' + containerName(id) + '/stop?t=5', undefined, [204, 304]);
     await docker('DELETE', '/containers/' + containerName(id), undefined, [204]);
     container = undefined;
@@ -118,6 +125,20 @@ async function install(descriptor: SignedModulePackage, configuration: unknown) 
     await save(id, { moduleId: id, phase: 'failed', version: m.version });
     await docker('POST', '/containers/' + containerName(id) + '/stop?t=5', undefined, [204, 304]);
     failure('MIGRATION_FAILED');
+  }
+  if (m.replication) {
+    const core = new pg.Client({ ...adminConnection, database: 'steward' });
+    await core.connect();
+    let enrollment;
+    try { enrollment = (await core.query("SELECT entity_id,entity_name,certificate FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0]; } finally { await core.end(); }
+    if (!enrollment) failure('ENROLLMENT_REQUIRED');
+    await moduleDatabase(id, async client => {
+      await client.query('BEGIN');
+      try {
+        await client.query(captureSql(m, { installationId: config.installationId, role: 'worker', entity: { entityId: enrollment.entity_id, displayName: enrollment.entity_name } }, enrollment.certificate.payload.issuer));
+        await client.query('COMMIT');
+      } catch (e) { await client.query('ROLLBACK'); throw e; }
+    });
   }
   await docker('POST', '/containers/' + containerName(id) + '/stop?t=5', undefined, [204, 304]);
   await save(id, { moduleId: id, phase: 'installed', version: m.version, imageId: payload.imageId });
@@ -145,9 +166,19 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
-    if (p.operation === 'install') return await install(descriptor, p.configuration);
+    if (p.operation === 'install') return await install(descriptor, p.configuration, p.upgrade === true);
     const current = await state(p.moduleId);
     if (!current || current.version !== p.version) failure('MODULE_NOT_INSTALLED');
+    if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
+      if (!payload.manifest.replication) return { events: [] };
+      return moduleDatabase(p.moduleId, async sql => {
+        if (p.operation === 'outbox.read') return { events: (await sql.query('SELECT envelope FROM sync_outbox WHERE acknowledged_at IS NULL AND next_attempt_at<=now() ORDER BY created_at,event_id LIMIT 10')).rows.map(r => r.envelope) };
+        for (const ids of [p.acknowledged, p.failed]) if (!Array.isArray(ids) || ids.length > 20 || ids.some((id: unknown) => typeof id !== 'string' || !/^[0-9a-f-]{36}$/.test(id))) failure('INVALID_ACKNOWLEDGMENT');
+        await sql.query('UPDATE sync_outbox SET acknowledged_at=now(),error_code=NULL WHERE event_id=ANY($1::uuid[])', [p.acknowledged]);
+        await sql.query("UPDATE sync_outbox SET attempts=attempts+1,error_code='TRANSPORT_UNAVAILABLE',next_attempt_at=now()+least(30,power(2,least(attempts,5)))*interval '1 second' WHERE event_id=ANY($1::uuid[]) AND acknowledged_at IS NULL", [p.failed]);
+        return { saved: true };
+      });
+    }
     if (p.operation === 'activate') {
       const c = await ownedContainer(p.moduleId); if (!c || c.Image !== payload.imageId) failure('RESOURCE_OWNERSHIP_MISMATCH');
       await docker('POST', '/containers/' + containerName(p.moduleId) + '/start'); await ready(p.moduleId);
@@ -173,7 +204,7 @@ app.setErrorHandler((error, _request, reply) => {
   const code = (error as { code?: string }).code;
   reply.code(503).send({ error: code && /^[A-Z_]+$/.test(code) ? code : 'MODULE_RUNTIME_FAILED' });
 });
-app.addHook('onClose', async () => { await pool.end(); });
+app.addHook('onClose', async () => { await pool.end(); await resourcePool.end(); });
 for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => void app.close().then(() => process.exit(0)));
 // Recreate disposable containers after a deployment teardown. Durable databases,
 // secret subpaths, signed package identities and desired activation survive.

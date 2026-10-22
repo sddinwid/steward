@@ -78,3 +78,17 @@ export interface EnrollmentCertificate {
 }
 export interface LegalEntity { entityId: string; name: string; classification: string; enrollmentEligible: boolean }
 export type EnrollmentState = 'unenrolled' | 'pending' | 'enrolled' | 'rejected' | 'expired';
+
+/** Phase 4 durable transport; operational authority remains at its source. */
+export interface DataEvent extends SynchronizationEnvelope<Record<string, unknown>> {
+  eventType: 'record.upsert' | 'finding.issued' | 'finding.status';
+  moduleId: string; streamId: string; recordId: string; recordRevision: number;
+}
+export interface SyncExchange {
+  protocol: 'steward-sync-v1'; installationId: string; entityId: string;
+  nonce: string; issuedAt: number; events: DataEvent[]; acknowledgments: string[];
+}
+export interface SyncReceipt {
+  protocol: 'steward-sync-v1'; issuer: string; installationId: string; nonce: string;
+  acknowledged: string[]; events: DataEvent[];
+}

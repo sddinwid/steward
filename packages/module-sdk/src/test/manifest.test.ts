@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { generateKeyPairSync } from 'node:crypto';
+import { boundedLookup } from '../network.js';
 import { assertCompatible, operationFor, signPackage, verifyPackage, validateConfiguration, validateManifest, type ModulePackageManifest } from '../index.js';
 const m: ModulePackageManifest = {
   manifestVersion: 1, sdkVersion: 1, moduleId: 'example.records', version: '1.0.0', name: 'Records', description: 'Test package', minimumPlatformVersion: '0.3.0', dependencies: [],
@@ -10,6 +11,19 @@ const m: ModulePackageManifest = {
   configurationSchema: { type: 'object', additionalProperties: false, required: ['unit'], properties: { unit: { type: 'string', minLength: 1 } } },
   persistence: { isolation: 'dedicated-database', schemaVersion: 1, migrations: [{ version: 1, sha256: 'a'.repeat(64) }], destructiveRollback: false }, integrationEvents: [], analyticalCapabilities: []
 };
+test('replication projections reject executable identifiers and equivalent schemas retain validation',()=>{
+  const valid={...m,replication:{contractVersion:1 as const,streams:[{streamId:'records',table:'records',idColumn:'id',revisionColumn:'revision',columns:['id','revision','name']}]}};
+  validateManifest(valid);
+  assert.throws(()=>validateManifest({...valid,replication:{contractVersion:1,streams:[{...valid.replication.streams[0]!,table:'records; DROP TABLE users'}]}}));
+  for(let i=0;i<120;i++)validateConfiguration(structuredClone(valid),{unit:'items'});
+  assert.throws(()=>validateConfiguration(structuredClone(valid),{unit:'items',extra:true}));
+});
+test('outbound resolution preserves literal addresses and requested address family without DNS work',async()=>{
+ const addresses=await new Promise((resolve,reject)=>boundedLookup('127.0.0.1',{all:true},(error:Error|null,result:unknown)=>error?reject(error):resolve(result)));
+ assert.deepEqual(addresses,[{address:'127.0.0.1',family:4}]);
+ const error=await new Promise(resolve=>boundedLookup('127.0.0.1',{family:6},(error:Error)=>resolve(error)));
+ assert.equal((error as any).code,'ENOTFOUND');
+});
 test('signed packages reject tampering, unknown publishers, and changed immutable image identity', () => {
   const keys = generateKeyPairSync('ed25519');
   const privateKey = keys.privateKey.export({ type: 'pkcs8', format: 'pem' }).toString();

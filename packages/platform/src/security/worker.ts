@@ -1,4 +1,5 @@
 import { request as httpsRequest } from 'node:https';
+import { boundedLookup } from '@steward/module-sdk';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import type pg from 'pg';
@@ -15,7 +16,7 @@ export async function masterRequest(profile: TrustedMaster, pathname: string, bo
   if (url.origin !== profile.apiUrl || url.protocol !== 'https:') throw new Error('Untrusted destination');
   return new Promise((resolve, reject) => {
     const data = body === undefined ? undefined : JSON.stringify(body);
-    const req = httpsRequest(url, { method: data ? 'POST' : 'GET', ca, rejectUnauthorized: true, timeout: 3000,
+    const req = httpsRequest(url, { method: data ? 'POST' : 'GET', ca, rejectUnauthorized: true, timeout: 3000, signal: AbortSignal.timeout(4000), lookup: boundedLookup,
       headers: data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {} }, res => {
       let response = '';
       res.setEncoding('utf8');

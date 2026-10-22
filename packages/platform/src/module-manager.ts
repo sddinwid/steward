@@ -1,7 +1,8 @@
+import { createModuleBroker } from './module-broker.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { request } from 'node:https';
-import { canonical, digest, verifyPackage, validateConfiguration, assertCompatible, operationFor, type ModuleCatalog, type SignedModulePackage, type PublisherTrust } from '@steward/module-sdk';
+import { atLeast, canonical, digest, verifyPackage, validateConfiguration, assertCompatible, operationFor, type ModuleCatalog, type SignedModulePackage, type PublisherTrust } from '@steward/module-sdk';
 import type { InstallationConfig } from '@steward/contracts';
 import type pg from 'pg';
 import type { Authentication, SecureApp, Account } from './security/auth.js';
@@ -23,26 +24,13 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     if (actor.role !== 'local_admin') fail(403, 'Worker-local module administrator required');
     return actor;
   }
-  async function rows() { return (await pool.query('SELECT * FROM module_installations ORDER BY module_id')).rows; }
+  async function rows(client?: pg.PoolClient) { return (await (client ?? pool).query('SELECT * FROM module_installations ORDER BY module_id')).rows; }
   async function permissions(actor: Account, moduleId: string, declared: string[]) {
     if (actor.role === 'local_admin') return declared;
     if (actor.role !== 'module_user') return [];
     return (await pool.query('SELECT permission FROM module_permissions WHERE account_id=$1 AND module_id=$2', [actor.account_id, moduleId])).rows.map(r => r.permission).filter(p => declared.includes(p));
   }
-  async function broker(operation: string, descriptor: SignedModulePackage, configuration: unknown, extra = {}): Promise<{ status: number; value: any }> {
-    const payload = { protocol: 'steward-module-control-v1', installationId: installation.installationId, nonce: randomUUID(), issuedAt: Date.now(), operation,
-      moduleId: descriptor.payload.manifest.moduleId, version: descriptor.payload.manifest.version, configuration, ...extra };
-    const body = JSON.stringify(signAssertion(payload, key));
-    const ca = await readFile(runtime.caFile);
-    return new Promise((resolve, reject) => {
-      const req = request(new URL('/control', runtime.brokerUrl), { method: 'POST', ca, servername: runtime.tlsServerName, rejectUnauthorized: true, timeout: 60000,
-        headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) } }, res => {
-        let value = ''; res.setEncoding('utf8'); res.on('data', chunk => { value += chunk; if (value.length > 1048576) req.destroy(new Error('Module response too large')); });
-        res.on('end', () => { try { resolve({ status: res.statusCode ?? 503, value: JSON.parse(value) }); } catch { reject(new Error('Module runtime response invalid')); } });
-      });
-      req.on('timeout', () => req.destroy(new Error('Module runtime timeout'))); req.on('error', reject); req.end(body);
-    });
-  }
+  const broker = await createModuleBroker(configFile, installation, key);
   app.get('/api/v3/modules', async req => {
     await admin(req);
     const { catalog: c, trust } = await catalog();
@@ -73,9 +61,9 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     }
     return { modules };
   });
-  app.post<{ Body: { packageId: string; operationId: string; configuration: unknown; recover?: boolean } }>('/api/v3/modules/install', {
+  app.post<{ Body: { packageId: string; operationId: string; configuration: unknown; recover?: boolean; upgrade?: boolean } }>('/api/v3/modules/install', {
     schema: { body: { type: 'object', additionalProperties: false, required: ['packageId', 'operationId', 'configuration'], properties: {
-      packageId: { type: 'string', maxLength: 120 }, operationId: { type: 'string', format: 'uuid' }, configuration: { type: 'object' }, recover: { type: 'boolean' }
+      packageId: { type: 'string', maxLength: 120 }, operationId: { type: 'string', format: 'uuid' }, configuration: { type: 'object' }, recover: { type: 'boolean' }, upgrade: { type: 'boolean' }
     } } }
   }, async (req, reply) => {
     const actor = await admin(req, true);
@@ -90,22 +78,24 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     try {
       locked = (await client.query('SELECT pg_try_advisory_lock(hashtext($1)) AS acquired', ['module:' + m.moduleId])).rows[0].acquired;
       if (!locked) fail(409, 'A module operation is already in progress');
-      const installed = await rows();
+      const installed = await rows(client);
       try { assertCompatible(m, RELEASE, installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state }))); } catch (e) { fail(409, (e as Error).message); }
       const existing = installed.find(r => r.module_id === m.moduleId);
+      if (m.replication && !(await client.query("SELECT 1 FROM local_enrollment WHERE singleton AND state='enrolled'")).rowCount) fail(409, 'Enrollment is required for this module');
+      if (req.body.upgrade && (!existing || !atLeast(m.version, existing.version) || m.version === existing.version)) fail(409, 'Upgrade requires a newer compatible package');
       if (installed.some(r => r.operation_id === req.body.operationId && r.module_id !== m.moduleId)) fail(409, 'Operation ID belongs to another module');
       if (existing?.operation_id === req.body.operationId && (canonical(existing.descriptor) !== canonical(descriptor) || canonical(existing.configuration) !== canonical(req.body.configuration))) fail(409, 'Operation ID is bound to a different installation request');
-      if (existing && existing.state !== 'failed' && existing.state !== 'installing') {
+      if (existing && !req.body.upgrade && existing.state !== 'failed' && existing.state !== 'installing') {
         if (digest(canonical(existing.descriptor)) !== digest(canonical(descriptor)) || canonical(existing.configuration) !== canonical(req.body.configuration)) fail(409, 'Module is already installed with a different package or configuration');
         return { state: existing.state, moduleId: m.moduleId, operationId: existing.operation_id };
       }
-      if (existing && existing.operation_id !== req.body.operationId && !req.body.recover) fail(409, 'Use explicit recovery for an interrupted or failed installation');
+      if (existing && ['failed','installing'].includes(existing.state) && existing.operation_id !== req.body.operationId && !req.body.recover) fail(409, 'Use explicit recovery for an interrupted or failed installation');
       await client.query(`INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'installing',$5)
         ON CONFLICT(module_id) DO UPDATE SET version=excluded.version,descriptor=excluded.descriptor,configuration=excluded.configuration,state='installing',operation_id=excluded.operation_id,error_code=NULL,updated_at=now()`,
         [m.moduleId, m.version, descriptor, req.body.configuration, req.body.operationId]);
       await audit(client, actor.account_id, 'module.install_started', m.moduleId, { version: m.version, operationId: req.body.operationId });
       try {
-        const result = await broker('install', descriptor, req.body.configuration);
+        const result = await broker('install', descriptor, req.body.configuration, { upgrade: req.body.upgrade === true });
         if (result.status !== 200) throw new Error(result.value.error ?? 'MODULE_INSTALL_FAILED');
         await client.query("UPDATE module_installations SET state='installed',error_code=NULL,updated_at=now() WHERE module_id=$1", [m.moduleId]);
         await audit(client, actor.account_id, 'module.installed', m.moduleId, { version: m.version });
@@ -127,7 +117,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     try {
       locked = (await client.query('SELECT pg_try_advisory_lock(hashtext($1)) AS acquired', ['module:' + req.params.moduleId])).rows[0].acquired;
       if (!locked) fail(409, 'A module operation is already in progress');
-      const installed = await rows(); const row = installed.find(r => r.module_id === req.params.moduleId);
+      const installed = await rows(client); const row = installed.find(r => r.module_id === req.params.moduleId);
       if (!row || ['failed', 'installing'].includes(row.state)) fail(409, 'Module installation must complete first');
       const { trust } = await catalog(); const p = verifyPackage(row.descriptor, trust);
       if (req.body.action === 'activate') assertCompatible(p.manifest, RELEASE, installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state })));

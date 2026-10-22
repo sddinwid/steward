@@ -55,11 +55,19 @@ try {
     import { loadConfig, PostgresDatabase } from '@steward/platform';
     const config = await loadConfig('worker');
     const db = new PostgresDatabase(config.database, config.installation);
-    try { await db.migrate(); await db.migrate(); await db.check(); } finally { await db.close(); }
+    try {
+      await db.migrate(); await db.migrate(); await db.check();
+      const held = await db.pool.connect();
+      const pid = (await held.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;
+      await db.pool.query('SELECT pg_terminate_backend($1)', [pid]);
+      await new Promise(resolve => setTimeout(resolve, 200));
+      held.release();
+      await db.check();
+    } finally { await db.close(); }
     const wrong = new PostgresDatabase(config.database, {...config.installation, installationId: randomUUID()});
     try { await assert.rejects(wrong.migrate(), /identity/); } finally { await wrong.close(); }
   `);
-  console.log('PASS database restart retains data; migrations repeat safely and reject a mismatched installation');
+  console.log('PASS database restart retains data; migrations repeat safely, checked-out connection termination is handled, and mismatched installations are rejected');
 } finally {
   // Always restore the full deployment, even if an assertion fails.
   compose('up', '-d', '--wait', '--wait-timeout', '180');

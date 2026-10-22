@@ -15,22 +15,22 @@ export function createInventoryServer(pool: pg.Pool, token: string, migrate: () 
   app.post('/internal/migrate', async (_request, reply) => {
     try { return { schemaVersion: await migrate() }; } catch { return reply.code(503).send({ error: 'Module migration failed; data and prior schema were retained' }); }
   });
-  const properties = { sku: { type: 'string', minLength: 1, maxLength: 80, pattern: '\\S' }, name: { type: 'string', minLength: 1, maxLength: 160, pattern: '\\S' }, quantity: { type: 'number', minimum: 0, maximum: 999999999999.999, multipleOf: 0.001 } };
+  const properties = { reservedQuantity: { type: 'number', minimum: 0, maximum: 999999999999.999, multipleOf: 0.001 }, sku: { type: 'string', minLength: 1, maxLength: 80, pattern: '\\S' }, name: { type: 'string', minLength: 1, maxLength: 160, pattern: '\\S' }, quantity: { type: 'number', minimum: 0, maximum: 999999999999.999, multipleOf: 0.001 } };
   app.get('/items', async () => {
-    const result = await pool.query('SELECT item_id AS id,sku,name,quantity::float8 AS quantity,revision FROM inventory_items ORDER BY sku');
+    const result = await pool.query('SELECT item_id AS id,sku,name,quantity::float8 AS quantity,reserved_quantity::float8 AS "reservedQuantity",(quantity-reserved_quantity)::float8 AS "availableQuantity",revision FROM inventory_items ORDER BY sku');
     return { records: result.rows, summary: 'Quantity unit: ' + quantityUnit };
   });
-  app.post<{ Body: { sku: string; name: string; quantity: number } }>('/items', { schema: { body: { type: 'object', additionalProperties: false, required: ['sku', 'name', 'quantity'], properties } } }, async (request, reply) => {
-    const item = request.body;
-    const result = await pool.query('INSERT INTO inventory_items(item_id,sku,name,quantity) VALUES($1,$2,$3,$4) RETURNING item_id AS id,sku,name,quantity::float8 AS quantity,revision', [randomUUID(), item.sku.trim(), item.name.trim(), item.quantity]);
+  app.post<{ Body: { sku: string; name: string; quantity: number; reservedQuantity?: number } }>('/items', { schema: { body: { type: 'object', additionalProperties: false, required: ['sku', 'name', 'quantity'], properties } } }, async (request, reply) => {
+    const item = request.body; if ((item.reservedQuantity ?? 0) > item.quantity) return reply.code(400).send({error:'Reserved quantity exceeds stock'});
+    const result = await pool.query('INSERT INTO inventory_items(item_id,sku,name,quantity,reserved_quantity) VALUES($1,$2,$3,$4,$5) RETURNING item_id AS id,sku,name,quantity::float8 AS quantity,reserved_quantity::float8 AS "reservedQuantity",(quantity-reserved_quantity)::float8 AS "availableQuantity",revision', [randomUUID(), item.sku.trim(), item.name.trim(), item.quantity, item.reservedQuantity ?? 0]);
     return reply.code(201).send({ record: result.rows[0] });
   });
-  app.put<{ Params: { id: string }; Body: { sku: string; name: string; quantity: number; revision: number } }>('/items/:id', {
+  app.put<{ Params: { id: string }; Body: { sku: string; name: string; quantity: number; reservedQuantity?: number; revision: number } }>('/items/:id', {
     schema: { params: { type: 'object', required: ['id'], properties: { id: { type: 'string', format: 'uuid' } } },
       body: { type: 'object', additionalProperties: false, required: ['sku', 'name', 'quantity', 'revision'], properties: { ...properties, revision: { type: 'integer', minimum: 1 } } } }
   }, async (request, reply) => {
-    const b = request.body;
-    const result = await pool.query('UPDATE inventory_items SET sku=$1,name=$2,quantity=$3,revision=revision+1,updated_at=now() WHERE item_id=$4 AND revision=$5 RETURNING item_id AS id,sku,name,quantity::float8 AS quantity,revision', [b.sku.trim(), b.name.trim(), b.quantity, request.params.id, b.revision]);
+    const b = request.body; if ((b.reservedQuantity ?? 0) > b.quantity) return reply.code(400).send({error:'Reserved quantity exceeds stock'});
+    const result = await pool.query('UPDATE inventory_items SET sku=$1,name=$2,quantity=$3,reserved_quantity=COALESCE($6,reserved_quantity),revision=revision+1,updated_at=now() WHERE item_id=$4 AND revision=$5 RETURNING item_id AS id,sku,name,quantity::float8 AS quantity,reserved_quantity::float8 AS "reservedQuantity",(quantity-reserved_quantity)::float8 AS "availableQuantity",revision', [b.sku.trim(), b.name.trim(), b.quantity, request.params.id, b.revision, b.reservedQuantity ?? null]);
     if (!result.rowCount) return reply.code(409).send({ error: 'Item changed or no longer exists; refresh before editing' });
     return { record: result.rows[0] };
   });

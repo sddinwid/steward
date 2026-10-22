@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
+import { existsSync } from 'node:fs';
 import { directory, manifest, sql, compose } from './lib.mjs';
 import { digest } from '../packages/module-sdk/dist/index.js';
 const deployment = await manifest();
@@ -19,7 +20,8 @@ function databaseState() {
 const before = await hashes(); const databases = databaseState();
 for (const args of [
   ['tools/installer/dist/cli.js', 'provision', '--directory', directory, '--mode', deployment.mode, '--workers', String(deployment.instances.filter(i => i.role === 'worker').length), '--project', deployment.project, '--label', deployment.label],
-  ['tools/installer/dist/security-cli.js', directory], ['tools/installer/dist/modules-cli.js', directory]
+  ['tools/installer/dist/security-cli.js', directory], ['tools/installer/dist/modules-cli.js', directory],
+  ...(existsSync(path.join(directory,'data/compose.yaml')) ? [['tools/installer/dist/data-cli.js',directory]] : [])
 ]) execFileSync(process.execPath, args, { stdio: 'pipe' });
 assert.deepEqual(await hashes(), before); assert.deepEqual(databaseState(), databases);
 await writeFile('artifacts/phase3-provision-results.json', JSON.stringify({ verifiedAt: new Date().toISOString(), assertions: 'all passed', filesPreserved: Object.keys(before).length }, null, 2));

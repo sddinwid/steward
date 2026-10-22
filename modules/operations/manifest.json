@@ -1,0 +1,344 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.operations",
+  "version": "1.0.0",
+  "name": "Business operations",
+  "description": "Entity-owned capacity, external storage and warehouse assets.",
+  "minimumPlatformVersion": "0.4.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listcapacities",
+      "method": "GET",
+      "path": "/capacities",
+      "permission": "cee.operations.read"
+    },
+    {
+      "operationId": "createcapacities",
+      "method": "POST",
+      "path": "/capacities",
+      "permission": "cee.operations.write"
+    },
+    {
+      "operationId": "updatecapacities",
+      "method": "PUT",
+      "path": "/capacities/:id",
+      "permission": "cee.operations.write"
+    },
+    {
+      "operationId": "liststorage",
+      "method": "GET",
+      "path": "/storage",
+      "permission": "cee.operations.read"
+    },
+    {
+      "operationId": "createstorage",
+      "method": "POST",
+      "path": "/storage",
+      "permission": "cee.operations.write"
+    },
+    {
+      "operationId": "updatestorage",
+      "method": "PUT",
+      "path": "/storage/:id",
+      "permission": "cee.operations.write"
+    },
+    {
+      "operationId": "listassets",
+      "method": "GET",
+      "path": "/assets",
+      "permission": "cee.operations.read"
+    },
+    {
+      "operationId": "createassets",
+      "method": "POST",
+      "path": "/assets",
+      "permission": "cee.operations.write"
+    },
+    {
+      "operationId": "updateassets",
+      "method": "PUT",
+      "path": "/assets/:id",
+      "permission": "cee.operations.write"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "capacities",
+      "title": "Capacity",
+      "navigationLabel": "Capacity",
+      "listOperation": "listcapacities",
+      "createOperation": "createcapacities",
+      "updateOperation": "updatecapacities",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "site",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "capacity_m3",
+          "label": "Total capacity (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "utilized_m3",
+          "label": "Utilized capacity (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "monthly_operating_cost",
+          "label": "Monthly operating cost",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency (ISO code)",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "available_m3",
+          "label": "Available capacity (m³)",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "site",
+        "capacity_m3",
+        "utilized_m3",
+        "monthly_operating_cost",
+        "currency",
+        "available_m3"
+      ]
+    },
+    {
+      "screenId": "storage",
+      "title": "Storage requirements",
+      "navigationLabel": "Storage requirements",
+      "listOperation": "liststorage",
+      "createOperation": "createstorage",
+      "updateOperation": "updatestorage",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "site",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "required_m3",
+          "label": "Required storage (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "utilized_m3",
+          "label": "Utilized storage (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "monthly_external_cost",
+          "label": "Monthly external storage cost",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency (ISO code)",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        }
+      ],
+      "columns": [
+        "name",
+        "site",
+        "required_m3",
+        "utilized_m3",
+        "monthly_external_cost",
+        "currency"
+      ]
+    },
+    {
+      "screenId": "assets",
+      "title": "Warehouse assets",
+      "navigationLabel": "Warehouse assets",
+      "listOperation": "listassets",
+      "createOperation": "createassets",
+      "updateOperation": "updateassets",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Record name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "site",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "capacity_m3",
+          "label": "Total capacity (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "utilized_m3",
+          "label": "Utilized capacity (m³)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "monthly_operating_cost",
+          "label": "Monthly operating cost",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency (ISO code)",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "available_m3",
+          "label": "Available capacity (m³)",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "site",
+        "capacity_m3",
+        "utilized_m3",
+        "monthly_operating_cost",
+        "currency",
+        "available_m3"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "currency"
+    ],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "default": "EUR"
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "capacities",
+        "table": "capacities",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "name",
+          "site",
+          "capacity_m3",
+          "utilized_m3",
+          "monthly_operating_cost",
+          "currency",
+          "available_m3"
+        ]
+      },
+      {
+        "streamId": "storage_requirements",
+        "table": "storage_requirements",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "name",
+          "site",
+          "required_m3",
+          "utilized_m3",
+          "monthly_external_cost",
+          "currency"
+        ]
+      },
+      {
+        "streamId": "warehouse_assets",
+        "table": "warehouse_assets",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "name",
+          "site",
+          "capacity_m3",
+          "utilized_m3",
+          "monthly_operating_cost",
+          "currency",
+          "available_m3"
+        ]
+      }
+    ]
+  }
+}

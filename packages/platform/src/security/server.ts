@@ -9,6 +9,7 @@ import { masterRoutes } from './master.js';
 import { workerRoutes } from './worker.js';
 import { audit } from './store.js';
 import { moduleRoutes } from '../module-manager.js';
+import { synchronizationRoutes } from '../synchronization.js';
 
 export async function createSecureServer(installation: InstallationConfig, database: PostgresDatabase, security: SecurityConfig, key: string) {
   const app = Fastify({ https: { key: await readFile(security.tlsKeyFile), cert: await readFile(security.tlsCertFile), minVersion: 'TLSv1.3' },
@@ -31,5 +32,6 @@ export async function createSecureServer(installation: InstallationConfig, datab
     await workerRoutes(app, database.pool, auth, installation, key, security);
     if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE);
   }
+  await synchronizationRoutes(app,database.pool,auth,installation,key,security);
   return app;
 }
