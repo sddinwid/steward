@@ -1,0 +1,17 @@
+{
+  "name": "steward-platform",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*", "tools/*"],
+  "engines": { "node": ">=24 <25", "npm": ">=10" },
+  "scripts": {
+    "build": "npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer",
+    "test": "npm run test -w @steward/platform && npm run test -w @steward/installer",
+    "provision": "node tools/installer/dist/cli.js provision",
+    "dev:up": "docker compose up --build -d --wait --wait-timeout 180",
+    "dev:down": "docker compose down",
+    "smoke": "node scripts/smoke.mjs",
+    "verify:isolation": "node scripts/verify-isolation.mjs"
+  },
+  "devDependencies": { "typescript": "5.9.3", "@types/node": "24.10.1", "playwright": "1.58.2" }
+}

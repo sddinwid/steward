@@ -1,0 +1,7 @@
+{
+  "name": "@steward/platform", "version": "0.1.0", "private": true, "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc -p tsconfig.json", "test": "node --test dist/test/server.test.js" },
+  "dependencies": { "@steward/contracts": "0.1.0", "fastify": "5.12.7", "@fastify/helmet": "13.2.0", "pg": "8.23.1" },
+  "devDependencies": { "@types/pg": "8.23.1" }
+}

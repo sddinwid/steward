@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { directory, manifest, json, sql, compose, docker } from './lib.mjs';
+
+const deployment = await manifest();
+const identities = new Set();
+const workerImages = new Set();
+const workerWebImages = new Set();
+const volumes = new Set();
+for (const i of deployment.instances) {
+  const api = `http://127.0.0.1:${i.apiPort}`;
+  const web = `http://127.0.0.1:${i.webPort}`;
+  assert.equal((await json(`${api}/health`)).status, 'ok');
+  assert.equal((await json(`${api}/ready`)).status, 'ready');
+  const overview = await json(`${api}/api/v1/platform`);
+  const config = JSON.parse(await readFile(path.join(directory, i.key, 'installation.json'), 'utf8'));
+  config.installationId = config.installationId.toLowerCase();
+  config.entity.entityId = config.entity.entityId.toLowerCase();
+  assert.deepEqual(overview.installation, config);
+  assert.equal(overview.installation.installationId, i.installationId);
+  assert.equal(overview.installation.role, i.role);
+  assert.deepEqual(overview.modules, []);
+  assert.ok(Object.values(overview.extensions).every(v => v === 'not_implemented'));
+  identities.add(i.installationId);
+  const page = await fetch(web, { signal: AbortSignal.timeout(6000) });
+  assert.equal(page.status, 200);
+  const html = await page.text();
+  assert.ok(html.includes(`${i.role === 'master' ? 'Master' : 'Worker'} Steward`));
+  const script = html.match(/src="([^"]+\.js)"/)[1];
+  assert.equal((await fetch(`${web}${script}`)).status, 200);
+  assert.equal((await json(`${web}/api/v1/platform`)).installation.installationId, i.installationId);
+  assert.equal((await json(`${web}/ready`)).status, 'ready');
+  assert.equal(sql(i.key, 'SELECT current_database()'), 'steward');
+  assert.equal(sql(i.key, 'SELECT installation_id FROM platform_installation'), i.installationId);
+  assert.equal(sql(i.key, 'SELECT version FROM platform_migrations'), '1');
+  assert.equal(sql(i.key, "SELECT rolsuper OR rolcreatedb OR rolcreaterole FROM pg_roles WHERE rolname='steward_app'"), 'f');
+  const db = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-db`)]))[0];
+  const runtime = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-api`)]))[0];
+  const frontend = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-web`)]))[0];
+  assert.equal(Object.keys(db.HostConfig.PortBindings ?? {}).length, 0);
+  assert.equal(Object.keys(db.NetworkSettings.Networks).length, 1);
+  assert.equal(Object.keys(frontend.NetworkSettings.Networks).length, 1);
+  assert.equal(Object.keys(runtime.NetworkSettings.Networks).length, 2);
+  const dbNetwork = Object.keys(db.NetworkSettings.Networks)[0];
+  assert.equal(JSON.parse(docker(['network', 'inspect', dbNetwork]))[0].Internal, true);
+  assert.equal(frontend.NetworkSettings.Networks[dbNetwork], undefined);
+  assert.ok(runtime.NetworkSettings.Networks[dbNetwork]);
+  assert.equal(runtime.Config.User, 'node');
+  assert.equal(runtime.HostConfig.ReadonlyRootfs, true);
+  volumes.add(db.Mounts.find(m => m.Destination === '/var/lib/postgresql/data').Name);
+  if (i.role === 'worker') {
+    workerImages.add(runtime.Image);
+    workerWebImages.add(frontend.Image);
+  }
+  console.log(`PASS ${i.key}: API health/readiness, frontend/assets/proxy, persisted identity, migration, restricted DB role`);
+}
+assert.equal(identities.size, deployment.instances.length);
+assert.equal(volumes.size, deployment.instances.length);
+if (workerImages.size) assert.equal(workerImages.size, 1);
+if (workerWebImages.size) assert.equal(workerWebImages.size, 1);
+console.log(`PASS ${volumes.size} distinct PostgreSQL volumes${workerImages.size ? '; identical Worker API and frontend image IDs' : ''}`);

@@ -1,0 +1,17 @@
+FROM node:24.13.0-alpine AS build
+WORKDIR /app
+COPY package*.json tsconfig.base.json ./
+COPY packages ./packages
+COPY apps ./apps
+COPY tools ./tools
+RUN npm ci
+ARG APP
+RUN npm run build -w @steward/contracts && npm run build -w @steward/ui && npm run build -w @steward/${APP}-web
+
+FROM nginxinc/nginx-unprivileged:1.28.2-alpine AS runtime
+ARG APP
+COPY --from=build /app/apps/${APP}-web/dist /usr/share/nginx/html
+COPY infra/nginx.conf /etc/nginx/conf.d/default.conf
+USER 101
+EXPOSE 8080
+HEALTHCHECK --interval=5s --timeout=3s --retries=12 CMD wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1

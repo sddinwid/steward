@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.steward/
+.env
+*.log
+artifacts/
