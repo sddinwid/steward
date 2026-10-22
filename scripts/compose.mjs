@@ -6,6 +6,7 @@ const args = ['compose', '-f', path.join(directory, 'compose.yaml')];
 if (existsSync(path.join(directory, 'security', 'compose.yaml'))) args.push('-f', path.join(directory, 'security', 'compose.yaml'));
 if (existsSync(path.join(directory, 'modules', 'compose.yaml'))) args.push('-f', path.join(directory, 'modules', 'compose.yaml'));
 if (existsSync(path.join(directory, 'data/compose.yaml'))) args.push('-f', path.join(directory, 'data/compose.yaml'));
+if (existsSync(path.join(directory, 'analyst/compose.yaml'))) args.push('-f', path.join(directory, 'analyst/compose.yaml'));
 try {
   const action = process.argv[2];
   if (existsSync(path.join(directory, 'modules/compose.yaml')) && (action === 'down' || action === 'stop' && process.argv.length === 3)) {

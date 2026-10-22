@@ -22,7 +22,8 @@ for (const i of deployment.instances) {
   assert.equal(overview.installation.role, i.role);
   assert.deepEqual(overview.modules.map(m => m.moduleId).sort(), sql(i.key, 'SELECT module_id FROM module_installations ORDER BY module_id').split('\n').filter(Boolean));
   assert.ok(['not_implemented', 'available'].includes(overview.extensions.enrollment));
-  assert.ok(['mcp', 'analytics'].every(k => overview.extensions[k] === 'not_implemented'));
+  assert.equal(overview.extensions.mcp,overview.extensions.enrollment==='available'?'available':'not_implemented');
+  assert.equal(overview.extensions.analytics,i.role==='master'&&overview.extensions.enrollment==='available'?'available':'not_implemented');
   identities.add(i.installationId);
   const page = await fetch(web, { signal: AbortSignal.timeout(6000) });
   assert.equal(page.status, 200);
@@ -34,7 +35,7 @@ for (const i of deployment.instances) {
   assert.equal((await json(`${web}/ready`)).status, 'ready');
   assert.equal(sql(i.key, 'SELECT current_database()'), 'steward');
   assert.equal(sql(i.key, 'SELECT installation_id FROM platform_installation'), i.installationId);
-  assert.equal(sql(i.key, 'SELECT max(version) FROM platform_migrations'), '5');
+  assert.equal(sql(i.key, 'SELECT max(version) FROM platform_migrations'), '6');
   assert.equal(sql(i.key, "SELECT rolsuper OR rolcreatedb OR rolcreaterole FROM pg_roles WHERE rolname='steward_app'"), 'f');
   const db = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-db`)]))[0];
   const runtime = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-api`)]))[0];

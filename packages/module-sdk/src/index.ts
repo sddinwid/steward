@@ -22,6 +22,7 @@ export interface ModulePackageManifest {
   persistence: { isolation: 'dedicated-database'; schemaVersion: number; migrations: { version: number; sha256: string }[]; destructiveRollback: false };
   integrationEvents: { name: string; version: number; direction: 'produced' | 'consumed' }[];
   analyticalCapabilities: { name: string; version: number }[];
+  mcpTools?: { name: string; description: string; operationId: string }[];
   replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
 export interface ModulePackage {
@@ -69,7 +70,7 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools'])) reject('Unsupported module manifest fields');
   if (m.replication && (m.replication.contractVersion !== 1 || !Array.isArray(m.replication.streams) || !m.replication.streams.length || m.replication.streams.length > 10 || new Set(m.replication.streams.map(s => s.streamId)).size !== m.replication.streams.length || m.replication.streams.some(s =>
     !onlyKeys(s, ['streamId','table','idColumn','revisionColumn','columns']) || ![s.streamId,s.table,s.idColumn,s.revisionColumn,...s.columns].every(v => /^[a-z][a-z0-9_]{0,49}$/.test(v)) || !s.columns.includes(s.idColumn) || !s.columns.includes(s.revisionColumn) || s.columns.length > 30))) reject('Invalid replication projection');
   if (!Array.isArray(m.dependencies) || m.dependencies.some(d => d.moduleId === m.moduleId || !/^[a-z][a-z0-9.-]{0,79}$/.test(d.moduleId) || !versionPattern.test(d.minimumVersion)) || new Set(m.dependencies.map(d => d.moduleId)).size !== m.dependencies.length) reject('Invalid module dependencies');
@@ -83,6 +84,7 @@ export function validateManifest(m: ModulePackageManifest): void {
     !m.api.some(a => a.operationId === s.listOperation && a.method === 'GET') || !m.api.some(a => a.operationId === s.createOperation && a.method === 'POST') || !m.api.some(a => a.operationId === s.updateOperation && a.method === 'PUT' && a.path.endsWith('/:id')) || !Array.isArray(s.fields) || s.fields.length > 30 || s.fields.some(f =>
       !onlyKeys(f, ['name','label','type','required','minimum','maxLength','readOnly']) || !/^[a-z][a-zA-Z0-9_]{0,49}$/.test(f.name) || ['constructor', 'prototype', '__proto__', 'id', 'revision'].includes(f.name) || typeof f.label !== 'string' || !['string', 'number'].includes(f.type) || typeof f.required !== 'boolean') ||
     !Array.isArray(s.columns) || s.columns.some(c => !s.fields.some(f => f.name === c)))) reject('Unsupported declarative UI contribution');
+  if (m.mcpTools !== undefined && (!Array.isArray(m.mcpTools) || m.mcpTools.length > 10 || new Set(m.mcpTools.map(t=>t.name)).size !== m.mcpTools.length || m.mcpTools.some(t=>!onlyKeys(t,['name','description','operationId']) || !/^[a-z][a-z0-9_]{0,59}$/.test(t.name) || typeof t.description !== 'string' || t.description.length > 300 || !m.api.some(a=>a.operationId===t.operationId && a.method==='GET' && !a.path.includes(':'))))) reject('Invalid read-only MCP contribution');
   if (!m.configurationSchema || m.configurationSchema.type !== 'object' || m.configurationSchema.additionalProperties !== false) reject('Configuration must be a closed JSON object schema');
   configurationValidator(m.configurationSchema);
   if (!Array.isArray(m.integrationEvents) || m.integrationEvents.some(e => !e.name.startsWith(m.moduleId + '.') || !Number.isInteger(e.version) || e.version < 1 || !['produced', 'consumed'].includes(e.direction)) ||

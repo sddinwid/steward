@@ -1,0 +1,460 @@
+{
+  "recordedAt": "2026-10-22T21:47:41.449Z",
+  "phase4BaselineCommit": "a7d6cc1",
+  "unitTests": {
+    "passed": 28,
+    "failed": 0,
+    "skipped": 0
+  },
+  "liveProvider": {
+    "verifiedAt": "2026-10-22T21:19:54.184Z",
+    "status": "not_verified",
+    "reason": "No live model-provider configuration or credentials supplied"
+  },
+  "fullCompletionClaimed": false,
+  "currentProtocolFixture": {
+    "verifiedAt": "2026-10-22T21:33:21.611Z",
+    "modelValidation": "Explicit Responses protocol test fixture, NOT a live provider",
+    "checks": [
+      "Master MCP discovery and real entity listing",
+      "Allowed and denied entity scopes, unauthorized account, missing authentication, malicious Origin and unapproved MCP client",
+      "Inventory MCP contribution is operational; core image/process unchanged (repeat installation state preserved)",
+      "Unconfigured model reports a persistent failure with no fabricated analysis",
+      "Responses wire adapter and bounded Analyst invoke official MCP client with real synchronized records, references, assumptions and deterministic 9000/month, 102000/12-month benefit",
+      "Explicit human-authorized finding creation is idempotent and durably delivered only to affected Workers",
+      "Adversarial content from an actual synchronized business record stays untrusted data; no undeclared mutation or automatic finding executes",
+      "Model outage, malformed output, undeclared tool, failed MCP tool, absolute timeout and repeated-call loop fail safely with persistent activity",
+      "Browser workspace displays test-provider label, persisted investigation, MCP activity, narrative, calculations, assumptions, evidence and finding status without JavaScript errors",
+      "Actual model process outage reports failure while ordinary Worker services remain available",
+      "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
+    ],
+    "coreImages": {
+      "worker2Before": "sha256:7e2106ca043eb1d0b2a7ee172e7e9bd850f31712a75c4e2b453c800b4c1f90c3",
+      "worker2After": "sha256:7e2106ca043eb1d0b2a7ee172e7e9bd850f31712a75c4e2b453c800b4c1f90c3"
+    },
+    "investigationId": "c371da31-65b0-41e5-86ec-c6c83c0ad03a",
+    "browserInvestigationId": "40a604d3-8b94-4d22-ac31-6c7640a50516"
+  },
+  "freshDynamicInstallation": {
+    "verifiedAt": "2026-10-22T21:07:53.811Z",
+    "modelValidation": "Explicit Responses protocol test fixture, NOT a live provider",
+    "checks": [
+      "Master MCP discovery and real entity listing",
+      "Allowed and denied entity scopes, unauthorized account, missing authentication, malicious Origin and unapproved MCP client",
+      "Chromium installs previously absent Inventory; its MCP tool becomes discoverable and operational without core image/process change",
+      "Unconfigured model reports a persistent failure with no fabricated analysis",
+      "Responses wire adapter and bounded Analyst invoke official MCP client with real synchronized records, references, assumptions and deterministic 9000/month, 102000/12-month benefit",
+      "Explicit human-authorized finding creation is idempotent and durably delivered only to affected Workers",
+      "Adversarial content from an actual synchronized business record stays untrusted data; no undeclared mutation or automatic finding executes",
+      "Model outage, malformed output, undeclared tool, failed MCP tool, absolute timeout and repeated-call loop fail safely with persistent activity",
+      "Browser workspace displays test-provider label, persisted investigation, MCP activity, narrative, calculations, assumptions, evidence and finding status without JavaScript errors",
+      "Actual model process outage reports failure while ordinary Worker services remain available",
+      "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
+    ],
+    "coreImages": {
+      "worker2Before": "sha256:ac0cd025ff6332e6aab22719082ec646047f561e9015b10c3b2ea4573e18de9a",
+      "worker2After": "sha256:ac0cd025ff6332e6aab22719082ec646047f561e9015b10c3b2ea4573e18de9a"
+    },
+    "inventoryWasAbsentBeforeInstall": true,
+    "inventoryDiscoveryBefore": [
+      "list_installed_modules",
+      "get_company_profile",
+      "get_operational_summary",
+      "get_resource_availability"
+    ],
+    "investigationId": "9e18530d-6fd6-4d64-9e41-f9d5f1fd477c"
+  },
+  "legacyRegressions": {
+    "verifiedAt": "2026-10-22T21:09:43.057Z",
+    "project": "steward-phase5-regression",
+    "phase2": "passed",
+    "phase3": "passed",
+    "existingDevelopmentVolumes": "preserved"
+  },
+  "browserFindingPublication": {
+    "verifiedAt": "2026-10-22T21:46:43.746Z",
+    "investigationId": "40a604d3-8b94-4d22-ac31-6c7640a50516",
+    "findingId": "40a604d3-8b94-4d22-ac31-6c7640a50516",
+    "deliveredTo": [
+      "worker-2",
+      "worker-3"
+    ],
+    "browserErrors": [],
+    "assertions": "all passed"
+  },
+  "concurrency": {
+    "verifiedAt": "2026-10-22T21:45:28.858Z",
+    "admitted": 2,
+    "rejected": 1,
+    "investigations": [
+      "f688a478-4c9b-4c62-8001-95b06f4399d2",
+      "966374a2-e250-442a-9fae-8cf70bea7478"
+    ],
+    "ordinaryRecordSynchronizedDuringStalledModels": "c5f1d1b7-a036-4be1-b254-1f26cf6651c1",
+    "modelValidation": "Explicit HTTPS timeout fixture, not a live provider",
+    "assertions": "all passed"
+  },
+  "inventoryPatchUpgrade": {
+    "verifiedAt": "2026-10-22T21:22:46.239Z",
+    "before": {
+      "master-api": {
+        "image": "sha256:18db672f52166b6c3dbdfe152dbf3fa07728dc0e325147b128a34f9c4889fa00",
+        "container": "1a7042be32174766b98307327c5f9d9f62414c86003e08252789482f9fc4e20a",
+        "startedAt": "2026-10-22T21:20:12.879113376Z"
+      },
+      "master-web": {
+        "image": "sha256:0cf745c51887213d90a0a2bb95e072abf079fbc36a45282d89deb64dd5ec4836",
+        "container": "4d23ea31e4d8afcdc09bab852c717e97baf9335a23b8bac3576802da189763f5",
+        "startedAt": "2026-10-22T21:20:19.008117972Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "7c4b38045dea425bed56678fb8130ace249a9ffbf2485324203922bff42069f2",
+        "startedAt": "2026-10-22T21:20:13.489895901Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "7a398aeec47c12f965876d3ea11d8048d117f8181eb821a9e1c4113ec64e5347",
+        "startedAt": "2026-10-22T21:20:19.59731982Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "e9102a7ed890318a015cb15df25f8010458ab5f8f5777746e9d252d140c84e91",
+        "startedAt": "2026-10-22T21:20:14.845562963Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "fc3c2a7bb7abf7712cfa176c8af73aea339a0c4ffe59c9caabc95c62c902bacf",
+        "startedAt": "2026-10-22T21:20:20.842584987Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "300ffe40ffccf8955514c4a2434f1356eccc41055c1c83fe95dc034b32c20b65",
+        "startedAt": "2026-10-22T21:20:12.426192622Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "1c655a2e85bef7075f72b3f87d9a9e2e7ddce9225f3eb4915e0e5193893f8c95",
+        "startedAt": "2026-10-22T21:20:18.396129946Z"
+      }
+    },
+    "after": {
+      "master-api": {
+        "image": "sha256:18db672f52166b6c3dbdfe152dbf3fa07728dc0e325147b128a34f9c4889fa00",
+        "container": "1a7042be32174766b98307327c5f9d9f62414c86003e08252789482f9fc4e20a",
+        "startedAt": "2026-10-22T21:20:12.879113376Z"
+      },
+      "master-web": {
+        "image": "sha256:0cf745c51887213d90a0a2bb95e072abf079fbc36a45282d89deb64dd5ec4836",
+        "container": "4d23ea31e4d8afcdc09bab852c717e97baf9335a23b8bac3576802da189763f5",
+        "startedAt": "2026-10-22T21:20:19.008117972Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "7c4b38045dea425bed56678fb8130ace249a9ffbf2485324203922bff42069f2",
+        "startedAt": "2026-10-22T21:20:13.489895901Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "7a398aeec47c12f965876d3ea11d8048d117f8181eb821a9e1c4113ec64e5347",
+        "startedAt": "2026-10-22T21:20:19.59731982Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "e9102a7ed890318a015cb15df25f8010458ab5f8f5777746e9d252d140c84e91",
+        "startedAt": "2026-10-22T21:20:14.845562963Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "fc3c2a7bb7abf7712cfa176c8af73aea339a0c4ffe59c9caabc95c62c902bacf",
+        "startedAt": "2026-10-22T21:20:20.842584987Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:b9310420b7b7fd4948ba1d7174a6d3acd02d4de7b89fe73600f9e95259348763",
+        "container": "300ffe40ffccf8955514c4a2434f1356eccc41055c1c83fe95dc034b32c20b65",
+        "startedAt": "2026-10-22T21:20:12.426192622Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:120f4595098f857fb73581f95cd3fbb5f28813b8fd158010b7f53f694007a991",
+        "container": "1c655a2e85bef7075f72b3f87d9a9e2e7ddce9225f3eb4915e0e5193893f8c95",
+        "startedAt": "2026-10-22T21:20:18.396129946Z"
+      }
+    },
+    "assertions": "all passed"
+  },
+  "phase4": {
+    "scenario": {
+      "startedAt": "2026-10-22T21:15:47.371Z",
+      "checks": [
+        "All three companies create and edit persistent operational records independently through Chromium",
+        "Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness",
+        "Inventory retains old records, displays 800 stock / 200 reserved / 600 available and synchronizes its declared stock projection",
+        "Repeated real events deduplicate; older revisions never overwrite newer data; same-revision conflicts are rejected",
+        "Signed cross-entity claims, unauthorized analytical access, cross-Worker sessions, stale and replayed transport proofs are rejected",
+        "Master outage does not block operational writes; durable module outboxes and committed records survive Worker SIGKILL/restart",
+        "Killing a PostgreSQL transaction rolls back both its operational write and triggered outbox event atomically",
+        "SIGKILL during an in-flight exchange resumes safely; outage changes catch up incrementally with one inbox entry per event",
+        "Master issues a finding through Chromium; only affected Workers receive it, with entity-filtered supporting references",
+        "Controlled redelivery of actual finding events creates no duplicate local findings and is durably acknowledged",
+        "Offline finding acknowledgment survives process restart, synchronizes back to Master, rejects stale edits and survives later Master lifecycle updates",
+        "Original installation configuration, enrolled Worker 1 certificate and every pre-existing Inventory record remain intact",
+        "All installations remain healthy with their original identities; Chromium has zero uncaught errors"
+      ],
+      "findingId": "1127b72f-d54e-48a0-b560-770f7028377a",
+      "finishedAt": "2026-10-22T21:17:57.898Z",
+      "entities": {
+        "worker-1": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+        "worker-2": "8ff40000-0000-4000-8000-000000000002",
+        "worker-3": "8ff40000-0000-4000-8000-000000000003"
+      },
+      "records": {
+        "worker-1": {
+          "record": {
+            "id": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+            "revision": 2,
+            "name": "Browser phase4 worker-1 67b338a8",
+            "site": "Verified edited site",
+            "capacity_m3": 1000,
+            "utilized_m3": 300,
+            "monthly_operating_cost": 2000,
+            "currency": "EUR",
+            "available_m3": 700
+          },
+          "path": "capacities",
+          "stream": "capacities"
+        },
+        "worker-2": {
+          "record": {
+            "id": "30a71a58-4301-4564-9312-e339a71db821",
+            "revision": 2,
+            "name": "Browser phase4 worker-2 3524c528",
+            "site": "Verified edited site",
+            "required_m3": 500,
+            "utilized_m3": 420,
+            "monthly_external_cost": 10000,
+            "currency": "EUR"
+          },
+          "path": "storage",
+          "stream": "storage_requirements"
+        },
+        "worker-3": {
+          "record": {
+            "id": "65eb16a1-92da-4b3e-a53c-d3481d46d280",
+            "revision": 2,
+            "name": "Browser phase4 worker-3 01438fd7",
+            "site": "Verified edited site",
+            "capacity_m3": 1500,
+            "utilized_m3": 300,
+            "monthly_operating_cost": 4500,
+            "currency": "EUR",
+            "available_m3": 1200
+          },
+          "path": "assets",
+          "stream": "warehouse_assets"
+        }
+      },
+      "browserPageErrors": 0
+    },
+    "outageIndependence": {
+      "startedAt": "2026-10-22T21:18:41.193Z",
+      "checks": 540,
+      "restartedWorker": true,
+      "finishedAt": "2026-10-22T21:19:09.805Z"
+    },
+    "seed": {
+      "verifiedAt": "2026-10-22T21:19:48.627Z",
+      "assertions": "all passed",
+      "counts": {
+        "worker-1": 7,
+        "worker-2": 7,
+        "worker-3": 8
+      },
+      "stableIds": true,
+      "preservedEdits": true
+    }
+  },
+  "runtime": [
+    {
+      "service": "master-api",
+      "image": "steward-master-api:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "master-db",
+      "image": "postgres:17.9-alpine",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "master-web",
+      "image": "steward-master-web:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-1-api",
+      "image": "steward-worker-api:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-1-db",
+      "image": "postgres:17.9-alpine",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-1-module-host",
+      "image": "steward-module-host:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-1-web",
+      "image": "steward-worker-web:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-2-api",
+      "image": "steward-worker-api:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-2-db",
+      "image": "postgres:17.9-alpine",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-2-module-host",
+      "image": "steward-module-host:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-2-web",
+      "image": "steward-worker-web:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-3-api",
+      "image": "steward-worker-api:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-3-db",
+      "image": "postgres:17.9-alpine",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-3-module-host",
+      "image": "steward-module-host:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    },
+    {
+      "service": "worker-3-web",
+      "image": "steward-worker-web:0.5.0",
+      "state": "running",
+      "health": "healthy"
+    }
+  ],
+  "applications": [
+    {
+      "key": "master",
+      "installationId": "bf7f6db1-ba00-4998-9e4e-48046122b8b1",
+      "apiImage": "sha256:a7dd08ee8026905e00a13254395406ea0ae6bd92c9be2de6005e245238471be6",
+      "frontendImage": "sha256:bddf2ec76eea6af493046a3378fb77c8d8fccf694bff8b6e6d7f3dc299c83cf3",
+      "schema": 6,
+      "modules": []
+    },
+    {
+      "key": "worker-1",
+      "installationId": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+      "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
+      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "schema": 6,
+      "modules": [
+        {
+          "module_id": "cee.inventory",
+          "version": "1.2.1",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd"
+        },
+        {
+          "module_id": "cee.migration-check",
+          "version": "1.0.1",
+          "state": "disabled",
+          "error_code": null,
+          "image_id": "sha256:f3aae540460239737a4033f06f274da76430db13648c60134c9eed1687284630"
+        },
+        {
+          "module_id": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+        }
+      ]
+    },
+    {
+      "key": "worker-2",
+      "installationId": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+      "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
+      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "schema": 6,
+      "modules": [
+        {
+          "module_id": "cee.inventory",
+          "version": "1.2.1",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd"
+        },
+        {
+          "module_id": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+        }
+      ]
+    },
+    {
+      "key": "worker-3",
+      "installationId": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+      "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
+      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "schema": 6,
+      "modules": [
+        {
+          "module_id": "cee.inventory",
+          "version": "1.2.1",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd"
+        },
+        {
+          "module_id": "cee.operations",
+          "version": "1.0.0",
+          "state": "active",
+          "error_code": null,
+          "image_id": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+        }
+      ]
+    }
+  ],
+  "audit": {
+    "mcpAllowed": 176,
+    "mcpDeniedOrFailed": 16,
+    "investigations": 48,
+    "activity": 384
+  }
+}

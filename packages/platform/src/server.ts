@@ -21,7 +21,7 @@ export function createServer(installation: InstallationConfig, database: Platfor
   app.get('/api/v1/platform', async (): Promise<PlatformOverview> => ({
     release: RELEASE, installation: structuredClone(installation), modules: await database.modules?.() ?? [],
     ...(administrationOrigin ? { administrationOrigin } : {}),
-    extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: administrationOrigin ? 'available' : 'not_implemented' }
+    extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: administrationOrigin ? 'available' : 'not_implemented', analytics: administrationOrigin && installation.role === 'master' ? 'available' : 'not_implemented', synchronization: administrationOrigin ? 'available' : 'not_implemented' }
   }));
   app.setErrorHandler((error, request, reply) => {
     const failure = error as Partial<FastifyError>;

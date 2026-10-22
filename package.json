@@ -1,6 +1,6 @@
 {
   "name": "steward-platform",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -30,7 +30,10 @@
     "build:operations": "cd modules/operations && npm ci && npm run build",
     "test:operations": "cd modules/operations && npm test",
     "seed:phase4": "node scripts/seed-phase4.mjs",
-    "verify:phase4": "node scripts/verify-phase4.mjs"
+    "verify:phase4": "node scripts/verify-phase4.mjs",
+    "analyst:provision": "node tools/installer/dist/analyst-cli.js",
+    "smoke:mcp": "node scripts/mcp-smoke.mjs",
+    "verify:phase5": "node scripts/verify-phase5.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.inventory",
-  "version": "1.1.0",
+  "version": "1.2.1",
   "name": "Inventory",
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
-  "minimumPlatformVersion": "0.4.0",
+  "minimumPlatformVersion": "0.5.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -124,5 +124,12 @@
         ]
       }
     ]
-  }
+  },
+  "mcpTools": [
+    {
+      "name": "get_inventory_summary",
+      "description": "Read inventory items and quantity information from this Worker inventory service.",
+      "operationId": "listItems"
+    }
+  ]
 }

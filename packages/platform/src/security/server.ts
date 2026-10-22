@@ -1,3 +1,5 @@
+import { mcpRoutes } from '../mcp.js';
+import { analystRoutes } from '../analyst.js';
 import Fastify from 'fastify';
 import helmet from '@fastify/helmet';
 import { readFile } from 'node:fs/promises';
@@ -33,5 +35,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
     if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE);
   }
   await synchronizationRoutes(app,database.pool,auth,installation,key,security);
+  await mcpRoutes(app,database.pool,auth,installation,security.publicOrigin);
+  if(installation.role==='master') await analystRoutes(app,database.pool,auth,security);
   return app;
 }

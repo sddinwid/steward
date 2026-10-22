@@ -1,0 +1,34 @@
+// Reproducible protocol fixture. NEVER a production model or claimed AI provider.
+// Run explicitly during verification inside Master, then kill it and restore config.
+import {createServer} from 'node:https';
+import {readFileSync} from 'node:fs';
+const key=readFileSync('/etc/steward/analyst/api-key.txt','utf8').trim();
+const ref=r=>({entityId:r.entity_id,moduleId:r.module_id,streamId:r.stream_id,recordId:r.record_id,revision:Number(r.revision)});
+const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFileSync('/run/secrets/tls_cert')},(req,res)=>{
+ if(req.headers.authorization!=='Bearer '+key){res.writeHead(401);return res.end('{}');}
+ let raw='';req.on('data',c=>{raw+=c;if(raw.length>1000000)req.destroy();});req.on('end',()=>{
+  try{
+   const b=JSON.parse(raw),prompt=b.input.filter(v=>v.role==='user').at(-1).content;const results=b.input.filter(v=>v.type==='function_call_output').map(v=>JSON.parse(v.output).result);
+   if(prompt.includes('[fixture:timeout]'))return;
+   if(prompt.includes('[fixture:tool-error]'))return calls([{name:'get_entity_summary',arguments:{entityId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}]);
+   if(prompt.includes('[fixture:model-error]')){res.writeHead(503);return res.end('{}');}
+   if(prompt.includes('[fixture:malformed]'))return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:'not valid JSON'}]}]);
+   if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
+   if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
+   const list=results.find(v=>v.structuredContent?.data?.entities&&!v.structuredContent?.data?.records)?.structuredContent.data.entities;
+   if(!list)return calls([{name:'list_entities',arguments:{}}]);
+   const summaries=results.filter(v=>v.structuredContent?.data?.records).map(v=>v.structuredContent.data);
+   if(summaries.length<list.length)return calls(list.filter(e=>!summaries.some(s=>s.entities.some(v=>v.entity_id===e.entity_id))).slice(0,8).map(e=>({name:'get_entity_summary',arguments:{entityId:e.entity_id}})));
+   const all=summaries.flatMap(s=>s.records);const pairs=all.filter(r=>r.stream_id==='warehouse_assets'&&Number(r.payload.available_m3)>0).flatMap(s=>all.filter(d=>d.stream_id==='storage_requirements'&&Number(d.payload.monthly_external_cost)>0&&d.entity_id!==s.entity_id&&d.payload.site===s.payload.site&&Number(s.payload.available_m3)>=Number(d.payload.required_m3)).map(d=>({s,d}))).sort((a,b)=>Number(b.d.payload.monthly_external_cost)-Number(a.d.payload.monthly_external_cost));const supply=pairs[0]?.s,demand=pairs[0]?.d;
+   if(!supply||!demand)throw new Error('Scenario evidence missing');
+   if(!results.some(v=>v.structuredContent?.data?.relationships&&!v.structuredContent?.data?.records))return calls([{name:'get_entity_relationships',arguments:{entityId:supply.entity_id}}]);
+   const analysis=results.find(v=>v.structuredContent?.data?.calculation)?.structuredContent.data;
+   if(!analysis)return calls([{name:'analyze_resource_sharing',arguments:{supply:ref(supply),demand:ref(demand),assumptions:{internalMonthlyPayment:3000,incrementalMonthlyCost:1000,transitionExpense:6000,horizonMonths:12,avoidableExternalFraction:1,locationCompatible:supply.payload.site===demand.payload.site,sensitivity:[{label:'Higher incremental costs',incrementalMonthlyCost:2000,transitionExpense:12000}]}}}]);
+   const c=analysis.calculation;
+   respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({narrative:`TEST MODEL investigation using actual synchronized records: share ${c.sharedCapacity} m3. Ecosystem monthly benefit ${c.proposal.ecosystemMonthlyBenefit} ${c.currency}; horizon benefit ${c.proposal.ecosystemHorizonBenefit}. Consumer monthly benefit ${c.proposal.consumerMonthlyBenefit}; provider ${c.proposal.providerMonthlyBenefit}. Internal payments cancel. External storage remains the zero-change alternative. No decision executed.`,assumptions:['Test scenario assumptions: incremental cost 1000 per month, internal payment 3000, transition 6000, 12 months, proportional full external bill avoidance.','Site text equality is insufficient to establish operational suitability.','Synchronized records are non-authoritative; source timestamps and revisions must be reviewed.'],humanDecisions:['Confirm location, actual incremental costs, lease cancellation, service levels, transport and tax before approval.']})}]}]);
+   function calls(items){respond(items.map((v,i)=>({type:'function_call',call_id:'call_'+results.length+'_'+i,name:v.name,arguments:JSON.stringify(v.arguments)})));}
+   function respond(output){res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({id:'fixture',status:'completed',output}));}
+  }catch{res.writeHead(500);res.end('{}');}
+ });
+});
+server.listen(9443,'127.0.0.1');

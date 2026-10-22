@@ -11,6 +11,12 @@ const m: ModulePackageManifest = {
   configurationSchema: { type: 'object', additionalProperties: false, required: ['unit'], properties: { unit: { type: 'string', minLength: 1 } } },
   persistence: { isolation: 'dedicated-database', schemaVersion: 1, migrations: [{ version: 1, sha256: 'a'.repeat(64) }], destructiveRollback: false }, integrationEvents: [], analyticalCapabilities: []
 };
+test('signed MCP contributions can only target declared read-only parameterless APIs',()=>{
+ validateManifest({...m,mcpTools:[{name:'get_records',description:'Read local records',operationId:'list'}]});
+ validateManifest({...m,ui:[],mcpTools:[{name:'get_records',description:'Headless read contribution',operationId:'list'}]});
+ for(const operationId of ['create','update','missing'])assert.throws(()=>validateManifest({...m,mcpTools:[{name:'get_records',description:'Read local records',operationId}]}));
+ assert.throws(()=>validateManifest({...m,mcpTools:[{name:'../code',description:'Invalid',operationId:'list'}]}));
+});
 test('replication projections reject executable identifiers and equivalent schemas retain validation',()=>{
   const valid={...m,replication:{contractVersion:1 as const,streams:[{streamId:'records',table:'records',idColumn:'id',revisionColumn:'revision',columns:['id','revision','name']}]}};
   validateManifest(valid);

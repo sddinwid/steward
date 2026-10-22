@@ -1,3 +1,4 @@
+import { AnalystWorkspace } from './analyst.js';
 import { BusinessConsole } from './business.js';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { LegalEntity, StewardRole } from '@steward/contracts';
@@ -13,9 +14,9 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
   const [busy, setBusy] = useState(false);
   const csrf = useRef('');
   const api: Api = async (path, method = 'GET', body) => {
-    const response = await fetch((path.startsWith('/v3/') || path.startsWith('/v4/')) ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
+    const response = await fetch((path.startsWith('/v3/') || path.startsWith('/v4/') || path.startsWith('/v5/')) ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout((path.startsWith('/v3/') || path.startsWith('/v4/')) ? 90000 : 15000) });
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout((path.startsWith('/v3/') || path.startsWith('/v4/') || path.startsWith('/v5/')) ? 90000 : 15000) });
     const value = await response.json();
     if (!response.ok) throw new Error(value.error ?? 'Request failed');
     return value;
@@ -37,7 +38,7 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
       </>}
       {error ? <p className="form-error" role="alert">{error}</p> : null}
     </section>
-    {role === 'worker' ? <><WorkerEnrollment api={api} signedIn={account?.role === 'local_admin'} report={report} />{account ? <><ModuleConsole api={api} administrator={account.role === 'local_admin'} />{account.role==='local_admin'?<BusinessConsole api={api} master={false}/>:null}</> : null}</> : account ? <><MasterAdministration api={api} account={account} report={report} /><BusinessConsole api={api} master={true}/></> : null}
+    {role === 'worker' ? <><WorkerEnrollment api={api} signedIn={account?.role === 'local_admin'} report={report} />{account ? <><ModuleConsole api={api} administrator={account.role === 'local_admin'} />{account.role==='local_admin'?<BusinessConsole api={api} master={false}/>:null}</> : null}</> : account ? <><MasterAdministration api={api} account={account} report={report} />{['registry_admin','enrollment_admin'].includes(account.role)?<AnalystWorkspace api={api}/>:null}<BusinessConsole api={api} master={true}/></> : null}
   </div>;
 }
 function WorkerEnrollment({ api, signedIn, report }: { api: Api; signedIn: boolean; report: (e: unknown) => void }) {

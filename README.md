@@ -1,6 +1,6 @@
-# CEE Steward platform — Phase 4
+# CEE Steward platform - Phase 5
 
-Platform `0.4.0` builds on verified Phase 3 commit `55ec7ef`. Independent business modules provide inventory availability, capacity, storage costs and warehouse assets. PostgreSQL transactional outboxes/inboxes deliver entity-owned analytical copies to Master and findings/status updates in both directions. Existing identities, enrollment, module state and local independence are preserved. See [Phase 4 operations and exact commands](docs/phase4.md) and [actual verification](docs/phase4-verification.md). AI Analyst, MCP and offline enrollment remain unimplemented.
+Platform `0.5.0` builds on verified Phase 4 commit `a7d6cc1`. Master and each independent Worker expose genuine authenticated Streamable HTTP MCP. Master adds persistent investigations, a bounded AI Analyst with configurable provider credentials, deterministic resource-sharing calculations, and human-authorized findings delivered through existing durable synchronization. Inventory 1.2.1 contributes its MCP tool through a separately signed package. No model is configured by default; test-model evidence is distinguished from live-provider validation. Offline enrollment remains unimplemented. See [Phase 5 setup, security and exact commands](docs/phase5.md) and [actual verification](docs/phase5-verification.md). Historical [Phase 4 operations](docs/phase4.md) and [verification](docs/phase4-verification.md) remain preserved.
 
 ## Prerequisites and first startup
 
@@ -16,12 +16,13 @@ npm run provision
 npm run security:provision
 npm run modules:provision
 npm run data:provision
+npm run analyst:provision
 node scripts/compose.mjs config --quiet
 npm run dev:up
 npm run smoke
 ```
 
-`npm run dev:up` builds four core application images and one generic module-host image and waits for fifteen containers to become healthy. It applies the optional security, module and data overlays when present and does not bind PostgreSQL to the host. Preserved Phase 1 URLs:
+`npm run dev:up` builds four core application images and one generic module-host image and waits for fifteen containers to become healthy. It applies the optional security, module, data and analyst overlays when present and does not bind PostgreSQL to the host. Preserved Phase 1 URLs:
 
 | Installation | React frontend | API | Health / readiness |
 | --- | --- | --- | --- |
@@ -30,7 +31,7 @@ npm run smoke
 | Worker 2 | http://127.0.0.1:5202 | http://127.0.0.1:4202 | `/health`, `/ready` |
 | Worker 3 | http://127.0.0.1:5203 | http://127.0.0.1:4203 | `/health`, `/ready` |
 
-Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` preserves the local installation identity and module inventory; enrollment is marked available only when security is configured. Sensitive v2/v3/v4 routes exist exclusively on HTTPS. Open [Master secure administration](https://master.localhost:6100) or Workers at [6201](https://worker-1.localhost:6201), [6202](https://worker-2.localhost:6202), and [6203](https://worker-3.localhost:6203) after trusting your generated development CA. Accounts must be explicitly created; no default credentials exist. See the [account and trust setup](docs/phase2.md).
+Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` preserves the local installation identity and module inventory; enrollment is marked available only when security is configured. Sensitive v2/v3/v4/v5 routes exist exclusively on HTTPS. Open [Master secure administration](https://master.localhost:6100) or Workers at [6201](https://worker-1.localhost:6201), [6202](https://worker-2.localhost:6202), and [6203](https://worker-3.localhost:6203) after trusting your generated development CA. Accounts must be explicitly created; no default credentials exist. See the [account and trust setup](docs/phase2.md).
 
 ## Verification
 
@@ -43,7 +44,10 @@ npm run smoke
 npm run verify:isolation
 npx playwright install chromium
 node scripts/browser-smoke.mjs
+npm run smoke:mcp
+npm run verify:phase5
 npm run verify:phase4
+node scripts/verify-legacy-regressions.mjs
 node scripts/verify-outage-independence.mjs
 node scripts/verify-module-restart.mjs
 node scripts/verify-module-provision.mjs
@@ -151,7 +155,7 @@ APIs run as a non-root user with read-only filesystems and dropped capabilities;
 
 Compose file secrets are local bind-mounted files, **not an encrypted secret manager**. On POSIX, deployment and secret directories are private (0700); secret files are read-only (0444) so individually mounted files can be read by the different non-root container UIDs. Host users cannot traverse the private parent directories. Compose file secrets do not remap file ownership. Windows permissions inherit the parent directory ACL. Keep `.steward` private to the operator, out of source control, and backed up with the database. Never paste secret files into logs/issues. Do not rotate a password file alone: a retained PostgreSQL role password must also be changed through an administrative rotation procedure, which is outside Phase 1.
 
-This is a local development environment. HTTP local status/identity reads remain unauthenticated; sensitive entity/authentication/enrollment writes require the HTTPS overlay, real accounts, CSRF protection, and role/entity authorization. Private security material has additional operator-only directory protection, including a restricted Windows ACL. The [production trust model and remaining limits](docs/phase2.md) cover managed PKI/renewal, secrets, backups, and operational hardening. MCP, AI/Python analytics and multi-host orchestration remain unimplemented. Durable synchronization and manual analytical findings are implemented in Phase 4. The module provider has Docker socket authority equivalent to host root and requires a dedicated trusted Worker host; it is not a multi-tenant sandbox. Modules receive only their own database/gateway credentials. [Review the module trust model](docs/phase3.md). Offline enrollment is a versioned signed-grant contract only.
+This is a local development environment. HTTP local status/identity reads remain unauthenticated; sensitive entity/authentication/enrollment writes require the HTTPS overlay, real accounts, CSRF protection, and role/entity authorization. Private security material has additional operator-only directory protection, including a restricted Windows ACL. The [production trust model and remaining limits](docs/phase2.md) cover managed PKI/renewal, secrets, backups, and operational hardening. MCP and the Master AI Analyst are implemented in Phase 5; model credentials must be configured separately. Python analytical services and multi-host orchestration remain unimplemented. Durable synchronization and manual analytical findings are implemented in Phase 4. The module provider has Docker socket authority equivalent to host root and requires a dedicated trusted Worker host; it is not a multi-tenant sandbox. Modules receive only their own database/gateway credentials. [Review the module trust model](docs/phase3.md). Offline enrollment is a versioned signed-grant contract only.
 
 ## Repository layout and decisions
 

@@ -1,3 +1,4 @@
+import { atLeast } from '../packages/module-sdk/dist/index.js';
 import { readFile,writeFile,mkdir,rename,rmdir } from 'node:fs/promises';
 import path from 'node:path';
 import { directory } from './lib.mjs';
@@ -36,7 +37,7 @@ for(const company of scenario.companies){
  console.log('Seeded synthetic '+company.role+' records on '+key+' using its authorized legal entity.');
 }
 const manufacturer='worker-1';let inventory=(await api(manufacturer,'/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.inventory');
-if(!inventory||inventory.version!=='1.1.0')await api(manufacturer,'/api/v3/modules/install','POST',{packageId:'cee.inventory@1.1.0',operationId:randomUUID(),configuration:inventory?.configuration??{quantityUnit:'units'},upgrade:!!inventory});
+if(!inventory||!atLeast(inventory.version,'1.1.0')){const manager=(await api(manufacturer,'/api/v3/modules')).value;const candidate=manager.available.filter(p=>p.trusted&&p.compatible&&p.manifest.moduleId==='cee.inventory'&&atLeast(p.manifest.version,'1.1.0')).sort((a,b)=>atLeast(a.manifest.version,b.manifest.version)?-1:1)[0];if(!candidate)throw new Error('Publish a compatible Inventory package >=1.1.0 before seeding');await api(manufacturer,'/api/v3/modules/install','POST',{packageId:candidate.packageId,operationId:randomUUID(),configuration:inventory?.configuration??{quantityUnit:'units'},upgrade:!!inventory});}
 await api(manufacturer,'/api/v3/modules/cee.inventory/lifecycle','POST',{action:'activate'});
 const items='/api/v3/modules/cee.inventory/api/items';const stockRows=(await api(manufacturer,items)).value.records;const oldStock=stockRows.find(r=>r.id===seedState.records.inventory)??stockRows.find(r=>r.sku===scenario.inventory.sku);seedState.records.inventory=oldStock?.id??(await api(manufacturer,items,'POST',scenario.inventory,201)).value.record.id;
 for(const relation of scenario.relationships){const existing=(await api('master','/api/v4/analytics')).value.relationships.find(r=>r.from_entity===entities[relation.from]&&r.to_entity===entities[relation.to]&&r.kind===relation.kind);if(!existing)await api('master','/api/v4/relationships','PUT',{relationshipId:randomUUID(),fromEntity:entities[relation.from],toEntity:entities[relation.to],kind:relation.kind,description:relation.description});}
