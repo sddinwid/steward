@@ -9,7 +9,7 @@ try {
   if (!values.username || !values.role || !values['password-stdin']) throw new Error('Use --username NAME --role registry_admin|enrollment_admin|viewer|local_admin --password-stdin');
   const role = process.env.STEWARD_ROLE;
   if (role !== 'master' && role !== 'worker') throw new Error('STEWARD_ROLE must be configured');
-  if ((role === 'worker') !== (values.role === 'local_admin')) throw new Error('Account role does not match this installation');
+  if ((role === 'worker') !== ['local_admin', 'module_user'].includes(values.role)) throw new Error('Account role does not match this installation');
   let password = '';
   for await (const chunk of process.stdin) { password += chunk.toString(); if (password.length > 512) throw new Error('Password input too large'); }
   password = password.replace(/[\r\n]+$/, '');

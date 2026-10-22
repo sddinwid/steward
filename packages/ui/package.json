@@ -1,8 +1,27 @@
 {
-  "name": "@steward/ui", "version": "0.1.0", "private": true, "type": "module",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" }, "./style.css": "./src/style.css" },
-  "scripts": { "build": "tsc -p tsconfig.json" },
-  "dependencies": { "@steward/contracts": "0.1.0" },
-  "peerDependencies": { "react": "19.3.1", "react-dom": "19.3.1" },
-  "devDependencies": { "@types/react": "19.3.0" }
+  "name": "@steward/ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./style.css": "./src/style.css"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@steward/contracts": "0.1.0"
+  },
+  "peerDependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@steward/module-sdk": "1.0.0",
+    "@types/react": "19.3.0"
+  }
 }

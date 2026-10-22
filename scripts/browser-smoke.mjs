@@ -13,7 +13,8 @@ try {
     await page.goto(`http://127.0.0.1:${i.webPort}`, { waitUntil: 'networkidle' });
     await page.getByRole('status').filter({ hasText: 'Local runtime ready' }).waitFor();
     await page.getByText(i.installationId, { exact: true }).waitFor();
-    await page.getByRole('heading', { name: 'No modules installed' }).waitFor();
+    const overview = await (await fetch(`http://127.0.0.1:${i.apiPort}/api/v1/platform`)).json();
+    await page.getByRole('heading', { name: overview.modules.length ? 'Installed modules' : 'No modules installed', exact: true }).waitFor();
     assert.deepEqual(errors, []);
     await page.screenshot({ path: `artifacts/${i.key}-desktop.png`, fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });

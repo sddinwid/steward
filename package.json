@@ -1,6 +1,6 @@
 {
   "name": "steward-platform",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -12,15 +12,20 @@
     "npm": ">=10"
   },
   "scripts": {
-    "build": "npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer",
-    "test": "npm run test -w @steward/platform && npm run test -w @steward/installer",
+    "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer",
+    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory",
     "provision": "node tools/installer/dist/cli.js provision",
     "security:provision": "node tools/installer/dist/security-cli.js",
     "dev:up": "node scripts/compose.mjs up --build -d --wait --wait-timeout 180",
     "dev:down": "node scripts/compose.mjs down",
     "smoke": "node scripts/smoke.mjs",
     "verify:isolation": "node scripts/verify-isolation.mjs",
-    "verify:phase2": "node scripts/verify-phase2.mjs"
+    "verify:phase2": "node scripts/verify-phase2.mjs",
+    "modules:provision": "node tools/installer/dist/modules-cli.js",
+    "modules:publish": "node scripts/publish-module.mjs",
+    "build:inventory": "cd modules/inventory && npm ci && npm run build",
+    "test:inventory": "cd modules/inventory && npm test",
+    "verify:phase3": "node scripts/verify-phase3.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -2,6 +2,7 @@ import pg from 'pg';
 import type { InstallationConfig } from '@steward/contracts';
 import type { RuntimeConfig } from './config.js';
 import { securityMigration } from './security/migration.js';
+import { moduleMigration } from './module-migration.js';
 
 // Immutable, ordered migrations. Future changes append migrations; never edit applied SQL.
 const migrations = [{ version: 1, sql: `
@@ -12,10 +13,11 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }, { version: 2, sql: securityMigration }];
+` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;
+  modules?(): Promise<import('@steward/contracts').ModuleManifest[]>;
 }
 export class PostgresDatabase implements PlatformDatabase {
   readonly pool: pg.Pool;
@@ -56,4 +58,8 @@ export class PostgresDatabase implements PlatformDatabase {
     if (result.rowCount !== 1) throw new Error('Persistence readiness failed');
   }
   async close(): Promise<void> { await this.pool.end(); }
+  async modules() {
+    const rows = await this.pool.query('SELECT module_id,version,descriptor FROM module_installations ORDER BY module_id');
+    return rows.rows.map(r => ({ moduleId: r.module_id, version: r.version, compatibleCore: '>=' + r.descriptor.payload.manifest.minimumPlatformVersion, capabilities: [] }));
+  }
 }

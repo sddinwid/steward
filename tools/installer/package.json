@@ -1,6 +1,17 @@
 {
-  "name": "@steward/installer", "version": "0.1.0", "private": true, "type": "module",
-  "bin": { "steward-install": "dist/cli.js" },
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "node --test dist/test/provision.test.js dist/test/security.test.js" },
-  "dependencies": { "@steward/contracts": "0.1.0", "@steward/platform": "0.1.0" }
+  "name": "@steward/installer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "steward-install": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/test/provision.test.js dist/test/security.test.js dist/test/modules.test.js"
+  },
+  "dependencies": {
+    "@steward/contracts": "0.1.0",
+    "@steward/platform": "0.1.0"
+  }
 }

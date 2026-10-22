@@ -20,7 +20,7 @@ test('security provisioning is additive, preserves keys and binds only each inst
     for (const [p, contents] of Object.entries(before)) assert.equal(await readFile(path.join(security, p), 'utf8'), contents);
     assert.equal(await readFile(path.join(directory, 'compose.yaml'), 'utf8'), original);
     const overlay = before['compose.yaml']!;
-    assert.ok(overlay.includes('steward-worker-api:0.2.0'));
+    assert.ok(overlay.includes('steward-worker-api:0.3.0'));
     assert.equal(overlay.includes('ca-key.pem'), false);
     assert.equal((overlay.match(/target: \/etc\/steward\/security.json/g) ?? []).length, 3);
     assert.notEqual(before[path.join('worker-1', 'identity-key.pem')], before[path.join('worker-2', 'identity-key.pem')]);

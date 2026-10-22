@@ -1,0 +1,15 @@
+FROM node:24.13.0-alpine AS build
+WORKDIR /app
+COPY package*.json tsconfig.base.json ./
+COPY packages ./packages
+COPY apps ./apps
+COPY tools ./tools
+RUN npm ci && npm run build -w @steward/module-sdk && npm run build -w @steward/module-host && npm prune --omit=dev
+FROM node:24.13.0-alpine
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/packages/module-sdk ./packages/module-sdk
+COPY --from=build /app/packages/module-host ./packages/module-host
+ENV NODE_ENV=production
+HEALTHCHECK --interval=5s --timeout=4s --retries=20 CMD node -e "const fs=require('fs'),c=JSON.parse(fs.readFileSync(process.env.MODULE_HOST_CONFIG));require('https').get({hostname:'127.0.0.1',port:8443,path:'/health',servername:c.workerKey+'-api',ca:fs.readFileSync('/run/secrets/trust_ca')},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+CMD ["node", "packages/module-host/dist/index.js"]

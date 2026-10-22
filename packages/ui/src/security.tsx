@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { LegalEntity, StewardRole } from '@steward/contracts';
+import { ModuleConsole } from './modules.js';
 type Account = { account_id: string; username: string; role: string };
 type Api = <T = any>(path: string, method?: string, body?: unknown) => Promise<T>;
 
@@ -11,9 +12,9 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
   const [busy, setBusy] = useState(false);
   const csrf = useRef('');
   const api: Api = async (path, method = 'GET', body) => {
-    const response = await fetch(`/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
+    const response = await fetch(path.startsWith('/v3/') ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(15000) });
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(path.startsWith('/v3/') ? 90000 : 15000) });
     const value = await response.json();
     if (!response.ok) throw new Error(value.error ?? 'Request failed');
     return value;
@@ -35,7 +36,7 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
       </>}
       {error ? <p className="form-error" role="alert">{error}</p> : null}
     </section>
-    {role === 'worker' ? <WorkerEnrollment api={api} signedIn={!!account} report={report} /> : account ? <MasterAdministration api={api} account={account} report={report} /> : null}
+    {role === 'worker' ? <><WorkerEnrollment api={api} signedIn={account?.role === 'local_admin'} report={report} />{account ? <ModuleConsole api={api} administrator={account.role === 'local_admin'} /> : null}</> : account ? <MasterAdministration api={api} account={account} report={report} /> : null}
   </div>;
 }
 function WorkerEnrollment({ api, signedIn, report }: { api: Api; signedIn: boolean; report: (e: unknown) => void }) {

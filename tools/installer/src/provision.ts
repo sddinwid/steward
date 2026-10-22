@@ -5,7 +5,7 @@ import type { InstallationConfig, StewardRole } from '@steward/contracts';
 import { parseConfig } from '@steward/platform';
 
 export const PROVISIONER_VERSION = 1;
-export const RELEASE = '0.2.0';
+export const RELEASE = '0.3.0';
 export interface ProvisionOptions {
   directory: string;
   sourceRoot: string;
@@ -137,7 +137,7 @@ export async function provision(o: ProvisionOptions): Promise<{ created: boolean
     if (o.mode !== 'master') for (let n = 1; n <= o.workers; n++) keys.push({ key: `worker-${n}`, role: 'worker', apiPort: 4200 + n, webPort: 5200 + n });
     if (await exists(directory)) {
       const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8')) as Manifest;
-      if (manifest.provisionerVersion !== PROVISIONER_VERSION || !['0.1.0', RELEASE].includes(manifest.release) || manifest.mode !== o.mode ||
+      if (manifest.provisionerVersion !== PROVISIONER_VERSION || !['0.1.0', '0.2.0', RELEASE].includes(manifest.release) || manifest.mode !== o.mode ||
           manifest.project !== o.project || manifest.label !== o.label || JSON.stringify(manifest.instances.map(({ installationId: _, ...i }) => i)) !== JSON.stringify(keys)) {
         throw new Error('Existing deployment differs. In-place topology changes and upgrades are not implemented; existing files were preserved.');
       }

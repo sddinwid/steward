@@ -1,23 +1,25 @@
-# CEE Steward platform — Phase 2
+# CEE Steward platform — Phase 3
 
-Runnable platform release `0.2.0` adds secure entity registration and proof-bound Worker enrollment to the independent Phase 1 applications. Base provisioner format v1 and installation configuration v1 are preserved. [Phase 2 operations, authentication bootstrap, trust configuration, and verification](docs/phase2.md) describe the HTTPS overlay and exact enrollment procedure. No business modules, MCP, analytics, or durable synchronization are implemented.
+Platform `0.3.0` adds dynamic Worker modules to verified Phase 2 baseline `9c518b5`. Inventory `1.0.0` is a separately built, signed service package installed into already running Workers through their local Module Manager. Existing installation v1, enrollment and independent operation are preserved. See [Phase 3 installation, SDK, trust and recovery](docs/phase3.md) and [actual verification evidence](docs/phase3-verification.md). MCP, analytics and durable synchronization remain unimplemented.
 
 ## Prerequisites and first startup
 
-Run from this repository root using Node.js **24.x**, npm **10+**, and Docker with Linux containers and Compose **2.20+** (Compose `include` support). Docker Desktop must be running. The first build needs network access to npm and container registries. All commands below work in PowerShell; npm/Docker commands also work on Linux/macOS.
+Run from this repository root using Node.js **24.x**, npm **10+**, and Docker with Linux containers and Compose **2.20+** (Compose `include` support). The Phase 3 provider also requires Docker API 1.51 and named-volume subpaths (verified with Engine 29.9.1). Docker Desktop must be running. The first build needs network access to npm and container registries. All commands below work in PowerShell; npm/Docker commands also work on Linux/macOS.
 
 ```powershell
 npm ci
 npm run build
+npm run build:inventory
 npm test
 npm run provision
 npm run security:provision
+npm run modules:provision
 node scripts/compose.mjs config --quiet
 npm run dev:up
 npm run smoke
 ```
 
-`npm run dev:up` builds four application images and waits for all twelve containers to become healthy. It automatically applies the optional security overlay when present and does not bind PostgreSQL to the host. Preserved Phase 1 URLs:
+`npm run dev:up` builds four core application images and one generic module-host image and waits for fifteen containers to become healthy. It applies the optional security and module overlays when present and does not bind PostgreSQL to the host. Preserved Phase 1 URLs:
 
 | Installation | React frontend | API | Health / readiness |
 | --- | --- | --- | --- |
@@ -26,22 +28,27 @@ npm run smoke
 | Worker 2 | http://127.0.0.1:5202 | http://127.0.0.1:4202 | `/health`, `/ready` |
 | Worker 3 | http://127.0.0.1:5203 | http://127.0.0.1:4203 | `/health`, `/ready` |
 
-Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` preserves the local installation identity and module inventory; enrollment is marked available only when security is configured. Sensitive v2 routes exist exclusively on HTTPS. Open [Master secure administration](https://master.localhost:6100) or Workers at [6201](https://worker-1.localhost:6201), [6202](https://worker-2.localhost:6202), and [6203](https://worker-3.localhost:6203) after trusting your generated development CA. Accounts must be explicitly created; no default credentials exist. See the [account and trust setup](docs/phase2.md).
+Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` preserves the local installation identity and module inventory; enrollment is marked available only when security is configured. Sensitive v2/v3 routes exist exclusively on HTTPS. Open [Master secure administration](https://master.localhost:6100) or Workers at [6201](https://worker-1.localhost:6201), [6202](https://worker-2.localhost:6202), and [6203](https://worker-3.localhost:6203) after trusting your generated development CA. Accounts must be explicitly created; no default credentials exist. See the [account and trust setup](docs/phase2.md).
 
 ## Verification
 
 ```powershell
 npm run build
+npm run build:inventory
 npm test
 npm run smoke
 npm run verify:isolation
 npx playwright install chromium
 node scripts/browser-smoke.mjs
 npm run verify:phase2
+npm run verify:phase3
+node scripts/verify-module-restart.mjs
+node scripts/verify-module-provision.mjs
+node scripts/verify-module-secrets.mjs
 node scripts/compose.mjs ps
 ```
 
-The twelve Node tests retain all eight Phase 1 checks and add password hashing, signed assertions, grant constraints, and additive security provisioning/key isolation. Build before tests because Node executes compiled TypeScript. `verify:phase2` exercises real TLS APIs and Chromium entity registration, authorization, enrollment, rejection, persistence, and outage scenarios; [details and constraints](docs/phase2.md).
+The 18 Node tests cover existing backend/security behavior, module SDK validation, repeatable provisioning and the independent Inventory service. Build both core and Inventory before tests. `verify:phase2` exercises original TLS/API/Chromium enrollment scenarios. `verify:phase3` checks real browser installation/CRUD, immutable core identities, isolation, permissions, failed SQL recovery and outage operation; it requires the private development fixtures created by `verify:phase2`. The restart check verifies a complete teardown/recreation with retained module state/data.
 
 Smoke tests check all frontend HTML/assets, each frontend's API proxy, API health/readiness, configuration versus persisted identity, migration versions, restricted database roles, distinct data volumes, and identical Worker image IDs. Browser tests load all four React apps, check rendered identity/readiness and page errors, and capture desktop/mobile screenshots under ignored `artifacts/`.
 
@@ -53,7 +60,7 @@ All verification scripts accept an optional deployment directory as their first 
 node scripts/smoke.mjs .steward/worker-only
 ```
 
-See [Phase 2 verification results](docs/phase2-verification.md) and the preserved [Phase 1 baseline report](docs/verification.md).
+See [Phase 3 verification results](docs/phase3-verification.md), [Phase 2 verification results](docs/phase2-verification.md) and the preserved [Phase 1 baseline report](docs/verification.md).
 
 ## Shutdown, restart, and reset
 
@@ -69,7 +76,7 @@ Restart with retained volumes and identities:
 node scripts/compose.mjs up -d --wait --wait-timeout 180
 ```
 
-Reset **database contents only**, retaining installation configuration and credentials (destructive):
+Reset **database contents and module secret/state volumes**, retaining host installation configuration and credentials (destructive):
 
 ```powershell
 node scripts/compose.mjs down --volumes
@@ -88,10 +95,11 @@ if ($LASTEXITCODE -ne 0) { throw 'Compose teardown failed; configuration preserv
 Remove-Item -LiteralPath $deploymentPath -Recurse -Force
 npm run provision
 npm run security:provision
+npm run modules:provision
 npm run dev:up
 ```
 
-On Linux/macOS, after `node scripts/compose.mjs down --volumes --remove-orphans`, remove only the repository's `.steward/dev` directory, then run both provisioning/startup commands. Images are retained in either reset flow. Do not remove configuration or identity keys while retaining their old database volumes: identity binding deliberately rejects attaching a new installation to old data.
+On Linux/macOS, after `node scripts/compose.mjs down --volumes --remove-orphans`, remove only the repository's `.steward/dev` directory, then run base, security and module provisioning followed by startup. Images are retained in either reset flow. Do not remove configuration or identity keys while retaining their old database volumes: identity binding deliberately rejects attaching a new installation to old data.
 
 ## Installation and provisioning
 
@@ -121,7 +129,7 @@ node scripts/smoke.mjs .steward/master-only
 docker compose -f .steward/master-only/compose.yaml down
 ```
 
-Generated Compose uses absolute build/init-script paths to this checkout and relative configuration/secret paths. Provision on the target machine; moving an existing deployment/checkout requires explicitly reviewed path edits. A registry distribution mechanism is not implemented. The standalone examples above exercise the base deployment without enrollment. [Add security to a standalone deployment](docs/phase2.md) separately; a Master trust profile adds a connection configuration but no Master startup/health dependency. All secured Workers use `steward-worker-api:0.2.0` and `steward-worker-web:0.2.0`; no identities or secrets enter those images. Existing Phase 1 base Compose files retain their original 0.1.0 tags and the overlay selects 0.2.0. Fresh deployments use 0.2.0 tags directly; the base provisioner accepts/preserves either release.
+Generated Compose uses absolute build/init-script paths to this checkout and relative configuration/secret paths. Provision on the target machine; moving an existing deployment/checkout requires explicitly reviewed path edits. A registry distribution mechanism is not implemented. The standalone examples above exercise the base deployment without enrollment. [Add security to a standalone deployment](docs/phase2.md) separately; a Master trust profile adds a connection configuration but no Master startup/health dependency. All Workers with the module overlay use `steward-worker-api:0.3.0` and `steward-worker-web:0.3.0`; identities/secrets never enter images. Existing 0.1.0/0.2.0 manifests and base/security files remain preserved. Fresh deployments use 0.3.0. The module overlay upgrades existing core applications once; publishing/installing modules afterward does not rebuild them.
 
 ## Configuration and security boundary
 
@@ -135,11 +143,11 @@ Generated Compose uses absolute build/init-script paths to this checkout and rel
 | `DB_CA_FILE` | Required CA certificate path when verifying TLS |
 | `HOST`, `PORT` | API bind address/port; defaults `127.0.0.1:3000`; containers explicitly bind internally to `0.0.0.0` |
 
-APIs run as a non-root user with read-only filesystems and dropped capabilities; frontends also run non-root with read-only filesystems and a temporary Nginx directory. Host bindings are loopback only. Each installation has a separate application network and internal database network, its own PostgreSQL server and volume, and separate secrets. Only its API joins both networks; the frontend cannot directly reach PostgreSQL. PostgreSQL's admin account is used only for initialization/diagnostics; the API connects as a non-superuser owning only its local operational database. Startup runs ordered SQL migrations under a transactional advisory lock and binds identity in the same transaction. Liveness does not query PostgreSQL; readiness checks schema and identity with bounded query/connection timeouts. Shutdown closes connections on SIGTERM/SIGINT.
+APIs run as a non-root user with read-only filesystems and dropped capabilities; frontends also run non-root with read-only filesystems and a temporary Nginx directory. Host bindings are loopback only. Each installation has a separate application network and internal database network, its own PostgreSQL server and volume, and separate secrets. The frontend cannot directly reach PostgreSQL. Phase 3 adds a trusted per-Worker provider and isolated module containers. PostgreSQL's admin account is used for initialization/diagnostics and by its Worker module provider; the API connects as a non-superuser owning only its local operational database. Startup runs ordered SQL migrations under a transactional advisory lock and binds identity in the same transaction. Liveness does not query PostgreSQL; readiness checks schema and identity with bounded query/connection timeouts. Shutdown closes connections on SIGTERM/SIGINT.
 
 Compose file secrets are local bind-mounted files, **not an encrypted secret manager**. On POSIX, deployment and secret directories are private (0700); secret files are read-only (0444) so individually mounted files can be read by the different non-root container UIDs. Host users cannot traverse the private parent directories. Compose file secrets do not remap file ownership. Windows permissions inherit the parent directory ACL. Keep `.steward` private to the operator, out of source control, and backed up with the database. Never paste secret files into logs/issues. Do not rotate a password file alone: a retained PostgreSQL role password must also be changed through an administrative rotation procedure, which is outside Phase 1.
 
-This is a local development environment. HTTP local status/identity reads remain unauthenticated; sensitive entity/authentication/enrollment writes require the HTTPS overlay, real accounts, CSRF protection, and role/entity authorization. Private security material has additional operator-only directory protection, including a restricted Windows ACL. The [production trust model and remaining limits](docs/phase2.md) cover managed PKI/renewal, secrets, backups, and operational hardening. MCP, AI/Python analytics, durable synchronization, module loading/installing, and multi-host orchestration remain unimplemented. Offline enrollment is a versioned signed-grant contract only.
+This is a local development environment. HTTP local status/identity reads remain unauthenticated; sensitive entity/authentication/enrollment writes require the HTTPS overlay, real accounts, CSRF protection, and role/entity authorization. Private security material has additional operator-only directory protection, including a restricted Windows ACL. The [production trust model and remaining limits](docs/phase2.md) cover managed PKI/renewal, secrets, backups, and operational hardening. MCP, AI/Python analytics, durable synchronization and multi-host orchestration remain unimplemented. The module provider has Docker socket authority equivalent to host root and requires a dedicated trusted Worker host; it is not a multi-tenant sandbox. Modules receive only their own database/gateway credentials. [Review the module trust model](docs/phase3.md). Offline enrollment is a versioned signed-grant contract only.
 
 ## Repository layout and decisions
 
@@ -148,7 +156,10 @@ apps/{master-api,worker-api}/    Separate Fastify entry points
 apps/{master-web,worker-web}/    Separate React/Vite applications
 packages/contracts/            Versioned identities, module and extension contracts
 packages/platform/             Config, persistence/migrations, API lifecycle, module interface
-packages/ui/                   Shared status UI; no business logic
+packages/ui/                   Shared status/security UI and generic module renderer
+packages/module-sdk/           Versioned manifest, signature and compatibility contracts
+packages/module-host/          Generic trusted OCI deployment provider
+modules/inventory/             Independent service, SQL migrations, manifest and tests
 tools/installer/               Versioned provisioning CLI and tests
 infra/                         API/web Dockerfiles, Nginx proxy, database initialization
 scripts/                       Smoke, browser, persistence and isolation verification
@@ -158,3 +169,13 @@ docs/adr/                      Architectural decision records
 ADRs: [deployment isolation](docs/adr/0001-deployment-isolation.md), [identity and persistence](docs/adr/0002-identity-persistence.md), [extension boundaries](docs/adr/0003-extension-boundaries.md), and [provisioning/security](docs/adr/0004-provisioning-security.md).
 
 Phase 2 ADRs: [enrollment trust and identity](docs/adr/0005-enrollment-trust-and-identity.md), [administrator authentication](docs/adr/0006-administrator-authentication.md), and [HTTPS/offline availability](docs/adr/0007-additive-https-and-offline-availability.md). Phase 1 ADRs remain historical records; these explicitly extend their enrollment/security boundaries.
+
+Phase 3 ADRs: [independent services and declarative UI](docs/adr/0008-independent-module-services-and-declarative-ui.md), [trusted provider and recoverable installation](docs/adr/0009-trusted-provider-and-recoverable-installation.md).
+
+Publish Inventory only after the generic platform is running:
+
+```powershell
+npm run modules:publish
+```
+
+Sign in to Worker 1 or 3 over HTTPS, refresh Module Manager, inspect/configure/install the package, activate it, and open Inventory navigation. Worker 2 can remain module-free. See the [exact procedure](docs/phase3.md). Use the repository wrapper for shutdown/reset: `npm run dev:down` handles dynamic module containers while preserving their databases and desired activation. Direct `docker compose down` bypasses that handling.

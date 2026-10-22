@@ -1,0 +1,11 @@
+# ADR 0009: Trusted deployment provider and recoverable installation
+
+Status: accepted for Phase 3 local OCI provider.
+
+A Worker API must not receive Docker control or PostgreSQL administrative credentials. Use a separate per-Worker module-host infrastructure process. It validates fresh Worker identity-signed control requests over verified TLS and resolves only operator-reviewed signed catalog entries, immutable local image IDs and matching image labels. Nonces persist across restarts. Publisher keys stay outside runtime; only public trust/catalog is mounted. The local publisher builds modules independently after core startup.
+
+This provider holds a Docker socket and its own Worker database administrative credential. Docker control is host-root-equivalent. This is appropriate only on a dedicated trusted Worker host; a shared production daemon requires a constrained orchestration provider. Container hardening does not remove that authority. Modules themselves get neither socket nor administrative/core identity credentials. They run nonroot, read-only, with limits, own secret subpath and dedicated networks/database role. Cross-host transport/distribution and automated registry pulling are deferred.
+
+Persist install intent/state before provisioning; serialize lifecycle in both core and provider with advisory locks. API forwarding takes shared locks. Use stable generated names, ownership labels, immutable descriptors and idempotent retries. Inventory verifies database identity and migration checksums and applies SQL transactionally. Failure retains database/secrets, records a clear error, and permits explicit corrected-package recovery. Never run destructive down migrations. After deployment teardown, providers verify retained identities and recreate disposable module containers, restoring desired activation; failed/interrupted installs await operator recovery.
+
+Consequences: local operation remains independent of Master; one Worker's installation cannot alter another's platform configuration/database. Administrators need database/volume backups and a trusted package supply process. Richer scheduling, safe active upgrades, uninstall, distributed reconciliation and backup automation are future work.

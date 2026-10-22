@@ -1,0 +1,382 @@
+{
+  "generatedAt": "2026-10-22T18:51:22.808Z",
+  "phase2BaselineCommit": "9c518b5",
+  "environment": {
+    "node": "v24.13.0",
+    "npm": "10.3.0",
+    "dockerEngine": "29.9.1",
+    "compose": "5.6.0",
+    "host": "Windows PowerShell, Linux containers",
+    "playwright": "1.58.2"
+  },
+  "initialAbsence": {
+    "capturedAt": "2026-10-22T18:31:38.217Z",
+    "allThreeModulesAbsent": true,
+    "catalogEmpty": true
+  },
+  "firstInstallationWindow": {
+    "verifiedAt": "2026-10-22T18:34:00.577Z",
+    "initialCoreMatchesWindow": true,
+    "coreBefore": {
+      "master-api": {
+        "image": "sha256:1057883aeb06cf13b5c4c08c5e292caf9d4dd833a873e7b2d0a1d44979842ae9",
+        "container": "84b5c323e96c72490cc04754240139225bbfae2e6af8e8d34f61ea8612a2191a",
+        "startedAt": "2026-10-22T18:27:24.361058294Z"
+      },
+      "master-web": {
+        "image": "sha256:c4bfa60129123e5c319a0703241799c89662214b98b1b03b1e4020d3d03a70eb",
+        "container": "ecae8dfa3878ba7f509f7523bf64b041bd9d730154114734b574dea526935f08",
+        "startedAt": "2026-10-22T18:16:15.800563682Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "e34be2d8cd1bdd458df0012a95d424272e6ef6b54efd198be9525671ace9e8df",
+        "startedAt": "2026-10-22T18:27:23.88010159Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "56055f0e38e49d129cfb71462126dc41c51bc44b588816bd1536f00577af5741",
+        "startedAt": "2026-10-22T18:16:16.155027643Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "852eaa6500050c3406237bdfa4db86533de06c12e8762fa46dc9a31b58f3d97d",
+        "startedAt": "2026-10-22T18:27:23.098248651Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "ff28c5391795ed21da07a41a55015412319f3d7765c71a2673d2dc41ed3eee8f",
+        "startedAt": "2026-10-22T18:16:17.739990832Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "741e25c8c7e29adc98ac7b23895580071ae8442088f89b99a5265d6ffef941b4",
+        "startedAt": "2026-10-22T18:27:23.474719199Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "741c297d0778bcf95c3793cf00e98ebbecc805211e8125f0c7655576d12afbc1",
+        "startedAt": "2026-10-22T18:16:15.32722229Z"
+      }
+    },
+    "coreAfter": {
+      "master-api": {
+        "image": "sha256:1057883aeb06cf13b5c4c08c5e292caf9d4dd833a873e7b2d0a1d44979842ae9",
+        "container": "84b5c323e96c72490cc04754240139225bbfae2e6af8e8d34f61ea8612a2191a",
+        "startedAt": "2026-10-22T18:27:24.361058294Z"
+      },
+      "master-web": {
+        "image": "sha256:c4bfa60129123e5c319a0703241799c89662214b98b1b03b1e4020d3d03a70eb",
+        "container": "ecae8dfa3878ba7f509f7523bf64b041bd9d730154114734b574dea526935f08",
+        "startedAt": "2026-10-22T18:16:15.800563682Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "e34be2d8cd1bdd458df0012a95d424272e6ef6b54efd198be9525671ace9e8df",
+        "startedAt": "2026-10-22T18:27:23.88010159Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "56055f0e38e49d129cfb71462126dc41c51bc44b588816bd1536f00577af5741",
+        "startedAt": "2026-10-22T18:16:16.155027643Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "852eaa6500050c3406237bdfa4db86533de06c12e8762fa46dc9a31b58f3d97d",
+        "startedAt": "2026-10-22T18:27:23.098248651Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "ff28c5391795ed21da07a41a55015412319f3d7765c71a2673d2dc41ed3eee8f",
+        "startedAt": "2026-10-22T18:16:17.739990832Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:537b9197c07e5db1e0f29bb6386f2e9d152730408f44250eb9223ee40723ee36",
+        "container": "741e25c8c7e29adc98ac7b23895580071ae8442088f89b99a5265d6ffef941b4",
+        "startedAt": "2026-10-22T18:27:23.474719199Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "741c297d0778bcf95c3793cf00e98ebbecc805211e8125f0c7655576d12afbc1",
+        "startedAt": "2026-10-22T18:16:15.32722229Z"
+      }
+    },
+    "inventoryImage": "sha256:4b4a9640260ee2b20e6f486a0c6be1e701c839306c902d3b616ce85a578178e8",
+    "version": "1.0.0"
+  },
+  "finalVerification": {
+    "verifiedAt": "2026-10-22T18:46:49.051Z",
+    "checks": [
+      "Resumed verification; first-run absence evidence is retained in phase3-initial-baseline.json",
+      "Running Worker core images contain no Inventory package",
+      "Inventory is a separately built, versioned, signed immutable OCI package",
+      "worker-1: persisted Inventory supports browser creation/editing of real persistent records",
+      "worker-3: persisted Inventory supports browser creation/editing of real persistent records",
+      "Worker 2 remains module-free and unchanged; Worker 1/3 records, databases, and configuration are isolated",
+      "Every core image hash, container ID, and start time is unchanged during publication, installation, activation, and CRUD",
+      "Concurrent and repeated installation requests preserve one installation and one immutable module container",
+      "Unauthenticated, cross-Worker-session, invalid-configuration, and CSRF requests are rejected",
+      "Tampered/unknown-publisher packages, incompatible platform versions, and missing dependencies are rejected before provisioning",
+      "Worker-local module users require explicit API grants; read-only users can list but cannot write or administer, in API and browser",
+      "Deactivation stops the module and hides/rejects its API while preserving records; reactivation restores access",
+      "Real failing SQL migration reports failed state, rolls back its uncommitted transaction, and explicitly recovers with corrected signed version; databases are never dropped",
+      "Provider verifies TLS identity and Worker signatures, rejects exact replay, stale/wrong-installation/altered proofs; sensitive v3 routes are absent on HTTP",
+      "Module has only its own read-only secret subpath, no published port/socket/core credentials, isolated networks, and no permission to connect to the Worker core database",
+      "Worker and module-host restarts preserve enrollment, local administrator session, module configuration, activation, and inventory records without Master login",
+      "All Workers remain healthy/ready with the entire Master stack stopped; Inventory API writes and browser reads continue",
+      "Browser installation and CRUD flows have no uncaught JavaScript errors"
+    ],
+    "coreBefore": {
+      "master-api": {
+        "image": "sha256:57fe5e0e18fefd0a9363a232811faea306b764dbd1ee36eb31cb6c0ee64e5a5b",
+        "container": "e1ee1dc24debb212c16137c7442a05e04a963e77f2f26d41c27dff82b4190bfd",
+        "startedAt": "2026-10-22T18:46:25.103361465Z"
+      },
+      "master-web": {
+        "image": "sha256:c4bfa60129123e5c319a0703241799c89662214b98b1b03b1e4020d3d03a70eb",
+        "container": "8d62de5b000ba93baa07884574b6723a7d72abf51ed932384363d802dae77e3c",
+        "startedAt": "2026-10-22T18:46:31.030815347Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "91baf16e9ddfb034b25dc91bd2dfac5c07b831d0e764702a63eb16df33d80d9d",
+        "startedAt": "2026-10-22T18:46:25.876333488Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "66fb85e84217228c28113a5f23d6b7305ce87edc460ad24c315bf8b63927fa9c",
+        "startedAt": "2026-10-22T18:46:31.755538523Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "a9870b311af4e78017f9ad992a245bfc250111dccfbaca5fa50d7a469c2c8e41",
+        "startedAt": "2026-10-22T18:46:27.270731293Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "757614a5243019e20934290603b3a7c44b4ade3eb02b6665299c946711ce6e88",
+        "startedAt": "2026-10-22T18:46:33.298435684Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "dd3cf05be674db0bc2d64414b9d8f5d1a9c3f49d9781eb7e94ba700c9b2bea8a",
+        "startedAt": "2026-10-22T18:46:26.256649611Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "7e5e131356d79898f7d00e9d9ada336e636de49a4ad8b11ea0304c6a29cade59",
+        "startedAt": "2026-10-22T18:46:32.174252613Z"
+      }
+    },
+    "coreAfter": {
+      "master-api": {
+        "image": "sha256:57fe5e0e18fefd0a9363a232811faea306b764dbd1ee36eb31cb6c0ee64e5a5b",
+        "container": "e1ee1dc24debb212c16137c7442a05e04a963e77f2f26d41c27dff82b4190bfd",
+        "startedAt": "2026-10-22T18:46:25.103361465Z"
+      },
+      "master-web": {
+        "image": "sha256:c4bfa60129123e5c319a0703241799c89662214b98b1b03b1e4020d3d03a70eb",
+        "container": "8d62de5b000ba93baa07884574b6723a7d72abf51ed932384363d802dae77e3c",
+        "startedAt": "2026-10-22T18:46:31.030815347Z"
+      },
+      "worker-1-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "91baf16e9ddfb034b25dc91bd2dfac5c07b831d0e764702a63eb16df33d80d9d",
+        "startedAt": "2026-10-22T18:46:25.876333488Z"
+      },
+      "worker-1-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "66fb85e84217228c28113a5f23d6b7305ce87edc460ad24c315bf8b63927fa9c",
+        "startedAt": "2026-10-22T18:46:31.755538523Z"
+      },
+      "worker-2-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "a9870b311af4e78017f9ad992a245bfc250111dccfbaca5fa50d7a469c2c8e41",
+        "startedAt": "2026-10-22T18:46:27.270731293Z"
+      },
+      "worker-2-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "757614a5243019e20934290603b3a7c44b4ade3eb02b6665299c946711ce6e88",
+        "startedAt": "2026-10-22T18:46:33.298435684Z"
+      },
+      "worker-3-api": {
+        "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+        "container": "dd3cf05be674db0bc2d64414b9d8f5d1a9c3f49d9781eb7e94ba700c9b2bea8a",
+        "startedAt": "2026-10-22T18:46:26.256649611Z"
+      },
+      "worker-3-web": {
+        "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+        "container": "7e5e131356d79898f7d00e9d9ada336e636de49a4ad8b11ea0304c6a29cade59",
+        "startedAt": "2026-10-22T18:46:32.174252613Z"
+      }
+    },
+    "modules": {
+      "worker-1": [
+        {
+          "moduleId": "cee.inventory",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "quantityUnit": "pieces"
+          }
+        },
+        {
+          "moduleId": "cee.migration-check",
+          "version": "1.0.1",
+          "state": "disabled",
+          "configuration": {
+            "quantityUnit": "fixtures"
+          }
+        }
+      ],
+      "worker-2": [],
+      "worker-3": [
+        {
+          "moduleId": "cee.inventory",
+          "version": "1.0.0",
+          "state": "active",
+          "configuration": {
+            "quantityUnit": "boxes"
+          }
+        }
+      ]
+    }
+  },
+  "fullTeardownRestart": {
+    "verifiedAt": "2026-10-22T18:46:45.720Z",
+    "assertions": "all passed"
+  },
+  "phase2Regression": {
+    "verifiedAt": "2026-10-22T18:44:43.385Z",
+    "entityId": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+    "enrolledWorker": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+    "requestId": "588d0249-9656-4462-b33c-7a958d5cec45",
+    "assertions": "all passed",
+    "browserPageErrors": 0
+  },
+  "secretChecks": {
+    "verifiedAt": "2026-10-22T18:49:48.921Z",
+    "assertions": "all passed",
+    "secretsChecked": 12
+  },
+  "provisioning": {
+    "verifiedAt": "2026-10-22T18:49:44.441Z",
+    "assertions": "all passed",
+    "filesPreserved": 62
+  },
+  "unitTests": {
+    "passed": 18,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime": [
+    {
+      "name": "steward-dev-worker-2-web-1",
+      "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-web-1",
+      "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-web-1",
+      "image": "sha256:96884521cff8cfbfa85f9a22f9d35bd44fb845654edc7d335d14ad6cc123b6f3",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-api-1",
+      "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-module-host-1",
+      "image": "sha256:39deb8e610fba9932485327de44e5c095b45ba9434d45349040d9680162e9cfb",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-web-1",
+      "image": "sha256:c4bfa60129123e5c319a0703241799c89662214b98b1b03b1e4020d3d03a70eb",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-api-1",
+      "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-module-host-1",
+      "image": "sha256:39deb8e610fba9932485327de44e5c095b45ba9434d45349040d9680162e9cfb",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-api-1",
+      "image": "sha256:c4349d2d0b81489c60896b3dd4a5af3a6f8cf743238fb2085ddabc0bd4f7fb19",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-module-host-1",
+      "image": "sha256:39deb8e610fba9932485327de44e5c095b45ba9434d45349040d9680162e9cfb",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-2-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-api-1",
+      "image": "sha256:57fe5e0e18fefd0a9363a232811faea306b764dbd1ee36eb31cb6c0ee64e5a5b",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-3-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-master-db-1",
+      "image": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+      "status": "running",
+      "health": "healthy"
+    },
+    {
+      "name": "steward-dev-worker-1-m_dc5229d2c1ec486488f6",
+      "image": "sha256:f3aae540460239737a4033f06f274da76430db13648c60134c9eed1687284630",
+      "status": "exited",
+      "health": "service readiness separately verified"
+    },
+    {
+      "name": "steward-dev-worker-3-m_1675588e58787da091eb",
+      "image": "sha256:4b4a9640260ee2b20e6f486a0c6be1e701c839306c902d3b616ce85a578178e8",
+      "status": "running",
+      "health": "service readiness separately verified"
+    },
+    {
+      "name": "steward-dev-worker-1-m_1675588e58787da091eb",
+      "image": "sha256:4b4a9640260ee2b20e6f486a0c6be1e701c839306c902d3b616ce85a578178e8",
+      "status": "running",
+      "health": "service readiness separately verified"
+    }
+  ]
+}

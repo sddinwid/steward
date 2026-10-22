@@ -14,7 +14,7 @@ export function createServer(installation: InstallationConfig, database: Platfor
     catch { return reply.code(503).send({ status: 'not_ready', dependency: 'database' }); }
   });
   app.get('/api/v1/platform', async (): Promise<PlatformOverview> => ({
-    release: RELEASE, installation: structuredClone(installation), modules: [],
+    release: RELEASE, installation: structuredClone(installation), modules: await database.modules?.() ?? [],
     ...(administrationOrigin ? { administrationOrigin } : {}),
     extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: 'not_implemented' }
   }));

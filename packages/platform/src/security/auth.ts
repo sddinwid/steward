@@ -75,7 +75,7 @@ export function authentication(app: SecureApp, pool: pg.Pool, publicOrigin: stri
   return { session, origin, rateLimit, actor: (request: object) => actors.get(request) ?? null };
 }
 export async function createAccount(pool: pg.Pool, username: string, password: string, role: string) {
-  if (!/^[a-z0-9._@-]{3,80}$/.test(username) || !['registry_admin', 'enrollment_admin', 'viewer', 'local_admin'].includes(role)) throw new Error('Invalid account settings');
+  if (!/^[a-z0-9._@-]{3,80}$/.test(username) || !['registry_admin', 'enrollment_admin', 'viewer', 'local_admin', 'module_user'].includes(role)) throw new Error('Invalid account settings');
   const encoded = await passwordHash(password);
   const id = randomUUID();
   await pool.query('INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,$2,$3,$4)', [id, username, encoded, role]);
