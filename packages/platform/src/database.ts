@@ -1,6 +1,7 @@
 import pg from 'pg';
 import type { InstallationConfig } from '@steward/contracts';
 import type { RuntimeConfig } from './config.js';
+import { securityMigration } from './security/migration.js';
 
 // Immutable, ordered migrations. Future changes append migrations; never edit applied SQL.
 const migrations = [{ version: 1, sql: `
@@ -11,13 +12,13 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }];
+` }, { version: 2, sql: securityMigration }];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;
 }
 export class PostgresDatabase implements PlatformDatabase {
-  private readonly pool: pg.Pool;
+  readonly pool: pg.Pool;
   constructor(config: RuntimeConfig['database'], private readonly identity: InstallationConfig) {
     this.pool = new pg.Pool({ ...config, max: 5, connectionTimeoutMillis: 2000, idleTimeoutMillis: 10000,
       query_timeout: 3000, statement_timeout: 3000, application_name: `steward-${identity.role}` });

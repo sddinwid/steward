@@ -1,0 +1,11 @@
+# ADR 0006 — Real local accounts, sessions, and administrative boundaries
+
+Status: accepted. Date: 2026-10-22.
+
+Master provides real password authentication with salted scrypt (N=131072, r=8, p=1, 64-byte derived key), 16–256 character passwords, uniform failed-login responses, constant-time password verification, and PostgreSQL-backed throttling. No default accounts, shared passwords, login bypass, or demo authentication exists. An operator with deployment access bootstraps accounts through the container CLI, passing the password on stdin; only its hash is persisted. Worker local administrator accounts use the same mechanism in their own operational databases and are distinct from Master administrators.
+
+Sessions use random 256-bit HttpOnly, Secure, host-only `__Host-` cookies, SameSite=Strict, thirty-minute expiry, durable hashed token storage, enabled-account checks, and logout deletion. Unsafe browser requests require exact configured Origin, JSON, and a session-bound CSRF token; SameSite alone is not relied upon. Authentication and session choices follow the [OWASP session guidance](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) and [CSRF guidance](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).
+
+Master registry administrators create/edit entities, eligibility, and entity-account authorizations, and inspect audit records. Enrollment administrators can select and decide enrollment only for explicitly authorized entities. Viewer accounts cannot enroll. Worker local administrators can select a pretrusted Master profile and initiate a request but cannot impersonate a Master administrator. Account creation is operator-only in Phase 2; role/credential lifecycle, password recovery, MFA, and external OIDC providers are not implemented.
+
+Successful entity changes, scope changes, login, enrollment requests/decisions/completions, and Worker persistence are audited. Rejected secure requests record route pattern/status and an authenticated actor when available. No request bodies, private keys, passwords, session cookies, grants, or certificates are logged. The runtime application database owner can alter its local audit table; tamper-evident external audit storage is a later hardening step.

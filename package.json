@@ -1,17 +1,30 @@
 {
   "name": "steward-platform",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "workspaces": ["packages/*", "apps/*", "tools/*"],
-  "engines": { "node": ">=24 <25", "npm": ">=10" },
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "tools/*"
+  ],
+  "engines": {
+    "node": ">=24 <25",
+    "npm": ">=10"
+  },
   "scripts": {
     "build": "npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer",
     "test": "npm run test -w @steward/platform && npm run test -w @steward/installer",
     "provision": "node tools/installer/dist/cli.js provision",
-    "dev:up": "docker compose up --build -d --wait --wait-timeout 180",
-    "dev:down": "docker compose down",
+    "security:provision": "node tools/installer/dist/security-cli.js",
+    "dev:up": "node scripts/compose.mjs up --build -d --wait --wait-timeout 180",
+    "dev:down": "node scripts/compose.mjs down",
     "smoke": "node scripts/smoke.mjs",
-    "verify:isolation": "node scripts/verify-isolation.mjs"
+    "verify:isolation": "node scripts/verify-isolation.mjs",
+    "verify:phase2": "node scripts/verify-phase2.mjs"
   },
-  "devDependencies": { "typescript": "5.9.3", "@types/node": "24.10.1", "playwright": "1.58.2" }
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "@types/node": "24.10.1",
+    "playwright": "1.58.2"
+  }
 }

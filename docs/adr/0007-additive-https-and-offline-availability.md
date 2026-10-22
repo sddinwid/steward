@@ -1,0 +1,13 @@
+# ADR 0007 — Additive HTTPS and independent local availability
+
+Status: accepted. Date: 2026-10-22.
+
+Provisioner v1 deployment files, configuration v1, and volumes remain unchanged. A separate atomic security provisioner adds per-installation TLS/identity material, public trust profiles, Nginx HTTPS configuration, and a Compose overlay using release images 0.2.0. Re-running either provisioner preserves existing file contents. The security directory is POSIX-private (0700), or restricted on Windows to the current operator, SYSTEM, and Administrators. Private identity/TLS files are read-only and mounted individually; no container receives the CA signing key or another installation's private key.
+
+Original HTTP frontend ports and API health/readiness remain available. Sensitive routes are registered exclusively on a separate TLS 1.3 Fastify listener. HTTPS Nginx proxies verify each API's certificate and hostname. Master and Workers use distinct browser hostnames, preventing host-only Master session cookies from being delivered to Worker sites. Forwarded-proto spoofing cannot make the original HTTP listener expose authentication/enrollment routes.
+
+Development uses a locally generated private CA, short-lived leaf certificates, localhost subdomains, and loopback host bindings. Operators import the CA into a trusted development browser profile; automated Chromium tests allow this private CA only in their isolated browser contexts. Actual Node/Worker backchannel tests verify CA/hostname without disabling TLS verification. Production must provide CA-managed certificates, distinct HTTPS origins, reviewed Master trust bundles, private secrets storage, synchronized clocks, and certificate renewal procedures. The development generator is not a production PKI or renewal service.
+
+APIs add an application-only enrollment network without sharing PostgreSQL networks or adding Master startup dependencies. Worker background reconciliation authenticates with its own private key, persists the signed certificate locally, and verifies an existing certificate at startup using the pinned public key without contacting Master. Master outages affect connection status only. Health, readiness, and basic local services depend exclusively on the Worker and its operational database. An enrolled Worker can restart while Master is offline without any administrator login.
+
+Migration 1 stays immutable; additive transactional migration 2 introduces entity/authentication/enrollment metadata. Images with only Phase 1 schema knowledge intentionally reject the newer database. Rolling back to 0.1.0 against an upgraded volume is unsupported; restore a pre-upgrade database backup instead. No destructive schema rollback or automatic unenrollment is delivered.

@@ -28,7 +28,7 @@ test('provisioning creates distinct identities/secrets and reruns preserve all b
     await writeFile(configPath, JSON.stringify(config));
     const before = await snapshot(o.directory);
     assert.equal((before['compose.yaml']!.match(/dockerfile: infra\/Dockerfile.api/g) ?? []).length, 2);
-    assert.equal((before['compose.yaml']!.match(/image: steward-worker-api:0.1.0/g) ?? []).length, 3);
+    assert.equal((before['compose.yaml']!.match(/image: steward-worker-api:0.2.0/g) ?? []).length, 3);
     assert.equal(new Set(Object.entries(before).filter(([k]) => k.endsWith('db-password')).map(([,v]) => v)).size, 4);
     assert.equal((await provision(o)).created, false);
     assert.deepEqual(await snapshot(o.directory), before);
@@ -47,7 +47,7 @@ test('worker-only deployment has no Master services or network dependencies', as
     const compose = await readFile(path.join(directory, 'compose.yaml'), 'utf8');
     assert.equal(compose.includes('master'), false);
     assert.ok(compose.includes('127.0.0.1:4201:3000'));
-    assert.ok(compose.includes('steward-worker-api:0.1.0'));
+    assert.ok(compose.includes('steward-worker-api:0.2.0'));
   } finally { await rm(base, { recursive: true, force: true }); }
 });
 test('invalid options and concurrent provisioning fail without partial state', async () => {
@@ -69,6 +69,6 @@ test('master-only deployment has no Worker services', async () => {
     assert.equal(result.manifest.instances.length, 1);
     const compose = await readFile(path.join(directory, 'compose.yaml'), 'utf8');
     assert.equal(compose.includes('worker-'), false);
-    assert.ok(compose.includes('steward-master-api:0.1.0'));
+    assert.ok(compose.includes('steward-master-api:0.2.0'));
   } finally { await rm(base, { recursive: true, force: true }); }
 });

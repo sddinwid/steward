@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PlatformOverview, StewardRole } from '@steward/contracts';
+import { SecurityConsole } from './security.js';
 
 export function StewardApp({ role }: { role: StewardRole }) {
   const [overview, setOverview] = useState<PlatformOverview>();
@@ -30,11 +31,12 @@ export function StewardApp({ role }: { role: StewardRole }) {
       <div className="content"><p className="eyebrow">INSTALLATION OVERVIEW</p><h1>{overview?.installation.entity.displayName ?? `${role === 'master' ? 'Master' : 'Worker'} Steward`}</h1>
       <p className="intro">{role === 'worker' ? 'An independent local runtime, with dedicated configuration and persistence.' : 'The foundation for coordinating the Steward ecosystem.'}</p>
       <div className={`status ${ready && !error ? 'online' : 'offline'}`} role="status"><span className="dot" />{error ? 'API unavailable · retrying automatically' : !overview ? 'Connecting to local runtime…' : ready ? 'Local runtime ready' : 'Database unavailable · runtime is not ready'}</div>
+      {location.protocol === 'https:' ? <SecurityConsole role={role} /> : overview?.administrationOrigin ? <section><h2>Secure administration</h2><p>Entity registration and enrollment require the trusted HTTPS interface.</p><a href={overview.administrationOrigin}>Open secure {role} administration</a></section> : null}
       <section className="identity"><h2>Runtime identity</h2><dl>
         <div><dt>Role</dt><dd>{role}</dd></div><div><dt>Installation ID</dt><dd>{overview?.installation.installationId ?? '—'}</dd></div><div><dt>Entity ID</dt><dd>{overview?.installation.entity.entityId ?? '—'}</dd></div>
       </dl></section>
       <section><div className="section-heading"><h2>Modules</h2><span className="tag">0 installed</span></div><div className="empty"><span className="empty-icon">◇</span><h3>No modules installed</h3><p>Module packaging and installation are reserved for a later phase.</p></div></section>
-      <section><h2>Platform extensions</h2><div className="extensions">{['Authenticated enrollment', 'MCP servers', 'AI analytical services', 'Durable event synchronization'].map(name => <div key={name}><span>{name}</span><span className="tag">Not implemented</span></div>)}</div></section>
+      <section><h2>Platform extensions</h2><div className="extensions">{['Authenticated enrollment', 'MCP servers', 'AI analytical services', 'Durable event synchronization'].map((name, i) => <div key={name}><span>{name}</span><span className="tag">{i === 0 && overview?.extensions.enrollment === 'available' ? 'Available over HTTPS' : 'Not implemented'}</span></div>)}</div></section>
       <footer>Configuration version {overview?.installation.configVersion ?? '—'} · Status refreshes every 10 seconds</footer>
       </div></main>
   </div>;

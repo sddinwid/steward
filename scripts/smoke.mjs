@@ -21,7 +21,8 @@ for (const i of deployment.instances) {
   assert.equal(overview.installation.installationId, i.installationId);
   assert.equal(overview.installation.role, i.role);
   assert.deepEqual(overview.modules, []);
-  assert.ok(Object.values(overview.extensions).every(v => v === 'not_implemented'));
+  assert.ok(['not_implemented', 'available'].includes(overview.extensions.enrollment));
+  assert.ok(['mcp', 'analytics', 'synchronization'].every(k => overview.extensions[k] === 'not_implemented'));
   identities.add(i.installationId);
   const page = await fetch(web, { signal: AbortSignal.timeout(6000) });
   assert.equal(page.status, 200);
@@ -33,7 +34,7 @@ for (const i of deployment.instances) {
   assert.equal((await json(`${web}/ready`)).status, 'ready');
   assert.equal(sql(i.key, 'SELECT current_database()'), 'steward');
   assert.equal(sql(i.key, 'SELECT installation_id FROM platform_installation'), i.installationId);
-  assert.equal(sql(i.key, 'SELECT version FROM platform_migrations'), '1');
+  assert.equal(sql(i.key, 'SELECT max(version) FROM platform_migrations'), '2');
   assert.equal(sql(i.key, "SELECT rolsuper OR rolcreatedb OR rolcreaterole FROM pg_roles WHERE rolname='steward_app'"), 'f');
   const db = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-db`)]))[0];
   const runtime = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-api`)]))[0];
@@ -41,7 +42,7 @@ for (const i of deployment.instances) {
   assert.equal(Object.keys(db.HostConfig.PortBindings ?? {}).length, 0);
   assert.equal(Object.keys(db.NetworkSettings.Networks).length, 1);
   assert.equal(Object.keys(frontend.NetworkSettings.Networks).length, 1);
-  assert.equal(Object.keys(runtime.NetworkSettings.Networks).length, 2);
+  assert.ok([2, 3].includes(Object.keys(runtime.NetworkSettings.Networks).length));
   const dbNetwork = Object.keys(db.NetworkSettings.Networks)[0];
   assert.equal(JSON.parse(docker(['network', 'inspect', dbNetwork]))[0].Internal, true);
   assert.equal(frontend.NetworkSettings.Networks[dbNetwork], undefined);

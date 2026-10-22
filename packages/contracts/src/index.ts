@@ -34,9 +34,10 @@ export interface SynchronizationEnvelope<T = unknown> {
 }
 export interface PlatformOverview {
   release: string;
+  administrationOrigin?: string;
   installation: InstallationConfig;
   modules: readonly ModuleManifest[];
-  extensions: Record<'enrollment' | 'mcp' | 'analytics' | 'synchronization', 'not_implemented'>;
+  extensions: Record<'enrollment' | 'mcp' | 'analytics' | 'synchronization', 'not_implemented' | 'available'>;
 }
 /** Reserved adapters. These contracts do not register routes or imply working integrations. */
 export interface EnrollmentProvider {
@@ -48,3 +49,32 @@ export interface DurableEventTransport {
   publish(envelope: SynchronizationEnvelope): Promise<void>;
   acknowledge(eventId: string): Promise<void>;
 }
+/** Phase 2 authorization assertion. Versioned for future offline grant transport;
+ * no offline workflow is implemented. Every grant is bound to a Worker key. */
+export interface EnrollmentGrant {
+  version: 1;
+  kind: 'enrollment-grant';
+  issuer: string;
+  audience: string;
+  entityId: string;
+  keyThumbprint: string;
+  requestId: string;
+  grantId: string;
+  notBefore: number;
+  expiresAt: number;
+  capabilities: ['worker.enroll'];
+}
+export interface SignedAssertion<T> { payload: T; signature: string }
+export interface EnrollmentCertificate {
+  version: 1;
+  kind: 'worker-enrollment';
+  issuer: string;
+  installationId: string;
+  entityId: string;
+  keyThumbprint: string;
+  requestId: string;
+  serial: string;
+  issuedAt: number;
+}
+export interface LegalEntity { entityId: string; name: string; classification: string; enrollmentEligible: boolean }
+export type EnrollmentState = 'unenrolled' | 'pending' | 'enrolled' | 'rejected' | 'expired';

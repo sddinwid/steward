@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { InstallationConfig, StewardRole } from '@steward/contracts';
 
-export const RELEASE = '0.1.0';
+export const RELEASE = '0.2.0';
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export function parseConfig(value: unknown, expectedRole: StewardRole): InstallationConfig {
   if (!value || typeof value !== 'object') throw new Error('Invalid installation configuration');

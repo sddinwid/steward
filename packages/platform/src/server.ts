@@ -4,7 +4,7 @@ import type { InstallationConfig, PlatformOverview } from '@steward/contracts';
 import type { PlatformDatabase } from './database.js';
 import { RELEASE } from './config.js';
 
-export function createServer(installation: InstallationConfig, database: PlatformDatabase, logger = true) {
+export function createServer(installation: InstallationConfig, database: PlatformDatabase, logger = true, administrationOrigin?: string) {
   const app = Fastify({ logger: logger ? { level: 'info', redact: ['req.headers.authorization', 'req.headers.cookie'] } : false,
     bodyLimit: 16384, requestTimeout: 10000, connectionTimeout: 10000 });
   app.register(helmet);
@@ -15,7 +15,8 @@ export function createServer(installation: InstallationConfig, database: Platfor
   });
   app.get('/api/v1/platform', async (): Promise<PlatformOverview> => ({
     release: RELEASE, installation: structuredClone(installation), modules: [],
-    extensions: { enrollment: 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: 'not_implemented' }
+    ...(administrationOrigin ? { administrationOrigin } : {}),
+    extensions: { enrollment: administrationOrigin ? 'available' : 'not_implemented', mcp: 'not_implemented', analytics: 'not_implemented', synchronization: 'not_implemented' }
   }));
   app.setErrorHandler((error, request, reply) => {
     const failure = error as Partial<FastifyError>;

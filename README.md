@@ -1,6 +1,6 @@
-# CEE Steward platform — Phase 1
+# CEE Steward platform — Phase 2
 
-Runnable release `0.1.0`: independent Master and Worker APIs, React frontends, PostgreSQL persistence, and provisioner format v1. No business modules or remote integrations are implemented.
+Runnable platform release `0.2.0` adds secure entity registration and proof-bound Worker enrollment to the independent Phase 1 applications. Base provisioner format v1 and installation configuration v1 are preserved. [Phase 2 operations, authentication bootstrap, trust configuration, and verification](docs/phase2.md) describe the HTTPS overlay and exact enrollment procedure. No business modules, MCP, analytics, or durable synchronization are implemented.
 
 ## Prerequisites and first startup
 
@@ -11,12 +11,13 @@ npm ci
 npm run build
 npm test
 npm run provision
-docker compose config --quiet
+npm run security:provision
+node scripts/compose.mjs config --quiet
 npm run dev:up
 npm run smoke
 ```
 
-`npm run dev:up` builds four application images and waits for all twelve containers to become healthy. It does not bind PostgreSQL to the host. Local URLs:
+`npm run dev:up` builds four application images and waits for all twelve containers to become healthy. It automatically applies the optional security overlay when present and does not bind PostgreSQL to the host. Preserved Phase 1 URLs:
 
 | Installation | React frontend | API | Health / readiness |
 | --- | --- | --- | --- |
@@ -25,7 +26,7 @@ npm run smoke
 | Worker 2 | http://127.0.0.1:5202 | http://127.0.0.1:4202 | `/health`, `/ready` |
 | Worker 3 | http://127.0.0.1:5203 | http://127.0.0.1:4203 | `/health`, `/ready` |
 
-Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` returns the configured installation identity, release, an empty module inventory, and explicit `not_implemented` extension statuses. There are no enrollment or module installation routes.
+Each frontend proxies `/api/`, `/health`, and `/ready` to its own API. API route `GET /api/v1/platform` preserves the local installation identity and module inventory; enrollment is marked available only when security is configured. Sensitive v2 routes exist exclusively on HTTPS. Open [Master secure administration](https://master.localhost:6100) or Workers at [6201](https://worker-1.localhost:6201), [6202](https://worker-2.localhost:6202), and [6203](https://worker-3.localhost:6203) after trusting your generated development CA. Accounts must be explicitly created; no default credentials exist. See the [account and trust setup](docs/phase2.md).
 
 ## Verification
 
@@ -36,10 +37,11 @@ npm run smoke
 npm run verify:isolation
 npx playwright install chromium
 node scripts/browser-smoke.mjs
-docker compose ps
+npm run verify:phase2
+node scripts/compose.mjs ps
 ```
 
-The eight Node tests cover configuration/secret validation, local health versus persistence readiness, recovery, absent future routes, provisioning isolation, both standalone modes, rerun preservation, and lock/topology failures. Build before tests because Node executes compiled TypeScript.
+The twelve Node tests retain all eight Phase 1 checks and add password hashing, signed assertions, grant constraints, and additive security provisioning/key isolation. Build before tests because Node executes compiled TypeScript. `verify:phase2` exercises real TLS APIs and Chromium entity registration, authorization, enrollment, rejection, persistence, and outage scenarios; [details and constraints](docs/phase2.md).
 
 Smoke tests check all frontend HTML/assets, each frontend's API proxy, API health/readiness, configuration versus persisted identity, migration versions, restricted database roles, distinct data volumes, and identical Worker image IDs. Browser tests load all four React apps, check rendered identity/readiness and page errors, and capture desktop/mobile screenshots under ignored `artifacts/`.
 
@@ -51,7 +53,7 @@ All verification scripts accept an optional deployment directory as their first 
 node scripts/smoke.mjs .steward/worker-only
 ```
 
-See [actual verification results](docs/verification.md).
+See [Phase 2 verification results](docs/phase2-verification.md) and the preserved [Phase 1 baseline report](docs/verification.md).
 
 ## Shutdown, restart, and reset
 
@@ -64,14 +66,14 @@ npm run dev:down
 Restart with retained volumes and identities:
 
 ```powershell
-docker compose up -d --wait --wait-timeout 180
+node scripts/compose.mjs up -d --wait --wait-timeout 180
 ```
 
 Reset **database contents only**, retaining installation configuration and credentials (destructive):
 
 ```powershell
-docker compose down --volumes
-docker compose up -d --wait --wait-timeout 180
+node scripts/compose.mjs down --volumes
+node scripts/compose.mjs up -d --wait --wait-timeout 180
 ```
 
 Completely reset this development deployment, including identities and secrets (destructive; run from repository root). Remove the volumes before removing the configuration used to address them:
@@ -81,18 +83,19 @@ $workspaceRoot = (Resolve-Path .).Path
 if ((Get-Content -LiteralPath ./package.json -Raw | ConvertFrom-Json).name -ne 'steward-platform') { throw 'Run from Steward repository root' }
 $deploymentPath = [System.IO.Path]::GetFullPath((Join-Path $workspaceRoot '.steward/dev'))
 if (-not $deploymentPath.StartsWith($workspaceRoot + [System.IO.Path]::DirectorySeparatorChar)) { throw 'Unexpected reset target' }
-docker compose down --volumes --remove-orphans
+node scripts/compose.mjs down --volumes --remove-orphans
 if ($LASTEXITCODE -ne 0) { throw 'Compose teardown failed; configuration preserved' }
 Remove-Item -LiteralPath $deploymentPath -Recurse -Force
 npm run provision
+npm run security:provision
 npm run dev:up
 ```
 
-On Linux/macOS, after `docker compose down --volumes --remove-orphans`, remove only the repository's `.steward/dev` directory, then run the same provisioning/startup commands. Images are retained in either reset flow. Do not remove configuration while retaining its old database volume: identity binding deliberately rejects attaching a new installation to old data.
+On Linux/macOS, after `node scripts/compose.mjs down --volumes --remove-orphans`, remove only the repository's `.steward/dev` directory, then run both provisioning/startup commands. Images are retained in either reset flow. Do not remove configuration or identity keys while retaining their old database volumes: identity binding deliberately rejects attaching a new installation to old data.
 
 ## Installation and provisioning
 
-The installer is a TypeScript workspace with the `steward-install` bin entry and a versioned Compose generator. The supported source-checkout entry point is:
+The base installer is a TypeScript workspace with the `steward-install` bin entry and a versioned Compose generator. It preserves Phase 1 files and identities; the separate security provisioner adds Phase 2 without rewriting them. The supported base source-checkout entry point is:
 
 ```powershell
 node tools/installer/dist/cli.js --help
@@ -118,7 +121,7 @@ node scripts/smoke.mjs .steward/master-only
 docker compose -f .steward/master-only/compose.yaml down
 ```
 
-Generated Compose uses absolute build/init-script paths to this checkout and relative configuration/secret paths. Provision on the target machine; moving an existing deployment/checkout requires an explicitly reviewed path edit in its Compose file. A registry distribution/upgrade mechanism is not implemented. Standalone Worker deployment has no Master service, URL, network, or dependency. All Worker instances use `steward-worker-api:0.1.0` and `steward-worker-web:0.1.0`; no identities or secrets enter those images.
+Generated Compose uses absolute build/init-script paths to this checkout and relative configuration/secret paths. Provision on the target machine; moving an existing deployment/checkout requires explicitly reviewed path edits. A registry distribution mechanism is not implemented. The standalone examples above exercise the base deployment without enrollment. [Add security to a standalone deployment](docs/phase2.md) separately; a Master trust profile adds a connection configuration but no Master startup/health dependency. All secured Workers use `steward-worker-api:0.2.0` and `steward-worker-web:0.2.0`; no identities or secrets enter those images. Existing Phase 1 base Compose files retain their original 0.1.0 tags and the overlay selects 0.2.0. Fresh deployments use 0.2.0 tags directly; the base provisioner accepts/preserves either release.
 
 ## Configuration and security boundary
 
@@ -136,7 +139,7 @@ APIs run as a non-root user with read-only filesystems and dropped capabilities;
 
 Compose file secrets are local bind-mounted files, **not an encrypted secret manager**. On POSIX, deployment and secret directories are private (0700); secret files are read-only (0444) so individually mounted files can be read by the different non-root container UIDs. Host users cannot traverse the private parent directories. Compose file secrets do not remap file ownership. Windows permissions inherit the parent directory ACL. Keep `.steward` private to the operator, out of source control, and backed up with the database. Never paste secret files into logs/issues. Do not rotate a password file alone: a retained PostgreSQL role password must also be changed through an administrative rotation procedure, which is outside Phase 1.
 
-This is a local development environment. HTTP and local status/identity read endpoints are unauthenticated. No business write endpoints exist. Public deployment requires TLS ingress, authentication/authorization, managed secrets, backups, and operational hardening. Authenticated enrollment, MCP servers, AI/Python analytics, durable synchronization, module loading/installing, topology upgrades, and multi-host orchestration are explicitly not implemented.
+This is a local development environment. HTTP local status/identity reads remain unauthenticated; sensitive entity/authentication/enrollment writes require the HTTPS overlay, real accounts, CSRF protection, and role/entity authorization. Private security material has additional operator-only directory protection, including a restricted Windows ACL. The [production trust model and remaining limits](docs/phase2.md) cover managed PKI/renewal, secrets, backups, and operational hardening. MCP, AI/Python analytics, durable synchronization, module loading/installing, and multi-host orchestration remain unimplemented. Offline enrollment is a versioned signed-grant contract only.
 
 ## Repository layout and decisions
 
@@ -153,3 +156,5 @@ docs/adr/                      Architectural decision records
 ```
 
 ADRs: [deployment isolation](docs/adr/0001-deployment-isolation.md), [identity and persistence](docs/adr/0002-identity-persistence.md), [extension boundaries](docs/adr/0003-extension-boundaries.md), and [provisioning/security](docs/adr/0004-provisioning-security.md).
+
+Phase 2 ADRs: [enrollment trust and identity](docs/adr/0005-enrollment-trust-and-identity.md), [administrator authentication](docs/adr/0006-administrator-authentication.md), and [HTTPS/offline availability](docs/adr/0007-additive-https-and-offline-availability.md). Phase 1 ADRs remain historical records; these explicitly extend their enrollment/security boundaries.
