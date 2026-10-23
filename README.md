@@ -1,4 +1,6 @@
-# CEE Steward platform - Phase 5
+# CEE Steward platform - Phase 5B
+
+Phase 5B completes the real local-Qwen investigation path: compact source-backed MCP queries, deterministic calculations, evidence-supported narrative and affected-Worker finding delivery. Existing Phase 1–5 behavior remains covered by regression tests. See [Phase 5B operations and local setup](docs/phase5b.md) and [actual verification, timings and limitations](docs/phase5b-verification.md). API-key setup remains optional; the original unconfigured state is restored after validation.
 
 Platform `0.5.0` builds on verified Phase 4 commit `a7d6cc1`. Master and each independent Worker expose genuine authenticated Streamable HTTP MCP. Master adds persistent investigations, a bounded AI Analyst with configurable provider credentials, deterministic resource-sharing calculations, and human-authorized findings delivered through existing durable synchronization. Inventory 1.2.1 contributes its MCP tool through a separately signed package. No model is configured by default; test-model evidence is distinguished from live-provider validation. Offline enrollment remains unimplemented. See [Phase 5 setup, security and exact commands](docs/phase5.md) and [actual verification](docs/phase5-verification.md). Historical [Phase 4 operations](docs/phase4.md) and [verification](docs/phase4-verification.md) remain preserved.
 

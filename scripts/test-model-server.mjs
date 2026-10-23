@@ -15,6 +15,17 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:malformed]'))return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:'not valid JSON'}]}]);
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
+   if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   const compact=b.tools.some(t=>t.name==='query_resource_matches')&&!b.tools.some(t=>t.name==='get_entity_summary')||results.some(v=>v.structuredContent?.data?.matches);
+   if(compact){
+     if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);
+     const pair=results.find(v=>v.structuredContent?.data?.matches)?.structuredContent.data.matches[0];
+     if(!pair)return calls([{name:'query_resource_matches',arguments:{limit:1}}]);
+     if(!results.some(v=>v.structuredContent?.data?.relationships))return calls([{name:'query_business_relationships',arguments:{entityId:pair.supply.entityId,limit:4}}]);
+     const analysis=results.find(v=>v.structuredContent?.data?.calculation)?.structuredContent.data;
+     if(!analysis)return calls([{name:'analyze_resource_sharing_by_id',arguments:{supplyRecordId:pair.supply.recordId,demandRecordId:pair.demand.recordId,supplyRevision:pair.supply.revision,demandRevision:pair.demand.revision,internalMonthlyPayment:3000,incrementalMonthlyCost:1000,transitionExpense:6000,horizonMonths:12,avoidableExternalFraction:1,locationCompatible:true,sensitivity:[{label:'Higher costs',incrementalMonthlyCost:2000,transitionExpense:12000}]}}]);
+     return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({narrative:`TEST MODEL compact investigation: ecosystem ${analysis.calculation.proposal.ecosystemMonthlyBenefit} monthly and ${analysis.calculation.proposal.ecosystemHorizonBenefit} over the horizon; actual authorized sources and deterministic service used.`,assumptions:['Explicit illustrative costs, payment, horizon and conditional site suitability.'],humanDecisions:['Review source freshness, suitability, costs and contracts.']})}]}]);
+   }
    const list=results.find(v=>v.structuredContent?.data?.entities&&!v.structuredContent?.data?.records)?.structuredContent.data.entities;
    if(!list)return calls([{name:'list_entities',arguments:{}}]);
    const summaries=results.filter(v=>v.structuredContent?.data?.records).map(v=>v.structuredContent.data);

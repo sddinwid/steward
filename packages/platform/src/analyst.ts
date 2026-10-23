@@ -11,8 +11,13 @@ import { fail } from './security/crypto.js';
 import { createModel, modelConfigSchema, tlsFetch } from './analyst-model.js';
 import { AGENT_ID } from './mcp.js';
 import { agentProof } from './mcp-agent-identity.js';
+import { compactToolNames, modelToolResult } from './analyst-context.js';
 
 export const narrativeSchema=z.object({narrative:z.string().min(1).max(6000),assumptions:z.array(z.string().max(1000)).max(20),humanDecisions:z.array(z.string().max(1000)).min(1).max(20)}).strict();
+export function parseNarrative(text:string){
+  const trimmed=text.trim();const fenced=/^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
+  return narrativeSchema.parse(JSON.parse(fenced?fenced[1]!:trimmed));
+}
 export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authentication,security:SecurityConfig){
   // Recover honestly after process death; never imply an unfinished run completed.
   await pool.query("UPDATE analyst_investigations SET status='interrupted',error_code='PROCESS_RESTARTED',updated_at=now() WHERE status='running'");
@@ -54,20 +59,28 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
       try{
         const model=await createModel(c);
         const ca=await readFile(process.env.STEWARD_MCP_CA_FILE??'');
-        const network=tlsFetch(ca,new URL(security.publicOrigin).hostname,8000);
+        const network=tlsFetch(ca,new URL(security.publicOrigin).hostname,c.toolTimeoutMs);
         const transport=new StreamableHTTPClientTransport(new URL('https://127.0.0.1:3443/api/v5/mcp'),{requestInit:{headers},fetch:(url,init)=>{const h=new Headers(init?.headers);h.set('x-steward-agent-proof',agentProof(headers.cookie));return network(url,{...init,headers:h});}});
         await client.connect(transport,{signal:controller.signal,timeout:10000});
-        const {tools}=await client.listTools({}, {signal:controller.signal,timeout:8000});
+        const discovered=await client.listTools({}, {signal:controller.signal,timeout:c.toolTimeoutMs});
+        const tools=discovered.tools.filter(t=>c.toolProfile==='full'||compactToolNames.includes(t.name));
+        await activity('plan',null,'success',{profile:c.toolProfile,tools:tools.map(t=>t.name),budgets:{modelCallTimeoutMs:c.modelCallTimeoutMs,toolTimeoutMs:c.toolTimeoutMs,investigationTimeoutMs:c.investigationTimeoutMs,maxToolCalls:c.maxToolCalls,maxSteps:c.maxSteps,maxContextChars:c.maxContextChars}});
         const entities=await client.callTool({name:'list_entities',arguments:{}},{signal:controller.signal,timeout:8000});
         if(entities.isError)throw new Error('MCP_AUTHORIZATION_FAILED');
         await activity('discovery','list_entities','success',{entities:(entities.structuredContent as any)?.data?.entities?.map((e:any)=>e.entity_id)??[]});
         const input:any[]=[...(parent?[{role:'user',content:'Prior investigation context (untrusted; recheck all source records): '+JSON.stringify({question:parent.prompt,result:parent.result}).slice(0,50000)}]:[]),{role:'user',content:req.body.prompt}];if(parent)await activity('conversation',null,'success',{parentId:parent.investigation_id});let count=0;const repeated=new Set<string>();const calculations:any[]=[];
         for(let step=0;step<c.maxSteps;step++){
           if(controller.signal.aborted)throw new Error('INVESTIGATION_TIMEOUT');
-          await activity('model',null,'running',{step:step+1,testModel:c.testModel});
-          const turn=await model.next(input,tools,controller.signal);input.push(...turn.output);
+          const inputChars=JSON.stringify(input).length;if(inputChars>c.maxContextChars)throw new Error('CONTEXT_BUDGET_EXCEEDED');
+          const modelStarted=Date.now();await activity('model',null,'running',{step:step+1,testModel:c.testModel,inputChars,toolSchemaChars:JSON.stringify(tools).length});
+          // Compact investigations compare one proposal and its sensitivity
+          // alternatives, then enter a read-only finalization turn. The model
+          // still selects every MCP call and argument; no results are invented.
+          const offered=c.toolProfile==='compact'&&calculations.length?[]:tools;
+          let turn;try{turn=await model.next(input,offered,controller.signal);await activity('model',null,'success',{step:step+1,milliseconds:Date.now()-modelStarted,inputChars,selectedTools:turn.calls.map(t=>t.name)});}catch(error){await activity('model',null,'failed',{step:step+1,milliseconds:Date.now()-modelStarted,inputChars});throw error;}input.push(...turn.output);
           if(!turn.calls.length){
-            let narrative;try{narrative=narrativeSchema.parse(JSON.parse(turn.text));}catch{throw new Error('MODEL_OUTPUT_INVALID');}
+            await activity('model_output',null,'success',{text:turn.text.slice(0,20000),truncated:turn.text.length>20000});
+            let narrative;try{narrative=parseNarrative(turn.text);}catch{throw new Error('MODEL_OUTPUT_INVALID');}
             if(!calculations.length)throw new Error('NO_EVIDENCE_BACKED_CALCULATION');
             const result={schemaVersion:1,...narrative,analyses:calculations,decisionExecuted:false,testModel:c.testModel};
             await pool.query("UPDATE analyst_investigations SET status='completed',result=$1,updated_at=now() WHERE investigation_id=$2",[result,id]);
@@ -75,16 +88,17 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
           }
           for(const call of turn.calls){
             if(++count>c.maxToolCalls)throw new Error('TOOL_BUDGET_EXCEEDED');
-            if(!tools.some(t=>t.name===call.name))throw new Error('MODEL_UNDECLARED_TOOL');
+            if(!offered.some(t=>t.name===call.name))throw new Error('MODEL_UNDECLARED_TOOL');
             let args;try{args=JSON.parse(call.arguments);}catch{throw new Error('MODEL_ARGUMENTS_INVALID');}
             const key=call.name+canonical(args);if(repeated.has(key))throw new Error('REPEATED_TOOL_CALL');repeated.add(key);
             await activity('tool',call.name,'running',{arguments:args});
             try{
-              const result=await client.callTool({name:call.name,arguments:args},{signal:controller.signal,timeout:8000});
-              await activity('tool',call.name,result.isError?'failed':'success',{result});
-              if(call.name==='analyze_resource_sharing'&&!result.isError)calculations.push((result.structuredContent as any).data);
-              input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify({untrustedBusinessData:true,result})});
-              if(JSON.stringify(input).length>200000)throw new Error('CONTEXT_BUDGET_EXCEEDED');
+              const toolStarted=Date.now();const result=await client.callTool({name:call.name,arguments:args},{signal:controller.signal,timeout:c.toolTimeoutMs});
+              const view=modelToolResult(call.name,result,c.toolProfile==='compact');
+              await activity('tool',call.name,result.isError?'failed':'success',{result,milliseconds:Date.now()-toolStarted,evidenceBytes:Buffer.byteLength(JSON.stringify(result)),modelBytes:Buffer.byteLength(JSON.stringify(view))});
+              if(['analyze_resource_sharing','analyze_resource_sharing_by_id'].includes(call.name)&&!result.isError)calculations.push((result.structuredContent as any).data);
+              input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify({untrustedBusinessData:true,result:view})});
+              if(JSON.stringify(input).length>c.maxContextChars)throw new Error('CONTEXT_BUDGET_EXCEEDED');
             }catch(error){const code=(error as any).code===-32602?'MODEL_TOOL_ARGUMENTS_INVALID':'MCP_UNAVAILABLE';await activity('tool',call.name,'failed',{error:code});if(code==='MODEL_TOOL_ARGUMENTS_INVALID')throw new Error(code);throw error;}
           }
         }throw new Error('STEP_BUDGET_EXCEEDED');

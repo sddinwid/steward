@@ -1,5 +1,7 @@
 # Phase 5 real local-model validation — incomplete
 
+Historical initial-attempt report preserved in baseline `8dc37c7`. The subsequent [Phase 5B real local-model workflow passed](phase5b-verification.md). Its current native-Ollama helper, secure bridge, context configuration and exact commands are documented in [Phase 5B operations](phase5b.md); they supersede the initial helper behavior described below.
+
 Executed October 22, 2026 (October 23 UTC). [Actual sanitized evidence](phase5-live-validation-evidence.json) separates live local-model execution from reproducible test-model coverage.
 
 ## Discovery and actual results

@@ -1,0 +1,1405 @@
+{
+  "recordedAt": "2026-10-23T04:39:47.535Z",
+  "status": "passed_for_real_local_Qwen_workflow",
+  "baselineCommit": "8dc37c7",
+  "unitTests": {
+    "passed": 34,
+    "failed": 0,
+    "skipped": 0
+  },
+  "live": {
+    "verifiedAt": "2026-10-23T04:29:22.387Z",
+    "status": "passed_pending_narrative_review",
+    "provider": "local-ollama",
+    "baseModel": "qwen2.5:7b",
+    "model": "steward-analyst-qwen2.5-ctx16384:7b",
+    "context": 16384,
+    "modelTimeout": 90000,
+    "testModel": false,
+    "modelTurns": [
+      {
+        "toolDefinitions": [
+          "list_entities",
+          "query_resource_matches",
+          "query_business_relationships",
+          "analyze_resource_sharing_by_id"
+        ],
+        "inputChars": 2657,
+        "requestBytes": 6874,
+        "status": 200,
+        "elapsedMs": 1518,
+        "selectedTools": [
+          {
+            "name": "list_entities",
+            "arguments": "{}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 1087,
+          "outputTokens": 16,
+          "totalDurationNs": 1516038800
+        }
+      },
+      {
+        "toolDefinitions": [
+          "list_entities",
+          "query_resource_matches",
+          "query_business_relationships",
+          "analyze_resource_sharing_by_id"
+        ],
+        "inputChars": 3683,
+        "requestBytes": 7901,
+        "status": 200,
+        "elapsedMs": 1424,
+        "selectedTools": [
+          {
+            "name": "query_resource_matches",
+            "arguments": "{\"limit\":1,\"offset\":0}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 1443,
+          "outputTokens": 27,
+          "totalDurationNs": 1422027600
+        }
+      },
+      {
+        "toolDefinitions": [
+          "list_entities",
+          "query_resource_matches",
+          "query_business_relationships",
+          "analyze_resource_sharing_by_id"
+        ],
+        "inputChars": 5154,
+        "requestBytes": 9372,
+        "status": 200,
+        "elapsedMs": 3483,
+        "selectedTools": [
+          {
+            "name": "query_business_relationships",
+            "arguments": "{\"entityId\":\"122c7c44-ef0f-41de-aa40-b8943811c84c\",\"limit\":4,\"offset\":0}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 1980,
+          "outputTokens": 66,
+          "totalDurationNs": 3481611700
+        }
+      },
+      {
+        "toolDefinitions": [
+          "list_entities",
+          "query_resource_matches",
+          "query_business_relationships",
+          "analyze_resource_sharing_by_id"
+        ],
+        "inputChars": 5899,
+        "requestBytes": 10117,
+        "status": 200,
+        "elapsedMs": 9286,
+        "selectedTools": [
+          {
+            "name": "analyze_resource_sharing_by_id",
+            "arguments": "{\"horizonMonths\":12,\"avoidableExternalFraction\":1,\"locationCompatible\":true,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"transitionExpense\":12000}],\"supplyRecordId\":\"0d87877a-2b02-4e31-987b-4234b49a1cd9\",\"supplyRevision\":3,\"demandRevision\":3,\"incrementalMonthlyCost\":1000,\"demandRecordId\":\"17a2ba6a-1d6f-4f70-86da-6355119f6702\",\"internalMonthlyPayment\":3000,\"transitionExpense\":6000}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 2226,
+          "outputTokens": 200,
+          "totalDurationNs": 9283651600
+        }
+      },
+      {
+        "toolDefinitions": [
+          "list_entities",
+          "query_resource_matches",
+          "query_business_relationships",
+          "analyze_resource_sharing_by_id"
+        ],
+        "inputChars": 6739,
+        "requestBytes": 10957,
+        "status": 200,
+        "elapsedMs": 15700,
+        "selectedTools": [
+          {
+            "name": "analyze_resource_sharing_by_id",
+            "arguments": "{\"supplyRecordId\":\"0d87877a-2b02-4e31-987b-4234b49a1cd9\",\"supplyRevision\":3,\"demandRecordId\":\"17a2ba6a-1d6f-4f70-86da-6355119f6702\",\"horizonMonths\":12,\"incrementalMonthlyCost\":1000,\"internalMonthlyPayment\":3000,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Higher Incremental Cost\",\"transitionExpense\":12000}],\"transitionExpense\":6000,\"avoidableExternalFraction\":1,\"demandRevision\":3,\"locationCompatible\":true}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "The tool encountered an input validation error due to the `sensitivity` parameter not including the required `label` field. Let's correct this by providing the necessary labels for the sensitivity analysis.\n\nHere are the corrected assumptions:\n- Internal monthly payment: EUR 3000\n- Incremental monthly cost: EUR 1000\n- Transition expense: EUR 6000\n- Horizon: 12 months\n- Avoidable external fraction: 100%\n- Location compatibility: True\n- Sensitivity analysis:\n  - Incremental monthly cost: EUR 2000\n  - Transition expense: EUR 12000\n\nLet's re-run the analysis with these corrected assumptions.\n",
+        "usage": {
+          "promptTokens": 2473,
+          "outputTokens": 332,
+          "totalDurationNs": 15698506300
+        }
+      },
+      {
+        "toolDefinitions": [],
+        "inputChars": 11103,
+        "requestBytes": 11507,
+        "status": 200,
+        "elapsedMs": 22885,
+        "selectedTools": [],
+        "responseStatus": "stop",
+        "outputText": "{\n    \"narrative\": \"The analysis of intercompany storage sharing between the Synthetic Distributor and the Verification entity 7eac62c7 has identified a shared capacity of 500 units. The tool-computed consumer monthly benefit is EUR 7,000, the provider monthly benefit is EUR 2,000, and the ecosystem monthly benefit is EUR 9,000. Over the 12-month horizon, the ecosystem benefits are EUR 102,000. The baseline scenario, where external storage is kept, results in zero benefits for both the consumer and the provider. The sensitivity analysis for a higher incremental cost of EUR 2,000 and a transition expense of EUR 12,000 shows a consumer monthly benefit of EUR 7,000, a provider monthly benefit of EUR 1,000, and an ecosystem monthly benefit of EUR 8,000, with a horizon benefit of EUR 84,000.\",\n    \"assumptions\": [\n        \"Available capacity: 700 units\",\n        \"Required capacity: 500 units\",\n        \"External monthly cost: EUR 10,000\",\n        \"Internal monthly payment: EUR 3,000\",\n        \"Incremental monthly cost: EUR 1,000\",\n        \"Transition expense: EUR 6,000\",\n        \"Horizon: 12 months\",\n        \"Avoidable external fraction: 100%\",\n        \"Location compatibility: Conditional\"\n    ],\n    \"humanDecisions\": [\n        \"Conditional location suitability requires human confirmation\",\n        \"Incremental operating cost is an assumption, separate from observed total warehouse operating cost\",\n        \"Internal payments cancel at the ecosystem level; transition expense is allocated to the consumer once\",\n        \"Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed\"\n    ]\n}",
+        "usage": {
+          "promptTokens": 3171,
+          "outputTokens": 418,
+          "totalDurationNs": 22883545300
+        }
+      }
+    ],
+    "checks": [
+      "real model selected and invoked live MCP tools",
+      "deterministic calculations independently recomputed and source revisions rechecked",
+      "explicit finding publication delivered only to affected Workers"
+    ],
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "warmupMs": 9048,
+    "ollamaVersion": "0.40.4",
+    "investigationId": "81b71576-7bca-42f3-9d61-834a0fd004a6",
+    "investigationMs": 55136,
+    "investigationStatus": "completed",
+    "error": null,
+    "activity": [
+      {
+        "kind": "plan",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "tools": [
+            "list_entities",
+            "query_resource_matches",
+            "query_business_relationships",
+            "analyze_resource_sharing_by_id"
+          ],
+          "budgets": {
+            "maxSteps": 12,
+            "maxToolCalls": 16,
+            "toolTimeoutMs": 8000,
+            "maxContextChars": 48000,
+            "modelCallTimeoutMs": 90000,
+            "investigationTimeoutMs": 600000
+          },
+          "profile": "compact"
+        }
+      },
+      {
+        "kind": "discovery",
+        "tool": "list_entities",
+        "status": "success",
+        "detail": {
+          "entities": [
+            "c7adc546-8ac8-4184-b88a-cc49bf710df5",
+            "69217e0a-1da6-44cb-96d6-5bdc681346a0",
+            "8ff40000-0000-4000-8000-000000000003",
+            "8ff40000-0000-4000-8000-000000000002",
+            "122c7c44-ef0f-41de-aa40-b8943811c84c"
+          ]
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 1,
+          "testModel": false,
+          "inputChars": 782,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 1,
+          "inputChars": 782,
+          "milliseconds": 1534,
+          "selectedTools": [
+            "list_entities"
+          ]
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "list_entities",
+        "status": "running",
+        "detail": {
+          "arguments": {}
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "list_entities",
+        "status": "success",
+        "detail": {
+          "milliseconds": 30,
+          "evidenceBytes": 3278,
+          "modelBytes": 750
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 2,
+          "testModel": false,
+          "inputChars": 1870,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 2,
+          "inputChars": 1870,
+          "milliseconds": 1431,
+          "selectedTools": [
+            "query_resource_matches"
+          ]
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "query_resource_matches",
+        "status": "running",
+        "detail": {
+          "arguments": {
+            "limit": 1,
+            "offset": 0
+          }
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "query_resource_matches",
+        "status": "success",
+        "detail": {
+          "milliseconds": 23,
+          "evidenceBytes": 2364,
+          "modelBytes": 1120
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 3,
+          "testModel": false,
+          "inputChars": 3398,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 3,
+          "inputChars": 3398,
+          "milliseconds": 3490,
+          "selectedTools": [
+            "query_business_relationships"
+          ]
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "query_business_relationships",
+        "status": "running",
+        "detail": {
+          "arguments": {
+            "limit": 4,
+            "offset": 0,
+            "entityId": "122c7c44-ef0f-41de-aa40-b8943811c84c"
+          }
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "query_business_relationships",
+        "status": "success",
+        "detail": {
+          "milliseconds": 17,
+          "evidenceBytes": 864,
+          "modelBytes": 408
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 4,
+          "testModel": false,
+          "inputChars": 4198,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 4,
+          "inputChars": 4198,
+          "milliseconds": 9293,
+          "selectedTools": [
+            "analyze_resource_sharing_by_id"
+          ]
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "running",
+        "detail": {
+          "arguments": {
+            "sensitivity": [
+              {
+                "transitionExpense": 12000,
+                "incrementalMonthlyCost": 2000
+              }
+            ],
+            "horizonMonths": 12,
+            "demandRecordId": "17a2ba6a-1d6f-4f70-86da-6355119f6702",
+            "demandRevision": 3,
+            "supplyRecordId": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+            "supplyRevision": 3,
+            "transitionExpense": 6000,
+            "locationCompatible": true,
+            "incrementalMonthlyCost": 1000,
+            "internalMonthlyPayment": 3000,
+            "avoidableExternalFraction": 1
+          }
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "failed",
+        "detail": {
+          "milliseconds": 19,
+          "evidenceBytes": 208,
+          "modelBytes": 208
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 5,
+          "testModel": false,
+          "inputChars": 5113,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 5,
+          "inputChars": 5113,
+          "milliseconds": 15705,
+          "selectedTools": [
+            "analyze_resource_sharing_by_id"
+          ]
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "running",
+        "detail": {
+          "arguments": {
+            "sensitivity": [
+              {
+                "label": "Higher Incremental Cost",
+                "transitionExpense": 12000,
+                "incrementalMonthlyCost": 2000
+              }
+            ],
+            "horizonMonths": 12,
+            "demandRecordId": "17a2ba6a-1d6f-4f70-86da-6355119f6702",
+            "demandRevision": 3,
+            "supplyRecordId": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+            "supplyRevision": 3,
+            "transitionExpense": 6000,
+            "locationCompatible": true,
+            "incrementalMonthlyCost": 1000,
+            "internalMonthlyPayment": 3000,
+            "avoidableExternalFraction": 1
+          }
+        }
+      },
+      {
+        "kind": "tool",
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "success",
+        "detail": {
+          "milliseconds": 31,
+          "evidenceBytes": 7134,
+          "modelBytes": 2529
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "running",
+        "detail": {
+          "step": 6,
+          "testModel": false,
+          "inputChars": 8569,
+          "toolSchemaChars": 5463
+        }
+      },
+      {
+        "kind": "model",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "step": 6,
+          "inputChars": 8569,
+          "milliseconds": 22890,
+          "selectedTools": []
+        }
+      },
+      {
+        "kind": "model_output",
+        "tool": null,
+        "status": "success",
+        "detail": {
+          "text": "{\n    \"narrative\": \"The analysis of intercompany storage sharing between the Synthetic Distributor and the Verification entity 7eac62c7 has identified a shared capacity of 500 units. The tool-computed consumer monthly benefit is EUR 7,000, the provider monthly benefit is EUR 2,000, and the ecosystem monthly benefit is EUR 9,000. Over the 12-month horizon, the ecosystem benefits are EUR 102,000. The baseline scenario, where external storage is kept, results in zero benefits for both the consumer and the provider. The sensitivity analysis for a higher incremental cost of EUR 2,000 and a transition expense of EUR 12,000 shows a consumer monthly benefit of EUR 7,000, a provider monthly benefit of EUR 1,000, and an ecosystem monthly benefit of EUR 8,000, with a horizon benefit of EUR 84,000.\",\n    \"assumptions\": [\n        \"Available capacity: 700 units\",\n        \"Required capacity: 500 units\",\n        \"External monthly cost: EUR 10,000\",\n        \"Internal monthly payment: EUR 3,000\",\n        \"Incremental monthly cost: EUR 1,000\",\n        \"Transition expense: EUR 6,000\",\n        \"Horizon: 12 months\",\n        \"Avoidable external fraction: 100%\",\n        \"Location compatibility: Conditional\"\n    ],\n    \"humanDecisions\": [\n        \"Conditional location suitability requires human confirmation\",\n        \"Incremental operating cost is an assumption, separate from observed total warehouse operating cost\",\n        \"Internal payments cancel at the ecosystem level; transition expense is allocated to the consumer once\",\n        \"Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed\"\n    ]\n}",
+          "truncated": false
+        }
+      },
+      {
+        "kind": "result",
+        "tool": null,
+        "status": "success",
+        "detail": {}
+      }
+    ],
+    "result": {
+      "analyses": [
+        {
+          "observed": {
+            "demand": {
+              "id": "17a2ba6a-1d6f-4f70-86da-6355119f6702",
+              "name": "Browser phase4 worker-2 a569d3d8",
+              "site": "Updated during Master outage",
+              "currency": "EUR",
+              "revision": 3,
+              "required_m3": 500,
+              "utilized_m3": 420,
+              "monthly_external_cost": 10000
+            },
+            "supply": {
+              "id": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+              "name": "Browser phase4 worker-1 67b338a8",
+              "site": "Updated during Master outage",
+              "currency": "EUR",
+              "revision": 3,
+              "capacity_m3": 1000,
+              "utilized_m3": 300,
+              "available_m3": 700,
+              "monthly_operating_cost": 2000
+            },
+            "demandAt": "2026-10-22T19:52:06.009Z",
+            "supplyAt": "2026-10-22T21:16:27.072Z",
+            "demandWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+            "supplyWorker": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+            "demandIngestedAt": "2026-10-22T19:52:29.200Z",
+            "supplyIngestedAt": "2026-10-22T21:17:00.122Z"
+          },
+          "calculation": {
+            "baseline": {
+              "label": "Keep external storage",
+              "consumerHorizonBenefit": 0,
+              "providerHorizonBenefit": 0,
+              "ecosystemHorizonBenefit": 0
+            },
+            "currency": "EUR",
+            "proposal": {
+              "label": "Share internal capacity",
+              "breakEvenMonths": 0.67,
+              "transitionExpense": 6000,
+              "consumerHorizonBenefit": 78000,
+              "consumerMonthlyBenefit": 7000,
+              "providerHorizonBenefit": 24000,
+              "providerMonthlyBenefit": 2000,
+              "ecosystemHorizonBenefit": 102000,
+              "ecosystemMonthlyBenefit": 9000
+            },
+            "assumptions": {
+              "currency": "EUR",
+              "sensitivity": [
+                {
+                  "label": "Higher Incremental Cost",
+                  "transitionExpense": 12000,
+                  "incrementalMonthlyCost": 2000
+                }
+              ],
+              "horizonMonths": 12,
+              "requiredCapacity": 500,
+              "availableCapacity": 700,
+              "transitionExpense": 6000,
+              "locationCompatible": true,
+              "externalMonthlyCost": 10000,
+              "incrementalMonthlyCost": 1000,
+              "internalMonthlyPayment": 3000,
+              "avoidableExternalFraction": 1
+            },
+            "alternatives": [
+              {
+                "label": "Higher Incremental Cost",
+                "breakEvenMonths": 1.5,
+                "transitionExpense": 12000,
+                "consumerHorizonBenefit": 72000,
+                "consumerMonthlyBenefit": 7000,
+                "providerHorizonBenefit": 12000,
+                "providerMonthlyBenefit": 1000,
+                "ecosystemHorizonBenefit": 84000,
+                "ecosystemMonthlyBenefit": 8000
+              }
+            ],
+            "capabilityId": "steward.resource-sharing",
+            "horizonMonths": 12,
+            "schemaVersion": 1,
+            "uncertainties": [
+              "External cost avoidance assumes proportional volume pricing and the specified avoidable fraction.",
+              "Incremental operating cost is an assumption, separate from observed total warehouse operating cost.",
+              "Internal payments cancel at ecosystem level; transition expense is allocated to the consumer once.",
+              "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed."
+            ],
+            "unmetCapacity": 0,
+            "sharedCapacity": 500,
+            "avoidedExternalMonthlyCost": 10000
+          },
+          "authoritative": false,
+          "relationships": [
+            {
+              "kind": "supply_partner",
+              "to_entity": "8ff40000-0000-4000-8000-000000000002",
+              "description": "Manufacturer supplies the distributor; independent authoritative records.",
+              "from_entity": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+              "relationship_id": "8cfa17f3-3680-4a6f-9048-19afb2ef0baf"
+            }
+          ],
+          "affectedEntities": [
+            "122c7c44-ef0f-41de-aa40-b8943811c84c",
+            "8ff40000-0000-4000-8000-000000000002"
+          ],
+          "decisionExecuted": false,
+          "supportingReferences": [
+            {
+              "entityId": "122c7c44-ef0f-41de-aa40-b8943811c84c",
+              "moduleId": "cee.operations",
+              "recordId": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+              "revision": 3,
+              "streamId": "capacities"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.operations",
+              "recordId": "17a2ba6a-1d6f-4f70-86da-6355119f6702",
+              "revision": 3,
+              "streamId": "storage_requirements"
+            }
+          ]
+        }
+      ],
+      "narrative": "The analysis of intercompany storage sharing between the Synthetic Distributor and the Verification entity 7eac62c7 has identified a shared capacity of 500 units. The tool-computed consumer monthly benefit is EUR 7,000, the provider monthly benefit is EUR 2,000, and the ecosystem monthly benefit is EUR 9,000. Over the 12-month horizon, the ecosystem benefits are EUR 102,000. The baseline scenario, where external storage is kept, results in zero benefits for both the consumer and the provider. The sensitivity analysis for a higher incremental cost of EUR 2,000 and a transition expense of EUR 12,000 shows a consumer monthly benefit of EUR 7,000, a provider monthly benefit of EUR 1,000, and an ecosystem monthly benefit of EUR 8,000, with a horizon benefit of EUR 84,000.",
+      "testModel": false,
+      "assumptions": [
+        "Available capacity: 700 units",
+        "Required capacity: 500 units",
+        "External monthly cost: EUR 10,000",
+        "Internal monthly payment: EUR 3,000",
+        "Incremental monthly cost: EUR 1,000",
+        "Transition expense: EUR 6,000",
+        "Horizon: 12 months",
+        "Avoidable external fraction: 100%",
+        "Location compatibility: Conditional"
+      ],
+      "schemaVersion": 1,
+      "humanDecisions": [
+        "Conditional location suitability requires human confirmation",
+        "Incremental operating cost is an assumption, separate from observed total warehouse operating cost",
+        "Internal payments cancel at the ecosystem level; transition expense is allocated to the consumer once",
+        "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed"
+      ],
+      "decisionExecuted": false
+    },
+    "findingId": "81b71576-7bca-42f3-9d61-834a0fd004a6",
+    "deliveries": [
+      {
+        "worker": "worker-1",
+        "affected": true,
+        "received": true
+      },
+      {
+        "worker": "worker-2",
+        "affected": true,
+        "received": true
+      },
+      {
+        "worker": "worker-3",
+        "affected": false,
+        "received": false
+      }
+    ]
+  },
+  "review": {
+    "reviewedAgainstRetrievedEvidence": true,
+    "independentArithmeticCheck": "passed",
+    "narrativeFigures": "match deterministic baseline and sensitivity",
+    "sourceAttribution": "exact observed revisions and Worker identities retained",
+    "conditions": "location, costs, contract avoidance and business approval remain explicit assumptions/human decisions",
+    "modelWordingLimitation": "free-form assumptions can repeat observed facts; UI separately renders observed source quantities and validated calculation assumptions, preserving model wording as non-authoritative",
+    "businessDecisionExecuted": false,
+    "scope": "one controlled synthetic investigation; not a general model-quality guarantee"
+  },
+  "priorAttempts": [
+    {
+      "artifact": "phase5b-first-attempt",
+      "investigationId": "acbc9c91-53a6-4067-a8ce-23ad52d5a19e",
+      "applicationStatus": "failed",
+      "error": "MODEL_OUTPUT_INVALID",
+      "elapsedMs": 125304,
+      "modelCalls": 10
+    },
+    {
+      "artifact": "phase5b-second-attempt",
+      "investigationId": "8d6269fb-d45c-4d5a-94d3-ea4d5695cbb1",
+      "applicationStatus": "failed",
+      "error": "STEP_BUDGET_EXCEEDED",
+      "elapsedMs": 77239,
+      "modelCalls": 12
+    },
+    {
+      "artifact": "phase5b-third-attempt",
+      "investigationId": "3ba2f41a-40d2-460f-b5cd-f63be37448f5",
+      "applicationStatus": "failed",
+      "error": "MODEL_OUTPUT_INVALID",
+      "elapsedMs": 43645,
+      "modelCalls": 5
+    },
+    {
+      "artifact": "phase5b-narrative-success-harness-failure",
+      "investigationId": "9286e0a8-81af-4b58-85fd-511b820f008d",
+      "applicationStatus": "completed",
+      "error": "[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"sensitivity\",\n      0,\n      \"label\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]",
+      "elapsedMs": 55120,
+      "modelCalls": 6
+    }
+  ],
+  "compactMcp": {
+    "verifiedAt": "2026-10-23T04:29:18.197Z",
+    "checks": [
+      "actual source references, field selection, pagination, legacy full evidence, unknown entity, invalid fields and stale-revision rejection",
+      "new queries and calculation enforce every entity scope, both relationship endpoints, source resolution and unauthorized-account rejection"
+    ]
+  },
+  "compactAnalyst": {
+    "verifiedAt": "2026-10-23T04:02:36.202Z",
+    "testModel": true,
+    "checks": [
+      "compact Responses-compatible workflow, one calculation then structured finalization, complete original evidence retained with smaller model view",
+      "TOOL_BUDGET_EXCEEDED explicitly persisted with partial activity",
+      "STEP_BUDGET_EXCEEDED explicitly persisted with partial activity",
+      "TRANSPORT_TIMEOUT explicitly persisted with partial activity",
+      "INVESTIGATION_TIMEOUT explicitly persisted with partial activity",
+      "CONTEXT_BUDGET_EXCEEDED explicitly persisted with partial activity"
+    ],
+    "investigations": [
+      {
+        "id": "179d7461-c163-49dc-a8d4-a77d8e3f4f87",
+        "status": "completed",
+        "error": null,
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 12
+          },
+          {
+            "kind": "tool",
+            "tool": "list_entities",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "list_entities",
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 4
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "success",
+            "milliseconds": 15
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 4
+          },
+          {
+            "kind": "tool",
+            "tool": "query_business_relationships",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "query_business_relationships",
+            "status": "success",
+            "milliseconds": 17
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 5
+          },
+          {
+            "kind": "tool",
+            "tool": "analyze_resource_sharing_by_id",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "analyze_resource_sharing_by_id",
+            "status": "success",
+            "milliseconds": 26
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 5
+          },
+          {
+            "kind": "model_output",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "result",
+            "tool": null,
+            "status": "success"
+          }
+        ]
+      },
+      {
+        "id": "0bd0211c-1a35-48d7-84ac-ff9df285f35b",
+        "status": "failed",
+        "error": "TOOL_BUDGET_EXCEEDED",
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 6
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "success",
+            "milliseconds": 15
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 4
+          },
+          {
+            "kind": "failure",
+            "tool": null,
+            "status": "failed"
+          }
+        ]
+      },
+      {
+        "id": "60566d4f-d61b-4fd2-b003-10b8bff2cddf",
+        "status": "failed",
+        "error": "STEP_BUDGET_EXCEEDED",
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 5
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "success",
+            "milliseconds": 21
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 5
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "query_resource_matches",
+            "status": "success",
+            "milliseconds": 14
+          },
+          {
+            "kind": "failure",
+            "tool": null,
+            "status": "failed"
+          }
+        ]
+      },
+      {
+        "id": "6b31150f-e713-4182-9913-5e00e6b1ba60",
+        "status": "failed",
+        "error": "TRANSPORT_TIMEOUT",
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "failed",
+            "milliseconds": 1006
+          },
+          {
+            "kind": "failure",
+            "tool": null,
+            "status": "failed"
+          }
+        ]
+      },
+      {
+        "id": "a4a78acd-009b-4891-a674-542a6a4bf919",
+        "status": "failed",
+        "error": "INVESTIGATION_TIMEOUT",
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "failed",
+            "milliseconds": 9939
+          },
+          {
+            "kind": "failure",
+            "tool": null,
+            "status": "failed"
+          }
+        ]
+      },
+      {
+        "id": "1e3449eb-b259-4f32-aa6d-15c6fea7b094",
+        "status": "failed",
+        "error": "CONTEXT_BUDGET_EXCEEDED",
+        "activity": [
+          {
+            "kind": "plan",
+            "tool": null,
+            "status": "success"
+          },
+          {
+            "kind": "discovery",
+            "tool": "list_entities",
+            "status": "success"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 7
+          },
+          {
+            "kind": "tool",
+            "tool": "list_entities",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "list_entities",
+            "status": "success",
+            "milliseconds": 16
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "running"
+          },
+          {
+            "kind": "model",
+            "tool": null,
+            "status": "success",
+            "milliseconds": 4
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "success",
+            "milliseconds": 17
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "success",
+            "milliseconds": 19
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "running"
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "success",
+            "milliseconds": 15
+          },
+          {
+            "kind": "tool",
+            "tool": "get_entity_summary",
+            "status": "failed"
+          },
+          {
+            "kind": "failure",
+            "tool": null,
+            "status": "failed"
+          }
+        ]
+      }
+    ]
+  },
+  "browser": {
+    "verifiedAt": "2026-10-23T04:39:18.905Z",
+    "liveInvestigationId": "81b71576-7bca-42f3-9d61-834a0fd004a6",
+    "partialInvestigationId": "acbc9c91-53a6-4067-a8ce-23ad52d5a19e",
+    "checks": [
+      "persisted real-model attribution",
+      "narrative, deterministic figures and source Workers visible",
+      "published finding identity visible",
+      "partial run clearly reports no final recommendation",
+      "no JavaScript errors"
+    ],
+    "browserErrors": []
+  },
+  "regressions": {
+    "phase4": {
+      "startedAt": "2026-10-23T04:07:54.783Z",
+      "finishedAt": "2026-10-23T04:10:01.213Z",
+      "checks": [
+        "All three companies create and edit persistent operational records independently through Chromium",
+        "Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness",
+        "Inventory retains old records, displays 800 stock / 200 reserved / 600 available and synchronizes its declared stock projection",
+        "Repeated real events deduplicate; older revisions never overwrite newer data; same-revision conflicts are rejected",
+        "Signed cross-entity claims, unauthorized analytical access, cross-Worker sessions, stale and replayed transport proofs are rejected",
+        "Master outage does not block operational writes; durable module outboxes and committed records survive Worker SIGKILL/restart",
+        "Killing a PostgreSQL transaction rolls back both its operational write and triggered outbox event atomically",
+        "SIGKILL during an in-flight exchange resumes safely; outage changes catch up incrementally with one inbox entry per event",
+        "Master issues a finding through Chromium; only affected Workers receive it, with entity-filtered supporting references",
+        "Controlled redelivery of actual finding events creates no duplicate local findings and is durably acknowledged",
+        "Offline finding acknowledgment survives process restart, synchronizes back to Master, rejects stale edits and survives later Master lifecycle updates",
+        "Original installation configuration, enrolled Worker 1 certificate and every pre-existing Inventory record remain intact",
+        "All installations remain healthy with their original identities; Chromium has zero uncaught errors"
+      ],
+      "browserPageErrors": 0
+    },
+    "phase5TestModel": {
+      "verifiedAt": "2026-10-23T04:05:31.707Z",
+      "checks": [
+        "Master MCP discovery and real entity listing",
+        "Allowed and denied entity scopes, unauthorized account, missing authentication, malicious Origin and unapproved MCP client",
+        "Inventory MCP contribution is operational; core image/process unchanged (repeat installation state preserved)",
+        "Unconfigured model reports a persistent failure with no fabricated analysis",
+        "Responses wire adapter and bounded Analyst invoke official MCP client with real synchronized records, references, assumptions and deterministic 9000/month, 102000/12-month benefit",
+        "Explicit human-authorized finding creation is idempotent and durably delivered only to affected Workers",
+        "Adversarial content from an actual synchronized business record stays untrusted data; no undeclared mutation or automatic finding executes",
+        "Model outage, malformed output, undeclared tool, failed MCP tool, absolute timeout and repeated-call loop fail safely with persistent activity",
+        "Browser workspace displays test-provider label, persisted investigation, MCP activity, narrative, calculations, assumptions, evidence and finding status without JavaScript errors",
+        "Actual model process outage reports failure while ordinary Worker services remain available",
+        "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
+      ]
+    },
+    "legacy": {
+      "verifiedAt": "2026-10-23T04:17:19.774Z",
+      "project": "steward-p5-reg-mvkgcxcl",
+      "phase2": "passed",
+      "phase3": "passed",
+      "existingDevelopmentVolumes": "preserved"
+    },
+    "freshDynamicInstallation": {
+      "verifiedAt": "2026-10-23T04:14:57.073Z",
+      "inventoryWasAbsentBeforeInstall": true,
+      "coreImages": {
+        "worker2Before": "sha256:7a4a2d7d3e6a0a607c46b334495c3993b4015a953c7b9c67b201a8a44e7e656f",
+        "worker2After": "sha256:7a4a2d7d3e6a0a607c46b334495c3993b4015a953c7b9c67b201a8a44e7e656f"
+      },
+      "checks": [
+        "Master MCP discovery and real entity listing",
+        "Allowed and denied entity scopes, unauthorized account, missing authentication, malicious Origin and unapproved MCP client",
+        "Chromium installs previously absent Inventory; its MCP tool becomes discoverable and operational without core image/process change",
+        "Unconfigured model reports a persistent failure with no fabricated analysis",
+        "Responses wire adapter and bounded Analyst invoke official MCP client with real synchronized records, references, assumptions and deterministic 9000/month, 102000/12-month benefit",
+        "Explicit human-authorized finding creation is idempotent and durably delivered only to affected Workers",
+        "Adversarial content from an actual synchronized business record stays untrusted data; no undeclared mutation or automatic finding executes",
+        "Model outage, malformed output, undeclared tool, failed MCP tool, absolute timeout and repeated-call loop fail safely with persistent activity",
+        "Browser workspace displays test-provider label, persisted investigation, MCP activity, narrative, calculations, assumptions, evidence and finding status without JavaScript errors",
+        "Actual model process outage reports failure while ordinary Worker services remain available",
+        "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
+      ]
+    },
+    "concurrency": {
+      "verifiedAt": "2026-10-23T04:21:42.280Z",
+      "admitted": 2,
+      "rejected": 1,
+      "investigations": [
+        "399b4720-b817-4b2d-ba6e-e031311fad8e",
+        "91a6af6f-dc6b-483b-a21c-427d4f40dd38"
+      ],
+      "ordinaryRecordSynchronizedDuringStalledModels": "954ea505-8946-4c33-9856-ccdfd6724b88",
+      "modelValidation": "Explicit HTTPS timeout fixture, not a live provider",
+      "assertions": "all passed"
+    },
+    "outage": {
+      "startedAt": "2026-10-23T04:19:43.510Z",
+      "checks": 540,
+      "restartedWorker": true,
+      "finishedAt": "2026-10-23T04:20:10.472Z"
+    },
+    "restart": {
+      "verifiedAt": "2026-10-23T04:21:12.039Z",
+      "assertions": "all passed",
+      "preservedWorkers": [
+        "worker-1",
+        "worker-2",
+        "worker-3"
+      ]
+    },
+    "provisioning": {
+      "verifiedAt": "2026-10-23T04:21:55.486Z",
+      "assertions": "all passed",
+      "filesPreserved": 78
+    },
+    "unconfigured": {
+      "verifiedAt": "2026-10-23T04:39:37.751Z",
+      "investigationId": "89e748ee-f1ee-4e3b-94f1-5aec2ce21a1b",
+      "status": "passed",
+      "checks": [
+        "browser explains deferred setup",
+        "missing provider produces persistent explicit failure",
+        "no fabricated analysis",
+        "failure remains visible after reload",
+        "Master and three Workers healthy and ready",
+        "operator configuration and secret unchanged",
+        "no browser errors"
+      ],
+      "liveProviderValidation": "deferred by operator"
+    }
+  },
+  "runtime": [
+    {
+      "service": "master-api",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-master-api:0.5.0"
+    },
+    {
+      "service": "master-db",
+      "state": "running",
+      "health": "healthy",
+      "image": "postgres:17.9-alpine"
+    },
+    {
+      "service": "master-web",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-master-web:0.5.0"
+    },
+    {
+      "service": "worker-1-api",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-api:0.5.0"
+    },
+    {
+      "service": "worker-1-db",
+      "state": "running",
+      "health": "healthy",
+      "image": "postgres:17.9-alpine"
+    },
+    {
+      "service": "worker-1-module-host",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-module-host:0.5.0"
+    },
+    {
+      "service": "worker-1-web",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-web:0.5.0"
+    },
+    {
+      "service": "worker-2-api",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-api:0.5.0"
+    },
+    {
+      "service": "worker-2-db",
+      "state": "running",
+      "health": "healthy",
+      "image": "postgres:17.9-alpine"
+    },
+    {
+      "service": "worker-2-module-host",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-module-host:0.5.0"
+    },
+    {
+      "service": "worker-2-web",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-web:0.5.0"
+    },
+    {
+      "service": "worker-3-api",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-api:0.5.0"
+    },
+    {
+      "service": "worker-3-db",
+      "state": "running",
+      "health": "healthy",
+      "image": "postgres:17.9-alpine"
+    },
+    {
+      "service": "worker-3-module-host",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-module-host:0.5.0"
+    },
+    {
+      "service": "worker-3-web",
+      "state": "running",
+      "health": "healthy",
+      "image": "steward-worker-web:0.5.0"
+    }
+  ],
+  "applications": [
+    {
+      "key": "master",
+      "installationId": "bf7f6db1-ba00-4998-9e4e-48046122b8b1",
+      "apiImage": "sha256:e31de06abe768354ba3cdb3f8a625b1965c4a97ece408b1bc1e3605d2ca9a5a4",
+      "frontendImage": "sha256:3b9b81dea8b136463fe4b96f138a5eae297bba8631750d22e03d3b220ba48042",
+      "schema": 6
+    },
+    {
+      "key": "worker-1",
+      "installationId": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
+      "apiImage": "sha256:6ce2cf210360aa77db4e3b2dd0c4b392d4050ffb1184f952ce484dd01345c9b1",
+      "frontendImage": "sha256:9f4afab17e047f2ae55dd5bb855d53f3abd57cbdb10c9331e5bc5c2b1cd4a9df",
+      "schema": 6
+    },
+    {
+      "key": "worker-2",
+      "installationId": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+      "apiImage": "sha256:6ce2cf210360aa77db4e3b2dd0c4b392d4050ffb1184f952ce484dd01345c9b1",
+      "frontendImage": "sha256:9f4afab17e047f2ae55dd5bb855d53f3abd57cbdb10c9331e5bc5c2b1cd4a9df",
+      "schema": 6
+    },
+    {
+      "key": "worker-3",
+      "installationId": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+      "apiImage": "sha256:6ce2cf210360aa77db4e3b2dd0c4b392d4050ffb1184f952ce484dd01345c9b1",
+      "frontendImage": "sha256:9f4afab17e047f2ae55dd5bb855d53f3abd57cbdb10c9331e5bc5c2b1cd4a9df",
+      "schema": 6
+    }
+  ],
+  "activeModules": [
+    "steward-dev-worker-1-m_f7b7e9d62f4f73bc531c 084b1a04b964",
+    "steward-dev-worker-1-m_1675588e58787da091eb 7b2cdefceb5a",
+    "steward-dev-worker-2-m_f7b7e9d62f4f73bc531c 084b1a04b964",
+    "steward-dev-worker-2-m_1675588e58787da091eb 7b2cdefceb5a",
+    "steward-dev-worker-3-m_f7b7e9d62f4f73bc531c 084b1a04b964",
+    "steward-dev-worker-3-m_1675588e58787da091eb 7b2cdefceb5a"
+  ],
+  "aliasParameters": "num_ctx                        16384\nnum_predict                    1200\ntemperature                    0",
+  "originalModelDigestPreserved": true,
+  "loadedModels": [],
+  "operatorConfiguration": "restored to empty model config/key",
+  "cloudProviderValidation": "not performed; no cloud credentials",
+  "phase6": "not implemented"
+}
