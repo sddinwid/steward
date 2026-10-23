@@ -55,6 +55,8 @@ try{
   const alias=await fetch('http://127.0.0.1:11434/api/create',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model,from:baseModel,parameters:{num_ctx:context,num_predict:1200,temperature:0},stream:false}),signal:AbortSignal.timeout(60000)});assert.equal(alias.status,200);await alias.json();
   const warmupStart=Date.now();const warmup=await fetch('http://127.0.0.1:11434/v1/responses',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model,input:'Reply ready.',max_output_tokens:10}),signal:AbortSignal.timeout(120000)});assert.equal(warmup.status,200);await warmup.json();report.warmupMs=Date.now()-warmupStart;
   report.ollamaVersion=(await (await fetch('http://127.0.0.1:11434/api/version')).json()).version;
+  const processes=await(await fetch('http://127.0.0.1:11434/api/ps',{signal:AbortSignal.timeout(4000)})).json();
+  report.modelResources=processes.models.filter(m=>m.name===model).map(m=>({model:m.name,sizeBytes:m.size,vramBytes:m.size_vram,contextLength:m.context_length,parameterSize:m.details?.parameter_size,quantization:m.details?.quantization_level}));
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});
   await logins();
   await writeFile(keyPath,token+'\n');

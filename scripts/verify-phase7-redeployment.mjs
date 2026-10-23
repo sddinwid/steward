@@ -24,7 +24,11 @@ async function snapshot(){
   }
   workers[worker.key]={enrollmentHash:digest(sql(worker.key,'SELECT row_to_json(e) FROM local_enrollment e')),modulesHash:digest(JSON.stringify(modules)),tables};
  }
- return{files,workers};
+ const core={};for(const instance of deployment.instances){
+  const tables=['platform_installation','security_accounts','legal_entities','entity_authorizations',...(instance.role==='master'?['entity_relationships','analytical_records','analytical_findings','finding_entities','finding_deliveries','finding_receipts','analyst_investigations','analyst_activity']:[])];
+  core[instance.key]=Object.fromEntries(tables.map(table=>[table,sql(instance.key,`SELECT count(*)||':'||md5(COALESCE(jsonb_agg(to_jsonb(r) ORDER BY to_jsonb(r)::text)::text,'')) FROM ${table} r`)]));
+ }
+ return{files,workers,core};
 }
 const run=(action)=>execFileSync(process.execPath,['scripts/release.mjs',action,'--bundle',bundle,'--directory',directory,'--trust-bundled-modules'],{stdio:'inherit',timeout:900000});
 try{

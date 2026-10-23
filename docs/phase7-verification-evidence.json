@@ -1,0 +1,1745 @@
+{
+  "formatVersion": 1,
+  "verifiedAt": "2026-10-23T22:12:58.327Z",
+  "releaseVersion": "0.7.0",
+  "baselineCommit": "6a508dc",
+  "baselineTag": "v0.6.0",
+  "branch": "phase7/business-module-expansion",
+  "status": "runtime_acceptance_passed",
+  "unitTests": {
+    "total": 52,
+    "failed": 0,
+    "counts": [
+      10,
+      2,
+      23,
+      6,
+      2,
+      2,
+      7
+    ],
+    "sourceLog": "artifacts/phase7-dns-tests.log"
+  },
+  "earlierPhaseRegressions": {
+    "startedAt": "2026-10-23T21:27:26.205Z",
+    "checks": [
+      {
+        "suite": "smoke",
+        "status": "passed",
+        "elapsedMs": 16453
+      },
+      {
+        "suite": "browser-smoke",
+        "status": "passed",
+        "elapsedMs": 4436
+      },
+      {
+        "suite": "verify-legacy-regressions",
+        "status": "passed",
+        "elapsedMs": 405102
+      },
+      {
+        "suite": "verify-phase4-seed",
+        "status": "passed",
+        "elapsedMs": 5225
+      },
+      {
+        "suite": "verify-phase4",
+        "status": "passed",
+        "elapsedMs": 191578
+      },
+      {
+        "suite": "verify-inventory-mcp-upgrade",
+        "status": "passed",
+        "elapsedMs": 13184
+      },
+      {
+        "suite": "mcp-smoke",
+        "status": "passed",
+        "elapsedMs": 3549
+      },
+      {
+        "suite": "verify-phase5",
+        "status": "passed",
+        "elapsedMs": 143056
+      },
+      {
+        "suite": "verify-analyst-browser",
+        "status": "passed",
+        "elapsedMs": 5194
+      },
+      {
+        "suite": "verify-compact-mcp",
+        "status": "passed",
+        "elapsedMs": 1558
+      },
+      {
+        "suite": "verify-compact-analyst",
+        "status": "passed",
+        "elapsedMs": 66852
+      },
+      {
+        "suite": "verify-analyst-concurrency",
+        "status": "passed",
+        "elapsedMs": 28406
+      },
+      {
+        "suite": "verify-isolation",
+        "status": "passed",
+        "elapsedMs": 35262
+      },
+      {
+        "suite": "verify-outage-independence",
+        "status": "passed",
+        "elapsedMs": 43725
+      },
+      {
+        "suite": "verify-module-restart",
+        "status": "passed",
+        "elapsedMs": 47468
+      },
+      {
+        "suite": "verify-module-provision",
+        "status": "passed",
+        "elapsedMs": 8010
+      },
+      {
+        "suite": "verify-module-secrets",
+        "status": "passed",
+        "elapsedMs": 8017
+      },
+      {
+        "suite": "verify-analyst-unconfigured",
+        "status": "passed",
+        "elapsedMs": 2211
+      }
+    ],
+    "status": "passed",
+    "finishedAt": "2026-10-23T21:44:35.511Z"
+  },
+  "releaseAcceptanceStages": {
+    "startedAt": "2026-10-23T21:45:13.0832025Z",
+    "finishedAt": "2026-10-23T21:56:27.6679227Z",
+    "deployment": "steward-phase7-release-acceptance2",
+    "checks": [
+      {
+        "stage": "smoke",
+        "elapsedMs": 17080,
+        "log": "artifacts/phase7-release-smoke.log",
+        "status": "passed"
+      },
+      {
+        "stage": "setup",
+        "elapsedMs": 15694,
+        "log": "artifacts/phase7-release-setup.log",
+        "status": "passed"
+      },
+      {
+        "stage": "install",
+        "elapsedMs": 132495,
+        "log": "artifacts/phase7-release-install.log",
+        "status": "passed"
+      },
+      {
+        "stage": "repeat-install",
+        "elapsedMs": 11438,
+        "log": "artifacts/phase7-release-repeat-install.log",
+        "status": "passed"
+      },
+      {
+        "stage": "seed",
+        "elapsedMs": 12339,
+        "log": "artifacts/phase7-release-seed.log",
+        "status": "passed"
+      },
+      {
+        "stage": "repeat-seed",
+        "elapsedMs": 3500,
+        "log": "artifacts/phase7-release-repeat-seed.log",
+        "status": "passed"
+      },
+      {
+        "stage": "check",
+        "elapsedMs": 68067,
+        "log": "artifacts/phase7-release-check.log",
+        "status": "passed"
+      },
+      {
+        "stage": "browser",
+        "elapsedMs": 12633,
+        "log": "artifacts/phase7-release-browser.log",
+        "status": "passed"
+      },
+      {
+        "stage": "mcp",
+        "elapsedMs": 5785,
+        "log": "artifacts/phase7-release-mcp.log",
+        "status": "passed"
+      },
+      {
+        "stage": "configuration",
+        "elapsedMs": 4250,
+        "log": "artifacts/phase7-release-configuration.log",
+        "status": "passed"
+      },
+      {
+        "stage": "recovery",
+        "elapsedMs": 61081,
+        "log": "artifacts/phase7-release-recovery.log",
+        "status": "passed"
+      },
+      {
+        "stage": "test-model",
+        "elapsedMs": 68966,
+        "log": "artifacts/phase7-release-test-model.log",
+        "status": "passed"
+      },
+      {
+        "stage": "provision",
+        "elapsedMs": 8237,
+        "log": "artifacts/phase7-release-provision.log",
+        "status": "passed"
+      },
+      {
+        "stage": "isolation",
+        "elapsedMs": 37332,
+        "log": "artifacts/phase7-release-isolation.log",
+        "status": "passed"
+      },
+      {
+        "stage": "reset",
+        "elapsedMs": 15870,
+        "log": "artifacts/phase7-release-reset.log",
+        "status": "passed"
+      },
+      {
+        "stage": "reseed",
+        "elapsedMs": 4162,
+        "log": "artifacts/phase7-release-reseed.log",
+        "status": "passed"
+      },
+      {
+        "stage": "recheck",
+        "elapsedMs": 8322,
+        "log": "artifacts/phase7-release-recheck.log",
+        "status": "passed"
+      },
+      {
+        "stage": "mcp-after-reset",
+        "elapsedMs": 4874,
+        "log": "artifacts/phase7-release-mcp-after-reset.log",
+        "status": "passed"
+      },
+      {
+        "stage": "live-ai",
+        "elapsedMs": 182390,
+        "log": "artifacts/phase7-release-live-ai.log",
+        "status": "passed"
+      }
+    ],
+    "status": "passed_pending_narrative_review"
+  },
+  "installed": {
+    "worker-1": [
+      {
+        "moduleId": "cee.assets",
+        "version": "1.0.3",
+        "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.inventory",
+        "version": "1.3.2",
+        "imageId": "sha256:add7f621757966331f405bd6da028f29d2764c934c4f2e9b06678ecc716fdec3",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.operations",
+        "version": "1.0.0",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.procurement",
+        "version": "1.0.2",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.sales",
+        "version": "1.0.2",
+        "imageId": "sha256:085ed85e98cb81fdfc4e811ced95e1e412927fb23acc7024abe4dc3134fd1aac",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.workforce",
+        "version": "1.0.2",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0",
+        "state": "active"
+      }
+    ],
+    "worker-2": [
+      {
+        "moduleId": "cee.operations",
+        "version": "1.0.0",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.procurement",
+        "version": "1.0.2",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.sales",
+        "version": "1.0.2",
+        "imageId": "sha256:085ed85e98cb81fdfc4e811ced95e1e412927fb23acc7024abe4dc3134fd1aac",
+        "state": "active"
+      }
+    ],
+    "worker-3": [
+      {
+        "moduleId": "cee.assets",
+        "version": "1.0.3",
+        "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.operations",
+        "version": "1.0.0",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "state": "active"
+      },
+      {
+        "moduleId": "cee.workforce",
+        "version": "1.0.2",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0",
+        "state": "active"
+      }
+    ]
+  },
+  "coreImagesUnchanged": true,
+  "reset": {
+    "generation": 2,
+    "retiredGenerations": 1,
+    "retainedPreUpgradeItem": {
+      "quantity": 7,
+      "reservedQuantity": 0
+    },
+    "stock": {
+      "quantity": 13,
+      "reservedQuantity": 0
+    }
+  },
+  "realInvestigations": [
+    {
+      "profile": "shared-procurement",
+      "investigationId": "48891a07-fde3-48b8-b3be-1c84724e2be7",
+      "findingId": "48891a07-fde3-48b8-b3be-1c84724e2be7",
+      "provider": "local-ollama",
+      "model": "steward-analyst-qwen2.5-ctx16384:7b",
+      "baseModel": "qwen2.5:7b",
+      "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "context": 16384,
+      "investigationMs": 33685,
+      "warmupMs": 4990,
+      "modelResources": [
+        {
+          "model": "steward-analyst-qwen2.5-ctx16384:7b",
+          "sizeBytes": 5835377868,
+          "vramBytes": 4075112366,
+          "contextLength": 16384,
+          "parameterSize": "7.6B",
+          "quantization": "Q4_K_M"
+        }
+      ],
+      "modelCalls": [
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1561,
+          "inputChars": 3881,
+          "usage": {
+            "promptTokens": 1132,
+            "outputTokens": 16,
+            "totalDurationNs": 1558293100
+          },
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1194,
+          "inputChars": 4766,
+          "usage": {
+            "promptTokens": 1428,
+            "outputTokens": 22,
+            "totalDurationNs": 1192413100
+          },
+          "selectedTools": [
+            {
+              "name": "query_procurement_matches",
+              "arguments": "{\"limit\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 8136,
+          "inputChars": 6943,
+          "usage": {
+            "promptTokens": 2266,
+            "outputTokens": 163,
+            "totalDurationNs": 8133298100
+          },
+          "selectedTools": [
+            {
+              "name": "analyze_shared_procurement_by_id",
+              "arguments": "{\"quoteRecordId\":\"be633d12-5706-4d02-9669-a57bedb09293\",\"quoteRevision\":1,\"internalTransferCents\":0,\"firstRecordId\":\"8976ab42-6690-4e29-96c2-a6fa0ba8c3ec\",\"firstRevision\":1,\"secondRecordId\":\"fc102e27-ca83-4cb0-aa40-3d20034a32a5\",\"secondRevision\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 21811,
+          "inputChars": 10398,
+          "usage": {
+            "promptTokens": 3134,
+            "outputTokens": 393,
+            "totalDurationNs": 21808936700
+          },
+          "selectedTools": []
+        }
+      ],
+      "analyses": [
+        {
+          "calculation": {
+            "sku": "SYN-P7-SUPPLY",
+            "unit": "units",
+            "baseline": {
+              "externalCents": 352000
+            },
+            "currency": "EUR",
+            "proposal": {
+              "externalCents": 278000,
+              "transitionCents": 3000,
+              "ecosystemCostCents": 281000,
+              "ecosystemSavingsCents": 71000
+            },
+            "assumptions": {
+              "baseline": "Each approved demand uses its observed external unit price and shipping once",
+              "proposal": "One external supplier quote, one combined shipping charge and each approved transition expense once",
+              "internalTransferCents": 0,
+              "internalTransfersCancel": true
+            },
+            "capabilityId": "steward.shared-procurement",
+            "schemaVersion": 1,
+            "totalQuantity": 300,
+            "uncertainties": [
+              "Confirm supplier quote validity, delivery terms, specifications, taxes, allocation and human purchasing approval.",
+              "Internal transfers redistribute costs between entities and are excluded from new ecosystem revenue."
+            ],
+            "displayAmounts": {
+              "unit": "Major currency units; formatted exactly by Steward from integer cents",
+              "baselineExternal": "EUR 3520.00",
+              "ecosystemSavings": "EUR 710.00",
+              "internalTransfer": "EUR 0.00",
+              "proposedExternal": "EUR 2780.00",
+              "transitionExpense": "EUR 30.00",
+              "proposedEcosystemCost": "EUR 2810.00"
+            },
+            "decisionExecuted": false
+          },
+          "supportingReferences": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.procurement",
+              "recordId": "8976ab42-6690-4e29-96c2-a6fa0ba8c3ec",
+              "revision": 1,
+              "streamId": "procurement_demands"
+            },
+            {
+              "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+              "moduleId": "cee.procurement",
+              "recordId": "fc102e27-ca83-4cb0-aa40-3d20034a32a5",
+              "revision": 1,
+              "streamId": "procurement_demands"
+            },
+            {
+              "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+              "moduleId": "cee.procurement",
+              "recordId": "be633d12-5706-4d02-9669-a57bedb09293",
+              "revision": 1,
+              "streamId": "procurement_quotes"
+            }
+          ],
+          "observedSources": [
+            {
+              "reference": {
+                "entityId": "8ff40000-0000-4000-8000-000000000002",
+                "moduleId": "cee.procurement",
+                "recordId": "8976ab42-6690-4e29-96c2-a6fa0ba8c3ec",
+                "revision": 1,
+                "streamId": "procurement_demands"
+              },
+              "observedAt": "2026-10-23T21:52:58.049Z",
+              "sourceWorker": "b6f3a156-bbd6-4e83-a376-780c22a78c05"
+            },
+            {
+              "reference": {
+                "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+                "moduleId": "cee.procurement",
+                "recordId": "fc102e27-ca83-4cb0-aa40-3d20034a32a5",
+                "revision": 1,
+                "streamId": "procurement_demands"
+              },
+              "observedAt": "2026-10-23T21:52:57.711Z",
+              "sourceWorker": "2fa07e39-da76-4ac3-a440-d63cbbb0708d"
+            },
+            {
+              "reference": {
+                "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+                "moduleId": "cee.procurement",
+                "recordId": "be633d12-5706-4d02-9669-a57bedb09293",
+                "revision": 1,
+                "streamId": "procurement_quotes"
+              },
+              "observedAt": "2026-10-23T21:52:58.228Z",
+              "sourceWorker": "2fa07e39-da76-4ac3-a440-d63cbbb0708d"
+            }
+          ],
+          "sourceFreshness": {},
+          "authoritative": false,
+          "decisionExecuted": false
+        }
+      ],
+      "narrative": "The shared procurement analysis for the Synthetic businesses reveals the following amounts: the baseline external cost is EUR 3,520.00, the proposed external cost is EUR 2,780.00, the transition expense is EUR 30.00, the total ecosystem cost is EUR 2,810.00, and the net ecosystem savings are EUR 710.00. The combined observed quantity is 300 units. The baseline external cost represents the total cost if the current demands were fulfilled separately. The proposed external cost is the total cost if the demands were fulfilled through a single external supplier. The transition expense is the cost associated with the transition to the new supplier. The total ecosystem cost includes the proposed external cost and the transition expense. The net ecosystem savings are the difference between the baseline external cost and the total ecosystem cost, indicating potential savings from coordinated purchasing. The combined observed quantity is the total quantity across both demands, which is 300 units. Given the positive savings, we conditionally recommend evaluating coordinated purchasing, subject to confirming supplier quote validity, delivery terms, specifications, taxes, allocation, and human purchasing approval.",
+      "assumptions": [
+        "The baseline external cost is based on the observed unit prices and shipping costs of the current demands.",
+        "The proposed external cost is based on the single external supplier quote.",
+        "The transition expense is the cost associated with the transition to the new supplier.",
+        "The total ecosystem cost includes the proposed external cost and the transition expense.",
+        "The net ecosystem savings are the difference between the baseline external cost and the total ecosystem cost."
+      ],
+      "humanDecisions": [
+        "Confirm supplier quote validity, delivery terms, specifications, taxes, allocation, and human purchasing approval.",
+        "Evaluate the proposed external cost and transition expense for feasibility."
+      ],
+      "review": {
+        "note": "Reviewed current synchronized source revisions and 300 units: EUR 3520 baseline, 2780 quoted external cost, 30 transition, 2810 total and 710 potential saving. These are non-authoritative copies; supplier transition allowances and commercial approval require human confirmation.",
+        "verifiedAt": "2026-10-23T22:01:24.268Z",
+        "browserErrors": []
+      },
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-2",
+          "entityId": "8ff40000-0000-4000-8000-000000000002",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-3",
+          "entityId": "8ff40000-0000-4000-8000-000000000003",
+          "affected": false,
+          "received": false,
+          "acknowledged": false
+        }
+      ],
+      "configurationRestored": true,
+      "modelUnloaded": true,
+      "rawEvidence": {
+        "file": "artifacts/phase7-ollama-shared-procurement.json",
+        "sha256": "1aa5c88be5c1ec12c5666888a426d4d474d81b55667a2e90d2341f22dd7e55a4",
+        "reviewFile": "artifacts/phase7-reviewed-48891a07-fde3-48b8-b3be-1c84724e2be7.json",
+        "reviewSha256": "93083c2fe754d48c55d73bb087503c19e99446f55ec1f027f85bab56372d84d8"
+      }
+    },
+    {
+      "profile": "workforce-opportunity",
+      "investigationId": "8f62e14d-fc7f-494f-9f9d-3137894e2514",
+      "findingId": "8f62e14d-fc7f-494f-9f9d-3137894e2514",
+      "provider": "local-ollama",
+      "model": "steward-analyst-qwen2.5-ctx16384:7b",
+      "baseModel": "qwen2.5:7b",
+      "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "context": 16384,
+      "investigationMs": 26456,
+      "warmupMs": 4607,
+      "modelResources": [
+        {
+          "model": "steward-analyst-qwen2.5-ctx16384:7b",
+          "sizeBytes": 5835377868,
+          "vramBytes": 4075112366,
+          "contextLength": 16384,
+          "parameterSize": "7.6B",
+          "quantization": "Q4_K_M"
+        }
+      ],
+      "modelCalls": [
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1456,
+          "inputChars": 3392,
+          "usage": {
+            "promptTokens": 1029,
+            "outputTokens": 16,
+            "totalDurationNs": 1453099000
+          },
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1202,
+          "inputChars": 4277,
+          "usage": {
+            "promptTokens": 1325,
+            "outputTokens": 22,
+            "totalDurationNs": 1200079900
+          },
+          "selectedTools": [
+            {
+              "name": "query_workforce_matches",
+              "arguments": "{\"limit\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 7539,
+          "inputChars": 6417,
+          "usage": {
+            "promptTokens": 2154,
+            "outputTokens": 153,
+            "totalDurationNs": 7537800000
+          },
+          "selectedTools": [
+            {
+              "name": "analyze_workforce_opportunity_by_id",
+              "arguments": "{\"demandRecordId\":\"9c0d927c-bad5-4bde-98d6-b114641a15f6\",\"demandRevision\":1,\"supplyRecordId\":\"8e1d5eec-efbe-4d81-a8ee-020b45cdc1a1\",\"supplyRevision\":1,\"programRecordId\":\"729bed4e-9257-4b0b-af1c-2b693bd74e6e\",\"programRevision\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 15903,
+          "inputChars": 9624,
+          "usage": {
+            "promptTokens": 2961,
+            "outputTokens": 273,
+            "totalDurationNs": 15900877800
+          },
+          "selectedTools": []
+        }
+      ],
+      "analyses": [
+        {
+          "calculation": {
+            "openings": 5,
+            "skillCode": "SYN-P7-LOGISTICS-G0002",
+            "assumptions": {
+              "countsNotAdded": true,
+              "syntheticDataOnly": true,
+              "peopleAndCompletionsMayOverlap": true,
+              "additionalRequiredSkillsNeedReview": []
+            },
+            "capabilityId": "steward.workforce-opportunity",
+            "schemaVersion": 1,
+            "trainingSeats": 5,
+            "uncertainties": [
+              "Aggregates are not candidate identities, consent, availability guarantees or hiring decisions.",
+              "Training capacity is potential future supply, not completed qualifications; ended programs contribute no available seats.",
+              "Humans must verify all skills, scheduling, access, geography, consent and employment suitability."
+            ],
+            "availablePeople": 3,
+            "decisionExecuted": false,
+            "remainingSkillGap": 2,
+            "humanReviewRequired": true,
+            "qualifiedCompletions": 3,
+            "potentialQualifiedCoverage": 3
+          },
+          "supportingReferences": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.workforce",
+              "recordId": "8e1d5eec-efbe-4d81-a8ee-020b45cdc1a1",
+              "revision": 1,
+              "streamId": "workforce_supply"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.workforce",
+              "recordId": "729bed4e-9257-4b0b-af1c-2b693bd74e6e",
+              "revision": 1,
+              "streamId": "training_metrics"
+            },
+            {
+              "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+              "moduleId": "cee.workforce",
+              "recordId": "9c0d927c-bad5-4bde-98d6-b114641a15f6",
+              "revision": 1,
+              "streamId": "workforce_demand"
+            }
+          ],
+          "observedSources": [
+            {
+              "reference": {
+                "entityId": "8ff40000-0000-4000-8000-000000000003",
+                "moduleId": "cee.workforce",
+                "recordId": "8e1d5eec-efbe-4d81-a8ee-020b45cdc1a1",
+                "revision": 1,
+                "streamId": "workforce_supply"
+              },
+              "observedAt": "2026-10-23T21:53:00.808Z",
+              "sourceWorker": "33309867-7ce7-4f0f-a585-2e3ba9fc7f92"
+            },
+            {
+              "reference": {
+                "entityId": "8ff40000-0000-4000-8000-000000000003",
+                "moduleId": "cee.workforce",
+                "recordId": "729bed4e-9257-4b0b-af1c-2b693bd74e6e",
+                "revision": 1,
+                "streamId": "training_metrics"
+              },
+              "observedAt": "2026-10-23T21:53:00.900Z",
+              "sourceWorker": "33309867-7ce7-4f0f-a585-2e3ba9fc7f92"
+            },
+            {
+              "reference": {
+                "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+                "moduleId": "cee.workforce",
+                "recordId": "9c0d927c-bad5-4bde-98d6-b114641a15f6",
+                "revision": 1,
+                "streamId": "workforce_demand"
+              },
+              "observedAt": "2026-10-23T21:53:01.185Z",
+              "sourceWorker": "2fa07e39-da76-4ac3-a440-d63cbbb0708d"
+            }
+          ],
+          "sourceFreshness": {},
+          "authoritative": false,
+          "decisionExecuted": false
+        }
+      ],
+      "narrative": "The synthetic aggregate data reveals an opportunity for workforce training and qualification. The observed openings for the 'Synthetic logistics qualification opportunity' are 5. Currently, there are 3 available people who are qualified for the training, and 3 completions have already been recorded. The training program 'Synthetic logistics training' has 5 remaining seats, which are potential future supply. The potential qualified coverage from the available people is 3, leaving a remaining skill gap of 2. This means that 2 more people are needed to fully meet the demand. The training seats are future potential and not completed qualifications. Humans must verify all skills, scheduling, access, geography, consent, and employment suitability before any action is taken. The calculation is based on synthetic data only, and no individuals or hiring decisions are disclosed.",
+      "assumptions": [
+        "Synthetic data only",
+        "People and completions may overlap",
+        "Counts are not added",
+        "Additional required skills need review"
+      ],
+      "humanDecisions": [
+        "Review the consent, availability, and suitability of the available people for the training and qualification opportunity.",
+        "Verify the scheduling and geography of the training program.",
+        "Ensure all required skills are met and that the training is suitable for the demand."
+      ],
+      "review": {
+        "note": "Reviewed synthetic aggregate source revisions: 5 openings, 3 existing skill-qualified people, 3 overlapping completions, coverage 3, gap 2 and 5 future seats. The three are existing skill capacity, not training applicants or hiring approvals. Copies are non-authoritative; consent and full suitability remain human decisions.",
+        "verifiedAt": "2026-10-23T22:01:30.950Z",
+        "browserErrors": []
+      },
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-2",
+          "entityId": "8ff40000-0000-4000-8000-000000000002",
+          "affected": false,
+          "received": false,
+          "acknowledged": false
+        },
+        {
+          "worker": "worker-3",
+          "entityId": "8ff40000-0000-4000-8000-000000000003",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        }
+      ],
+      "configurationRestored": true,
+      "modelUnloaded": true,
+      "rawEvidence": {
+        "file": "artifacts/phase7-ollama-workforce-opportunity.json",
+        "sha256": "51184fff498545cdb8eced50d9ff28977133fb78307f2ea50eb25570d77fabc7",
+        "reviewFile": "artifacts/phase7-reviewed-8f62e14d-fc7f-494f-9f9d-3137894e2514.json",
+        "reviewSha256": "9aaf7bec3cc1640403a6c0df2cbc2d87feb8398ca8bebb6d0265436e185f137b"
+      }
+    },
+    {
+      "profile": "resource-sharing",
+      "investigationId": "a44a7fbf-341b-41f1-ade5-254e724e05ed",
+      "findingId": "a44a7fbf-341b-41f1-ade5-254e724e05ed",
+      "provider": "local-ollama",
+      "model": "steward-analyst-qwen2.5-ctx16384:7b",
+      "baseModel": "qwen2.5:7b",
+      "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "context": 16384,
+      "investigationMs": 40100,
+      "warmupMs": 4877,
+      "modelResources": [
+        {
+          "model": "steward-analyst-qwen2.5-ctx16384:7b",
+          "sizeBytes": 5835377868,
+          "vramBytes": 4075112366,
+          "contextLength": 16384,
+          "parameterSize": "7.6B",
+          "quantization": "Q4_K_M"
+        }
+      ],
+      "modelCalls": [
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1776,
+          "inputChars": 4220,
+          "usage": {
+            "promptTokens": 1396,
+            "outputTokens": 16,
+            "totalDurationNs": 1773861100
+          },
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 1230,
+          "inputChars": 5105,
+          "usage": {
+            "promptTokens": 1692,
+            "outputTokens": 21,
+            "totalDurationNs": 1227242900
+          },
+          "selectedTools": [
+            {
+              "name": "query_resource_matches",
+              "arguments": "{\"limit\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 3347,
+          "inputChars": 6544,
+          "usage": {
+            "promptTokens": 2220,
+            "outputTokens": 63,
+            "totalDurationNs": 3345257700
+          },
+          "selectedTools": [
+            {
+              "name": "query_business_relationships",
+              "arguments": "{\"entityId\":\"8ff40000-0000-4000-8000-000000000003\",\"limit\":4}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 9999,
+          "inputChars": 7330,
+          "usage": {
+            "promptTokens": 2474,
+            "outputTokens": 204,
+            "totalDurationNs": 9995687800
+          },
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Higher costs\",\"transitionExpense\":12000}],\"supplyRecordId\":\"be6c62fd-bdf6-4e99-9a39-21d3246e3618\",\"demandRecordId\":\"e4600d5c-4447-470b-811c-f2bc2030a4a9\",\"internalMonthlyPayment\":3000,\"incrementalMonthlyCost\":1000,\"transitionExpense\":6000,\"horizonMonths\":12,\"avoidableExternalFraction\":1,\"locationCompatible\":true,\"supplyRevision\":1,\"demandRevision\":1}"
+            }
+          ]
+        },
+        {
+          "httpStatus": 200,
+          "elapsedMs": 23009,
+          "inputChars": 11661,
+          "usage": {
+            "promptTokens": 3173,
+            "outputTokens": 404,
+            "totalDurationNs": 23006606100
+          },
+          "selectedTools": []
+        }
+      ],
+      "analyses": [
+        {
+          "calculation": {
+            "baseline": {
+              "label": "Keep external storage",
+              "consumerHorizonBenefit": 0,
+              "providerHorizonBenefit": 0,
+              "ecosystemHorizonBenefit": 0
+            },
+            "currency": "EUR",
+            "proposal": {
+              "label": "Share internal capacity",
+              "breakEvenMonths": 0.55,
+              "transitionExpense": 6000,
+              "consumerHorizonBenefit": 102000,
+              "consumerMonthlyBenefit": 9000,
+              "providerHorizonBenefit": 24000,
+              "providerMonthlyBenefit": 2000,
+              "ecosystemHorizonBenefit": 126000,
+              "ecosystemMonthlyBenefit": 11000
+            },
+            "assumptions": {
+              "currency": "EUR",
+              "sensitivity": [
+                {
+                  "label": "Higher costs",
+                  "transitionExpense": 12000,
+                  "incrementalMonthlyCost": 2000
+                }
+              ],
+              "horizonMonths": 12,
+              "requiredCapacity": 500,
+              "availableCapacity": 800,
+              "transitionExpense": 6000,
+              "locationCompatible": true,
+              "externalMonthlyCost": 12000,
+              "incrementalMonthlyCost": 1000,
+              "internalMonthlyPayment": 3000,
+              "avoidableExternalFraction": 1
+            },
+            "alternatives": [
+              {
+                "label": "Higher costs",
+                "breakEvenMonths": 1.2,
+                "transitionExpense": 12000,
+                "consumerHorizonBenefit": 96000,
+                "consumerMonthlyBenefit": 9000,
+                "providerHorizonBenefit": 12000,
+                "providerMonthlyBenefit": 1000,
+                "ecosystemHorizonBenefit": 108000,
+                "ecosystemMonthlyBenefit": 10000
+              }
+            ],
+            "capabilityId": "steward.resource-sharing",
+            "horizonMonths": 12,
+            "schemaVersion": 1,
+            "uncertainties": [
+              "External cost avoidance assumes proportional volume pricing and the specified avoidable fraction.",
+              "Incremental operating cost is an assumption, separate from observed total warehouse operating cost.",
+              "Internal payments cancel at ecosystem level; transition expense is allocated to the consumer once.",
+              "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed."
+            ],
+            "unmetCapacity": 0,
+            "sharedCapacity": 500,
+            "avoidedExternalMonthlyCost": 12000
+          },
+          "supportingReferences": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.assets",
+              "recordId": "be6c62fd-bdf6-4e99-9a39-21d3246e3618",
+              "revision": 1,
+              "streamId": "capacities"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.operations",
+              "recordId": "e4600d5c-4447-470b-811c-f2bc2030a4a9",
+              "revision": 1,
+              "streamId": "storage_requirements"
+            }
+          ],
+          "sourceFreshness": {
+            "supplyAt": "2026-10-23T21:52:58.569Z",
+            "demandAt": "2026-10-23T21:52:58.695Z"
+          },
+          "authoritative": false,
+          "decisionExecuted": false
+        }
+      ],
+      "narrative": "The synthetic Phase 7 asset resource-sharing opportunity involves sharing 500 cubic metres (m3) of available capacity from the Synthetic Phase 7 shared warehouse with the SYN-P7-G0002-external storage requirement. The tool-computed consumerMonthlyBenefit is 9,000 EUR per month, the providerMonthlyBenefit is 2,000 EUR per month, and the ecosystemMonthlyBenefit is 11,000 EUR per month. Over the horizon of 12 months, the ecosystem benefits are 126,000 EUR. For the 'Higher costs' alternative, the ecosystemMonthlyBenefit is 10,000 EUR per month, and the ecosystemHorizonBenefit is 108,000 EUR over the whole horizon. The baseline scenario, where external storage is kept, results in zero ecosystem benefits. The observed shared capacity is 500 m3, and the external monthly cost is 12,000 EUR. The incremental operating cost is an assumption, separate from the observed total warehouse operating cost. Internal payments cancel at the ecosystem level, and the transition expense is allocated to the consumer once. Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed.",
+      "assumptions": [
+        "internalMonthlyPayment 3000",
+        "incrementalMonthlyCost 1000",
+        "transitionExpense 6000",
+        "horizonMonths 12",
+        "avoidableExternalFraction 1",
+        "locationCompatible true"
+      ],
+      "humanDecisions": [
+        "Review the feasibility of the shared capacity and the assumptions, including the incremental operating cost and transition expense.",
+        "Confirm the location, transport, service levels, taxes, contracts, safety, and investment approval."
+      ],
+      "review": {
+        "note": "Reviewed current Assets/Operations references: 800 m3 available, 500 shared; EUR 9000/2000/11000 monthly consumer/provider/ecosystem benefit and 126000 over 12 months. Higher-cost ecosystem values are 10000 monthly and 108000 over 12 months. Costs/location are illustrative, copies non-authoritative and suitability requires human confirmation.",
+        "verifiedAt": "2026-10-23T22:01:38.248Z",
+        "browserErrors": []
+      },
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "entityId": "d97c64e9-6f88-4ff7-9911-49d9eb46890f",
+          "affected": false,
+          "received": false,
+          "acknowledged": false
+        },
+        {
+          "worker": "worker-2",
+          "entityId": "8ff40000-0000-4000-8000-000000000002",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-3",
+          "entityId": "8ff40000-0000-4000-8000-000000000003",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        }
+      ],
+      "configurationRestored": true,
+      "modelUnloaded": true,
+      "rawEvidence": {
+        "file": "artifacts/phase7-ollama-resource-sharing.json",
+        "sha256": "95121bbbaf4696c19157a27c9def575fed5c2a5cda833563355e9d3432f4b3f1",
+        "reviewFile": "artifacts/phase7-reviewed-a44a7fbf-341b-41f1-ade5-254e724e05ed.json",
+        "reviewSha256": "55166121608e0dcca2af7a215f3fc84f900e206bcc823da0c398651a75bee5ca"
+      }
+    }
+  ],
+  "withheldInvestigations": [
+    {
+      "profile": "workforce-opportunity",
+      "investigationId": "74ff91f4-4d83-4245-8bcf-3aeb0de2d8cc",
+      "findingId": null,
+      "reviewStatus": "withheld",
+      "reason": "Valid calculation, insufficient narrative: counts were placed among human decisions; withheld and rerun with prose guidance.",
+      "investigationMs": 20072,
+      "narrative": "Analyzed the aggregate workforce and training opportunity in the synthetic dataset. The calculation succeeded based on the observed data.",
+      "modelCalls": [
+        {
+          "elapsedMs": 1367,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 1189,
+          "selectedTools": [
+            {
+              "name": "query_workforce_matches",
+              "arguments": "{\"limit\":1}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 7632,
+          "selectedTools": [
+            {
+              "name": "analyze_workforce_opportunity_by_id",
+              "arguments": "{\"supplyRevision\":1,\"programRecordId\":\"729bed4e-9257-4b0b-af1c-2b693bd74e6e\",\"programRevision\":1,\"demandRecordId\":\"9c0d927c-bad5-4bde-98d6-b114641a15f6\",\"demandRevision\":1,\"supplyRecordId\":\"8e1d5eec-efbe-4d81-a8ee-020b45cdc1a1\"}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 9169,
+          "selectedTools": []
+        }
+      ],
+      "rawEvidence": {
+        "file": "artifacts/phase7-ollama-workforce-opportunity-release-attempt1.json",
+        "sha256": "c2a062a0a2da382ce0a7febb41eb6456aad833d419d7b3e13d20d69dcd3a9871"
+      }
+    },
+    {
+      "profile": "resource-sharing",
+      "investigationId": "de09e2b5-22f8-4445-bbf8-3ab670a5becc",
+      "findingId": null,
+      "reviewStatus": "withheld",
+      "reason": "Valid calculation but narrative confused monthly and horizon values and contained a numeric typo; withheld and rerun with period-specific reporting guidance.",
+      "investigationMs": 40024,
+      "narrative": "The synthetic Phase 7 shared warehouse has an available capacity of 800 units, and the Synthetic Distributor requires 500 units of storage. The analysis shows that sharing internal capacity can provide a consumer monthly benefit of 9,000 EUR and a provider monthly benefit of 2,000 EUR, with an ecosystem monthly benefit of 11,000 EUR. Over the 12-month horizon, the ecosystem benefits total 126,000 EUR. The baseline scenario, keeping external storage, results in zero benefits. Sensitivity analysis shows that if incremental monthly costs increase to 2,000 EUR and transition expenses rise to 12,000 EUR, the ecosystem benefits drop to 108,000 EUR, while the consumer and provider benefits remain unchanged at 9,6000 EUR and 12,000 EUR, respectively. The break-even point is 1.2 months, indicating that the higher costs scenario is less favorable.",
+      "modelCalls": [
+        {
+          "elapsedMs": 1597,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 1149,
+          "selectedTools": [
+            {
+              "name": "query_resource_matches",
+              "arguments": "{\"limit\":1}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 3264,
+          "selectedTools": [
+            {
+              "name": "query_business_relationships",
+              "arguments": "{\"entityId\":\"8ff40000-0000-4000-8000-000000000003\",\"limit\":4}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 9735,
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"demandRevision\":1,\"incrementalMonthlyCost\":1000,\"horizonMonths\":12,\"locationCompatible\":true,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Higher costs\",\"transitionExpense\":12000}],\"supplyRecordId\":\"be6c62fd-bdf6-4e99-9a39-21d3246e3618\",\"supplyRevision\":1,\"internalMonthlyPayment\":3000,\"transitionExpense\":6000,\"avoidableExternalFraction\":1,\"demandRecordId\":\"e4600d5c-4447-470b-811c-f2bc2030a4a9\"}"
+            }
+          ]
+        },
+        {
+          "elapsedMs": 23375,
+          "selectedTools": []
+        }
+      ],
+      "rawEvidence": {
+        "file": "artifacts/phase7-ollama-resource-sharing-release-attempt1.json",
+        "sha256": "296e78df389010f29a0d824c02cbd43217723a03109127895e100629c9fba6e2"
+      }
+    }
+  ],
+  "historicalNativeAttempts": [
+    {
+      "file": "phase7-ollama-resource-sharing-attempt1.json",
+      "investigationId": "f62b416a-4211-4bf1-831c-1b2dcb461bb7",
+      "status": "failed",
+      "failure": "REPEATED_TOOL_CALL\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "capability": "resource-sharing",
+      "investigationMs": 34649,
+      "sha256": "83f497a32619ef0b5412579c243faf2d26ab8e7e5403382b1b1897dd985cc5e2"
+    },
+    {
+      "file": "phase7-ollama-resource-sharing-release-attempt1.json",
+      "investigationId": "de09e2b5-22f8-4445-bbf8-3ab670a5becc",
+      "status": "passed_pending_narrative_review",
+      "failure": null,
+      "capability": "resource-sharing",
+      "investigationMs": 40024,
+      "sha256": "296e78df389010f29a0d824c02cbd43217723a03109127895e100629c9fba6e2"
+    },
+    {
+      "file": "phase7-ollama-shared-procurement-attempt1.json",
+      "investigationId": "ea6c6bf0-e74f-4306-a3e9-8f8afc57438d",
+      "status": "failed",
+      "failure": "REPEATED_TOOL_CALL\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "capability": "shared-procurement",
+      "investigationMs": 12887,
+      "sha256": "25f0eef00d307cdb8bf17174afc59f156e95c22546207cc6beccf8d5b1700505"
+    },
+    {
+      "file": "phase7-ollama-shared-procurement-attempt2.json",
+      "investigationId": "608d26b8-763a-4dda-860b-73d88b641b64",
+      "status": "rejected_narrative_review",
+      "failure": null,
+      "capability": "shared-procurement",
+      "investigationMs": 25757,
+      "sha256": "71360d454918652924377176e744df6c16a1db1233c0216506a7e961b4196a41"
+    },
+    {
+      "file": "phase7-ollama-shared-procurement-attempt3.json",
+      "investigationId": "b7c3dc30-f6b0-4978-92d6-04afbc7eb236",
+      "status": "rejected_narrative_review",
+      "failure": null,
+      "capability": "shared-procurement",
+      "investigationMs": 31642,
+      "sha256": "9f84ab75a5bfeb5729e3dbada720ad3e6249f68be6daae4805e104ee1e92595b"
+    },
+    {
+      "file": "phase7-ollama-shared-procurement-attempt4.json",
+      "investigationId": "9b1cec42-f1ef-408a-9edf-00e6c15f3bc0",
+      "status": "passed_pending_narrative_review",
+      "failure": null,
+      "capability": "shared-procurement",
+      "investigationMs": 28155,
+      "sha256": "ab608ccd4045e6bbc27998186d61a72f540d211eed8344df4ad88d9181be860d"
+    },
+    {
+      "file": "phase7-ollama-shared-procurement-attempt5.json",
+      "investigationId": "d8f2b438-d3d0-4adb-b123-df04ed4e8538",
+      "status": "failed",
+      "failure": "Real model must select query_business_relationships",
+      "capability": "shared-procurement",
+      "investigationMs": 33699,
+      "sha256": "1d3afcb299668ef75a6c4a5ddf872e35165785878695527c57f3fa744e30016e"
+    },
+    {
+      "file": "phase7-ollama-workforce-opportunity-release-attempt1.json",
+      "investigationId": "74ff91f4-4d83-4245-8bcf-3aeb0de2d8cc",
+      "status": "passed_pending_narrative_review",
+      "failure": null,
+      "capability": "workforce-opportunity",
+      "investigationMs": 20072,
+      "sha256": "c2a062a0a2da382ce0a7febb41eb6456aad833d419d7b3e13d20d69dcd3a9871"
+    }
+  ],
+  "runtimeRecovery": {
+    "startedAt": "2026-10-23T21:49:56.552Z",
+    "checks": [
+      "Master API/web/database stopped; all Workers remained healthy and local Sales/Inventory fulfillment completed with durable synchronization backlog",
+      "Master reconnect replayed actual inventory changes; compensating restoration retained all business history",
+      "Paused target caused explicit retry/pending state; fulfillment was denied; target restart recovered exactly one reservation and ordered cancellation released it",
+      "Three Worker API/module-host restarts preserved every business-record hash, module version/state/configuration and enrollment certificate without Master administrator login"
+    ],
+    "originalStock": {
+      "id": "7991e7bf-818c-4ed6-8f40-5a58520bc0e9",
+      "sku": "SYN-P7-SUPPLY-G1",
+      "name": "Controlled synthetic Phase 7 business scenario. No real people, suppliers, customers or commercial commitments.",
+      "quantity": 13,
+      "reservedQuantity": 0,
+      "availableQuantity": 13,
+      "minStock": 5,
+      "revision": 10
+    },
+    "offline": {
+      "orderId": "6b874663-0116-42f4-ad52-7211ac22952b",
+      "fulfillmentId": "5b9c6af6-83bc-4ecb-ae92-a110a60ee8a6",
+      "queuedModuleEvents": 7,
+      "stockQuantity": 14
+    },
+    "interruption": {
+      "orderId": "4facc536-6af0-41b7-8d97-8cfe0b30d021",
+      "retry": {
+        "attempts": 1,
+        "error": "INTEGRATION_TRANSPORT_UNAVAILABLE"
+      },
+      "targetInboxReceipts": 1
+    },
+    "status": "passed",
+    "finishedAt": "2026-10-23T21:50:57.474Z"
+  },
+  "configurationRecovery": {
+    "startedAt": "2026-10-23T21:49:53.366Z",
+    "checks": [
+      "Provider/core configuration mismatch fails the affected module proxy closed while Worker health and other modules remain available",
+      "Explicit idempotent configuration retry reconciled provider and core; data and credentials retained"
+    ],
+    "configurationRestored": true,
+    "status": "passed"
+  },
+  "resources": {
+    "observedAt": "2026-10-23T22:02:58.865Z",
+    "project": "steward-phase7-release-acceptance2",
+    "kind": "single runtime snapshot and sequential localhost health observations; not a capacity benchmark",
+    "containerCount": 27,
+    "containers": [
+      {
+        "name": "steward-phase7-release-acceptance2-master-api-1",
+        "imageId": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
+        "moduleId": null,
+        "cpuPercent": 0.37,
+        "memoryMiB": 65.66,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-master-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 0.2,
+        "memoryMiB": 25.75,
+        "pids": 7
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-master-web-1",
+        "imageId": "sha256:1524bfb4c04aac1b215f0abab6acc60a78fe1dbe8e636a00464fadd2c0027afc",
+        "moduleId": null,
+        "cpuPercent": 2.21,
+        "memoryMiB": 19.38,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-1-api-1",
+        "imageId": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+        "moduleId": null,
+        "cpuPercent": 0.06,
+        "memoryMiB": 53.91,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-1-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 2.79,
+        "memoryMiB": 49.65,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-1-module-host-1",
+        "imageId": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+        "moduleId": null,
+        "cpuPercent": 9.86,
+        "memoryMiB": 94.75,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-1-web-1",
+        "imageId": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 19.24,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-2-api-1",
+        "imageId": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+        "moduleId": null,
+        "cpuPercent": 0.81,
+        "memoryMiB": 54.54,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-2-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 0.51,
+        "memoryMiB": 77.45,
+        "pids": 9
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-2-module-host-1",
+        "imageId": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+        "moduleId": null,
+        "cpuPercent": 1.88,
+        "memoryMiB": 60.91,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-2-web-1",
+        "imageId": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 18.86,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-3-api-1",
+        "imageId": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+        "moduleId": null,
+        "cpuPercent": 1.76,
+        "memoryMiB": 53.62,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-3-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 3.14,
+        "memoryMiB": 79.31,
+        "pids": 10
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-3-module-host-1",
+        "imageId": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+        "moduleId": null,
+        "cpuPercent": 2.49,
+        "memoryMiB": 65.46,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-release-acceptance2-worker-3-web-1",
+        "imageId": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 19.03,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_4eb9a8136b941d9149eb",
+        "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58",
+        "moduleId": "cee.assets",
+        "cpuPercent": 0,
+        "memoryMiB": 23.73,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 22.17,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_7a51719aba0bcd58eed8",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0",
+        "moduleId": "cee.workforce",
+        "cpuPercent": 0,
+        "memoryMiB": 23.6,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_3cf2b05be8bc4acde2ec",
+        "imageId": "sha256:085ed85e98cb81fdfc4e811ced95e1e412927fb23acc7024abe4dc3134fd1aac",
+        "moduleId": "cee.sales",
+        "cpuPercent": 0.11,
+        "memoryMiB": 24.77,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_46911fffce08b41184c3",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7",
+        "moduleId": "cee.procurement",
+        "cpuPercent": 0.11,
+        "memoryMiB": 25.08,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-1-m_1675588e58787da091eb",
+        "imageId": "sha256:add7f621757966331f405bd6da028f29d2764c934c4f2e9b06678ecc716fdec3",
+        "moduleId": "cee.inventory",
+        "cpuPercent": 0.05,
+        "memoryMiB": 26.35,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-2-m_3cf2b05be8bc4acde2ec",
+        "imageId": "sha256:085ed85e98cb81fdfc4e811ced95e1e412927fb23acc7024abe4dc3134fd1aac",
+        "moduleId": "cee.sales",
+        "cpuPercent": 0,
+        "memoryMiB": 23.66,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-2-m_46911fffce08b41184c3",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7",
+        "moduleId": "cee.procurement",
+        "cpuPercent": 0,
+        "memoryMiB": 23.32,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-2-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 23.33,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-3-m_7a51719aba0bcd58eed8",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0",
+        "moduleId": "cee.workforce",
+        "cpuPercent": 0,
+        "memoryMiB": 24.27,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-3-m_4eb9a8136b941d9149eb",
+        "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58",
+        "moduleId": "cee.assets",
+        "cpuPercent": 0,
+        "memoryMiB": 23.08,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase7-rel-79c6665c86c0-worker-3-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 21.59,
+        "pids": 11
+      }
+    ],
+    "health": {
+      "master": {
+        "samples": 10,
+        "medianMs": 1.89,
+        "maxMs": 27.12
+      },
+      "worker-1": {
+        "samples": 10,
+        "medianMs": 1.2,
+        "maxMs": 4.09
+      },
+      "worker-2": {
+        "samples": 10,
+        "medianMs": 1.84,
+        "maxMs": 3.65
+      },
+      "worker-3": {
+        "samples": 10,
+        "medianMs": 2.67,
+        "maxMs": 8.4
+      }
+    },
+    "databases": {
+      "master": [
+        "steward"
+      ],
+      "worker-1": [
+        "m_1675588e58787da091eb",
+        "m_3cf2b05be8bc4acde2ec",
+        "m_46911fffce08b41184c3",
+        "m_4eb9a8136b941d9149eb",
+        "m_7a51719aba0bcd58eed8",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ],
+      "worker-2": [
+        "m_3cf2b05be8bc4acde2ec",
+        "m_46911fffce08b41184c3",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ],
+      "worker-3": [
+        "m_4eb9a8136b941d9149eb",
+        "m_7a51719aba0bcd58eed8",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ]
+    },
+    "totalMemoryMiB": 1042.47,
+    "totalCpuPercent": 26.35,
+    "operationalBusinessCodeAbsentFromWorkerImages": true,
+    "loadedOllamaModels": [],
+    "status": "passed"
+  },
+  "secrets": {
+    "verifiedAt": "2026-10-23T22:04:19.677Z",
+    "assertions": "all passed",
+    "secretsChecked": 30
+  },
+  "providerRestoration": {
+    "exactDefaultConfigurationRestored": true,
+    "originalModelDigestUnchanged": true,
+    "loadedModels": []
+  },
+  "reproducibleTestModel": {
+    "testModel": true,
+    "status": "passed",
+    "checks": [
+      "shared-procurement real MCP and deterministic calculation under labelled test model",
+      "workforce-opportunity real MCP and deterministic calculation under labelled test model",
+      "resource-sharing real MCP and deterministic calculation under labelled test model",
+      "MODEL_UNAVAILABLE is explicit and retains partial activity",
+      "MODEL_OUTPUT_INVALID is explicit and retains partial activity",
+      "MODEL_UNDECLARED_TOOL is explicit and retains partial activity",
+      "TRANSPORT_TIMEOUT is explicit and retains partial activity",
+      "tool execution limit remains enforced"
+    ],
+    "configurationRestored": true,
+    "runs": [
+      {
+        "investigationId": "9b1d9c0e-6fa9-4858-9821-64385c83297c",
+        "capability": "shared-procurement",
+        "status": "completed",
+        "error": null
+      },
+      {
+        "investigationId": "661051d2-f7b4-4f5d-bff0-2f0bd4f37dac",
+        "capability": "workforce-opportunity",
+        "status": "completed",
+        "error": null
+      },
+      {
+        "investigationId": "a0aad846-d698-4d89-ab0a-bba415c3f61b",
+        "capability": "resource-sharing",
+        "status": "completed",
+        "error": null
+      },
+      {
+        "investigationId": "5c828da1-e506-42e7-a76e-3c1b6abc4420",
+        "capability": "shared-procurement",
+        "status": "failed",
+        "error": "MODEL_UNAVAILABLE"
+      },
+      {
+        "investigationId": "ff44778c-11dc-4995-a416-dd699d84a83e",
+        "capability": "shared-procurement",
+        "status": "failed",
+        "error": "MODEL_OUTPUT_INVALID"
+      },
+      {
+        "investigationId": "83247658-b28e-484a-b3c1-3ba5e13f7b12",
+        "capability": "shared-procurement",
+        "status": "failed",
+        "error": "MODEL_UNDECLARED_TOOL"
+      },
+      {
+        "investigationId": "dbc9c5fe-7122-4ab0-83e9-dd3ab3ffd934",
+        "capability": "shared-procurement",
+        "status": "failed",
+        "error": "TRANSPORT_TIMEOUT"
+      },
+      {
+        "investigationId": "200cfa02-4bd1-49f1-9c15-f990473a7257",
+        "capability": "resource-sharing",
+        "status": "failed",
+        "error": "TOOL_BUDGET_EXCEEDED"
+      }
+    ],
+    "rawEvidenceSha256": "5acff13697547b2635fec8e84c864c9dea7939d32c39dda0f3bf25b79fdd22c7"
+  },
+  "installation": {
+    "initiallyAbsent": [
+      "worker-1",
+      "worker-2",
+      "worker-3"
+    ],
+    "coreImages": {
+      "master-api": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
+      "master-web": "sha256:1524bfb4c04aac1b215f0abab6acc60a78fe1dbe8e636a00464fadd2c0027afc",
+      "worker-1-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-1-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-1-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-2-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-2-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-2-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-3-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-3-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-3-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b"
+    },
+    "finalCoreImages": {
+      "master-api": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
+      "master-web": "sha256:1524bfb4c04aac1b215f0abab6acc60a78fe1dbe8e636a00464fadd2c0027afc",
+      "worker-1-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-1-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-1-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-2-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-2-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-2-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-3-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-3-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-3-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b"
+    },
+    "browserInstallations": [
+      {
+        "worker": "worker-1",
+        "module": "cee.inventory",
+        "version": "1.2.1",
+        "operationId": "062550ce-d489-4380-8d76-cde04d6a9ac1",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-1",
+        "module": "cee.inventory",
+        "version": "1.3.2",
+        "operationId": "5c3aea12-4e8a-4edc-9658-dd85808f2789",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-1",
+        "module": "cee.procurement",
+        "version": "1.0.2",
+        "operationId": "99caa78c-a368-4c69-9cb2-bd332f8b4a8a",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-1",
+        "module": "cee.sales",
+        "version": "1.0.2",
+        "operationId": "c34d0e97-d0f5-4f5c-a4db-616164aadf1d",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-1",
+        "module": "cee.workforce",
+        "version": "1.0.2",
+        "operationId": "13c24050-e8d0-4362-ac4f-e200e57768cf",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-2",
+        "module": "cee.procurement",
+        "version": "1.0.2",
+        "operationId": "1b4334d0-d43c-4262-acf6-ac9dcb4248b2",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-2",
+        "module": "cee.sales",
+        "version": "1.0.2",
+        "operationId": "22c2ce00-093e-413e-b6fe-a10aab2dabd0",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-3",
+        "module": "cee.assets",
+        "version": "1.0.3",
+        "operationId": "f92fbc3c-dbf5-45e6-aafe-de67b4aa8895",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-1",
+        "module": "cee.assets",
+        "version": "1.0.3",
+        "operationId": "47ef5e20-9a5c-4557-b879-0f6cd1b05ec3",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      },
+      {
+        "worker": "worker-3",
+        "module": "cee.workforce",
+        "version": "1.0.2",
+        "operationId": "5a6d182a-f83e-4b20-9555-ed7e873854f3",
+        "browserErrors": [],
+        "retry": "same request identity accepted"
+      }
+    ],
+    "status": "passed"
+  },
+  "redeployment": {
+    "status": "passed",
+    "project": "steward-phase7-release-acceptance2",
+    "release": "0.7.0",
+    "releaseSourceCommit": "7bc7d1086a9d4e3d1b8b4ea4d5340ea2dd3cce8e",
+    "preservedFiles": 79,
+    "verifiedAt": "2026-10-23T22:11:25.002Z",
+    "coreDataAndBusinessHashesMatched": true,
+    "images": {
+      "master-api": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
+      "master-web": "sha256:1524bfb4c04aac1b215f0abab6acc60a78fe1dbe8e636a00464fadd2c0027afc",
+      "worker-1-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-1-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-1-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-2-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-2-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-2-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+      "worker-3-api": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+      "worker-3-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+      "worker-3-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b"
+    },
+    "rawEvidenceSha256": "d257c4573998e817e2751fdd56f8dca0cb06f7600884d56e84a8e724831db910"
+  },
+  "release": {
+    "status": "awaiting_final_archive_binding",
+    "immutableImagesVerified": true
+  }
+}

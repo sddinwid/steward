@@ -4,8 +4,10 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { directory, manifest, compose, sql } from './lib.mjs';
 import { digest } from '../packages/module-sdk/dist/index.js';
+import { moduleContainerName } from '../packages/module-host/dist/naming.js';
+import { existsSync } from 'node:fs';
 const deployment = await manifest();
-const fixture = JSON.parse(await readFile(path.join(directory, 'security/verification.json'), 'utf8'));
+const fixture = JSON.parse(await readFile(process.env.STEWARD_SEED_CREDENTIALS_FILE??path.join(directory,existsSync(path.join(directory,'demo/presenter.json'))?'demo/presenter.json':'security/verification.json'), 'utf8'));
 const secrets = Object.values(fixture.accounts).map(a => a.password);
 const outputs = [compose('logs', '--no-color', '--tail', '1000')];
 for (const worker of deployment.instances.filter(i => i.role === 'worker')) {
@@ -14,10 +16,11 @@ for (const worker of deployment.instances.filter(i => i.role === 'worker')) {
     const folder = 'm_' + digest(id).slice(0, 20);
     const credentials = JSON.parse(compose('exec', '-T', worker.key + '-module-host', 'node', '-e', `const fs=require('fs'),base='/var/lib/steward/modules/${folder}/';console.log(JSON.stringify(['db-password','gateway-token'].map(f=>fs.readFileSync(base+f,'utf8').trim())))`));
     secrets.push(...credentials);
-    const logs = spawnSync('docker', ['logs', '--tail', '1000', `${deployment.project}-${worker.key}-${folder}`], { encoding: 'utf8' });
+    const name=moduleContainerName(deployment.project,worker.key,id);
+    const logs = spawnSync('docker', ['logs', '--tail', '1000', name], { encoding: 'utf8' });
     assert.equal(logs.status, 0); outputs.push(logs.stdout + logs.stderr);
     if (id === 'cee.inventory') {
-      outputs.push(compose('exec', '-T', worker.key + '-module-host', 'node', '-e', `const fs=require('fs'),http=require('http'),token=fs.readFileSync('/var/lib/steward/modules/${folder}/gateway-token','utf8');http.get('http://${deployment.project}-${worker.key}-${folder}:8080/items',{headers:{authorization:'Bearer '+token}},r=>{r.pipe(process.stdout)})`));
+      outputs.push(compose('exec', '-T', worker.key + '-module-host', 'node', '-e', `const fs=require('fs'),http=require('http'),token=fs.readFileSync('/var/lib/steward/modules/${folder}/gateway-token','utf8');http.get('http://${name}:8080/items',{headers:{authorization:'Bearer '+token}},r=>{r.pipe(process.stdout)})`));
     }
   }
 }
@@ -25,6 +28,7 @@ for (const app of ['master-web', 'worker-web']) {
   const folder = path.join('apps', app, 'dist/assets');
   for (const file of await readdir(folder)) if (file.endsWith('.js')) outputs.push(await readFile(path.join(folder, file), 'utf8'));
 }
+for(const instance of deployment.instances)outputs.push(compose('exec','-T',instance.key+'-web','sh','-c','cat /usr/share/nginx/html/assets/*.js'));
 for (const output of outputs) {
   assert.equal(output.includes('-----BEGIN PRIVATE KEY-----'), false, 'Private key marker absent');
   for (const secret of secrets) assert.ok(secret.length > 20 && !output.includes(secret), 'Actual credential absent from browser bundles, API responses and logs');

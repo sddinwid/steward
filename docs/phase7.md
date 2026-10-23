@@ -1,5 +1,7 @@
 # Phase 7 business modules and contracts
 
+See the [module development/packaging guide](phase7-module-development.md) and [Master analytical model and MCP reference](phase7-analytics.md) for the executable package interfaces, projection categories, calculation formulas and review boundaries.
+
 The four new applications are isolated module services, not Worker imports or configuration switches. They use signed packages, dedicated databases, the existing Module Manager, Worker-local authentication/permissions and declarative screen discovery. `@steward/business-kit` supplies domain-neutral transaction/idempotency/API plumbing inside module images only. The Worker/Master runtime images contain no implementation of these modules.
 
 | Module | Release package | Main records and permissions |

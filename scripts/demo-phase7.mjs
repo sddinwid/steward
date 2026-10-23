@@ -50,7 +50,7 @@ async function browserInstall(worker,module,version,configuration,proof){
 }
 async function install(){
  await logins();const proofFile=path.join(base,'installation.json'),proof=existsSync(proofFile)?JSON.parse(await readFile(proofFile,'utf8')):{startedAt:new Date().toISOString(),coreImages:images(),installations:[],initiallyAbsent:[]};
- if(!proof.initiallyAbsent.length){for(const w of ['worker-1','worker-2','worker-3']){const manager=(await api(w,'/api/v3/modules')).value;assert.equal(manager.installed.length,0,'First Phase 7 install requires a fresh demonstration deployment');proof.initiallyAbsent.push(w);}}
+  if(!proof.initiallyAbsent.length){for(const w of ['worker-1','worker-2','worker-3']){const manager=(await api(w,'/api/v3/modules')).value;assert.equal(manager.installed.length,0,'First Phase 7 install requires a fresh demonstration deployment');proof.initiallyAbsent.push(w);}await writeFile(proofFile,JSON.stringify(proof,null,2)+'\n',{flag:'wx',mode:0o600});}
  try{
   // Exercise the retained Phase 6 module package and then its real migration upgrade.
   const manager=(await api('worker-1','/api/v3/modules')).value;if(!manager.installed.some(m=>m.moduleId==='cee.inventory')||manager.installed.some(m=>m.moduleId==='cee.inventory'&&m.version==='1.2.1'&&['failed','installing'].includes(m.state))){
