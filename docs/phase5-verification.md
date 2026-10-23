@@ -59,6 +59,8 @@ Final review made concurrency admission atomic across asynchronous preflight and
 
 ## Deferred API-key setup follow-up
 
+Subsequent local-provider discovery found a running Ollama installation. Two genuine local-model attempts selected and executed live MCP reads but hit the existing model deadline before a calculation or recommendation. Cloud setup remains deferred; the local-model workflow is partially exercised, not fully validated. See [the separate live-validation report and source evidence](phase5-live-validation.md).
+
 On October 22, 2026 (October 23 UTC), the operator requested leaving API-key setup until later. Phase 4 remains committed as `a7d6cc1`, with the original Phase 5 implementation in `001e5bf`. The follow-up clarifies deferred setup in the workspace and README, adds the browser check above, and leaves private model/key files unchanged. No real provider or automatic test fallback was configured.
 
 Actual reruns passed: all ten workspace builds and Docker API/frontend builds; all 28 tests; all 13 Phase 4 business/synchronization checks; the complete original Phase 2/3 API and Chromium suites on fresh separate volumes; all 11 Phase 5 checks against both the preserved development deployment and a fresh topology, including browser installation of Inventory 1.2.1; final four-application HTTP/Chromium smoke, genuine MCP smoke, repeat provisioning, deferred-setup browser verification, and browser finding publication/delivery. The separate topology was shut down and the original development deployment restored. Updated machine evidence includes the deferred-setup check and identifies historical and current test timestamps separately. The live-provider check was intentionally deferred, not reported as passed.

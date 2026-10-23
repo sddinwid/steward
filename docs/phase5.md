@@ -68,6 +68,8 @@ Example real OpenAI adapter configuration (select a model available to your acco
 
 The adapter follows the official [Responses function-calling flow](https://developers.openai.com/api/docs/guides/function-calling). Provider integration is distinct from model quality and requires a live credentialed run. The automated HTTPS protocol fixture is explicitly labeled TEST MODEL, runs only when launched by verification, and is never shipped as a production fallback.
 
+An installed local Ollama can also be checked without a cloud API key using `node scripts/verify-ollama-provider.mjs`. This temporary development helper preserves the existing HTTPS adapter and restores operator configuration after testing. See [actual local-model attempts, secure bridge, exact commands and current timeout limitation](phase5-live-validation.md). Real tool execution was observed, but a complete local-model investigation has not passed.
+
 ## MCP authentication and disclosure
 
 The official [v2 Fastify/Node serving bridge](https://ts.sdk.modelcontextprotocol.io/v2/serving/fastify.html) preserves the existing TLS listener. A new `McpServer` is created per request. MCP POST requests require a valid enabled local account/session cookie, exact configured HTTPS Origin, matching CSRF header, approved Host and `x-steward-client: steward-mcp-cli-v1` (or the internal `steward-analyst-v1` with a session-bound, expiring, replay-protected signed process proof). The client label attributes the AI actor, not additional privilege. Non-browser clients obtain sessions through the established HTTPS login and keep credentials in their transport, outside all model messages.

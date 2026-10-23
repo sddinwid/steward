@@ -1,0 +1,358 @@
+{
+  "recordedAt": "2026-10-23T03:33:01.409Z",
+  "status": "partial_live_model_execution; full investigation not validated",
+  "cloudCredentials": "unavailable; operator deferred setup",
+  "ollama": {
+    "endpoint": "http://127.0.0.1:11434",
+    "originalModels": [
+      "qwen2.5:7b",
+      "qwen2.5-coder:7b"
+    ],
+    "validationAlias": "steward-analyst-qwen2.5:7b",
+    "aliasContextTokens": 16384,
+    "modelUnloadedAfterValidation": true
+  },
+  "attempts": [
+    {
+      "model": "qwen2.5:7b",
+      "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+      "ollamaVersion": "0.40.4",
+      "investigationId": "762be225-244e-4f4a-8a34-f58cb471b89b",
+      "status": "failed",
+      "error": "TRANSPORT_TIMEOUT",
+      "modelTurns": [
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": 200,
+          "elapsedMs": 1466,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ],
+          "responseStatus": "completed"
+        },
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": 200,
+          "elapsedMs": 3126,
+          "selectedTools": [
+            {
+              "name": "get_entity_summary",
+              "arguments": "{\"entityId\":\"8ff40000-0000-4000-8000-000000000002\"}"
+            }
+          ],
+          "responseStatus": "completed"
+        },
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": "running"
+        }
+      ],
+      "configurationRestored": true,
+      "successfulTools": [
+        {
+          "tool": "list_entities",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "get_entity_summary",
+          "source": "master-synchronized-data",
+          "recordCount": 19,
+          "sourceReferenceSample": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "00c1d444-fc3c-4ae4-a24c-53e4b9e8f8b3",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T21:12:22.622Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "16bf0f31-3a83-47b5-b0fc-70349e4c99f1",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T21:23:23.889Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "34c87010-e95f-4a64-a0f4-7c02350a8ad0",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T20:56:34.396Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "48886b36-4fa1-4ce7-95ff-8e1b6972e9df",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T20:55:05.111Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "5e523efb-7b7e-4884-b88f-38d9b347299a",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-23T03:23:50.405Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "model": "steward-analyst-qwen2.5:7b",
+      "modelDigest": "e4d990968f93bd91d3702695b2726c215a885bcab1172124085e88d1a4c35848",
+      "ollamaVersion": "0.40.4",
+      "investigationId": "32a719b4-9c03-4961-833f-0ba09bd98e5a",
+      "status": "failed",
+      "error": "TRANSPORT_TIMEOUT",
+      "modelTurns": [
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": 200,
+          "elapsedMs": 1376,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ],
+          "responseStatus": "completed"
+        },
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": 200,
+          "elapsedMs": 3797,
+          "selectedTools": [
+            {
+              "name": "get_entity_summary",
+              "arguments": "{\"entityId\":\"8ff40000-0000-4000-8000-000000000003\"}"
+            }
+          ],
+          "responseStatus": "completed"
+        },
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": 200,
+          "elapsedMs": 12975,
+          "selectedTools": [
+            {
+              "name": "get_entity_summary",
+              "arguments": "{\"entityId\":\"8ff40000-0000-4000-8000-000000000002\"}"
+            }
+          ],
+          "responseStatus": "completed"
+        },
+        {
+          "toolDefinitions": [
+            "list_entities",
+            "get_entity_summary",
+            "get_entity_relationships",
+            "get_findings",
+            "analyze_resource_sharing"
+          ],
+          "status": "transport_failed",
+          "elapsedMs": 25000
+        }
+      ],
+      "configurationRestored": true,
+      "successfulTools": [
+        {
+          "tool": "list_entities",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "get_entity_summary",
+          "source": "master-synchronized-data",
+          "recordCount": 14,
+          "sourceReferenceSample": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "69099b86-0c62-440a-b77f-462bdd9767ff",
+              "revision": "6",
+              "sourceWorker": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+              "sourceAt": "2026-10-22T21:12:01.794Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.operations",
+              "streamId": "warehouse_assets",
+              "recordId": "07f2b71c-6585-43f8-a6a9-a9596ed6d101",
+              "revision": "1",
+              "sourceWorker": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+              "sourceAt": "2026-10-22T19:25:48.700Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.operations",
+              "streamId": "warehouse_assets",
+              "recordId": "18ced850-01b3-4b81-9bc1-3b16c58640ba",
+              "revision": "1",
+              "sourceWorker": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+              "sourceAt": "2026-10-22T21:12:27.727Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.operations",
+              "streamId": "warehouse_assets",
+              "recordId": "3d2aee20-5bd3-467f-a8e4-80e28d590b33",
+              "revision": "1",
+              "sourceWorker": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+              "sourceAt": "2026-10-22T21:33:29.495Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.operations",
+              "streamId": "warehouse_assets",
+              "recordId": "4e5d6d79-e2cb-4fc2-b9a3-073d459eb46c",
+              "revision": "1",
+              "sourceWorker": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
+              "sourceAt": "2026-10-23T02:51:06.390Z"
+            }
+          ]
+        },
+        {
+          "tool": "get_entity_summary",
+          "source": "master-synchronized-data",
+          "recordCount": 19,
+          "sourceReferenceSample": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "00c1d444-fc3c-4ae4-a24c-53e4b9e8f8b3",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T21:12:22.622Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "16bf0f31-3a83-47b5-b0fc-70349e4c99f1",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T21:23:23.889Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "34c87010-e95f-4a64-a0f4-7c02350a8ad0",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T20:56:34.396Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "48886b36-4fa1-4ce7-95ff-8e1b6972e9df",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-22T20:55:05.111Z"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.inventory",
+              "streamId": "items",
+              "recordId": "5e523efb-7b7e-4884-b88f-38d9b347299a",
+              "revision": "1",
+              "sourceWorker": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
+              "sourceAt": "2026-10-23T03:23:50.405Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "liveCalculation": "not reached",
+  "liveRecommendation": "not produced",
+  "liveFindingDelivery": "not attempted because no completed evidence-backed investigation exists",
+  "regression": {
+    "unitTests": {
+      "passed": 28,
+      "failed": 0
+    },
+    "testModel": {
+      "verifiedAt": "2026-10-23T03:23:46.895Z",
+      "checks": [
+        "Master MCP discovery and real entity listing",
+        "Allowed and denied entity scopes, unauthorized account, missing authentication, malicious Origin and unapproved MCP client",
+        "Inventory MCP contribution is operational; core image/process unchanged (repeat installation state preserved)",
+        "Unconfigured model reports a persistent failure with no fabricated analysis",
+        "Responses wire adapter and bounded Analyst invoke official MCP client with real synchronized records, references, assumptions and deterministic 9000/month, 102000/12-month benefit",
+        "Explicit human-authorized finding creation is idempotent and durably delivered only to affected Workers",
+        "Adversarial content from an actual synchronized business record stays untrusted data; no undeclared mutation or automatic finding executes",
+        "Model outage, malformed output, undeclared tool, failed MCP tool, absolute timeout and repeated-call loop fail safely with persistent activity",
+        "Browser workspace displays test-provider label, persisted investigation, MCP activity, narrative, calculations, assumptions, evidence and finding status without JavaScript errors",
+        "Actual model process outage reports failure while ordinary Worker services remain available",
+        "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
+      ]
+    },
+    "unconfiguredBrowser": {
+      "verifiedAt": "2026-10-23T03:31:29.557Z",
+      "investigationId": "d418228c-3ca7-43d0-b539-8d0261788e5c",
+      "status": "passed",
+      "checks": [
+        "browser explains deferred setup",
+        "missing provider produces persistent explicit failure",
+        "no fabricated analysis",
+        "failure remains visible after reload",
+        "Master and three Workers healthy and ready",
+        "operator configuration and secret unchanged",
+        "no browser errors"
+      ],
+      "liveProviderValidation": "deferred by operator"
+    }
+  }
+}

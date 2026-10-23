@@ -1,0 +1,83 @@
+// Temporary real-provider validation. No simulated model output or core changes.
+import assert from 'node:assert/strict';
+import { createServer } from 'node:https';
+import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import path from 'node:path';
+import { directory } from './lib.mjs';
+import { api, logins, waitFor } from './phase4-client.mjs';
+import { resourceSharing } from '../packages/platform/dist/analytical-capabilities.js';
+
+const model=process.env.STEWARD_OLLAMA_MODEL??'qwen2.5:7b';
+const port=19443, token=randomBytes(32).toString('hex');
+const configPath=path.join(directory,'analyst/config/model.json');
+const keyPath=path.join(directory,'analyst/config/api-key.txt');
+const originalConfig=await readFile(configPath), originalKey=await readFile(keyPath);
+const report={verifiedAt:new Date().toISOString(),status:'not_verified',provider:'local-ollama',model,testModel:false,modelTurns:[],checks:[],configurationRestored:false};
+await mkdir('artifacts',{recursive:true});
+let active=0;
+const server=createServer({cert:await readFile(path.join(directory,'security/master/tls-cert.pem')),key:await readFile(path.join(directory,'security/master/tls-key.pem'))},async(req,res)=>{
+  const supplied=Buffer.from(req.headers.authorization??''),expected=Buffer.from('Bearer '+token);
+  if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected)){res.writeHead(401).end();return;}
+  if(req.method!=='POST'||req.url!=='/v1/responses'||!['host.docker.internal:'+port,'localhost:'+port].includes(req.headers.host??'')||req.headers.origin){res.writeHead(403).end();return;}
+  if(active>=1){res.writeHead(429).end();return;}active++;
+  const abort=new AbortController(),start=Date.now();let turn;res.on('close',()=>abort.abort());
+  try{
+    const chunks=[];let size=0;
+    for await(const chunk of req){size+=chunk.length;if(size>1048576)throw new Error('REQUEST_TOO_LARGE');chunks.push(chunk);}
+    const body=Buffer.concat(chunks),parsed=JSON.parse(body.toString());
+    if(parsed.model!==model||parsed.store!==false)throw new Error('UNAPPROVED_MODEL');
+    turn={toolDefinitions:parsed.tools?.map(t=>t.name)??[],status:'running'};report.modelTurns.push(turn);
+    const response=await fetch('http://127.0.0.1:11434/v1/responses',{method:'POST',headers:{'content-type':'application/json'},body,signal:AbortSignal.any([abort.signal,AbortSignal.timeout(30000)])});
+    const out=[];let bytes=0;for await(const chunk of response.body){bytes+=chunk.length;if(bytes>1048576)throw new Error('RESPONSE_TOO_LARGE');out.push(chunk);}
+    const bytesOut=Buffer.concat(out),value=JSON.parse(bytesOut.toString());
+    Object.assign(turn,{status:response.status,elapsedMs:Date.now()-start,selectedTools:(value.output??[]).filter(v=>v.type==='function_call').map(v=>({name:v.name,arguments:v.arguments})),responseStatus:value.status});
+    res.writeHead(response.status,{'content-type':'application/json'}).end(bytesOut);
+  }catch{if(turn)Object.assign(turn,{status:'transport_failed',elapsedMs:Date.now()-start});if(!res.destroyed)res.writeHead(502).end('{"error":"LOCAL_PROVIDER_UNAVAILABLE"}');}
+  finally{active--;}
+});
+server.requestTimeout=35000;server.headersTimeout=5000;
+try{
+  const tags=await (await fetch('http://127.0.0.1:11434/api/tags',{signal:AbortSignal.timeout(4000)})).json();
+  const installed=tags.models.find(m=>m.name===model);assert.ok(installed,'Selected model must already be installed locally');report.modelDigest=installed.digest;
+  report.ollamaVersion=(await (await fetch('http://127.0.0.1:11434/api/version')).json()).version;
+  await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});
+  await logins();
+  await writeFile(keyPath,token+'\n');
+  await writeFile(configPath,JSON.stringify({provider:'responses-compatible',model,endpoint:`https://host.docker.internal:${port}/v1/responses`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,maxSteps:12,maxToolCalls:24,maxOutputTokens:1000,investigationTimeoutMs:180000}));
+  const started=await api('master','/api/v5/analyst/investigations','POST',{prompt:process.env.STEWARD_ANALYST_PROMPT??'Investigate intercompany storage sharing using the synthetic business dataset. Discover authorized entities and inspect their source records and relationships through tools. Choose actual compatible supply and external demand records. Use explicit illustrative assumptions of EUR 3000 internal monthly payment, EUR 1000 incremental monthly cost, EUR 6000 transition expense, 12 months, full proportional avoidance and conditional location compatibility; test EUR 2000 incremental cost/EUR 12000 transition as a sensitivity. Calculate through analyze_resource_sharing. Report only tool-supported observations and calculations, label location and cost assumptions, compare the baseline and sensitivity, and list human decisions. Do not publish a finding.'},202);
+  report.investigationId=started.value.investigationId;
+  const run=await waitFor(async()=>{const r=(await api('master','/api/v5/analyst/investigations/'+report.investigationId)).value;return r.investigation.status!=='running'?r:false;},'real Ollama investigation',200000);
+  report.investigationStatus=run.investigation.status;report.error=run.investigation.error_code;report.activity=run.activity;report.result=run.investigation.result;
+  assert.equal(run.investigation.test_model,false);
+  assert.equal(run.investigation.status,'completed',run.investigation.error_code??'Model did not complete');
+  const tools=run.activity.filter(a=>a.kind==='tool'&&a.status==='success').map(a=>a.tool);
+  for(const name of ['get_entity_summary','get_entity_relationships','analyze_resource_sharing'])assert.ok(tools.includes(name),'Real model must select '+name);
+  report.checks.push('real model selected and invoked live MCP tools');
+  for(const analysis of report.result.analyses){
+    const s=analysis.observed.supply,d=analysis.observed.demand;
+    const inputCall=run.activity.find(a=>a.tool==='analyze_resource_sharing'&&a.status==='running'&&JSON.stringify(a.detail.arguments.supply)===JSON.stringify(analysis.supportingReferences[0]));assert.ok(inputCall);
+    const recomputed=resourceSharing.calculate({...inputCall.detail.arguments.assumptions,availableCapacity:Number(s.available_m3),requiredCapacity:Number(d.required_m3),externalMonthlyCost:Number(d.monthly_external_cost),currency:s.currency});
+    assert.deepEqual(analysis.calculation,recomputed);
+    assert.ok(analysis.observed.supplyWorker&&analysis.observed.demandWorker&&analysis.supportingReferences.length===2);
+    for(const ref of analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
+  }
+  report.checks.push('deterministic calculations independently recomputed and source revisions rechecked');
+  // Explicit operator verification action; the model has no publication tool.
+  const finding=(await api('master','/api/v5/analyst/investigations/'+report.investigationId+'/finding','POST',{})).value;
+  report.findingId=finding.findingId;report.deliveries=[];
+  for(const worker of ['worker-1','worker-2','worker-3']){
+    const entityId=(await api(worker,'/api/v2/worker/status')).value.entityId;
+    const affected=report.result.analyses.some(a=>a.affectedEntities.includes(entityId));
+    const rows=affected?await waitFor(async()=>{const fs=(await api(worker,'/api/v4/findings')).value.findings;return fs.some(f=>f.finding_id===finding.findingId)?fs:false;},'real finding delivery '+worker):(await api(worker,'/api/v4/findings')).value.findings;
+    assert.equal(rows.some(f=>f.finding_id===finding.findingId),affected);report.deliveries.push({worker,affected,received:affected});
+  }
+  report.checks.push('explicit finding publication delivered only to affected Workers');
+  report.status='passed_pending_narrative_review';
+  console.log('PASS real local model MCP investigation, recomputed calculations, source attribution and affected-Worker finding delivery. Narrative still requires review.');
+}catch(error){report.status='failed';report.failure=error.message;process.exitCode=1;console.log('Real Ollama validation failed: '+error.message);}
+finally{
+  await writeFile(configPath,originalConfig);await writeFile(keyPath,originalKey);report.configurationRestored=true;
+  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
+  await writeFile('artifacts/phase5-ollama-provider.json',JSON.stringify(report,null,2)+'\n');
+}
