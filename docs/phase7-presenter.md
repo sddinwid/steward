@@ -56,8 +56,11 @@ The demo runner uses `.steward/demo7/phase7/.lock` to serialize changes. If the 
 node scripts/verify-phase7-browser.mjs .steward/demo7
 node scripts/verify-phase7-mcp.mjs .steward/demo7
 node scripts/verify-phase7-recovery.mjs .steward/demo7
+node scripts/verify-phase7-configuration.mjs .steward/demo7
+node scripts/verify-phase7-test-model.mjs .steward/demo7
 node scripts/verify-module-provision.mjs .steward/demo7
 node scripts/verify-isolation.mjs .steward/demo7
+node scripts/verify-phase7-redeployment.mjs .steward/demo7 artifacts/releases/steward-0.7.0 --restart
 ```
 
 Browser tests create/edit real records in all four screens and exercise business transitions. Recovery tests stop all Master services while Workers continue local fulfillment, verify module-owned durable backlog/catch-up, pause/restart an Inventory target, deny premature fulfillment, verify exactly-once reservation/compensation, and compare all business-record hashes, module configurations and enrollment certificates through Worker restarts. Run deployment-mutating suites sequentially. The separate Phase 1–6 regression runner belongs on its expected baseline scenario, not on an already expanded/modified Phase 7 presenter dataset.
