@@ -1,4 +1,6 @@
-# CEE Steward platform - Phase 5B
+# CEE Steward platform - Phase 6 MVP
+
+Release **0.6.0** packages the verified Phase 5B applications with digest-pinned Master/Worker distributions, a portable installation toolkit and a controlled presenter runner. The platform compatibility version remains `0.5.0`. Start with the [release installation and upgrade commands](docs/phase6-release.md), [presenter checklist, synthetic reset and recovery](docs/phase6-presenter.md), and [Phase 6 actual acceptance results](docs/phase6-verification.md). This is an MVP release; passing the demonstration does not establish commercial production readiness.
 
 Phase 5B completes the real local-Qwen investigation path: compact source-backed MCP queries, deterministic calculations, evidence-supported narrative and affected-Worker finding delivery. Existing Phase 1–5 behavior remains covered by regression tests. See [Phase 5B operations and local setup](docs/phase5b.md) and [actual verification, timings and limitations](docs/phase5b-verification.md). API-key setup remains optional; the original unconfigured state is restored after validation.
 
@@ -8,7 +10,7 @@ Platform `0.5.0` builds on verified Phase 4 commit `a7d6cc1`. Master and each in
 
 An AI API key is optional for startup. You can configure it later; Master/Worker business services and MCP remain available. The Analyst reports deferred setup until a provider is configured. Reproducible Analyst tests use an explicitly labeled test model, without a live provider key. See [deferred setup and later configuration](docs/phase5.md#model-configuration-and-secrets).
 
-Run from this repository root using Node.js **24.x**, npm **10+**, and Docker with Linux containers and Compose **2.20+** (Compose `include` support). The Phase 3 provider also requires Docker API 1.51 and named-volume subpaths (verified with Engine 29.9.1). Docker Desktop must be running. The first build needs network access to npm and container registries. All commands below work in PowerShell; npm/Docker commands also work on Linux/macOS.
+Run from this repository root using Node.js **24.x**, npm **10+**, and Docker with Linux containers and Compose **2.24.4+** (release overlay `!reset` support). The Phase 3 provider also requires Docker API 1.51 and named-volume subpaths (verified with Engine 29.9.1). Docker Desktop must be running. The first build needs network access to npm and container registries. All commands below work in PowerShell; npm/Docker commands also work on Linux/macOS.
 
 ```powershell
 npm ci

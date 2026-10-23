@@ -3,10 +3,14 @@
 import {execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import path from 'node:path';
+import {existsSync} from 'node:fs';
 import {signPackage} from '../packages/module-sdk/dist/index.js';
 import {directory} from './lib.mjs';
-const suffix=Date.now().toString(36),project='steward-p5-reg-'+suffix;
-const fixture=path.resolve('.steward/phase5-legacy-'+suffix);
+const suffix=Date.now().toString(36);
+const fixture=path.resolve(process.env.STEWARD_LEGACY_FIXTURE??'.steward/phase5-legacy-'+suffix);
+const prior=existsSync(path.join(fixture,'manifest.json'))?JSON.parse(await readFile(path.join(fixture,'manifest.json'),'utf8')):null;
+if(prior&&existsSync(path.join(fixture,'security/verification.json')))throw new Error('Resume only a provisioned regression fixture before its authentication suites have started; use a new project for later failures');
+const project=prior?.project??'steward-p5-reg-'+suffix;
 const node=(file,args=[],env={})=>execFileSync(process.execPath,[file,...args],{stdio:'inherit',env:{...process.env,...env},timeout:600000});
 const env={STEWARD_DEPLOYMENT:fixture};
 node('tools/installer/dist/cli.js',['provision','--directory',fixture,'--project',project]);

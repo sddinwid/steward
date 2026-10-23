@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { createServer } from 'node:https';
 import { randomBytes, timingSafeEqual } from 'node:crypto';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, unlink, rmdir } from 'node:fs/promises';
 import path from 'node:path';
 import { directory } from './lib.mjs';
 import { api, logins, waitFor } from './phase4-client.mjs';
@@ -17,7 +17,11 @@ assert.ok(modelTimeout>=1000&&modelTimeout<=120000,'Model deadline must be 1000â
 const port=19443, token=randomBytes(32).toString('hex');
 const configPath=path.join(directory,'analyst/config/model.json');
 const keyPath=path.join(directory,'analyst/config/api-key.txt');
+// An interrupted presenter run must be recoverable without losing operator configuration.
+const lockPath=path.join(directory,'analyst/.local-provider-lock');await mkdir(lockPath);
 const originalConfig=await readFile(configPath), originalKey=await readFile(keyPath);
+const recoveryPath=path.join(directory,'analyst/local-provider-recovery.json');
+await writeFile(recoveryPath,JSON.stringify({pid:process.pid,createdAt:new Date().toISOString(),config:originalConfig.toString('base64'),key:originalKey.toString('base64'),model}),{flag:'wx',mode:0o600});
 const report={verifiedAt:new Date().toISOString(),status:'not_verified',provider:'local-ollama',baseModel,model,context,modelTimeout,testModel:false,modelTurns:[],checks:[],configurationRestored:false,modelUnloaded:false};
 await mkdir('artifacts',{recursive:true});
 let active=0;
@@ -91,4 +95,5 @@ finally{
   server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
   try{const stop=await fetch('http://127.0.0.1:11434/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model,keep_alive:0}),signal:AbortSignal.timeout(10000)});await stop.text();report.modelUnloaded=stop.ok;}catch{}
   await writeFile('artifacts/phase5-ollama-provider.json',JSON.stringify(report,null,2)+'\n');
+  await unlink(recoveryPath);await rmdir(lockPath);
 }

@@ -1,0 +1,15 @@
+# ADR 0014: Portable MVP release and controlled demonstration
+
+Status: accepted for release 0.6.0.
+
+The Phase 5B application and module contracts remain platform compatibility version 0.5.0. Release 0.6.0 packages those verified application images without changing their contents or migrating platform schemas. Release numbering and platform protocol compatibility are distinct.
+
+A distribution contains Master and Worker role manifests, an image archive, separately packaged Inventory/Operations payloads, a portable installer/source toolkit, and SHA-256 checksums. Installation loads local images and selects an additive Compose overlay pinned to image IDs with builds removed. Original provisioner manifests, identities, secrets, trust and volumes remain authoritative. Every Worker selects the same artifacts. Master-only and Worker-only topology contracts remain available; remote Worker trust still requires an independently reviewed Master trust bundle and routable addresses.
+
+Checksums detect corruption, not publisher identity. Operators must obtain the release manifest digest through a trusted channel, review provenance, and explicitly approve bundled module payloads before they are signed by their local publisher. This is local distribution packaging, not a new package registry or a production signing service. Module installation continues through the existing signed package runtime.
+
+The presenter runner bootstraps only a dedicated fresh deployment, generates private random credentials, and uses existing administrator CLI, TLS authentication, entity authorization, device authorization and approval APIs. It never handles Master passwords inside Worker. Repeat setup recovers already-created presenter accounts without changing their passwords. A separate ownership ledger permits field restoration only for synthetic records created in this otherwise empty scenario. Revision checks protect concurrent edits. Reset retains unrelated records, credentials, findings, audit history, enrollment and identities; it never truncates databases or rolls migrations back.
+
+The real AI segment reuses the verified fixed-target, authenticated loopback TLS Ollama bridge. Configuration is temporary and byte-restored; an interrupted run retains a private recovery record and refuses concurrent provider sessions. The model remains read-only; finding publication and acknowledgment are explicit operator automation steps. No unattended model business actions or deferred offline enrollment workflow are introduced.
+
+Tradeoffs: the toolkit needs Node, npm dependency availability and OpenSSL; the demonstration needs Docker Desktop host routing and an already-installed Qwen model. Images are Linux/amd64, generated development certificates are not a production PKI, deployment paths must remain stable after provisioning, and operational upgrades require backups and a maintenance window. No claim of zero-downtime upgrade, disaster recovery, commercial production readiness or cloud-provider validation follows from MVP acceptance.
