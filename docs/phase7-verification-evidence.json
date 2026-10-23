@@ -1,11 +1,11 @@
 {
   "formatVersion": 1,
-  "verifiedAt": "2026-10-23T22:12:58.327Z",
+  "verifiedAt": "2026-10-23T22:19:01.354Z",
   "releaseVersion": "0.7.0",
   "baselineCommit": "6a508dc",
   "baselineTag": "v0.6.0",
   "branch": "phase7/business-module-expansion",
-  "status": "runtime_acceptance_passed",
+  "status": "passed",
   "unitTests": {
     "total": 52,
     "failed": 0,
@@ -320,6 +320,10 @@
     ]
   },
   "coreImagesUnchanged": true,
+  "finalRuntimeChecks": {
+    "runtimeModuleApisVerified": 12,
+    "stateEvidenceSha256": "b0f71ca871fc0a4537f51499a5a93f6c35393aede24eb1b2fbb793c5943a292b"
+  },
   "reset": {
     "generation": 2,
     "retiredGenerations": 1,
@@ -1719,9 +1723,9 @@
     "status": "passed",
     "project": "steward-phase7-release-acceptance2",
     "release": "0.7.0",
-    "releaseSourceCommit": "7bc7d1086a9d4e3d1b8b4ea4d5340ea2dd3cce8e",
+    "releaseSourceCommit": "c73d4f790baf9e9ddc0049873bb9b216f10bb129",
     "preservedFiles": 79,
-    "verifiedAt": "2026-10-23T22:11:25.002Z",
+    "verifiedAt": "2026-10-23T22:17:10.803Z",
     "coreDataAndBusinessHashesMatched": true,
     "images": {
       "master-api": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
@@ -1736,10 +1740,48 @@
       "worker-3-web": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
       "worker-3-module-host": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b"
     },
-    "rawEvidenceSha256": "d257c4573998e817e2751fdd56f8dca0cb06f7600884d56e84a8e724831db910"
+    "rawEvidenceSha256": "dc0d0f2fde6ab8a7348193fa3f15ce0c1a3a75c0aa7d6d33ac546c7094343794"
   },
   "release": {
-    "status": "awaiting_final_archive_binding",
-    "immutableImagesVerified": true
+    "version": "0.7.0",
+    "sourceCommit": "c73d4f790baf9e9ddc0049873bb9b216f10bb129",
+    "includesWorkingTreeChanges": false,
+    "images": {
+      "master-api": {
+        "tag": "steward-master-api:0.7.0",
+        "id": "sha256:8f217a458227eb019b0df6603bd91cece1687bce5a03b81ddd6a14299ba0db0c",
+        "platform": "linux/amd64"
+      },
+      "master-web": {
+        "tag": "steward-master-web:0.7.0",
+        "id": "sha256:1524bfb4c04aac1b215f0abab6acc60a78fe1dbe8e636a00464fadd2c0027afc",
+        "platform": "linux/amd64"
+      },
+      "worker-api": {
+        "tag": "steward-worker-api:0.7.0",
+        "id": "sha256:bf03fb62cafa7d4130766baa65856aac3ba1ee716e6f010ff62ae5076865982a",
+        "platform": "linux/amd64"
+      },
+      "worker-web": {
+        "tag": "steward-worker-web:0.7.0",
+        "id": "sha256:036caf32bdc47c36117b5f041430f945af90f1ea605232f02eee7b61068b107b",
+        "platform": "linux/amd64"
+      },
+      "module-host": {
+        "tag": "steward-module-host:0.7.0",
+        "id": "sha256:13eddf3c5a47913ddfebac2ce62f290e2a97eda97e50382c19b03ce6572f388b",
+        "platform": "linux/amd64"
+      },
+      "postgres": {
+        "tag": "postgres:17.9-alpine",
+        "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+      }
+    },
+    "imageArchiveSha256": "dc7b693f177298ba2c8aa370e84ed5fc7ec71db753f2ae9254a1889b2644f569",
+    "imageArchiveBytes": 899559936,
+    "releaseManifestSha256": "8913c648971d742f9d18df919df1f59f960a1bf252ce5c6580f804607d7ea30e",
+    "masterDistributionSha256": "9d0f15797d6ecf15b317449b3bf03662af0c0d6d86ff88f01a1c4936a87a25c8",
+    "workerDistributionSha256": "dc6672de56e269f978f1ed6e931464aee07ddb5c725f87c543024b4506e87b40",
+    "modulePackagesSha256": "966f268c5686dcc797454b43fd65dcd82ef8b2ba1f1c114c12fd9e9d298d7cbd"
   }
 }
