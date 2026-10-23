@@ -3,7 +3,7 @@ import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
-import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
+import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
 
 interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
@@ -18,6 +18,8 @@ const pool = new pg.Pool({ ...adminConnection,
 pool.on('error', () => {});
 const resourcePool = new pg.Pool({ ...adminConnection, max: 2, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
 resourcePool.on('error', () => {});
+const metadataPool=new pg.Pool({...adminConnection,database:'steward',max:2,connectionTimeoutMillis:3000,statement_timeout:5000});
+metadataPool.on('error',()=>{});
 async function moduleDatabase<T>(id: string, work: (client: pg.Client) => Promise<T>): Promise<T> {
   const client = new pg.Client({ host: config.databaseHost, user: slug(id), database: slug(id), password: (await readFile(`${stateRoot}/${slug(id)}/db-password`, 'utf8')).trim(), connectionTimeoutMillis: 3000, statement_timeout: 10000 });
   await client.connect(); try { return await work(client); } finally { await client.end(); }
@@ -63,9 +65,9 @@ async function atomicJson(file: string, value: unknown, mode: number) {
   try { await parent.sync(); } finally { await parent.close(); }
 }
 async function save(id: string, value: unknown) { await atomicJson(`${stateRoot}/${slug(id)}/state.json`, value, 0o600); }
-async function callModule(id: string, method: string, path: string, body?: unknown) {
+async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={}) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
-  return http({ host: containerName(id), port: 8080, method, path, headers: { authorization: 'Bearer ' + token } }, body);
+  return http({ host: containerName(id), port: 8080, method, path, headers: { ...context,authorization: 'Bearer ' + token } }, body);
 }
 async function ready(id: string) {
   const deadline = Date.now() + 20000;
@@ -169,6 +171,14 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     if (p.operation === 'install') return await install(descriptor, p.configuration, p.upgrade === true);
     const current = await state(p.moduleId);
     if (!current || current.version !== p.version) failure('MODULE_NOT_INSTALLED');
+    if(p.operation==='configure'){
+      const file=`${stateRoot}/${slug(p.moduleId)}/runtime.json`,runtime=JSON.parse(await readFile(file,'utf8'));
+      await atomicJson(file,{...runtime,configuration:p.configuration},0o644);
+      if(current.phase==='active'){
+        await ownedContainer(p.moduleId);await docker('POST','/containers/'+containerName(p.moduleId)+'/stop?t=5',undefined,[204,304]);await docker('POST','/containers/'+containerName(p.moduleId)+'/start');await ready(p.moduleId);
+      }
+      return{saved:true};
+    }
     if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
       if (!payload.manifest.replication) return { events: [] };
       return moduleDatabase(p.moduleId, async sql => {
@@ -194,7 +204,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       if (current.phase !== 'active') return reply.code(409).send({ error: 'MODULE_DISABLED' });
       const op = operationFor(payload.manifest, p.method, p.path);
       if (!op || !Array.isArray(p.permissions) || !p.permissions.includes(op.permission)) return reply.code(403).send({ error: 'MODULE_PERMISSION_DENIED' });
-      const result = await callModule(p.moduleId, p.method, p.path, p.body);
+      const result = await callModule(p.moduleId, p.method, p.path, p.body,{'x-steward-actor':typeof p.actorId==='string'?p.actorId:'','x-steward-permissions':JSON.stringify(p.permissions),'x-steward-installation':config.installationId});
       return reply.code(result.status).send(result.value);
     }
     return reply.code(400).send({ error: 'UNSUPPORTED_OPERATION' });
@@ -204,7 +214,50 @@ app.setErrorHandler((error, _request, reply) => {
   const code = (error as { code?: string }).code;
   reply.code(503).send({ error: code && /^[A-Z_]+$/.test(code) ? code : 'MODULE_RUNTIME_FAILED' });
 });
-app.addHook('onClose', async () => { await pool.end(); await resourcePool.end(); });
+let integrating=false;
+async function integrations(){
+ if(integrating)return;integrating=true;const started=Date.now();let remaining=8;
+ try{
+  const rows=(await metadataPool.query("SELECT module_id,version,descriptor,configuration FROM module_installations WHERE state='active' ORDER BY module_id")).rows;
+  const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
+  for(const source of rows){
+   const m=verifyPackage(source.descriptor,trust).manifest;
+   if(!m.integration||source.configuration.integrationsEnabled!==true)continue;
+   const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(m.moduleId)}/runtime.json`,'utf8'));
+   if((await state(m.moduleId))?.phase!=='active'||canonical(runtime.configuration)!==canonical(source.configuration))continue;
+   const batch=await callModule(m.moduleId,'GET',m.integration.outboxPath);
+   if(batch.status!==200||!Array.isArray(batch.value.commands)||batch.value.commands.length>4)continue;
+   for(const command of batch.value.commands){
+    if(--remaining<0||Date.now()-started>10000)return;
+    let status='retry',result:unknown=null,error:string|null=null;
+    try{
+     validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
+     if(!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');
+     const target=rows.find(r=>r.module_id===command.targetModuleId);
+     if(!target){error='PEER_UNAVAILABLE';}
+     else{
+      const targetManifest=verifyPackage(target.descriptor,trust).manifest;
+      const targetRuntime=JSON.parse(await readFile(`${stateRoot}/${slug(target.module_id)}/runtime.json`,'utf8'));
+      if((await state(target.module_id))?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)){error='PEER_UNAVAILABLE';}
+      else if(target.configuration.integrationsEnabled!==true){error='PEER_DISABLED';}
+      else{
+       authorizeCommand(command,m,targetManifest,{source:true,target:true});
+       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,command,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId});
+       if(response.status>=200&&response.status<300){status='delivered';result=response.value;}
+       else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
+       else error='PEER_UNAVAILABLE';
+      }
+     }
+    }catch(e){const code=(e as Error).message;error=/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';if(error==='INTEGRATION_IDENTITY_MISMATCH'||error==='INTEGRATION_NOT_AUTHORIZED')status='rejected';}
+    // A lost ACK is safe: the next delivery has the same identity and digest.
+    await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error});
+   }
+  }
+ }catch{ /* Local module failures do not block the provider or other Workers. */ }
+ finally{integrating=false;}
+}
+const integrationTimer=setInterval(()=>void integrations(),1000).unref();
+app.addHook('onClose', async () => { clearInterval(integrationTimer);await pool.end(); await resourcePool.end();await metadataPool.end(); });
 for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => void app.close().then(() => process.exit(0)));
 // Recreate disposable containers after a deployment teardown. Durable databases,
 // secret subpaths, signed package identities and desired activation survive.

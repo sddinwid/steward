@@ -130,7 +130,10 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
         for(const m of discovery.modules) {
           for(const t of m.mcpTools??[]) {
             const op=m.api.find((v:any)=>v.operationId===t.operationId&&v.method==='GET'&&!v.path.includes(':'));
-            if(op)tool(t.name,t.description,empty,async()=>({moduleId:m.moduleId,...await api('/api/v3/modules/'+m.moduleId+'/api'+op.path)}));
+            if(op){
+              const query=z.object(Object.fromEntries((op.query??[]).map((k:string)=>[k,k==='limit'?z.number().int().min(1).max(20).optional():k==='offset'?z.number().int().min(0).max(100000).optional():z.string().max(200).optional()]))).strict();
+              tool(t.name,t.description,query,async(i:any)=>{const params=new URLSearchParams(Object.entries(i).map(([k,v])=>[k,String(v)]));const status=await api('/api/v2/worker/status');return{moduleId:m.moduleId,entityId:status.entityId,observedAt:new Date().toISOString(),...await api('/api/v3/modules/'+m.moduleId+'/api'+op.path+(params.size?'?'+params:''))};});
+            }
           }
         }
       }

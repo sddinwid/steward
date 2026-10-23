@@ -1,15 +1,19 @@
 import { createHash, sign, verify } from 'node:crypto';
 import { Ajv } from 'ajv';
+import {validateIntegration,type IntegrationContract} from './integration.js';
 
 export const SDK_VERSION = 1;
 export { outboxSql, captureSql } from './outbox.js';
 export { boundedLookup } from './network.js';
-export interface ApiContribution { operationId: string; method: 'GET' | 'POST' | 'PUT'; path: string; permission: string }
+export * from './integration.js';
+export const QUERY_PARAMETERS=['limit','offset','fields','from','to','status','q'] as const;
+export interface ApiContribution { operationId: string; method: 'GET' | 'POST' | 'PUT'; path: string; permission: string; query?: (typeof QUERY_PARAMETERS[number])[] }
 export interface ScreenContribution {
   screenId: string; title: string; navigationLabel: string;
-  listOperation: string; createOperation: string; updateOperation: string;
-  fields: { name: string; label: string; type: 'string' | 'number'; required: boolean; readOnly?: boolean; minimum?: number; maxLength?: number }[];
+  listOperation: string; createOperation?: string; updateOperation?: string;
+  fields: { name: string; label: string; type: 'string' | 'number' | 'json'; required: boolean; readOnly?: boolean; minimum?: number; maxLength?: number; enum?:string[] }[];
   columns: string[];
+  actions?:{label:string;operationId:string}[];
 }
 export interface ModulePackageManifest {
   manifestVersion: 1; sdkVersion: 1; moduleId: string; version: string; name: string; description: string;
@@ -22,6 +26,7 @@ export interface ModulePackageManifest {
   persistence: { isolation: 'dedicated-database'; schemaVersion: number; migrations: { version: number; sha256: string }[]; destructiveRollback: false };
   integrationEvents: { name: string; version: number; direction: 'produced' | 'consumed' }[];
   analyticalCapabilities: { name: string; version: number }[];
+  integration?:IntegrationContract;
   mcpTools?: { name: string; description: string; operationId: string }[];
   replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
@@ -70,7 +75,8 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration'])) reject('Unsupported module manifest fields');
+  validateIntegration(m);
   if (m.replication && (m.replication.contractVersion !== 1 || !Array.isArray(m.replication.streams) || !m.replication.streams.length || m.replication.streams.length > 10 || new Set(m.replication.streams.map(s => s.streamId)).size !== m.replication.streams.length || m.replication.streams.some(s =>
     !onlyKeys(s, ['streamId','table','idColumn','revisionColumn','columns']) || ![s.streamId,s.table,s.idColumn,s.revisionColumn,...s.columns].every(v => /^[a-z][a-z0-9_]{0,49}$/.test(v)) || !s.columns.includes(s.idColumn) || !s.columns.includes(s.revisionColumn) || s.columns.length > 30))) reject('Invalid replication projection');
   if (!Array.isArray(m.dependencies) || m.dependencies.some(d => d.moduleId === m.moduleId || !/^[a-z][a-z0-9.-]{0,79}$/.test(d.moduleId) || !versionPattern.test(d.minimumVersion)) || new Set(m.dependencies.map(d => d.moduleId)).size !== m.dependencies.length) reject('Invalid module dependencies');
@@ -78,12 +84,12 @@ export function validateManifest(m: ModulePackageManifest): void {
   if (!m.persistence || m.persistence.isolation !== 'dedicated-database' || m.persistence.destructiveRollback !== false || !Number.isInteger(m.persistence.schemaVersion) || m.persistence.schemaVersion < 1 || !Array.isArray(m.persistence.migrations) ||
       m.persistence.migrations.length !== m.persistence.schemaVersion || m.persistence.migrations.some((migration, i) => migration.version !== i + 1 || !/^[0-9a-f]{64}$/.test(migration.sha256))) reject('Invalid persistence contract');
   if (!Array.isArray(m.api) || !m.api.length || m.api.length > 30 || new Set(m.api.map(a => a.operationId)).size !== m.api.length || m.api.some(a =>
-    !onlyKeys(a, ['operationId','method','path','permission']) || !/^[a-z][a-zA-Z0-9]{0,49}$/.test(a.operationId) || !['GET', 'POST', 'PUT'].includes(a.method) || !/^\/[a-z][a-z0-9-]*(?:\/:id)?$/.test(a.path) || !a.permission.startsWith(m.moduleId + '.') || !/^[a-z0-9.-]+$/.test(a.permission))) reject('Invalid API or permission contribution');
+    !onlyKeys(a, ['operationId','method','path','permission','query']) || !/^[a-z][a-zA-Z0-9]{0,49}$/.test(a.operationId) || !['GET', 'POST', 'PUT'].includes(a.method) || !/^\/[a-z][a-z0-9-]*(?:\/:id)?$/.test(a.path) || !a.permission.startsWith(m.moduleId + '.') || !/^[a-z0-9.-]+$/.test(a.permission) || a.query!==undefined&&(!Array.isArray(a.query)||a.method!=='GET'||new Set(a.query).size!==a.query.length||a.query.some(q=>!QUERY_PARAMETERS.includes(q))))) reject('Invalid API or permission contribution');
   if (!Array.isArray(m.ui) || m.ui.length > 10 || m.ui.some(s => !/^[a-z][a-z0-9-]{0,49}$/.test(s.screenId) || typeof s.title !== 'string' || typeof s.navigationLabel !== 'string' ||
-    !onlyKeys(s, ['screenId','title','navigationLabel','listOperation','createOperation','updateOperation','fields','columns']) ||
-    !m.api.some(a => a.operationId === s.listOperation && a.method === 'GET') || !m.api.some(a => a.operationId === s.createOperation && a.method === 'POST') || !m.api.some(a => a.operationId === s.updateOperation && a.method === 'PUT' && a.path.endsWith('/:id')) || !Array.isArray(s.fields) || s.fields.length > 30 || s.fields.some(f =>
-      !onlyKeys(f, ['name','label','type','required','minimum','maxLength','readOnly']) || !/^[a-z][a-zA-Z0-9_]{0,49}$/.test(f.name) || ['constructor', 'prototype', '__proto__', 'id', 'revision'].includes(f.name) || typeof f.label !== 'string' || !['string', 'number'].includes(f.type) || typeof f.required !== 'boolean') ||
-    !Array.isArray(s.columns) || s.columns.some(c => !s.fields.some(f => f.name === c)))) reject('Unsupported declarative UI contribution');
+    !onlyKeys(s, ['screenId','title','navigationLabel','listOperation','createOperation','updateOperation','fields','columns','actions']) ||
+    !m.api.some(a => a.operationId === s.listOperation && a.method === 'GET') || s.createOperation!==undefined&&!m.api.some(a => a.operationId === s.createOperation && a.method === 'POST') || s.updateOperation!==undefined&&!m.api.some(a => a.operationId === s.updateOperation && a.method === 'PUT' && a.path.endsWith('/:id')) || !Array.isArray(s.fields) || s.fields.length > 30 || s.fields.some(f =>
+      !onlyKeys(f, ['name','label','type','required','minimum','maxLength','readOnly','enum']) || !/^[a-z][a-zA-Z0-9_]{0,49}$/.test(f.name) || ['constructor', 'prototype', '__proto__', 'revision'].includes(f.name) || f.name==='id'&&!f.readOnly || typeof f.label !== 'string' || !['string', 'number','json'].includes(f.type) || typeof f.required !== 'boolean'||f.enum!==undefined&&(!Array.isArray(f.enum)||f.enum.length>30||f.enum.some(v=>typeof v!=='string'||v.length>120))) ||
+    s.actions!==undefined&&(!Array.isArray(s.actions)||s.actions.length>12||s.actions.some(v=>!onlyKeys(v,['label','operationId'])||typeof v.label!=='string'||v.label.length>100||!m.api.some(a=>a.operationId===v.operationId&&a.method==='POST'&&a.path.endsWith('/:id'))))||!Array.isArray(s.columns) || s.columns.some(c => !s.fields.some(f => f.name === c)))) reject('Unsupported declarative UI contribution');
   if (m.mcpTools !== undefined && (!Array.isArray(m.mcpTools) || m.mcpTools.length > 10 || new Set(m.mcpTools.map(t=>t.name)).size !== m.mcpTools.length || m.mcpTools.some(t=>!onlyKeys(t,['name','description','operationId']) || !/^[a-z][a-z0-9_]{0,59}$/.test(t.name) || typeof t.description !== 'string' || t.description.length > 300 || !m.api.some(a=>a.operationId===t.operationId && a.method==='GET' && !a.path.includes(':'))))) reject('Invalid read-only MCP contribution');
   if (!m.configurationSchema || m.configurationSchema.type !== 'object' || m.configurationSchema.additionalProperties !== false) reject('Configuration must be a closed JSON object schema');
   configurationValidator(m.configurationSchema);
@@ -94,7 +100,11 @@ export function validateConfiguration(manifest: ModulePackageManifest, configura
   if (!configurationValidator(manifest.configurationSchema)(configuration)) reject('Configuration does not satisfy the module schema');
 }
 export function operationFor(manifest: ModulePackageManifest, method: string, path: string): ApiContribution | undefined {
-  return manifest.api.find(op => op.method === method && (op.path === path || (op.path.endsWith('/:id') && new RegExp('^' + op.path.slice(0, -4) + '/[0-9a-f-]{36}$').test(path))));
+  if(path.length>2000||path.includes('#'))return undefined;
+  const [pathname,query]=path.split('?');
+  const op=manifest.api.find(op => op.method === method && (op.path === pathname || (op.path.endsWith('/:id') && new RegExp('^' + op.path.slice(0, -4) + '/[0-9a-f-]{36}$').test(pathname!))));
+  if(!op||query!==undefined&&([...new URLSearchParams(query)].some(([k,v])=>!op.query?.includes(k as any)||v.length>300)||new Set([...new URLSearchParams(query).keys()]).size!==[...new URLSearchParams(query)].length))return undefined;
+  return op;
 }
 export function assertCompatible(manifest: ModulePackageManifest, platform: string, installed: { moduleId: string; version: string; state: string }[]): void {
   if (!atLeast(platform, manifest.minimumPlatformVersion)) reject('Platform version is incompatible');

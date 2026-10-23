@@ -62,3 +62,14 @@ test('compatibility, active dependencies, and closed configuration schemas are e
   assert.throws(() => validateConfiguration(m, {}));
   assert.throws(() => validateConfiguration(m, { unit: 'pieces', hostCommand: 'anything' }));
 });
+
+test('bounded query declarations and permission-bound actions preserve old CRUD manifests',()=>{
+ const extended:ModulePackageManifest={...m,api:[{...m.api[0]!,query:['limit','offset','fields']},...m.api.slice(1),{operationId:'approve',method:'POST',path:'/approve/:id',permission:'example.records.approve'}],ui:[{...m.ui[0]!,actions:[{label:'Approve',operationId:'approve'}]}]};
+ validateManifest(extended);assert.equal(operationFor(extended,'GET','/records?limit=5&offset=0')?.operationId,'list');
+ for(const path of ['/records?url=https://foreign.invalid','/records?limit=1&limit=2','/records?fields='+('a'.repeat(301)),'/records#unsafe'])assert.equal(operationFor(extended,'GET',path),undefined);
+ assert.equal(operationFor(m,'GET','/records?limit=5'),undefined);
+ assert.throws(()=>validateManifest({...extended,ui:[{...extended.ui[0]!,actions:[{label:'Read as mutation',operationId:'list'}]}]}));
+ const {createOperation,updateOperation,...readOnly}=m.ui[0]!;
+ validateManifest({...m,ui:[readOnly]});
+ assert.throws(()=>validateManifest({...m,api:[{...m.api[1]!,query:['limit']}]}));
+});

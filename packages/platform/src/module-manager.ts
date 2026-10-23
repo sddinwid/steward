@@ -134,6 +134,18 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
   app.get('/api/v3/modules/accounts', async req => {
     await admin(req); return { accounts: (await pool.query("SELECT account_id,username,role FROM security_accounts WHERE role IN ('local_admin','module_user') AND enabled ORDER BY username")).rows };
   });
+  app.put<{Params:{moduleId:string};Body:{configuration:unknown}}>('/api/v3/modules/:moduleId/configuration',{schema:{body:{type:'object',additionalProperties:false,required:['configuration'],properties:{configuration:{type:'object'}}}}},async req=>{
+    const actor=await admin(req,true),client=await pool.connect();let locked=false;
+    try{
+      locked=(await client.query('SELECT pg_try_advisory_lock(hashtext($1)) acquired',['module:'+req.params.moduleId])).rows[0].acquired;
+      if(!locked)fail(409,'A module operation is already in progress');
+      const row=(await rows(client)).find(r=>r.module_id===req.params.moduleId);if(!row||['failed','installing'].includes(row.state))fail(409,'Module installation must complete first');
+      const {trust}=await catalog(),p=verifyPackage(row.descriptor,trust);validateConfiguration(p.manifest,req.body.configuration);
+      const result=await broker('configure',row.descriptor,req.body.configuration);if(result.status!==200)fail(503,result.value.error??'Module configuration unavailable');
+      await client.query('UPDATE module_installations SET configuration=$1,updated_at=now() WHERE module_id=$2',[req.body.configuration,row.module_id]);
+      await audit(client,actor.account_id,'module.configuration_updated',row.module_id);return{saved:true};
+    }finally{if(locked)await client.query('SELECT pg_advisory_unlock(hashtext($1))',['module:'+req.params.moduleId]);client.release();}
+  });
   app.put<{ Body: { accountId: string; moduleId: string; permissions: string[] } }>('/api/v3/modules/permissions', { schema: { body: {
     type: 'object', additionalProperties: false, required: ['accountId', 'moduleId', 'permissions'], properties: {
       accountId: { type: 'string', format: 'uuid' }, moduleId: { type: 'string', maxLength: 80 }, permissions: { type: 'array', maxItems: 30, items: { type: 'string', maxLength: 120 } }
@@ -155,7 +167,8 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     const row = (await pool.query('SELECT * FROM module_installations WHERE module_id=$1', [req.params.moduleId])).rows[0];
     if (!row || row.state !== 'active') fail(404, 'Module is not active');
     const { trust } = await catalog(); const p = verifyPackage(row.descriptor, trust);
-    const path = '/' + req.params['*']; const op = operationFor(p.manifest, req.method, path);
+    const query=new URLSearchParams();for(const [k,v]of Object.entries(req.query as Record<string,unknown>)) {if(typeof v!=='string')fail(400,'Invalid query parameter');query.append(k,v);}
+    const path = '/' + req.params['*']+(query.size?'?'+query.toString():''); const op = operationFor(p.manifest, req.method, path);
     if (!op) fail(404, 'Module operation is not declared');
     const allowed = await permissions(actor, row.module_id, p.manifest.api.map(a => a.permission));
     if (!allowed.includes(op.permission)) fail(403, 'Module permission denied');
