@@ -20,7 +20,7 @@
     "@modelcontextprotocol/node": "2.1.1",
     "@modelcontextprotocol/server": "2.3.1",
     "@steward/contracts": "0.1.0",
-    "@steward/module-sdk": "1.1.0",
+    "@steward/module-sdk": "1.2.0",
     "fastify": "5.12.7",
     "pg": "8.23.1",
     "zod": "4.6.7"

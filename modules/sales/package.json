@@ -1,0 +1,18 @@
+{
+  "name": "@steward/sales",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node ../../scripts/test-business-modules.mjs"
+  },
+  "dependencies": {
+    "@steward/business-kit": "file:../../packages/business-kit",
+    "@steward/module-sdk": "file:../../packages/module-sdk"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

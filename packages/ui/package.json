@@ -14,14 +14,15 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@steward/contracts": "0.1.0"
+    "@steward/contracts": "0.1.0",
+    "@steward/module-sdk": "1.2.0"
   },
   "peerDependencies": {
     "react": "19.3.1",
     "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@steward/module-sdk": "1.1.0",
+    "@steward/module-sdk": "1.2.0",
     "@types/react": "19.3.0"
   }
 }

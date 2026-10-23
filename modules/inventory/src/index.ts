@@ -33,7 +33,7 @@ async function migrate() {
   } catch (error) { await client.query('ROLLBACK'); throw error; }
   finally { client.release(); }
 }
-const app = createInventoryServer(pool, (await readFile('/run/module-secrets/gateway-token', 'utf8')).trim(), migrate, ready, config.configuration.quantityUnit);
+const app = createInventoryServer(pool, (await readFile('/run/module-secrets/gateway-token', 'utf8')).trim(), migrate, ready, config.configuration.quantityUnit,config,JSON.parse(await readFile('./manifest.json','utf8')));
 app.addHook('onClose', async () => { await pool.end(); });
 for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => void app.close().then(() => process.exit(0)));
 await app.listen({ host: '0.0.0.0', port: 8080 });

@@ -1,0 +1,699 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.assets",
+  "version": "1.0.0",
+  "name": "Assets",
+  "description": "Independent persistent assets business module. Human authorization is required for approval and ecosystem publication.",
+  "minimumPlatformVersion": "0.7.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listFacility",
+      "method": "GET",
+      "path": "/facilities",
+      "permission": "cee.assets.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createFacility",
+      "method": "POST",
+      "path": "/facilities",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "updateFacility",
+      "method": "PUT",
+      "path": "/facilities/:id",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "listAsset",
+      "method": "GET",
+      "path": "/assets",
+      "permission": "cee.assets.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createAsset",
+      "method": "POST",
+      "path": "/assets",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "updateAsset",
+      "method": "PUT",
+      "path": "/assets/:id",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "publish",
+      "method": "POST",
+      "path": "/publish/:id",
+      "permission": "cee.assets.publish"
+    },
+    {
+      "operationId": "listMaintenance",
+      "method": "GET",
+      "path": "/maintenance",
+      "permission": "cee.assets.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createMaintenance",
+      "method": "POST",
+      "path": "/maintenance",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "updateMaintenance",
+      "method": "PUT",
+      "path": "/maintenance/:id",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "complete",
+      "method": "POST",
+      "path": "/complete/:id",
+      "permission": "cee.assets.maintain"
+    },
+    {
+      "operationId": "listBooking",
+      "method": "GET",
+      "path": "/bookings",
+      "permission": "cee.assets.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createBooking",
+      "method": "POST",
+      "path": "/bookings",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "updateBooking",
+      "method": "PUT",
+      "path": "/bookings/:id",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "cancelBooking",
+      "method": "POST",
+      "path": "/cancel-booking/:id",
+      "permission": "cee.assets.write"
+    },
+    {
+      "operationId": "reports",
+      "method": "GET",
+      "path": "/reports",
+      "permission": "cee.assets.read"
+    },
+    {
+      "operationId": "integrationStatus",
+      "method": "GET",
+      "path": "/integration-status",
+      "permission": "cee.assets.read"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "facility",
+      "title": "Assets — facility",
+      "navigationLabel": "assets facility",
+      "listOperation": "listFacility",
+      "createOperation": "createFacility",
+      "updateOperation": "updateFacility",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "classification",
+          "label": "Classification",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "warehouse",
+            "office",
+            "land",
+            "workshop"
+          ]
+        },
+        {
+          "name": "ownerEntityId",
+          "label": "Owner Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "custodianEntityId",
+          "label": "Custodian Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "userEntityId",
+          "label": "User Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "accessBasis",
+          "label": "Access Basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "owned",
+            "leased",
+            "shared",
+            "custody"
+          ]
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "site",
+        "classification",
+        "status"
+      ]
+    },
+    {
+      "screenId": "asset",
+      "title": "Assets — asset",
+      "navigationLabel": "assets asset",
+      "listOperation": "listAsset",
+      "createOperation": "createAsset",
+      "updateOperation": "updateAsset",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "facilityCode",
+          "label": "Facility Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "classification",
+          "label": "Classification",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "warehouse",
+            "equipment",
+            "vehicle",
+            "office"
+          ]
+        },
+        {
+          "name": "ownerEntityId",
+          "label": "Owner Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "custodianEntityId",
+          "label": "Custodian Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "userEntityId",
+          "label": "User Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "accessBasis",
+          "label": "Access Basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "owned",
+            "leased",
+            "shared",
+            "custody"
+          ]
+        },
+        {
+          "name": "capacityM3",
+          "label": "Capacity M3",
+          "type": "string",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "utilizedM3",
+          "label": "Utilized M3",
+          "type": "string",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "availability",
+          "label": "Availability",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "available",
+            "unavailable",
+            "maintenance"
+          ]
+        },
+        {
+          "name": "monthlyOperatingCostCents",
+          "label": "Monthly Operating Cost Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "facilityCode",
+        "site",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish",
+          "operationId": "publish"
+        }
+      ]
+    },
+    {
+      "screenId": "maintenance",
+      "title": "Assets — maintenance",
+      "navigationLabel": "assets maintenance",
+      "listOperation": "listMaintenance",
+      "createOperation": "createMaintenance",
+      "updateOperation": "updateMaintenance",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "assetCode",
+          "label": "Asset Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "startsAt",
+          "label": "Starts At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "endsAt",
+          "label": "Ends At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "costCents",
+          "label": "Cost Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "assetCode",
+        "description",
+        "startsAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "complete",
+          "operationId": "complete"
+        }
+      ]
+    },
+    {
+      "screenId": "booking",
+      "title": "Assets — booking",
+      "navigationLabel": "assets booking",
+      "listOperation": "listBooking",
+      "createOperation": "createBooking",
+      "updateOperation": "updateBooking",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "assetCode",
+          "label": "Asset Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        },
+        {
+          "name": "startsAt",
+          "label": "Starts At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "endsAt",
+          "label": "Ends At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "capacityM3",
+          "label": "Capacity M3",
+          "type": "string",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "assetCode",
+        "purpose",
+        "startsAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "cancel booking",
+          "operationId": "cancelBooking"
+        }
+      ]
+    },
+    {
+      "screenId": "reports",
+      "title": "assets reports",
+      "navigationLabel": "assets reports",
+      "listOperation": "reports",
+      "fields": [
+        {
+          "name": "metric",
+          "label": "metric",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "value",
+          "label": "value",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "metric",
+        "value"
+      ]
+    },
+    {
+      "screenId": "integration-status",
+      "title": "Integration delivery status",
+      "navigationLabel": "assets delivery",
+      "listOperation": "integrationStatus",
+      "fields": [
+        {
+          "name": "command",
+          "label": "command",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "target",
+          "label": "target",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "attempts",
+          "label": "attempts",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "command",
+        "target",
+        "status",
+        "attempts",
+        "error"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "currency",
+      "integrationsEnabled",
+      "authorizedOwnerEntityIds"
+    ],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "default": "EUR"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "authorizedOwnerEntityIds": {
+        "type": "array",
+        "uniqueItems": true,
+        "maxItems": 50,
+        "items": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F-]{36}$"
+        },
+        "default": []
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [
+    {
+      "name": "cee.assets.record-changed",
+      "version": 1,
+      "direction": "produced"
+    }
+  ],
+  "analyticalCapabilities": [
+    {
+      "name": "assets.summary",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "mcpTools": [
+    {
+      "name": "assets_listfacility",
+      "description": "Read authorized assets listFacility; paginated module-owned evidence.",
+      "operationId": "listFacility"
+    },
+    {
+      "name": "assets_listasset",
+      "description": "Read authorized assets listAsset; paginated module-owned evidence.",
+      "operationId": "listAsset"
+    },
+    {
+      "name": "assets_listmaintenance",
+      "description": "Read authorized assets listMaintenance; paginated module-owned evidence.",
+      "operationId": "listMaintenance"
+    },
+    {
+      "name": "assets_listbooking",
+      "description": "Read authorized assets listBooking; paginated module-owned evidence.",
+      "operationId": "listBooking"
+    },
+    {
+      "name": "assets_reports",
+      "description": "Read authorized assets reports; paginated module-owned evidence.",
+      "operationId": "reports"
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "capacities",
+        "table": "capacities",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "name",
+          "site",
+          "capacity_m3",
+          "utilized_m3",
+          "available_m3",
+          "monthly_operating_cost",
+          "currency",
+          "ownership"
+        ]
+      }
+    ]
+  }
+}

@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@steward/module-sdk": "1.1.0",
+    "@steward/module-sdk": "1.2.0",
     "fastify": "5.12.7",
     "pg": "8.23.1"
   },

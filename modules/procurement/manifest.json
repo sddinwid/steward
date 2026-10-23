@@ -1,0 +1,730 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.procurement",
+  "version": "1.0.0",
+  "name": "Procurement",
+  "description": "Independent persistent procurement business module. Human authorization is required for approval and ecosystem publication.",
+  "minimumPlatformVersion": "0.7.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listSupplier",
+      "method": "GET",
+      "path": "/suppliers",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createSupplier",
+      "method": "POST",
+      "path": "/suppliers",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "updateSupplier",
+      "method": "PUT",
+      "path": "/suppliers/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "listRequisition",
+      "method": "GET",
+      "path": "/requisitions",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createRequisition",
+      "method": "POST",
+      "path": "/requisitions",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "updateRequisition",
+      "method": "PUT",
+      "path": "/requisitions/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "publishDemand",
+      "method": "POST",
+      "path": "/publish-demand/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "listOrder",
+      "method": "GET",
+      "path": "/orders",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createOrder",
+      "method": "POST",
+      "path": "/orders",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "updateOrder",
+      "method": "PUT",
+      "path": "/orders/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "submit",
+      "method": "POST",
+      "path": "/submit/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "approve",
+      "method": "POST",
+      "path": "/approve/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "place",
+      "method": "POST",
+      "path": "/place/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "cancel",
+      "method": "POST",
+      "path": "/cancel/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "listReceipt",
+      "method": "GET",
+      "path": "/receipts",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createReceipt",
+      "method": "POST",
+      "path": "/receipts",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "updateReceipt",
+      "method": "PUT",
+      "path": "/receipts/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "retryStock",
+      "method": "POST",
+      "path": "/retry-stock/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "listQuote",
+      "method": "GET",
+      "path": "/quotes",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createQuote",
+      "method": "POST",
+      "path": "/quotes",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "updateQuote",
+      "method": "PUT",
+      "path": "/quotes/:id",
+      "permission": "cee.procurement.write"
+    },
+    {
+      "operationId": "publishQuote",
+      "method": "POST",
+      "path": "/publish-quote/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "reports",
+      "method": "GET",
+      "path": "/reports",
+      "permission": "cee.procurement.read"
+    },
+    {
+      "operationId": "integrationStatus",
+      "method": "GET",
+      "path": "/integration-status",
+      "permission": "cee.procurement.read"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "supplier",
+      "title": "Procurement — supplier",
+      "navigationLabel": "procurement supplier",
+      "listOperation": "listSupplier",
+      "createOperation": "createSupplier",
+      "updateOperation": "updateSupplier",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "relationship",
+          "label": "Relationship",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "external",
+            "ecosystem"
+          ]
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "relationship",
+        "status"
+      ]
+    },
+    {
+      "screenId": "requisition",
+      "title": "Procurement — requisition",
+      "navigationLabel": "procurement requisition",
+      "listOperation": "listRequisition",
+      "createOperation": "createRequisition",
+      "updateOperation": "updateRequisition",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "sku",
+          "label": "Sku",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "unitPriceCents",
+          "label": "Unit Price Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "shippingCents",
+          "label": "Shipping Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "transitionCents",
+          "label": "Transition Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "sku",
+        "quantity",
+        "reason",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish demand",
+          "operationId": "publishDemand"
+        }
+      ]
+    },
+    {
+      "screenId": "order",
+      "title": "Procurement — order",
+      "navigationLabel": "procurement order",
+      "listOperation": "listOrder",
+      "createOperation": "createOrder",
+      "updateOperation": "updateOrder",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "supplierCode",
+          "label": "Supplier Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "lines",
+          "label": "Lines",
+          "type": "json",
+          "required": true
+        },
+        {
+          "name": "shippingCents",
+          "label": "Shipping Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "supplierCode",
+        "lines",
+        "shippingCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "submit",
+          "operationId": "submit"
+        },
+        {
+          "label": "approve",
+          "operationId": "approve"
+        },
+        {
+          "label": "place",
+          "operationId": "place"
+        },
+        {
+          "label": "cancel",
+          "operationId": "cancel"
+        }
+      ]
+    },
+    {
+      "screenId": "receipt",
+      "title": "Procurement — receipt",
+      "navigationLabel": "procurement receipt",
+      "listOperation": "listReceipt",
+      "createOperation": "createReceipt",
+      "updateOperation": "updateReceipt",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "orderNumber",
+          "label": "Order Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "lines",
+          "label": "Lines",
+          "type": "json",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "orderNumber",
+        "lines",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "retry stock",
+          "operationId": "retryStock"
+        }
+      ]
+    },
+    {
+      "screenId": "quote",
+      "title": "Procurement — quote",
+      "navigationLabel": "procurement quote",
+      "listOperation": "listQuote",
+      "createOperation": "createQuote",
+      "updateOperation": "updateQuote",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "supplierCode",
+          "label": "Supplier Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "sku",
+          "label": "Sku",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "minimumQuantity",
+          "label": "Minimum Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "unitPriceCents",
+          "label": "Unit Price Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "shippingCents",
+          "label": "Shipping Cents",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "supplierCode",
+        "sku",
+        "minimumQuantity",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish quote",
+          "operationId": "publishQuote"
+        }
+      ]
+    },
+    {
+      "screenId": "reports",
+      "title": "procurement reports",
+      "navigationLabel": "procurement reports",
+      "listOperation": "reports",
+      "fields": [
+        {
+          "name": "metric",
+          "label": "metric",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "value",
+          "label": "value",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "metric",
+        "value"
+      ]
+    },
+    {
+      "screenId": "integration-status",
+      "title": "Integration delivery status",
+      "navigationLabel": "procurement delivery",
+      "listOperation": "integrationStatus",
+      "fields": [
+        {
+          "name": "command",
+          "label": "command",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "target",
+          "label": "target",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "attempts",
+          "label": "attempts",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "command",
+        "target",
+        "status",
+        "attempts",
+        "error"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "currency",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "default": "EUR"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [
+    {
+      "name": "cee.procurement.record-changed",
+      "version": 1,
+      "direction": "produced"
+    }
+  ],
+  "analyticalCapabilities": [
+    {
+      "name": "procurement.summary",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": [
+      {
+        "moduleId": "cee.inventory",
+        "minimumVersion": "1.3.0",
+        "sends": [
+          {
+            "command": "goods.received",
+            "version": 1
+          }
+        ],
+        "receives": [
+          {
+            "command": "stock.replenishment",
+            "version": 1
+          }
+        ]
+      }
+    ]
+  },
+  "mcpTools": [
+    {
+      "name": "procurement_listsupplier",
+      "description": "Read authorized procurement listSupplier; paginated module-owned evidence.",
+      "operationId": "listSupplier"
+    },
+    {
+      "name": "procurement_listrequisition",
+      "description": "Read authorized procurement listRequisition; paginated module-owned evidence.",
+      "operationId": "listRequisition"
+    },
+    {
+      "name": "procurement_listorder",
+      "description": "Read authorized procurement listOrder; paginated module-owned evidence.",
+      "operationId": "listOrder"
+    },
+    {
+      "name": "procurement_listreceipt",
+      "description": "Read authorized procurement listReceipt; paginated module-owned evidence.",
+      "operationId": "listReceipt"
+    },
+    {
+      "name": "procurement_listquote",
+      "description": "Read authorized procurement listQuote; paginated module-owned evidence.",
+      "operationId": "listQuote"
+    },
+    {
+      "name": "procurement_reports",
+      "description": "Read authorized procurement reports; paginated module-owned evidence.",
+      "operationId": "reports"
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "procurement_demands",
+        "table": "procurement_demands",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "procurement_quotes",
+        "table": "procurement_quotes",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  }
+}

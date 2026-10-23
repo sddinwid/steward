@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.inventory",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "name": "Inventory",
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
-  "minimumPlatformVersion": "0.5.0",
+  "minimumPlatformVersion": "0.7.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -15,7 +15,12 @@
       "operationId": "listItems",
       "method": "GET",
       "path": "/items",
-      "permission": "cee.inventory.read"
+      "permission": "cee.inventory.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields"
+      ]
     },
     {
       "operationId": "createItem",
@@ -28,6 +33,12 @@
       "method": "PUT",
       "path": "/items/:id",
       "permission": "cee.inventory.write"
+    },
+    {
+      "operationId": "integrationStatus",
+      "method": "GET",
+      "path": "/integration-status",
+      "permission": "cee.inventory.read"
     }
   ],
   "ui": [
@@ -73,13 +84,21 @@
           "type": "number",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "minStock",
+          "label": "Replenishment threshold",
+          "type": "number",
+          "minimum": 0,
+          "required": true
         }
       ],
       "columns": [
         "sku",
         "name",
         "quantity",
-        "availableQuantity"
+        "availableQuantity",
+        "minStock"
       ]
     }
   ],
@@ -95,16 +114,31 @@
         "minLength": 1,
         "maxLength": 40,
         "default": "units"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "migrations": [],
     "destructiveRollback": false
   },
-  "integrationEvents": [],
+  "integrationEvents": [
+    {
+      "name": "cee.inventory.stock-replenishment",
+      "version": 1,
+      "direction": "produced"
+    },
+    {
+      "name": "cee.inventory.goods-received",
+      "version": 1,
+      "direction": "consumed"
+    }
+  ],
   "analyticalCapabilities": [],
   "replication": {
     "contractVersion": 1,
@@ -131,5 +165,48 @@
       "description": "Read inventory items and quantity information from this Worker inventory service.",
       "operationId": "listItems"
     }
-  ]
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": [
+      {
+        "moduleId": "cee.sales",
+        "minimumVersion": "1.0.0",
+        "sends": [],
+        "receives": [
+          {
+            "command": "stock.reserve",
+            "version": 1
+          },
+          {
+            "command": "stock.release",
+            "version": 1
+          },
+          {
+            "command": "stock.consume",
+            "version": 1
+          }
+        ]
+      },
+      {
+        "moduleId": "cee.procurement",
+        "minimumVersion": "1.0.0",
+        "sends": [
+          {
+            "command": "stock.replenishment",
+            "version": 1
+          }
+        ],
+        "receives": [
+          {
+            "command": "goods.received",
+            "version": 1
+          }
+        ]
+      }
+    ]
+  }
 }

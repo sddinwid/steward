@@ -1,0 +1,789 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.workforce",
+  "version": "1.0.0",
+  "name": "Workforce",
+  "description": "Independent persistent workforce business module. Human authorization is required for approval and ecosystem publication.",
+  "minimumPlatformVersion": "0.7.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listSkill",
+      "method": "GET",
+      "path": "/skills",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createSkill",
+      "method": "POST",
+      "path": "/skills",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "updateSkill",
+      "method": "PUT",
+      "path": "/skills/:id",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "publishSkills",
+      "method": "POST",
+      "path": "/publish-skills/:id",
+      "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "listPerson",
+      "method": "GET",
+      "path": "/people",
+      "permission": "cee.workforce.people.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createPerson",
+      "method": "POST",
+      "path": "/people",
+      "permission": "cee.workforce.people.write"
+    },
+    {
+      "operationId": "updatePerson",
+      "method": "PUT",
+      "path": "/people/:id",
+      "permission": "cee.workforce.people.write"
+    },
+    {
+      "operationId": "listProgram",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "publishProgram",
+      "method": "POST",
+      "path": "/publish-program/:id",
+      "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "listEnrollment",
+      "method": "GET",
+      "path": "/enrollments",
+      "permission": "cee.workforce.people.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createEnrollment",
+      "method": "POST",
+      "path": "/enrollments",
+      "permission": "cee.workforce.people.write"
+    },
+    {
+      "operationId": "updateEnrollment",
+      "method": "PUT",
+      "path": "/enrollments/:id",
+      "permission": "cee.workforce.people.write"
+    },
+    {
+      "operationId": "complete",
+      "method": "POST",
+      "path": "/complete/:id",
+      "permission": "cee.workforce.people.complete"
+    },
+    {
+      "operationId": "listAchievement",
+      "method": "GET",
+      "path": "/achievements",
+      "permission": "cee.workforce.people.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "listPosition",
+      "method": "GET",
+      "path": "/positions",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createPosition",
+      "method": "POST",
+      "path": "/positions",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "updatePosition",
+      "method": "PUT",
+      "path": "/positions/:id",
+      "permission": "cee.workforce.write"
+    },
+    {
+      "operationId": "publishPosition",
+      "method": "POST",
+      "path": "/publish-position/:id",
+      "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "reports",
+      "method": "GET",
+      "path": "/reports",
+      "permission": "cee.workforce.read"
+    },
+    {
+      "operationId": "integrationStatus",
+      "method": "GET",
+      "path": "/integration-status",
+      "permission": "cee.workforce.read"
+    },
+    {
+      "operationId": "candidateMatches",
+      "method": "GET",
+      "path": "/matches",
+      "permission": "cee.workforce.people.read"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "skill",
+      "title": "Workforce — skill",
+      "navigationLabel": "workforce skill",
+      "listOperation": "listSkill",
+      "createOperation": "createSkill",
+      "updateOperation": "updateSkill",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "classification",
+          "label": "Classification",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "classification",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish skills",
+          "operationId": "publishSkills"
+        }
+      ]
+    },
+    {
+      "screenId": "person",
+      "title": "Workforce — person",
+      "navigationLabel": "workforce person",
+      "listOperation": "listPerson",
+      "createOperation": "createPerson",
+      "updateOperation": "updatePerson",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "displayName",
+          "label": "Display Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "skills",
+          "label": "Skills",
+          "type": "json",
+          "required": true
+        },
+        {
+          "name": "availabilityUnits",
+          "label": "Availability Units",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "reference",
+        "displayName",
+        "skills",
+        "availabilityUnits",
+        "status"
+      ]
+    },
+    {
+      "screenId": "program",
+      "title": "Workforce — program",
+      "navigationLabel": "workforce program",
+      "listOperation": "listProgram",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "skillCode",
+          "label": "Skill Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "seats",
+          "label": "Seats",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "startsAt",
+          "label": "Starts At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "endsAt",
+          "label": "Ends At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "skillCode",
+        "seats",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish program",
+          "operationId": "publishProgram"
+        }
+      ]
+    },
+    {
+      "screenId": "enrollment",
+      "title": "Workforce — enrollment",
+      "navigationLabel": "workforce enrollment",
+      "listOperation": "listEnrollment",
+      "createOperation": "createEnrollment",
+      "updateOperation": "updateEnrollment",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "personRef",
+          "label": "Person Ref",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "programCode",
+          "label": "Program Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "personRef",
+        "programCode",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "complete",
+          "operationId": "complete"
+        }
+      ]
+    },
+    {
+      "screenId": "achievement",
+      "title": "Workforce — achievement",
+      "navigationLabel": "workforce achievement",
+      "listOperation": "listAchievement",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "readOnly": true
+        },
+        {
+          "name": "personRef",
+          "label": "Person Ref",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "programCode",
+          "label": "Program Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "personRef",
+        "programCode",
+        "status"
+      ]
+    },
+    {
+      "screenId": "position",
+      "title": "Workforce — position",
+      "navigationLabel": "workforce position",
+      "listOperation": "listPosition",
+      "createOperation": "createPosition",
+      "updateOperation": "updatePosition",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
+          "name": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "requiredSkills",
+          "label": "Required Skills",
+          "type": "json",
+          "required": true
+        },
+        {
+          "name": "openings",
+          "label": "Openings",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "site",
+          "label": "Site",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "open",
+            "closed"
+          ]
+        }
+      ],
+      "columns": [
+        "code",
+        "title",
+        "requiredSkills",
+        "openings",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "publish position",
+          "operationId": "publishPosition"
+        }
+      ]
+    },
+    {
+      "screenId": "reports",
+      "title": "workforce reports",
+      "navigationLabel": "workforce reports",
+      "listOperation": "reports",
+      "fields": [
+        {
+          "name": "skillCode",
+          "label": "skillCode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "availablePeople",
+          "label": "availablePeople",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "completions",
+          "label": "completions",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "suppressed",
+          "label": "suppressed",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "skillCode",
+        "availablePeople",
+        "completions",
+        "suppressed"
+      ]
+    },
+    {
+      "screenId": "candidate-matches",
+      "title": "Synthetic candidate matches — human review",
+      "navigationLabel": "Private candidate matches",
+      "listOperation": "candidateMatches",
+      "fields": [
+        {
+          "name": "positionCode",
+          "label": "positionCode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "candidateReference",
+          "label": "candidateReference",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requiredSkills",
+          "label": "requiredSkills",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "decision",
+          "label": "decision",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "positionCode",
+        "candidateReference",
+        "requiredSkills",
+        "decision"
+      ]
+    },
+    {
+      "screenId": "integration-status",
+      "title": "Integration delivery status",
+      "navigationLabel": "workforce delivery",
+      "listOperation": "integrationStatus",
+      "fields": [
+        {
+          "name": "command",
+          "label": "command",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "target",
+          "label": "target",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "attempts",
+          "label": "attempts",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "command",
+        "target",
+        "status",
+        "attempts",
+        "error"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "currency",
+      "integrationsEnabled",
+      "syntheticOnly",
+      "minimumGroupSize"
+    ],
+    "properties": {
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "default": "EUR"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "syntheticOnly": {
+        "type": "boolean",
+        "enum": [
+          true
+        ],
+        "default": true
+      },
+      "minimumGroupSize": {
+        "type": "integer",
+        "minimum": 3,
+        "maximum": 100,
+        "default": 3
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [
+    {
+      "name": "cee.workforce.record-changed",
+      "version": 1,
+      "direction": "produced"
+    }
+  ],
+  "analyticalCapabilities": [
+    {
+      "name": "workforce.summary",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "mcpTools": [
+    {
+      "name": "workforce_listskill",
+      "description": "Read authorized workforce listSkill; paginated module-owned evidence.",
+      "operationId": "listSkill"
+    },
+    {
+      "name": "workforce_listprogram",
+      "description": "Read authorized workforce listProgram; paginated module-owned evidence.",
+      "operationId": "listProgram"
+    },
+    {
+      "name": "workforce_listposition",
+      "description": "Read authorized workforce listPosition; paginated module-owned evidence.",
+      "operationId": "listPosition"
+    },
+    {
+      "name": "workforce_reports",
+      "description": "Read authorized workforce reports; paginated module-owned evidence.",
+      "operationId": "reports"
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "workforce_supply",
+        "table": "workforce_supply",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "training_metrics",
+        "table": "training_metrics",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "workforce_demand",
+        "table": "workforce_demand",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  }
+}
