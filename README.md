@@ -4,6 +4,8 @@ Platform `0.5.0` builds on verified Phase 4 commit `a7d6cc1`. Master and each in
 
 ## Prerequisites and first startup
 
+An AI API key is optional for startup. You can configure it later; Master/Worker business services and MCP remain available. The Analyst reports deferred setup until a provider is configured. Reproducible Analyst tests use an explicitly labeled test model, without a live provider key. See [deferred setup and later configuration](docs/phase5.md#model-configuration-and-secrets).
+
 Run from this repository root using Node.js **24.x**, npm **10+**, and Docker with Linux containers and Compose **2.20+** (Compose `include` support). The Phase 3 provider also requires Docker API 1.51 and named-volume subpaths (verified with Engine 29.9.1). Docker Desktop must be running. The first build needs network access to npm and container registries. All commands below work in PowerShell; npm/Docker commands also work on Linux/macOS.
 
 ```powershell

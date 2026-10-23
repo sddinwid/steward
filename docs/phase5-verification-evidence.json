@@ -1,5 +1,5 @@
 {
-  "recordedAt": "2026-10-22T21:47:41.449Z",
+  "recordedAt": "2026-10-23T03:03:26.737Z",
   "phase4BaselineCommit": "a7d6cc1",
   "unitTests": {
     "passed": 28,
@@ -11,9 +11,25 @@
     "status": "not_verified",
     "reason": "No live model-provider configuration or credentials supplied"
   },
+  "liveProviderSetup": "deferred by operator; no API key required for startup or test-model verification",
+  "deferredSetup": {
+    "verifiedAt": "2026-10-23T03:02:57.709Z",
+    "investigationId": "ea236abc-92ca-4f51-a4a9-ede592f5f6f2",
+    "status": "passed",
+    "checks": [
+      "browser explains deferred setup",
+      "missing provider produces persistent explicit failure",
+      "no fabricated analysis",
+      "failure remains visible after reload",
+      "Master and three Workers healthy and ready",
+      "operator configuration and secret unchanged",
+      "no browser errors"
+    ],
+    "liveProviderValidation": "deferred by operator"
+  },
   "fullCompletionClaimed": false,
   "currentProtocolFixture": {
-    "verifiedAt": "2026-10-22T21:33:21.611Z",
+    "verifiedAt": "2026-10-23T02:50:57.655Z",
     "modelValidation": "Explicit Responses protocol test fixture, NOT a live provider",
     "checks": [
       "Master MCP discovery and real entity listing",
@@ -29,14 +45,14 @@
       "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
     ],
     "coreImages": {
-      "worker2Before": "sha256:7e2106ca043eb1d0b2a7ee172e7e9bd850f31712a75c4e2b453c800b4c1f90c3",
-      "worker2After": "sha256:7e2106ca043eb1d0b2a7ee172e7e9bd850f31712a75c4e2b453c800b4c1f90c3"
+      "worker2Before": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
+      "worker2After": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a"
     },
-    "investigationId": "c371da31-65b0-41e5-86ec-c6c83c0ad03a",
-    "browserInvestigationId": "40a604d3-8b94-4d22-ac31-6c7640a50516"
+    "investigationId": "135d934f-9911-48ed-9a07-19119e6659e4",
+    "browserInvestigationId": "70bf6d4f-387a-4e6d-b604-0989d902c9a0"
   },
   "freshDynamicInstallation": {
-    "verifiedAt": "2026-10-22T21:07:53.811Z",
+    "verifiedAt": "2026-10-23T02:59:18.217Z",
     "modelValidation": "Explicit Responses protocol test fixture, NOT a live provider",
     "checks": [
       "Master MCP discovery and real entity listing",
@@ -52,8 +68,8 @@
       "Investigation, evidence and allowed/denied MCP audit persist through Master restart"
     ],
     "coreImages": {
-      "worker2Before": "sha256:ac0cd025ff6332e6aab22719082ec646047f561e9015b10c3b2ea4573e18de9a",
-      "worker2After": "sha256:ac0cd025ff6332e6aab22719082ec646047f561e9015b10c3b2ea4573e18de9a"
+      "worker2Before": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
+      "worker2After": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a"
     },
     "inventoryWasAbsentBeforeInstall": true,
     "inventoryDiscoveryBefore": [
@@ -62,19 +78,20 @@
       "get_operational_summary",
       "get_resource_availability"
     ],
-    "investigationId": "9e18530d-6fd6-4d64-9e41-f9d5f1fd477c"
+    "investigationId": "8d863295-13a7-4f2a-9a75-b6150c8bf326",
+    "browserInvestigationId": "92124a53-37ea-429f-9579-030a9ec995b0"
   },
   "legacyRegressions": {
-    "verifiedAt": "2026-10-22T21:09:43.057Z",
-    "project": "steward-phase5-regression",
+    "verifiedAt": "2026-10-23T03:01:40.379Z",
+    "project": "steward-p5-reg-mvkdnn1x",
     "phase2": "passed",
     "phase3": "passed",
     "existingDevelopmentVolumes": "preserved"
   },
   "browserFindingPublication": {
-    "verifiedAt": "2026-10-22T21:46:43.746Z",
-    "investigationId": "40a604d3-8b94-4d22-ac31-6c7640a50516",
-    "findingId": "40a604d3-8b94-4d22-ac31-6c7640a50516",
+    "verifiedAt": "2026-10-23T03:03:02.550Z",
+    "investigationId": "70bf6d4f-387a-4e6d-b604-0989d902c9a0",
+    "findingId": "70bf6d4f-387a-4e6d-b604-0989d902c9a0",
     "deliveredTo": [
       "worker-2",
       "worker-3"
@@ -184,7 +201,7 @@
   },
   "phase4": {
     "scenario": {
-      "startedAt": "2026-10-22T21:15:47.371Z",
+      "startedAt": "2026-10-23T02:53:13.919Z",
       "checks": [
         "All three companies create and edit persistent operational records independently through Chromium",
         "Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness",
@@ -200,8 +217,8 @@
         "Original installation configuration, enrolled Worker 1 certificate and every pre-existing Inventory record remain intact",
         "All installations remain healthy with their original identities; Chromium has zero uncaught errors"
       ],
-      "findingId": "1127b72f-d54e-48a0-b560-770f7028377a",
-      "finishedAt": "2026-10-22T21:17:57.898Z",
+      "findingId": "e23b0868-8bd9-45d8-9145-23f5076d8dc1",
+      "finishedAt": "2026-10-23T02:55:20.866Z",
       "entities": {
         "worker-1": "122c7c44-ef0f-41de-aa40-b8943811c84c",
         "worker-2": "8ff40000-0000-4000-8000-000000000002",
@@ -210,9 +227,9 @@
       "records": {
         "worker-1": {
           "record": {
-            "id": "0d87877a-2b02-4e31-987b-4234b49a1cd9",
+            "id": "dc7fac40-8145-46cf-8fcf-136631d3e082",
             "revision": 2,
-            "name": "Browser phase4 worker-1 67b338a8",
+            "name": "Browser phase4 worker-1 a7f97a84",
             "site": "Verified edited site",
             "capacity_m3": 1000,
             "utilized_m3": 300,
@@ -225,9 +242,9 @@
         },
         "worker-2": {
           "record": {
-            "id": "30a71a58-4301-4564-9312-e339a71db821",
+            "id": "260e0966-c6c5-4d4e-bdef-282b5efe6e4a",
             "revision": 2,
-            "name": "Browser phase4 worker-2 3524c528",
+            "name": "Browser phase4 worker-2 ca3adbea",
             "site": "Verified edited site",
             "required_m3": 500,
             "utilized_m3": 420,
@@ -239,9 +256,9 @@
         },
         "worker-3": {
           "record": {
-            "id": "65eb16a1-92da-4b3e-a53c-d3481d46d280",
+            "id": "f29b46e7-89af-4ea1-8f11-17bbbb2a8a81",
             "revision": 2,
-            "name": "Browser phase4 worker-3 01438fd7",
+            "name": "Browser phase4 worker-3 879f8d61",
             "site": "Verified edited site",
             "capacity_m3": 1500,
             "utilized_m3": 300,
@@ -370,7 +387,7 @@
       "key": "master",
       "installationId": "bf7f6db1-ba00-4998-9e4e-48046122b8b1",
       "apiImage": "sha256:a7dd08ee8026905e00a13254395406ea0ae6bd92c9be2de6005e245238471be6",
-      "frontendImage": "sha256:bddf2ec76eea6af493046a3378fb77c8d8fccf694bff8b6e6d7f3dc299c83cf3",
+      "frontendImage": "sha256:7d593e5a6f85f6db1c3bf6fd9216879598e030fad5216c0f9c891888509413a5",
       "schema": 6,
       "modules": []
     },
@@ -378,7 +395,7 @@
       "key": "worker-1",
       "installationId": "0ddfbf69-d878-42c2-b997-5984ac17efc9",
       "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
-      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "frontendImage": "sha256:328ce4c583c1e3a18006340ee25e29c0c7147cae0c877c2d932a4f9197eadfec",
       "schema": 6,
       "modules": [
         {
@@ -408,7 +425,7 @@
       "key": "worker-2",
       "installationId": "1315e3ba-eef3-4bdd-a0a7-6196c42858a5",
       "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
-      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "frontendImage": "sha256:328ce4c583c1e3a18006340ee25e29c0c7147cae0c877c2d932a4f9197eadfec",
       "schema": 6,
       "modules": [
         {
@@ -431,7 +448,7 @@
       "key": "worker-3",
       "installationId": "9a55a4dd-ff38-4e29-a052-3f54a30c786b",
       "apiImage": "sha256:e940f6218db287c45d6c20271246b136f1d08d24e4fd5fa51efaca0a9c01573a",
-      "frontendImage": "sha256:e9809108d749eaea6376ad93cdca5b1e60de9fa9aa08a4bdd1f339a9160c537b",
+      "frontendImage": "sha256:328ce4c583c1e3a18006340ee25e29c0c7147cae0c877c2d932a4f9197eadfec",
       "schema": 6,
       "modules": [
         {
@@ -452,9 +469,9 @@
     }
   ],
   "audit": {
-    "mcpAllowed": 176,
-    "mcpDeniedOrFailed": 16,
-    "investigations": 48,
-    "activity": 384
+    "mcpAllowed": 220,
+    "mcpDeniedOrFailed": 19,
+    "investigations": 61,
+    "activity": 481
   }
 }

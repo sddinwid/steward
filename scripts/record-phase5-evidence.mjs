@@ -17,7 +17,7 @@ const fresh=await read('phase5-fresh-topology-results');assert.equal(fresh.inven
 const current=await read('phase5-results');assert.equal(current.checks.length,11);
 const provider=await read('phase5-live-provider');
 const evidence={recordedAt:new Date().toISOString(),phase4BaselineCommit:'a7d6cc1',unitTests:{passed:28,failed:0,skipped:0},
- liveProvider:provider,fullCompletionClaimed:false,currentProtocolFixture:current,freshDynamicInstallation:fresh,legacyRegressions:await read('phase5-legacy-regressions'),
+ liveProvider:provider,liveProviderSetup:'deferred by operator; no API key required for startup or test-model verification',deferredSetup:await read('phase5-unconfigured'),fullCompletionClaimed:false,currentProtocolFixture:current,freshDynamicInstallation:fresh,legacyRegressions:await read('phase5-legacy-regressions'),
  browserFindingPublication:await read('phase5-publish-browser'),concurrency:await read('phase5-concurrency'),inventoryPatchUpgrade:await read('phase5-inventory-upgrade'),
  phase4:{scenario:await read('phase4-results'),outageIndependence:await read('phase4-outage-independence'),seed:await read('phase4-seed-verification')},
  runtime,applications,audit:JSON.parse(sql('master',"SELECT json_build_object('mcpAllowed',count(*) FILTER(WHERE action='mcp.allowed'),'mcpDeniedOrFailed',count(*) FILTER(WHERE action='mcp.denied_or_failed'),'investigations',(SELECT count(*) FROM analyst_investigations),'activity',(SELECT count(*) FROM analyst_activity)) FROM security_audit"))};

@@ -38,6 +38,14 @@ Endpoints: Master `https://master.localhost:6100`; Workers `https://worker-1.loc
 
 By default no model is configured. The workspace reports this clearly, and attempts create a failed persistent investigation with `MODEL_NOT_CONFIGURED`, never a substitute analysis.
 
+**API key setup can wait.** Leave the provisioned `model.json` as `{}` and `api-key.txt` empty. No provider account or credential is required for startup, MCP, deterministic calculations, normal business operations or the reproducible verification workflow. The Analyst explains that setup is deferred and retains explicit failures for attempted investigations. No test provider is automatically enabled. When you are ready, configure the private files below; no rebuild, restart or enrollment is required. Live-provider verification remains deferred until then.
+
+Verify this state without changing configuration or supplying a key:
+
+```powershell
+node scripts/verify-analyst-unconfigured.mjs
+```
+
 Edit the ignored, private `.steward/dev/analyst/config/model.json` and put the operator's API key in `api-key.txt` in the same directory. These are mounted read-only only into Master. On Windows, the provisioner restricts directory ACLs to the current user; on Unix use the provisioned private-directory permissions. Production should supply an equivalent read-only secret-manager mount. Never put credentials in Compose environment text, frontend configuration, prompts, Git or request logs.
 
 Example real OpenAI adapter configuration (select a model available to your account):
@@ -100,7 +108,9 @@ node scripts/verify-legacy-regressions.mjs
 node scripts/record-phase5-evidence.mjs
 ```
 
-The historical Phase 2/3 suites require rejected/unenrolled and module-free Workers. The last command temporarily removes the seeded application containers and networks while retaining all volumes, uses a **new Compose project and separate persistent volumes for each run**, runs the original suites with the retained Inventory 1.0.0 package, and restores the original deployment in `finally`. It does not reset existing enrollment or business data. It requires the historical package descriptor/image retained from Phase 3. Its test volumes are retained for inspection. Run only while ordinary development testing is idle.
+`verify-model-provider.mjs` is a separate optional operator check while API-key setup is deferred. Without configuration it records `not_verified` and exits with code 2; this does not mean normal Steward services failed. Run it after configuring a real provider. The test-model workflow does not require a live API key.
+
+The historical Phase 2/3 suites require rejected/unenrolled and module-free Workers. `verify-legacy-regressions.mjs` temporarily removes the seeded application containers and networks while retaining all volumes, uses a **new Compose project and separate persistent volumes for each run**, runs the original suites with the retained Inventory 1.0.0 package, and restores the original deployment in `finally`. It does not reset existing enrollment or business data. It requires the historical package descriptor/image retained from Phase 3. Its test volumes are retained for inspection. Run only while ordinary development testing is idle.
 
 Phase 5 verification requires the real Phase 4 seed and private local verification accounts. It temporarily configures an explicitly labeled HTTPS Responses fixture in Master, tests real MCP and business data, and restores the exact operator model configuration/key in `finally`. The fixture is not a live-model result. Tests may wait for production rate-limit windows rather than weakening authentication. Evidence is in `artifacts/phase5-results.json` and `artifacts/phase5-analyst.png`; the tracked verification report states actual results and any limitations.
 
