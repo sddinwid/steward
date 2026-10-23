@@ -1,10 +1,12 @@
 import Fastify from 'fastify';
 import { moduleContainerName } from './naming.js';
+import { executeSmartStep } from './smart-executor.js';
+import { routeSmartCommand } from './smart-routing.js';
 import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
-import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
+import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
 
 interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
@@ -165,7 +167,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const lock = await client.query(p.operation === 'proxy'
+    const lock = await client.query(['proxy','inspect'].includes(p.operation)
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
@@ -180,9 +182,14 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
-    if(p.operation==='proxy'||p.operation==='activate'){
+    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'){
       const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
       if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
+    }
+    if(p.operation==='inspect'){
+      if(current.phase!=='active')return reply.code(409).send({error:'MODULE_DISABLED'});
+      const health=await callModule(p.moduleId,'GET','/ready',undefined,{},2000);
+      return reply.code(health.status===200?200:503).send({state:health.status===200?'active':'unavailable'});
     }
     if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
       if (!payload.manifest.replication) return { events: [] };
@@ -237,25 +244,41 @@ async function integrations(){
     if(--remaining<0||Date.now()-started>10000)return;
     try{validateCommand(command);}catch{continue;}
     let status='retry',result:unknown=null,error:string|null=null;
+    let deliveryClient:pg.PoolClient|undefined;const deliveryLocks:string[]=[];
     try{
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
-     if(!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');
-     const target=rows.find(r=>r.module_id===command.targetModuleId);
+     const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId):null;
+     if(!smart&&!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');
+     const wire=smart?.command??command;
+     const target=rows.find(r=>r.module_id===wire.targetModuleId);
      if(!target){error='PEER_UNAVAILABLE';}
      else{
+      // Share the same PostgreSQL advisory-lock namespace as lifecycle control.
+      // An install/configure/deactivate cannot replace a service during delivery.
+      deliveryClient=await pool.connect();
+      for(const id of [...new Set([m.moduleId,target.module_id])].sort()){
+       const acquired=(await deliveryClient.query('SELECT pg_try_advisory_lock_shared(hashtext($1)) acquired',[id])).rows[0].acquired;
+       if(!acquired)throw new Error('INTEGRATION_PROVIDER_UNAVAILABLE');deliveryLocks.push(id);
+      }
+      const fresh=(await metadataPool.query('SELECT module_id,descriptor,configuration,state FROM module_installations WHERE module_id=ANY($1::text[])',[[m.moduleId,target.module_id]])).rows;
+      if([source,target].some(old=>!fresh.some(r=>r.module_id===old.module_id&&r.state==='active'&&canonical(r.descriptor)===canonical(old.descriptor)&&canonical(r.configuration)===canonical(old.configuration))))throw new Error('INTEGRATION_PROVIDER_CHANGED');
       const targetManifest=verifyPackage(target.descriptor,trust).manifest;
+      if(smart&&canonical(smart.manifest)!==canonical(targetManifest))throw new Error('INTEGRATION_PROVIDER_CHANGED');
       const targetRuntime=JSON.parse(await readFile(`${stateRoot}/${slug(target.module_id)}/runtime.json`,'utf8'));
-      if((await state(target.module_id))?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)){error='PEER_UNAVAILABLE';}
+      const liveSourceRuntime=JSON.parse(await readFile(`${stateRoot}/${slug(m.moduleId)}/runtime.json`,'utf8'));
+      const current=await state(target.module_id),sourceState=await state(m.moduleId);
+      if(current?.phase!=='active'||current.version!==target.version||sourceState?.version!==m.version||sourceState?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)||canonical(liveSourceRuntime.configuration)!==canonical(source.configuration)){error='PEER_UNAVAILABLE';}
       else if(target.configuration.integrationsEnabled!==true){error='PEER_DISABLED';}
       else{
-       authorizeCommand(command,m,targetManifest,{source:true,target:true});
-       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,command,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId},4000);
-       if(response.status>=200&&response.status<300){status='delivered';result=response.value;}
+       if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});
+       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{})},4000);
+       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);status='delivered';result=response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
       }
      }
-    }catch(e){const code=(e as Error).message;error=/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';if(error==='INTEGRATION_IDENTITY_MISMATCH'||error==='INTEGRATION_NOT_AUTHORIZED')status='rejected';}
+    }catch(e){const code=(e as Error).message;error=code==='CAPABILITY_SCHEMA_MISMATCH'?'INTEGRATION_SCHEMA_MISMATCH':/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';if(['INTEGRATION_IDENTITY_MISMATCH','INTEGRATION_NOT_AUTHORIZED','INTEGRATION_APPROVAL_REQUIRED','INTEGRATION_APPROVAL_REVOKED','INTEGRATION_PROVIDER_CHANGED','INTEGRATION_DURABLE_SAFE_RECEIPT_REQUIRED','INTEGRATION_SCHEMA_MISMATCH'].includes(error))status='rejected';}
+    finally{if(deliveryClient){let broken=false;try{for(const id of deliveryLocks)await deliveryClient.query('SELECT pg_advisory_unlock_shared(hashtext($1))',[id]);}catch{broken=true;}deliveryClient.release(broken);}}
     // A lost ACK is safe: the next delivery has the same identity and digest.
     await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error},{},4000);
    }
@@ -264,7 +287,15 @@ async function integrations(){
  finally{integrating=false;}
 }
 const integrationTimer=setInterval(()=>void integrations(),1000).unref();
-app.addHook('onClose', async () => { clearInterval(integrationTimer);await pool.end(); await resourcePool.end();await metadataPool.end(); });
+let smartBusy=false;
+const smartTimer=setInterval(()=>{if(smartBusy)return;smartBusy=true;void(async()=>{
+  const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
+  await executeSmartStep(metadataPool,config.installationId,trust,callModule,async(id,configuration)=>{
+    const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
+    return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);
+  });
+})().catch(()=>{}).finally(()=>{smartBusy=false;});},1000).unref();
+app.addHook('onClose', async () => { clearInterval(integrationTimer);clearInterval(smartTimer);await pool.end(); await resourcePool.end();await metadataPool.end(); });
 for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => void app.close().then(() => process.exit(0)));
 // Recreate disposable containers after a deployment teardown. Durable databases,
 // secret subpaths, signed package identities and desired activation survive.

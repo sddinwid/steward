@@ -30,6 +30,8 @@ async function verifyBundle(){
  return m;
 }
 async function pack(){
+ if(values.version!==JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).version)throw new Error('Pack from source matching the target release version; use the preserved tagged source for historical releases.');
+ if(!['0.6.0','0.7.0'].includes(values.version))throw new Error('Phase 8 commerce and packaged deployment acceptance are pending. Do not package an unverified release using Phase 7 image selection.');
  if(!/^\d+\.\d+\.\d+$/.test(values.version))throw new Error('Version must be semver');
  if(path.resolve(run('git',['rev-parse','--show-toplevel'],{stdio:['ignore','pipe','pipe']}).trim())!==root)throw new Error('Pack from the verified repository root, not an installed toolkit');
  await mkdir(path.dirname(bundle),{recursive:true});await mkdir(bundle,{recursive:false});

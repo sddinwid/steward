@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
+import { SmartModules } from './smart-modules.js';
 import type { ApiContribution, ModulePackageManifest, ScreenContribution } from '@steward/module-sdk';
 type Api = <T = any>(path: string, method?: string, body?: unknown) => Promise<T>;
 interface DiscoveredModule { moduleId: string; version: string; name: string; api: ApiContribution[]; ui: ScreenContribution[] }
@@ -56,6 +57,7 @@ export function ModuleConsole({ api, administrator }: { api: Api; administrator:
         <button disabled={!scopeAccount || !scopeModule || busy} onClick={() => void act(() => api('/v3/modules/permissions', 'PUT', { accountId: scopeAccount, moduleId: scopeModule, permissions: scopePermissions }))}>Save module permissions</button>
       </details> : null}
     </section> : null}
+    {administrator?<SmartModules api={api}/>:null}
     {modules.length ? <section><h2>Module navigation</h2><nav aria-label="Module navigation">{modules.flatMap(m => m.ui.map(s => <button key={m.moduleId + '/' + s.screenId} onClick={() => setSelected(m.moduleId + '/' + s.screenId)}>{s.navigationLabel}</button>))}</nav></section> : null}
     {modules.flatMap(m => m.ui.filter(s => selected === m.moduleId + '/' + s.screenId).map(s => <ModuleScreen key={selected} api={api} module={m} screen={s} />))}
   </div>;

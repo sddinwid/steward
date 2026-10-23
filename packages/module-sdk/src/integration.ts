@@ -30,6 +30,7 @@ export interface IntegrationCommand {
     sequence: number;
     occurredAt: string;
     payload: Record<string, unknown>;
+    capability?: { capabilityId: string; operation: string };
 }
 const id = /^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -52,7 +53,7 @@ export function validateIntegration(m: ModulePackageManifest) {
         throw new Error('Integration endpoints must not be public APIs');
 }
 export function validateCommand(c: IntegrationCommand) {
-    if (!c || !keys(c, ['protocol', 'commandId', 'sourceModuleId', 'targetModuleId', 'command', 'version', 'aggregateId', 'sequence', 'occurredAt', 'payload']) || c.protocol !== INTEGRATION_PROTOCOL || !uuid.test(c.commandId) || !id.test(c.sourceModuleId) || !id.test(c.targetModuleId) || !id.test(c.command) || c.version !== 1 || !uuid.test(c.aggregateId) || !Number.isSafeInteger(c.sequence) || c.sequence < 1 || !Number.isFinite(Date.parse(c.occurredAt)) || !c.payload || Array.isArray(c.payload) || typeof c.payload !== 'object' || Buffer.byteLength(canonical(c)) > 32768)
+    if (!c || !keys(c, ['protocol', 'commandId', 'sourceModuleId', 'targetModuleId', 'command', 'version', 'aggregateId', 'sequence', 'occurredAt', 'payload','capability']) || c.protocol !== INTEGRATION_PROTOCOL || !uuid.test(c.commandId) || !id.test(c.sourceModuleId) || !id.test(c.targetModuleId) || !id.test(c.command) || c.version !== 1 || !uuid.test(c.aggregateId) || !Number.isSafeInteger(c.sequence) || c.sequence < 1 || !Number.isFinite(Date.parse(c.occurredAt)) || !c.payload || Array.isArray(c.payload) || typeof c.payload !== 'object' || Buffer.byteLength(canonical(c)) > 32768 || c.capability!==undefined&&(!keys(c.capability,['capabilityId','operation'])||!id.test(c.capability.capabilityId)||!id.test(c.capability.operation)))
         throw new Error('Invalid integration envelope');
     return digest(canonical(c));
 }

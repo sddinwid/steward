@@ -96,6 +96,11 @@ export async function enqueue(ctx: Context, targetModuleId: string, command: str
     await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)', [envelope.commandId, envelope]);
     return envelope.commandId;
 }
+export async function enqueueCapability(ctx:Context,capabilityId:string,operation:string,aggregateId:string,payload:Data) {
+    const last=Number((await ctx.db.query("SELECT COALESCE(max((envelope->>'sequence')::bigint),0) n FROM integration_outbox WHERE envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2",[aggregateId,capabilityId])).rows[0].n);
+    const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation}};
+    validateCommand(envelope);await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)',[envelope.commandId,envelope]);return envelope.commandId;
+}
 export async function receiveCommand(ctx: Context, command: IntegrationCommand, receive: NonNullable<Definition['receive']>): Promise<{
     httpStatus: number;
     value: Data;
@@ -265,7 +270,11 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             validateCommand(req.body);
             ensure(req.headers['x-steward-integration-source'] === req.body.sourceModuleId && req.headers['x-steward-installation'] === c.installationId, 'Integration identity mismatch', 403);
             const peer = definition.manifest.integration?.peers.find(p => p.moduleId === req.body.sourceModuleId);
-            ensure(peer?.receives.some(v => v.command === req.body.command && v.version === req.body.version), 'Command is not authorized', 403);
+            // This header is supplied only by the authenticated local host after
+            // verifying a persisted SSMA approval. Ordinary gateway APIs cannot
+            // forward it or address the private inbox.
+            const capability = typeof req.headers['x-steward-capability'] === 'string' ? definition.manifest.smart?.provides.find(c => c.capabilityId === req.headers['x-steward-capability']) : undefined;
+            ensure(peer?.receives.some(v => v.command === req.body.command && v.version === req.body.version) || capability?.operations.some(o => o.command === req.body.command && o.mode === 'durable'), 'Command is not authorized', 403);
             ensure(definition.receive, 'Integration command unsupported', 403);
             return receiveCommand(c, req.body, definition.receive);
         });

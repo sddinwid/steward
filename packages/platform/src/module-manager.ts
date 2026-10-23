@@ -9,6 +9,7 @@ import type { Authentication, SecureApp, Account } from './security/auth.js';
 import { signAssertion, fail } from './security/crypto.js';
 import { audit, transaction } from './security/store.js';
 import { RELEASE } from './config.js';
+import { smartModuleRoutes } from './smart-modules.js';
 
 interface ModuleRuntimeConfig { catalogFile: string; trustFile: string; brokerUrl: string; caFile: string; tlsServerName: string }
 export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authentication, installation: InstallationConfig, key: string, configFile: string) {
@@ -31,6 +32,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     return (await pool.query('SELECT permission FROM module_permissions WHERE account_id=$1 AND module_id=$2', [actor.account_id, moduleId])).rows.map(r => r.permission).filter(p => declared.includes(p));
   }
   const broker = await createModuleBroker(configFile, installation, key);
+  await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust);
   app.get('/api/v3/modules', async req => {
     await admin(req);
     const { catalog: c, trust } = await catalog();

@@ -1,6 +1,8 @@
 import { createHash, sign, verify } from 'node:crypto';
 import { Ajv } from 'ajv';
 import {validateIntegration,type IntegrationContract} from './integration.js';
+import {validateSmartManifest, type SmartModuleManifest} from './capabilities.js';
+export * from './capabilities.js';
 
 export const SDK_VERSION = 1;
 export { outboxSql, captureSql } from './outbox.js';
@@ -27,6 +29,7 @@ export interface ModulePackageManifest {
   integrationEvents: { name: string; version: number; direction: 'produced' | 'consumed' }[];
   analyticalCapabilities: { name: string; version: number }[];
   integration?:IntegrationContract;
+  smart?: SmartModuleManifest;
   mcpTools?: { name: string; description: string; operationId: string }[];
   replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
@@ -75,8 +78,9 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart'])) reject('Unsupported module manifest fields');
   validateIntegration(m);
+  if(m.api?.some(a=>['/integration-inbox','/integration-outbox','/integration-ack'].includes(a.path)))reject('Private integration endpoints must not be public APIs');
   if (m.replication && (m.replication.contractVersion !== 1 || !Array.isArray(m.replication.streams) || !m.replication.streams.length || m.replication.streams.length > 10 || new Set(m.replication.streams.map(s => s.streamId)).size !== m.replication.streams.length || m.replication.streams.some(s =>
     !onlyKeys(s, ['streamId','table','idColumn','revisionColumn','columns']) || ![s.streamId,s.table,s.idColumn,s.revisionColumn,...s.columns].every(v => /^[a-z][a-z0-9_]{0,49}$/.test(v)) || !s.columns.includes(s.idColumn) || !s.columns.includes(s.revisionColumn) || s.columns.length > 30))) reject('Invalid replication projection');
   if (!Array.isArray(m.dependencies) || m.dependencies.some(d => d.moduleId === m.moduleId || !/^[a-z][a-z0-9.-]{0,79}$/.test(d.moduleId) || !versionPattern.test(d.minimumVersion)) || new Set(m.dependencies.map(d => d.moduleId)).size !== m.dependencies.length) reject('Invalid module dependencies');
@@ -93,6 +97,7 @@ export function validateManifest(m: ModulePackageManifest): void {
   if (m.mcpTools !== undefined && (!Array.isArray(m.mcpTools) || m.mcpTools.length > 10 || new Set(m.mcpTools.map(t=>t.name)).size !== m.mcpTools.length || m.mcpTools.some(t=>!onlyKeys(t,['name','description','operationId']) || !/^[a-z][a-z0-9_]{0,59}$/.test(t.name) || typeof t.description !== 'string' || t.description.length > 300 || !m.api.some(a=>a.operationId===t.operationId && a.method==='GET' && !a.path.includes(':'))))) reject('Invalid read-only MCP contribution');
   if (!m.configurationSchema || m.configurationSchema.type !== 'object' || m.configurationSchema.additionalProperties !== false) reject('Configuration must be a closed JSON object schema');
   configurationValidator(m.configurationSchema);
+  validateSmartManifest(m);
   if (!Array.isArray(m.integrationEvents) || m.integrationEvents.some(e => !e.name.startsWith(m.moduleId + '.') || !Number.isInteger(e.version) || e.version < 1 || !['produced', 'consumed'].includes(e.direction)) ||
       !Array.isArray(m.analyticalCapabilities) || m.analyticalCapabilities.some(c => typeof c.name !== 'string' || !Number.isInteger(c.version) || c.version < 1)) reject('Invalid event/analytical declarations');
 }

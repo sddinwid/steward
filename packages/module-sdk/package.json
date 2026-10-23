@@ -1,6 +1,6 @@
 {
   "name": "@steward/module-sdk",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/test/manifest.test.js dist/test/integration.test.js"
+    "test": "node --test dist/test/manifest.test.js dist/test/integration.test.js dist/test/capabilities.test.js"
   },
   "dependencies": {
     "ajv": "8.20.0"

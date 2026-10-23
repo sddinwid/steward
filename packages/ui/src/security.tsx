@@ -14,9 +14,10 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
   const [busy, setBusy] = useState(false);
   const csrf = useRef('');
   const api: Api = async (path, method = 'GET', body) => {
-    const response = await fetch((path.startsWith('/v3/') || path.startsWith('/v4/') || path.startsWith('/v5/')) ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
+    const versioned = /^\/v(?:3|4|5|8)\//.test(path);
+    const response = await fetch(versioned ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout((path.startsWith('/v3/') || path.startsWith('/v4/') || path.startsWith('/v5/')) ? 90000 : 15000) });
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(versioned ? 90000 : 15000) });
     const value = await response.json();
     if (!response.ok) throw new Error(value.error ?? 'Request failed');
     return value;
