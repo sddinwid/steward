@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
 import { provision } from './provision.js';
+import {PLATFORM_RELEASE} from '@steward/contracts';
 
 try {
   const { values, positionals } = parseArgs({ options: {
@@ -12,7 +13,7 @@ try {
     help: { type: 'boolean', default: false }
   }, allowPositionals: true });
   if (values.help) {
-    console.log('Steward provisioner v1 (release 0.4.0; preserves 0.1.0 deployments)\nUsage: steward-install provision [--directory PATH] [--mode all|master|worker] [--workers 1..20] [--project NAME] [--label TEXT]\nCreates a deployment; reruns preserve all existing state. Does not enroll installations.');
+    console.log(`Steward provisioner v1 (release ${PLATFORM_RELEASE}; preserves earlier v1 deployments)\nUsage: steward-install provision [--directory PATH] [--mode all|master|worker] [--workers 1..20] [--project NAME] [--label TEXT]\nCreates a deployment; reruns preserve all existing state. Does not enroll installations.`);
   } else {
     if (positionals.length !== 1 || positionals[0] !== 'provision') throw new Error('Expected provision command. Use --help.');
     const result = await provision({ directory: values.directory!, sourceRoot: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..'),

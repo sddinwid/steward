@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.procurement",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "name": "Procurement",
   "description": "Independent persistent procurement business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.7.0",
@@ -189,6 +189,18 @@
       "method": "GET",
       "path": "/integration-status",
       "permission": "cee.procurement.read"
+    },
+    {
+      "operationId": "withdrawDemand",
+      "method": "POST",
+      "path": "/withdraw-demand/:id",
+      "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "withdrawQuote",
+      "method": "POST",
+      "path": "/withdraw-quote/:id",
+      "permission": "cee.procurement.approve"
     }
   ],
   "ui": [
@@ -255,6 +267,13 @@
           "maxLength": 80
         },
         {
+          "name": "supplierCode",
+          "label": "Supplier Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 60
+        },
+        {
           "name": "sku",
           "label": "Sku",
           "type": "string",
@@ -313,15 +332,19 @@
       ],
       "columns": [
         "number",
+        "supplierCode",
         "sku",
         "quantity",
-        "reason",
         "status"
       ],
       "actions": [
         {
           "label": "publish demand",
           "operationId": "publishDemand"
+        },
+        {
+          "label": "withdraw demand",
+          "operationId": "withdrawDemand"
         }
       ]
     },
@@ -508,6 +531,13 @@
           "maxLength": 3
         },
         {
+          "name": "validUntil",
+          "label": "Valid Until",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
           "name": "status",
           "label": "Status",
           "type": "string",
@@ -526,6 +556,10 @@
         {
           "label": "publish quote",
           "operationId": "publishQuote"
+        },
+        {
+          "label": "withdraw quote",
+          "operationId": "withdrawQuote"
         }
       ]
     },
@@ -627,13 +661,23 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "migrations": [],
     "destructiveRollback": false
   },
   "integrationEvents": [
     {
-      "name": "cee.procurement.record-changed",
+      "name": "cee.procurement.goods-received",
+      "version": 1,
+      "direction": "produced"
+    },
+    {
+      "name": "cee.procurement.stock-replenishment",
+      "version": 1,
+      "direction": "consumed"
+    },
+    {
+      "name": "cee.procurement.approved-demand-upsert",
       "version": 1,
       "direction": "produced"
     }
@@ -717,6 +761,17 @@
       {
         "streamId": "procurement_quotes",
         "table": "procurement_quotes",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "purchase_commitments",
+        "table": "purchase_commitments",
         "idColumn": "id",
         "revisionColumn": "revision",
         "columns": [

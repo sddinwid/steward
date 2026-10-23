@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.workforce",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "name": "Workforce",
   "description": "Independent persistent workforce business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.7.0",
@@ -190,6 +190,24 @@
       "method": "GET",
       "path": "/matches",
       "permission": "cee.workforce.people.read"
+    },
+    {
+      "operationId": "withdrawSkills",
+      "method": "POST",
+      "path": "/withdraw-skills/:id",
+      "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "withdrawProgram",
+      "method": "POST",
+      "path": "/withdraw-program/:id",
+      "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "withdrawPosition",
+      "method": "POST",
+      "path": "/withdraw-position/:id",
+      "permission": "cee.workforce.publish"
     }
   ],
   "ui": [
@@ -240,6 +258,10 @@
         {
           "label": "publish skills",
           "operationId": "publishSkills"
+        },
+        {
+          "label": "withdraw skills",
+          "operationId": "withdrawSkills"
         }
       ]
     },
@@ -368,6 +390,10 @@
         {
           "label": "publish program",
           "operationId": "publishProgram"
+        },
+        {
+          "label": "withdraw program",
+          "operationId": "withdrawProgram"
         }
       ]
     },
@@ -528,6 +554,10 @@
         {
           "label": "publish position",
           "operationId": "publishPosition"
+        },
+        {
+          "label": "withdraw position",
+          "operationId": "withdrawPosition"
         }
       ]
     },
@@ -708,7 +738,7 @@
   },
   "integrationEvents": [
     {
-      "name": "cee.workforce.record-changed",
+      "name": "cee.workforce.approved-aggregate-upsert",
       "version": 1,
       "direction": "produced"
     }

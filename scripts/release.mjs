@@ -7,7 +7,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.6.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false}}});
+const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.7.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false}}});
 const action=positionals[0],directory=path.resolve(values.directory),bundle=path.resolve(values.bundle??'artifacts/releases/steward-'+values.version);
 const run=(cmd,args,options={})=>execFileSync(cmd,args,{cwd:root,encoding:'utf8',timeout:600000,stdio:'inherit',...options});
 const node=(script,args=[])=>run(process.execPath,[path.join(root,script),...args]);
@@ -26,7 +26,7 @@ async function verifyBundle(){
  const actual=(await files(bundle)).map(f=>path.relative(bundle,f).replaceAll('\\','/')).filter(f=>f!=='release.json').sort();
  if(JSON.stringify(actual)!==JSON.stringify(Object.keys(m.files).sort()))throw new Error('Unexpected or missing release files');
  const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres'];
- if(m.platformCompatibility!=='0.5.0'||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
+ if(!['0.5.0','0.7.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
  return m;
 }
 async function pack(){
@@ -36,13 +36,15 @@ async function pack(){
  const source=JSON.parse(await readFile(path.join(directory,'modules/public/catalog.json'),'utf8'));
  const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
  const {verifyPackage}=await import('../packages/module-sdk/dist/index.js');
- const packages=['cee.inventory@1.2.1','cee.operations@1.0.0'].map(id=>{
+ const compatibility=values.version==='0.6.0'?'0.5.0':'0.7.0';
+ const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2'];
+ const packages=selected.map(id=>{
   const signed=source.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===id);
   if(!signed)throw new Error('Publish required package '+id+' before packaging');return verifyPackage(signed,trust);
  });
  const images={};
  for(const kind of ['master-api','master-web','worker-api','worker-web','module-host']){
-  const sourceTag='steward-'+kind+':0.5.0',tag='steward-'+kind+':'+values.version;
+  const sourceTag='steward-'+kind+':'+compatibility,tag='steward-'+kind+':'+values.version;
   const metadata=JSON.parse(docker('image','inspect',sourceTag))[0],id=metadata.Id;
   let old;try{old=JSON.parse(docker('image','inspect',tag))[0].Id;}catch{}
   if(old&&old!==id)throw new Error('Immutable release tag already has different content: '+tag);
@@ -54,7 +56,7 @@ async function pack(){
  for(const name of names){
   // Acceptance evidence is emitted after packaging as a sidecar; avoid a
   // self-referential manifest checksum and stale evidence in later packages.
-  if(name==='docs/phase6-verification-evidence.json')continue;
+  if(['docs/phase6-verification-evidence.json','docs/phase7-verification-evidence.json'].includes(name))continue;
   if(!/^(apps\/|packages\/|tools\/|modules\/|scripts\/|infra\/|datasets\/|docs\/|package(?:-lock)?\.json$|tsconfig.base.json$|README.md$|\.dockerignore$)/.test(name))continue;
   if(/(^|\/)(node_modules|dist)\//.test(name))continue;
   const src=path.join(root,name);if(!(await lstat(src)).isFile())throw new Error('Non-file source');
@@ -62,11 +64,11 @@ async function pack(){
   const dest=path.join(toolkit,name);await mkdir(path.dirname(dest),{recursive:true});await copyFile(src,dest);
  }
  await writeFile(path.join(bundle,'module-packages.json'),JSON.stringify(packages,null,2)+'\n');
- for(const role of ['master','worker'])await writeFile(path.join(bundle,role+'-distribution.json'),JSON.stringify({formatVersion:1,version:values.version,platformCompatibility:'0.5.0',role,images:Object.fromEntries(Object.entries(images).filter(([k])=>k.startsWith(role)||k==='postgres'||role==='worker'&&k==='module-host')),modulesBundledSeparately:true},null,2)+'\n');
+ for(const role of ['master','worker'])await writeFile(path.join(bundle,role+'-distribution.json'),JSON.stringify({formatVersion:1,version:values.version,platformCompatibility:compatibility,role,images:Object.fromEntries(Object.entries(images).filter(([k])=>k.startsWith(role)||k==='postgres'||role==='worker'&&k==='module-host')),modulesBundledSeparately:true},null,2)+'\n');
  console.log('Saving versioned core, PostgreSQL and separate module images…');
  docker('image','save','-o',path.join(bundle,'images.tar'),...Object.values(images).map(i=>i.tag),...packages.map(p=>p.imageId));
  const hashes={};for(const f of await files(bundle))hashes[path.relative(bundle,f).replaceAll('\\','/')]=await digest(f);
- await writeFile(path.join(bundle,'release.json'),JSON.stringify({formatVersion:1,version:values.version,createdAt:new Date().toISOString(),sourceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim(),includesWorkingTreeChanges:!!run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim(),platformCompatibility:'0.5.0',images,files:hashes},null,2)+'\n');
+ await writeFile(path.join(bundle,'release.json'),JSON.stringify({formatVersion:1,version:values.version,createdAt:new Date().toISOString(),sourceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim(),includesWorkingTreeChanges:!!run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim(),platformCompatibility:compatibility,images,files:hashes},null,2)+'\n');
  console.log('Release '+values.version+' packaged at '+bundle+'; distribute the whole directory.');
 }
 async function install(upgrade=false){

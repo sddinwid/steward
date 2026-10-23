@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.7.0",
@@ -109,6 +109,16 @@
       "method": "GET",
       "path": "/integration-status",
       "permission": "cee.sales.read"
+    },
+    {
+      "operationId": "salesByPeriod",
+      "method": "GET",
+      "path": "/sales-period",
+      "permission": "cee.sales.read",
+      "query": [
+        "from",
+        "to"
+      ]
     }
   ],
   "ui": [
@@ -358,13 +368,28 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "migrations": [],
     "destructiveRollback": false
   },
   "integrationEvents": [
     {
-      "name": "cee.sales.record-changed",
+      "name": "cee.sales.stock-reservation",
+      "version": 1,
+      "direction": "produced"
+    },
+    {
+      "name": "cee.sales.stock-release",
+      "version": 1,
+      "direction": "produced"
+    },
+    {
+      "name": "cee.sales.stock-consumption",
+      "version": 1,
+      "direction": "produced"
+    },
+    {
+      "name": "cee.sales.order-demand-upsert",
       "version": 1,
       "direction": "produced"
     }
@@ -372,6 +397,10 @@
   "analyticalCapabilities": [
     {
       "name": "sales.summary",
+      "version": 1
+    },
+    {
+      "name": "sales.period-report",
       "version": 1
     }
   ],
@@ -422,6 +451,27 @@
       "name": "sales_reports",
       "description": "Read authorized sales reports; paginated module-owned evidence.",
       "operationId": "reports"
+    },
+    {
+      "name": "sales_by_period",
+      "description": "Revenue from actual completed fulfillments and order volume in UTC; from inclusive, to exclusive. Currencies remain separate.",
+      "operationId": "salesByPeriod"
     }
-  ]
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "sales_demand",
+        "table": "sales_demand",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  }
 }

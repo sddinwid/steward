@@ -7,7 +7,7 @@ import {privateDirectory} from '../tools/installer/dist/security.js';
 import pg from 'pg';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {createBusinessServer} from '../packages/business-kit/dist/index.js';
+import {createBusinessServer,enqueue} from '../packages/business-kit/dist/index.js';
 import {digest,canonical,validateManifest,authorizeCommand} from '../packages/module-sdk/dist/index.js';
 import {createInventoryServer} from '../modules/inventory/dist/server.js';
 import {fileURLToPath} from 'node:url';
@@ -28,7 +28,7 @@ try{
  async function fixture(name,configuration={currency:'EUR',integrationsEnabled:false}){
   const database=name+'_'+(++fixtureNumber);await admin.query('CREATE DATABASE '+database);const pool=new pg.Pool({host:'127.0.0.1',port,user:'postgres',password,database});pools.push(pool);
   const manifest=JSON.parse(await readFile(`modules/${name}/manifest.json`,'utf8'));
-  const migrations=(await readdir(`modules/${name}/migrations`)).sort();manifest.persistence.migrations=[];
+  const migrations=(await readdir(`modules/${name}/migrations`)).sort();manifest.persistence.migrations=[];manifest.persistence.schemaVersion=migrations.length;
   for(let i=0;i<migrations.length;i++){const sql=await readFile(`modules/${name}/migrations/${migrations[i]}`,'utf8');await pool.query(sql);manifest.persistence.migrations.push({version:i+1,sha256:digest(sql)});}
   validateManifest(manifest);
   const definition=name==='inventory'?null:(await import(`../modules/${name}/dist/definition.js`))[name](manifest),installationId=randomUUID(),token=randomBytes(32).toString('base64url');
@@ -73,6 +73,7 @@ try{
   const fulfillment={number:'F1',orderNumber:order.number,lines:[{sku:'SKU',quantity:2}]};await q('POST','/fulfillments',fulfillment,undefined,201);await q('POST','/fulfillments',fulfillment,undefined,201);
   assert.equal((await q('GET','/orders')).records[0].status,'partially_fulfilled');await q('POST','/fulfillments',{...fulfillment,number:'F2'},undefined,201);
   await f.restart();assert.equal((await q('GET','/orders')).records[0].status,'fulfilled');assert.equal((await q('GET','/reports')).revenueCents,1000);
+  const period=await q('GET','/sales-period?from=2000-01-01&to=2099-01-01');assert.equal(period.revenueCents,1000);assert.equal(period.fulfillmentCount,2);assert.equal((await q('GET','/sales-period?from=2099-01-01&to=2100-01-01')).revenueCents,0);await q('GET','/sales-period?from=2100-01-01&to=2000-01-01',undefined,undefined,400);await q('GET','/sales-period?from=invalid',undefined,undefined,400);
  });
  await test('Assets: explicit foreign ownership, authorization, capacity limits, publication and scheduling',async()=>{
   const owner=randomUUID(),user=randomUUID(),f=await fixture('assets',{currency:'EUR',integrationsEnabled:false,authorizedOwnerEntityIds:[owner]}),q=f.request;
@@ -98,6 +99,8 @@ try{
   }
   await q('GET','/people',undefined,['cee.workforce.read'],403);await q('GET','/matches',undefined,['cee.workforce.read'],403);assert.equal((await q('GET','/matches')).records.length,3);
   await q('POST','/publish-skills/'+skill.id,{revision:skill.revision,requestId:randomUUID()});await q('POST','/publish-program/'+program.id,{revision:program.revision,requestId:randomUUID()});await q('POST','/publish-position/'+position.id,{revision:position.revision,requestId:randomUUID()});
+  const initial={reference:'SYN-1',displayName:'Synthetic Person 1',skills:[],availabilityUnits:1};const originalReceipt=(await q('POST','/people',initial,['cee.workforce.people.write'],201)).record;assert.deepEqual(originalReceipt.skills,[],'Write-only create replay must not expose later private skill changes');
+  const otherWriter=await f.app.inject({method:'POST',url:'/people',headers:{authorization:'Bearer '+f.token,'x-steward-actor':'another-writer','x-steward-permissions':JSON.stringify(['cee.workforce.people.write'])},payload:initial});assert.equal(otherWriter.statusCode,409,'Another writer cannot use a known creation payload to retrieve a private record');
   for(const table of ['workforce_supply','training_metrics','workforce_demand']){const projection=JSON.stringify((await f.pool.query('SELECT projection FROM '+table)).rows);assert(!/SYN-|displayName|personRef|Synthetic Person/.test(projection));}
   assert.equal((await f.pool.query('SELECT projection FROM workforce_supply')).rows[0].projection.availablePeople,3);
   assert(f.manifest.mcpTools.every(t=>!['listPerson','listEnrollment','listAchievement','candidateMatches'].includes(t.operationId)));
@@ -113,6 +116,7 @@ try{
   const orders=[];for(let i=1;i<=2;i++){let r=(await sales.request('POST','/orders',{number:'S'+i,customerCode:'C1',currency:'EUR',lines:[{sku:'SKU-1',quantity:8,unitPriceCents:100}]},undefined,201)).record;r=(await sales.request('POST','/confirm/'+r.id,{revision:r.revision,requestId:randomUUID()})).record;orders.push(r);}
   const commands=await outbox(sales);assert.equal(commands.length,2);const responses=await Promise.all(commands.map(c=>inbox(sales,inventory,c)));for(const r of responses)assert.equal(r.statusCode,200,r.body);
   assert.deepEqual(responses.map(r=>r.json().lines[0].reserved).sort((a,b)=>a-b),[2,8]);
+  const held=(await inventory.request('GET','/items')).records[0];await inventory.request('PUT','/items/'+held.id,{sku:held.sku,name:held.name,quantity:held.quantity,reservedQuantity:0,minStock:held.minStock,revision:held.revision},undefined,409);
   await inventory.restart();const replay=await inbox(sales,inventory,commands[0]);assert.deepEqual(replay.json(),responses[0].json());assert.equal(Number((await inventory.pool.query('SELECT reserved_quantity FROM inventory_items')).rows[0].reserved_quantity),10);
   const changed={...commands[0],payload:{orderId:commands[0].aggregateId,lines:[{sku:'SKU-1',quantity:1}]}};assert.equal((await inbox(sales,inventory,changed)).statusCode,409);
   assert.equal((await raw(inventory,'POST','/integration-inbox',commands[0])).statusCode,403);
@@ -126,6 +130,22 @@ try{
   for(const action of ['submit','approve','place'])po=(await procurement.request('POST',`/${action}/${po.id}`,{revision:po.revision,requestId:randomUUID()})).record;
   for(const [number,quantity]of [['R1',3],['R2',2]]){await procurement.request('POST','/receipts',{number,orderNumber:po.number,lines:[{sku:'SKU-1',quantity}]},undefined,201);const receipt=(await outbox(procurement))[0],received=await inbox(procurement,inventory,receipt);assert.equal(received.statusCode,200,received.body);assert.deepEqual((await inbox(procurement,inventory,receipt)).json(),received.json());await acknowledge(procurement,receipt,received);await acknowledge(procurement,receipt,received);}
   const stock=(await inventory.request('GET','/items')).records[0];assert.equal(stock.quantity,13);assert.equal(stock.reservedQuantity,0);assert.equal((await inventory.pool.query('SELECT count(*)::int AS n FROM inventory_movements')).rows[0].n,3);
+ });
+ await test('Durable business rejections advance ordering; future gaps, wrong identities and changed replays cannot alter stock',async()=>{
+  const inventory=await fixture('inventory',{quantityUnit:'units',integrationsEnabled:true}),aggregateId=randomUUID();
+  const command={protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:'cee.sales',targetModuleId:'cee.inventory',command:'stock.reserve',version:1,aggregateId,sequence:1,occurredAt:new Date().toISOString(),payload:{orderId:aggregateId,lines:[{sku:'UNKNOWN',quantity:2}]}};
+  const deliver=(payload)=>inventory.app.inject({method:'POST',url:'/integration-inbox',headers:{authorization:'Bearer '+inventory.token,'x-steward-integration-source':'cee.sales','x-steward-installation':inventory.installationId},payload});
+  const rejected=await deliver(command);assert.equal(rejected.statusCode,422,rejected.body);assert.deepEqual((await deliver(command)).json(),rejected.json());
+  const release={...command,commandId:randomUUID(),command:'stock.release',sequence:3,payload:{orderId:aggregateId}};assert.equal((await deliver(release)).statusCode,425);release.sequence=2;const released=await deliver(release);assert.equal(released.statusCode,200,released.body);
+  assert.equal((await deliver({...command,payload:{orderId:aggregateId,lines:[{sku:'UNKNOWN',quantity:3}]}})).statusCode,409);assert.equal((await inventory.pool.query('SELECT count(*)::int AS n FROM integration_inbox')).rows[0].n,2);assert.equal((await inventory.pool.query('SELECT max(sequence)::int AS n FROM integration_sequences')).rows[0].n,2);
+ });
+ await test('Terminating a PostgreSQL writer before commit preserves neither a partial business write nor its outbox',async()=>{
+  const f=await fixture('sales'),db=await f.pool.connect();db.on('error',()=>{});
+  try{await db.query('BEGIN');await db.query('INSERT INTO business_records(id,kind,key,data) VALUES($1,$2,$3,$4)',[randomUUID(),'customer','INTERRUPTED',{code:'INTERRUPTED',name:'Synthetic crash fixture',reference:'SYN-CRASH'}]);
+   await enqueue({db,config:f.configuration,installationId:f.installationId,moduleId:'cee.sales',actor:'test',permissions:[]},'cee.inventory','stock.release',randomUUID(),{orderId:randomUUID()});
+   const pid=(await db.query('SELECT pg_backend_pid() AS pid')).rows[0].pid;await f.pool.query('SELECT pg_terminate_backend($1)',[pid]);await assert.rejects(db.query('COMMIT'));
+  }finally{db.release(true);}
+  assert.equal((await f.pool.query('SELECT count(*)::int AS n FROM business_records')).rows[0].n,0);assert.equal((await f.pool.query('SELECT count(*)::int AS n FROM integration_outbox')).rows[0].n,0);
  });
 }finally{
  for(const app of apps)await app.close();for(const pool of pools)await pool.end();await admin?.end();

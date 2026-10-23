@@ -20,5 +20,5 @@ COPY modules/inventory/manifest.json ./manifest.json
 COPY modules/inventory/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="cee.inventory" steward.module.version="1.3.0" steward.module.sdk="1"
+LABEL steward.module.id="cee.inventory" steward.module.version="1.3.2" steward.module.sdk="1"
 CMD ["node", "dist/index.js"]

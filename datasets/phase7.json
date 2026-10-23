@@ -1,0 +1,76 @@
+{
+  "datasetVersion": 1,
+  "description": "Controlled synthetic Phase 7 business scenario. No real people, suppliers, customers or commercial commitments.",
+  "currency": "EUR",
+  "sku": "SYN-P7-SUPPLY",
+  "procurement": [
+    {
+      "worker": "worker-1",
+      "supplierName": "Synthetic External Vendor A",
+      "quantity": 100,
+      "unitPriceCents": 1200,
+      "shippingCents": 5000,
+      "transitionCents": 1000
+    },
+    {
+      "worker": "worker-2",
+      "supplierName": "Synthetic External Vendor B",
+      "quantity": 200,
+      "unitPriceCents": 1100,
+      "shippingCents": 7000,
+      "transitionCents": 2000
+    }
+  ],
+  "quote": {
+    "worker": "worker-1",
+    "minimumQuantity": 250,
+    "unitPriceCents": 900,
+    "shippingCents": 8000,
+    "validDays": 30
+  },
+  "asset": {
+    "worker": "worker-3",
+    "userWorker": "worker-1",
+    "name": "Synthetic Phase 7 shared warehouse",
+    "site": "Synthetic Phase 7 hub",
+    "capacityM3": 1000,
+    "utilizedM3": 200,
+    "monthlyOperatingCostCents": 300000
+  },
+  "storageDemand": {
+    "worker": "worker-2",
+    "requiredM3": 500,
+    "utilizedM3": 400,
+    "monthlyExternalCost": 12000
+  },
+  "workforce": {
+    "trainingWorker": "worker-3",
+    "demandWorker": "worker-1",
+    "skillCode": "SYN-P7-LOGISTICS",
+    "skillName": "Synthetic logistics qualification",
+    "programName": "Synthetic logistics training",
+    "seats": 8,
+    "syntheticPeople": 3,
+    "openings": 5,
+    "site": "Synthetic Phase 7 hub",
+    "localPositionTitle": "Synthetic training operations assistant"
+  },
+  "workflow": {
+    "worker": "worker-1",
+    "initialStock": 10,
+    "threshold": 5,
+    "orderQuantity": 8,
+    "unitPriceCents": 1500,
+    "purchaseQuantity": 5,
+    "purchasePriceCents": 900
+  },
+  "manufacturingAssets": {
+    "worker": "worker-1",
+    "ownerWorker": "worker-3",
+    "facilityName": "Synthetic manufacturing facility",
+    "equipmentName": "Synthetic packaging equipment",
+    "site": "Industrial district",
+    "monthlyOperatingCostCents": 90000,
+    "maintenanceCostCents": 15000
+  }
+}

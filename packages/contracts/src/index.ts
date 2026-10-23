@@ -92,3 +92,5 @@ export interface SyncReceipt {
   protocol: 'steward-sync-v1'; issuer: string; installationId: string; nonce: string;
   acknowledged: string[]; events: DataEvent[];
 }
+export * from './business.js';
+export const PLATFORM_RELEASE='0.7.0';

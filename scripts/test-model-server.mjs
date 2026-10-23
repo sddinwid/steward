@@ -16,6 +16,17 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   const business=b.instructions?.includes('query_procurement_matches')?'procurement':b.instructions?.includes('query_workforce_matches')?'workforce':null;
+   if(business){
+    if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);
+    const match=results.find(v=>v.structuredContent?.data?.matches)?.structuredContent.data.matches[0];
+    if(!match)return calls([{name:business==='procurement'?'query_procurement_matches':'query_workforce_matches',arguments:{limit:1}}]);
+    const participant=business==='procurement'?match.first:match.supply;
+    if(!results.some(v=>v.structuredContent?.data?.relationships))return calls([{name:'query_business_relationships',arguments:{entityId:participant.entityId,limit:4}}]);
+    const analysis=results.find(v=>v.structuredContent?.data?.calculation)?.structuredContent.data;
+    if(!analysis){const args={};for(const key of business==='procurement'?['first','second','quote']:['supply','program','demand']){args[key+'RecordId']=match[key].recordId;args[key+'Revision']=match[key].revision;}return calls([{name:business==='procurement'?'analyze_shared_procurement_by_id':'analyze_workforce_opportunity_by_id',arguments:args}]);}
+    return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({narrative:'TEST MODEL: actual MCP evidence and deterministic '+business+' calculation: '+JSON.stringify(analysis.calculation)+'. No business decision executed.',assumptions:['Use the explicit deterministic service assumptions; synthetic scenario only.'],humanDecisions:['Verify source freshness, relationships, consent or commercial terms before human approval.']})}]}]);
+   }
    const compact=b.tools.some(t=>t.name==='query_resource_matches')&&!b.tools.some(t=>t.name==='get_entity_summary')||results.some(v=>v.structuredContent?.data?.matches);
    if(compact){
      if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);

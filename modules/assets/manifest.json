@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.assets",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "name": "Assets",
   "description": "Independent persistent assets business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.7.0",
@@ -140,6 +140,12 @@
       "method": "GET",
       "path": "/integration-status",
       "permission": "cee.assets.read"
+    },
+    {
+      "operationId": "withdraw",
+      "method": "POST",
+      "path": "/withdraw/:id",
+      "permission": "cee.assets.publish"
     }
   ],
   "ui": [
@@ -311,14 +317,14 @@
         {
           "name": "capacityM3",
           "label": "Capacity M3",
-          "type": "string",
+          "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "utilizedM3",
           "label": "Utilized M3",
-          "type": "string",
+          "type": "number",
           "required": true,
           "minimum": 0
         },
@@ -366,6 +372,10 @@
         {
           "label": "publish",
           "operationId": "publish"
+        },
+        {
+          "label": "withdraw",
+          "operationId": "withdraw"
         }
       ]
     },
@@ -487,7 +497,7 @@
         {
           "name": "capacityM3",
           "label": "Capacity M3",
-          "type": "string",
+          "type": "number",
           "required": true,
           "minimum": 0
         },
@@ -622,13 +632,13 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "migrations": [],
     "destructiveRollback": false
   },
   "integrationEvents": [
     {
-      "name": "cee.assets.record-changed",
+      "name": "cee.assets.approved-capacity-upsert",
       "version": 1,
       "direction": "produced"
     }
@@ -691,7 +701,8 @@
           "available_m3",
           "monthly_operating_cost",
           "currency",
-          "ownership"
+          "ownership",
+          "valid_until"
         ]
       }
     ]

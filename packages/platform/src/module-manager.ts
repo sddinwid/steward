@@ -83,9 +83,12 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
       try { assertCompatible(m, RELEASE, installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state }))); } catch (e) { fail(409, (e as Error).message); }
       const existing = installed.find(r => r.module_id === m.moduleId);
       if (m.replication && !(await client.query("SELECT 1 FROM local_enrollment WHERE singleton AND state='enrolled'")).rowCount) fail(409, 'Enrollment is required for this module');
-      if (req.body.upgrade && (!existing || !atLeast(m.version, existing.version) || m.version === existing.version)) fail(409, 'Upgrade requires a newer compatible package');
       if (installed.some(r => r.operation_id === req.body.operationId && r.module_id !== m.moduleId)) fail(409, 'Operation ID belongs to another module');
       if (existing?.operation_id === req.body.operationId && (canonical(existing.descriptor) !== canonical(descriptor) || canonical(existing.configuration) !== canonical(req.body.configuration))) fail(409, 'Operation ID is bound to a different installation request');
+      // A successful upgrade is now the installed version. Check its bound
+      // request identity before requiring the candidate to be newer again.
+      if(existing?.operation_id===req.body.operationId&&!['failed','installing'].includes(existing.state))return{state:existing.state,moduleId:m.moduleId,operationId:existing.operation_id};
+      if (req.body.upgrade && (!existing || !atLeast(m.version, existing.version) || m.version === existing.version)) fail(409, 'Upgrade requires a newer compatible package');
       if (existing && !req.body.upgrade && existing.state !== 'failed' && existing.state !== 'installing') {
         if (digest(canonical(existing.descriptor)) !== digest(canonical(descriptor)) || canonical(existing.configuration) !== canonical(req.body.configuration)) fail(409, 'Module is already installed with a different package or configuration');
         return { state: existing.state, moduleId: m.moduleId, operationId: existing.operation_id };

@@ -31,7 +31,7 @@ function failure(code: string): never { throw Object.assign(new Error(code), { c
 function http(options: RequestOptions, body?: unknown): Promise<{ status: number; value: any }> {
   return new Promise((resolve, reject) => {
     const data = body === undefined ? undefined : JSON.stringify(body);
-    const req = request({ ...options, headers: { ...options.headers, ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) }, timeout: 15000 }, res => {
+    const req = request({ ...options, headers: { ...options.headers, ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) }, timeout: options.timeout??15000 }, res => {
       let value = ''; res.setEncoding('utf8');
       res.on('data', chunk => { value += chunk; if (value.length > 1048576) req.destroy(new Error('Response exceeds limit')); });
       res.on('end', () => { try { resolve({ status: res.statusCode ?? 500, value: value ? JSON.parse(value) : {} }); } catch { reject(new Error('Invalid runtime response')); } });
@@ -65,9 +65,9 @@ async function atomicJson(file: string, value: unknown, mode: number) {
   try { await parent.sync(); } finally { await parent.close(); }
 }
 async function save(id: string, value: unknown) { await atomicJson(`${stateRoot}/${slug(id)}/state.json`, value, 0o600); }
-async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={}) {
+async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
-  return http({ host: containerName(id), port: 8080, method, path, headers: { ...context,authorization: 'Bearer ' + token } }, body);
+  return http({ host: containerName(id), port: 8080, method, path,timeout,headers: { ...context,authorization: 'Bearer ' + token } }, body);
 }
 async function ready(id: string) {
   const deadline = Date.now() + 20000;
@@ -179,6 +179,10 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
+    if(p.operation==='proxy'||p.operation==='activate'){
+      const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
+      if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
+    }
     if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
       if (!payload.manifest.replication) return { events: [] };
       return moduleDatabase(p.moduleId, async sql => {
@@ -214,21 +218,23 @@ app.setErrorHandler((error, _request, reply) => {
   const code = (error as { code?: string }).code;
   reply.code(503).send({ error: code && /^[A-Z_]+$/.test(code) ? code : 'MODULE_RUNTIME_FAILED' });
 });
-let integrating=false;
+let integrating=false,integrationCursor=0;
 async function integrations(){
  if(integrating)return;integrating=true;const started=Date.now();let remaining=8;
  try{
   const rows=(await metadataPool.query("SELECT module_id,version,descriptor,configuration FROM module_installations WHERE state='active' ORDER BY module_id")).rows;
   const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
-  for(const source of rows){
+  const ordered=rows.length?[...rows.slice(integrationCursor%rows.length),...rows.slice(0,integrationCursor%rows.length)]:[];integrationCursor++;
+  for(const source of ordered){try{
    const m=verifyPackage(source.descriptor,trust).manifest;
    if(!m.integration||source.configuration.integrationsEnabled!==true)continue;
    const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(m.moduleId)}/runtime.json`,'utf8'));
    if((await state(m.moduleId))?.phase!=='active'||canonical(runtime.configuration)!==canonical(source.configuration))continue;
-   const batch=await callModule(m.moduleId,'GET',m.integration.outboxPath);
+   const batch=await callModule(m.moduleId,'GET',m.integration.outboxPath,undefined,{},4000);
    if(batch.status!==200||!Array.isArray(batch.value.commands)||batch.value.commands.length>4)continue;
    for(const command of batch.value.commands){
     if(--remaining<0||Date.now()-started>10000)return;
+    try{validateCommand(command);}catch{continue;}
     let status='retry',result:unknown=null,error:string|null=null;
     try{
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
@@ -242,7 +248,7 @@ async function integrations(){
       else if(target.configuration.integrationsEnabled!==true){error='PEER_DISABLED';}
       else{
        authorizeCommand(command,m,targetManifest,{source:true,target:true});
-       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,command,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId});
+       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,command,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId},4000);
        if(response.status>=200&&response.status<300){status='delivered';result=response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
@@ -250,9 +256,9 @@ async function integrations(){
      }
     }catch(e){const code=(e as Error).message;error=/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';if(error==='INTEGRATION_IDENTITY_MISMATCH'||error==='INTEGRATION_NOT_AUTHORIZED')status='rejected';}
     // A lost ACK is safe: the next delivery has the same identity and digest.
-    await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error});
+    await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error},{},4000);
    }
-  }
+  }catch{continue;}}
  }catch{ /* Local module failures do not block the provider or other Workers. */ }
  finally{integrating=false;}
 }

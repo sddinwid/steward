@@ -10,6 +10,7 @@ import { audit } from './security/store.js';
 import { fail } from './security/crypto.js';
 import { resourceSharing, sharingInput } from './analytical-capabilities.js';
 import { resourcePage, resourceQuerySchema, resourceMatches, matchQuerySchema } from './analyst-context.js';
+import {businessPage,businessQuerySchema,businessMatchSchema,procurementMatches,workforceMatches,calculateProcurement,calculateWorkforce,canonicalBusinessPayload,sourceReference} from './business-analysis.js';
 
 const entity = z.string().uuid();
 export const referenceSchema = z.object({ entityId: entity, moduleId: z.string().max(80), streamId: z.string().max(50), recordId: entity, revision: z.number().int().positive() }).strict();
@@ -63,7 +64,7 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
             const data = await run(input);
             // Master query shapes are core-owned. Worker module responses are
             // independently defined and must not be interpreted as these shapes.
-            if(installation.role==='master')for(const id of [...(data?.affectedEntities??[]),...(data?.resources??[]).map((r:any)=>r.entityId),...(data?.matches??[]).flatMap((m:any)=>[m.supply.entityId,m.demand.entityId])])if(!targetEntities.includes(id))targetEntities.push(id);
+            if(installation.role==='master')for(const id of [...(data?.affectedEntities??[]),...(data?.resources??[]).map((r:any)=>r.entityId),...(data?.records??[]).map((r:any)=>r.entityId),...(data?.matches??[]).flatMap((m:any)=>Object.values(m).filter((v:any)=>v&&typeof v==='object'&&typeof v.entityId==='string').map((v:any)=>v.entityId))].filter(Boolean))if(!targetEntities.includes(id))targetEntities.push(id);
             if (Buffer.byteLength(JSON.stringify(data)) > 262144) fail(413, 'Result too large; narrow the entity scope');
             await audit(pool, actor.account_id, 'mcp.allowed', name, { agentId: client, installationId: installation.installationId, entityId: input.entityId ?? null, targetEntities, milliseconds: Date.now()-started });
             const result = { schemaVersion: 1 as const, sourceInstallationId: installation.installationId, data };
@@ -96,7 +97,7 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
         async function analyze(i:any) {
           async function record(ref:any) { const a=await api('/api/v4/analytics?entityId='+ref.entityId); const row=a.records.find((r:any)=>JSON.stringify(reference(r))===JSON.stringify(ref)); if(!row) fail(409,'Source revision unavailable'); return row; }
           const supply=await record(i.supply), demand=await record(i.demand);
-          if(supply.entity_id===demand.entity_id || !['capacities','warehouse_assets'].includes(supply.stream_id) || demand.stream_id!=='storage_requirements' || supply.module_id!==demand.module_id) fail(400,'Capacity and external demand from separate entities required');
+          if(supply.entity_id===demand.entity_id || !['capacities','warehouse_assets'].includes(supply.stream_id) || demand.stream_id!=='storage_requirements'||supply.payload.valid_until&&Date.parse(supply.payload.valid_until)<=Date.now()) fail(400,'Current capacity and external demand from separate entities required');
           const s=supply.payload,d=demand.payload;
           if(s.currency!==d.currency) fail(400,'Currency conversion is not implemented');
           const calculation=resourceSharing.calculate({ ...i.assumptions, availableCapacity:Number(s.available_m3), requiredCapacity:Number(d.required_m3), externalMonthlyCost:Number(d.monthly_external_cost), currency:s.currency });
@@ -110,6 +111,24 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
             const resolve=(id:string,revision:number)=>{const matches=a.records.filter((r:any)=>r.record_id===id&&Number(r.revision)===revision);if(matches.length!==1)fail(404,'Unique authorized source revision unavailable');return reference(matches[0]);};
             const {supplyRecordId,demandRecordId,supplyRevision,demandRevision,...values}=i;return analyze({supply:resolve(supplyRecordId,supplyRevision),demand:resolve(demandRecordId,demandRevision),assumptions:values});
           });
+        tool('query_business_evidence','Read a compact authorized page of canonical purchasing, sales, replenishment or aggregate workforce evidence. Choose a category; copy source references and revisions exactly. Private workforce records are never canonical projections.',businessQuerySchema,async i=>{
+          const a=await api('/api/v4/analytics'+(i.entityId?'?entityId='+i.entityId:''));if(i.entityId&&!a.entities.length)fail(404,'Unknown entity');return businessPage(a.records,i);
+        });
+        const scopedBusiness=async(i:any)=>{const a=await api('/api/v4/analytics');if(i.entityId&&!a.entities.some((e:any)=>e.entity_id===i.entityId))fail(404,'Unknown entity');return a.records;};
+        tool('query_procurement_matches','Find real cross-entity approved overlapping purchase demands and a compatible external supplier quote. Returns first, second and quote source IDs/revisions. This screening does not calculate savings.',businessMatchSchema,async i=>procurementMatches(await scopedBusiness(i),i));
+        tool('query_workforce_matches','Find authorized aggregate skill supply, training capacity and open positions across entities. Returns supply, program and demand IDs/revisions. Suppressed counts are unknown; no individual candidates are disclosed.',businessMatchSchema,async i=>workforceMatches(await scopedBusiness(i),i));
+        const recordId=z.string().uuid(),revision=z.number().int().positive();
+        async function resolveBusiness(id:string,version:number){const a=await api('/api/v4/analytics'),rows=a.records.filter((r:any)=>r.record_id===id&&Number(r.revision)===version);if(rows.length!==1)fail(409,'Unique authorized source revision unavailable');return rows[0];}
+        function evidence(rows:any[],calculation:any){return{calculation,supportingReferences:rows.map(sourceReference),affectedEntities:[...new Set(rows.map(r=>r.entity_id))],observed:{sources:rows.map(r=>({reference:sourceReference(r),sourceWorker:r.installation_id,observedAt:r.source_at,ingestedAt:r.ingested_at,payload:r.payload}))},authoritative:false,decisionExecuted:false};}
+        tool('analyze_shared_procurement_by_id','Calculate exact integer-cent external cost savings using observed first/second demands and supplier quote. Copy all IDs/revisions from query_procurement_matches. Transition and shipping are charged once; internal transfers cancel. Never calculate savings yourself.',z.object({firstRecordId:recordId,firstRevision:revision,secondRecordId:recordId,secondRevision:revision,quoteRecordId:recordId,quoteRevision:revision,internalTransferCents:z.number().int().min(0).max(1e12).default(0)}).strict(),async i=>{
+          const a=await resolveBusiness(i.firstRecordId,i.firstRevision),b=await resolveBusiness(i.secondRecordId,i.secondRevision),q=await resolveBusiness(i.quoteRecordId,i.quoteRevision);
+          if(a.entity_id===b.entity_id||a.stream_id!=='procurement_demands'||b.stream_id!=='procurement_demands'||q.stream_id!=='procurement_quotes'||![a.entity_id,b.entity_id].includes(q.entity_id))fail(422,'Separate demand entities and a participating entity quote are required');
+          return evidence([a,b,q],calculateProcurement(canonicalBusinessPayload(a),canonicalBusinessPayload(b),canonicalBusinessPayload(q),i.internalTransferCents));
+        });
+        tool('analyze_workforce_opportunity_by_id','Calculate aggregate skill coverage and training opportunity, using exact supply/program/demand IDs and revisions from query_workforce_matches. No personal records, no adding overlapping people/completions, no hiring decision.',z.object({supplyRecordId:recordId,supplyRevision:revision,programRecordId:recordId,programRevision:revision,demandRecordId:recordId,demandRevision:revision}).strict(),async i=>{
+          const s=await resolveBusiness(i.supplyRecordId,i.supplyRevision),p=await resolveBusiness(i.programRecordId,i.programRevision),d=await resolveBusiness(i.demandRecordId,i.demandRevision);
+          if(s.entity_id===d.entity_id||s.entity_id!==p.entity_id||s.stream_id!=='workforce_supply'||p.stream_id!=='training_metrics'||d.stream_id!=='workforce_demand')fail(422,'Separate authorized demand and training entities required');return evidence([s,p,d],calculateWorkforce(canonicalBusinessPayload(s),canonicalBusinessPayload(p),canonicalBusinessPayload(d)));
+        });
       } else {
         if (!['local_admin','module_user'].includes(actor.role)) fail(403, 'Worker-local permission required');
         const discovery = await api('/api/v3/modules/discovery');
@@ -117,7 +136,7 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
         if(actor.role==='local_admin') {
           tool('get_company_profile', 'Read locally persisted enrolled company identity.', empty, async () => { const s=await api('/api/v2/worker/status');return { entityId:s.entityId,entityName:s.entityName,enrollmentState:s.enrollmentState }; });
           async function operations() {
-            const reads=discovery.modules.flatMap((m:any)=>m.api.filter((a:any)=>a.method==='GET'&&!a.path.includes(':')).map((op:any)=>({m,op})));
+            const reads=discovery.modules.flatMap((m:any)=>m.api.filter((a:any)=>a.method==='GET'&&!a.path.includes(':')&&(m.mcpTools??[]).some((t:any)=>t.operationId===a.operationId)).map((op:any)=>({m,op})));
             if(reads.length>8)fail(413,'Use individual module tools for this large installation');
             const result=[];
             for(let offset=0;offset<reads.length;offset+=4)result.push(...await Promise.all(reads.slice(offset,offset+4).map(async({m,op}:any)=>({moduleId:m.moduleId,operationId:op.operationId,records:await api('/api/v3/modules/'+m.moduleId+'/api'+op.path)}))));
