@@ -1,4 +1,5 @@
 import Fastify from 'fastify';
+import { moduleContainerName } from './naming.js';
 import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
@@ -45,7 +46,7 @@ async function docker(method: string, path: string, body?: unknown, allowed = [2
   return result;
 }
 const slug = (id: string) => 'm_' + digest(id).slice(0, 20);
-const containerName = (id: string) => `${config.project}-${config.workerKey}-${slug(id)}`;
+const containerName = (id: string) => moduleContainerName(config.project, config.workerKey, id);
 async function ownedContainer(id: string) {
   const result = await docker('GET', '/containers/' + containerName(id) + '/json', undefined, [200, 404]);
   if (result.status === 404) return undefined;

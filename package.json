@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/business-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build:business",
-    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business",
+    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business",
     "provision": "node tools/installer/dist/cli.js provision",
     "security:provision": "node tools/installer/dist/security-cli.js",
     "dev:up": "node scripts/compose.mjs up --build -d --wait --wait-timeout 180",

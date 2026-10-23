@@ -39,7 +39,7 @@ async function browserInstall(worker,module,version,configuration,proof){
  const browser=await chromium.launch({headless:true});try{
   const context=await browser.newContext({ignoreHTTPSErrors:true});await context.addCookies([{name:'__Host-steward',value:sessions[worker].cookie.split('=')[1],url:origin(worker),secure:true,httpOnly:true,sameSite:'Strict'}]);const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin(worker));
   const packageId=module+'@'+version,card=page.getByTestId('package-'+packageId);await card.waitFor();await card.getByLabel('Configuration for '+packageId).fill(JSON.stringify(configuration));const name=manager.available.find(p=>p.packageId===packageId)?.manifest.name;assert(name,'Trusted package is missing');
-  const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST',{timeout:100000});await card.getByRole('button',{name:(existing?'Upgrade to ':'Install ')+name,exact:true}).click();const installed=await response;assert.equal(installed.status(),200,await installed.text());const request=installed.request().postDataJSON();
+  const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST',{timeout:100000});await card.getByRole('button',{name:(existing&&['failed','installing'].includes(existing.state)?'Recover ':existing&&existing.version!==version?'Upgrade to ':'Install ')+name,exact:true}).click();const installed=await response;assert.equal(installed.status(),200,await installed.text());const request=installed.request().postDataJSON();
   // Repeat the actual browser request identity through the same authenticated API.
   await api(worker,'/api/v3/modules/install','POST',request);
   const current=(await api(worker,'/api/v3/modules')).value.installed.find(m=>m.moduleId===module);if(current.state!=='active'){const activated=page.waitForResponse(r=>r.url().endsWith('/'+module+'/lifecycle'));await page.getByRole('button',{name:'Activate '+name,exact:true}).click();assert.equal((await activated).status(),200);}
@@ -53,7 +53,7 @@ async function install(){
  if(!proof.initiallyAbsent.length){for(const w of ['worker-1','worker-2','worker-3']){const manager=(await api(w,'/api/v3/modules')).value;assert.equal(manager.installed.length,0,'First Phase 7 install requires a fresh demonstration deployment');proof.initiallyAbsent.push(w);}}
  try{
   // Exercise the retained Phase 6 module package and then its real migration upgrade.
-  const manager=(await api('worker-1','/api/v3/modules')).value;if(!manager.installed.some(m=>m.moduleId==='cee.inventory')){
+  const manager=(await api('worker-1','/api/v3/modules')).value;if(!manager.installed.some(m=>m.moduleId==='cee.inventory')||manager.installed.some(m=>m.moduleId==='cee.inventory'&&m.version==='1.2.1'&&['failed','installing'].includes(m.state))){
    await browserInstall('worker-1','cee.inventory','1.2.1',{quantityUnit:'units'},proof);
   }
   if((await api('worker-1','/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.inventory')?.version==='1.2.1'){await create('worker-1','cee.inventory','/items','sku',{sku:'SYN-P7-UPGRADE',name:'Synthetic retained Phase 6 item',quantity:7,reservedQuantity:0});

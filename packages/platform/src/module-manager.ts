@@ -68,6 +68,9 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     } } }
   }, async (req, reply) => {
     const actor = await admin(req, true);
+    // Authentication and body receipt retain the short default timeout. Only
+    // this authorized lifecycle operation may wait for the bounded broker call.
+    req.raw.setTimeout(65000);
     const { catalog: c, trust } = await catalog();
     const descriptor = c.packages.find(d => d.payload.manifest.moduleId + '@' + d.payload.manifest.version === req.body.packageId);
     if (!descriptor) fail(404, 'Package is not available');
