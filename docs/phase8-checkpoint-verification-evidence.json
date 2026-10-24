@@ -1,0 +1,152 @@
+{
+  "reportVersion": 1,
+  "status": "phase8_incomplete",
+  "baseline": {
+    "commit": "59a3b865ccc59b2024644e558670f9402632ab2e",
+    "tag": "v0.7.0",
+    "initialWorkingTree": "clean",
+    "backendTestsPassed": 52
+  },
+  "implementationCommit": "dae8583a2ddc142ab292a548126f570da4bcb0fb",
+  "sourceTargetVersion": "0.8.0",
+  "releaseTag": null,
+  "releaseArtifacts": null,
+  "build": {
+    "command": "npm run build",
+    "status": "passed"
+  },
+  "backendTests": {
+    "command": "npm test",
+    "passed": 63,
+    "failed": 0,
+    "suites": {
+      "sdk": 14,
+      "moduleHost": 2,
+      "platform": 23,
+      "installer": 6,
+      "inventory": 2,
+      "operations": 2,
+      "business": 7,
+      "smart": 7
+    }
+  },
+  "ssmaBackend": {
+    "verificationVersion": 1,
+    "startedAt": "2026-10-23T22:56:12.614Z",
+    "scope": "Isolated SSMA kernel acceptance; synthetic module and health-transport fixtures, real PostgreSQL/authentication/inboxes. Not commerce or packaged-release acceptance.",
+    "checks": [
+      {
+        "name": "additive upgrade from the actual schema-6 migrations preserves installation, accounts and signed module configuration",
+        "status": "passed",
+        "elapsedMs": 453
+      },
+      {
+        "name": "SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers",
+        "status": "passed",
+        "elapsedMs": 70
+      },
+      {
+        "name": "approved workflows enforce lifecycle, pin receipts, survive lost ACK, concurrent execution and provider substitution",
+        "status": "passed",
+        "elapsedMs": 352
+      },
+      {
+        "name": "provider upgrade, reinstall, configuration mismatch, entity mismatch and revoked authority suspend before effects",
+        "status": "passed",
+        "elapsedMs": 806
+      },
+      {
+        "name": "capability outbox routing pins real inbox effects and never moves an existing obligation to a substitute",
+        "status": "passed",
+        "elapsedMs": 150
+      },
+      {
+        "name": "malformed results suspend without fabricated completion and safe transport failures exhaust a bounded retry budget",
+        "status": "passed",
+        "elapsedMs": 202
+      },
+      {
+        "name": "non-repeatable submissions keep independent issuance journals and never blindly retry uncertain effects",
+        "status": "passed",
+        "elapsedMs": 141
+      }
+    ],
+    "finishedAt": "2026-10-23T22:56:19.248Z",
+    "status": "passed"
+  },
+  "ssmaBrowser": {
+    "verificationVersion": 1,
+    "startedAt": "2026-10-23T22:56:37.634Z",
+    "scope": "Isolated SSMA kernel acceptance; synthetic module and health-transport fixtures, real PostgreSQL/authentication/inboxes. Not commerce or packaged-release acceptance.",
+    "checks": [
+      {
+        "name": "additive upgrade from the actual schema-6 migrations preserves installation, accounts and signed module configuration",
+        "status": "passed",
+        "elapsedMs": 462
+      },
+      {
+        "name": "SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers",
+        "status": "passed",
+        "elapsedMs": 73
+      },
+      {
+        "name": "approved workflows enforce lifecycle, pin receipts, survive lost ACK, concurrent execution and provider substitution",
+        "status": "passed",
+        "elapsedMs": 332
+      },
+      {
+        "name": "provider upgrade, reinstall, configuration mismatch, entity mismatch and revoked authority suspend before effects",
+        "status": "passed",
+        "elapsedMs": 819
+      },
+      {
+        "name": "capability outbox routing pins real inbox effects and never moves an existing obligation to a substitute",
+        "status": "passed",
+        "elapsedMs": 136
+      },
+      {
+        "name": "malformed results suspend without fabricated completion and safe transport failures exhaust a bounded retry budget",
+        "status": "passed",
+        "elapsedMs": 207
+      },
+      {
+        "name": "non-repeatable submissions keep independent issuance journals and never blindly retry uncertain effects",
+        "status": "passed",
+        "elapsedMs": 157
+      },
+      {
+        "name": "browser performs discovery, explicit provider approval, retained-state reload and unavailable-state inspection",
+        "status": "passed",
+        "elapsedMs": 2410
+      }
+    ],
+    "finishedAt": "2026-10-23T22:56:47.092Z",
+    "status": "passed"
+  },
+  "retainedRuntime": {
+    "release": "0.7.0",
+    "smoke": "passed",
+    "archiveChecksums": "passed",
+    "project": "steward-phase7-release-acceptance2",
+    "containerCount": 27,
+    "totalMemoryMiB": 1179.26,
+    "totalCpuPercent": 26.44,
+    "observedAt": "2026-10-23T22:55:21.758Z",
+    "loadedOllamaModels": [],
+    "operationalBusinessCodeAbsentFromWorkerImages": true
+  },
+  "releaseGate": "0.8 packaging intentionally rejected; Phase 7 image selection cannot establish Phase 8 acceptance",
+  "unimplemented": [
+    "Independent production capability providers and Sales substitution demonstration",
+    "Shopify adapter",
+    "Printify adapter",
+    "Commerce simulators and signed event ingestion",
+    "Full Sales/stock/production/shipping commerce workflow",
+    "Master commerce projections/metrics/MCP and reviewed AI findings",
+    "Operator reconciliation/resume UI and business-specific workflow dataflow/compensation",
+    "Complete deployed failure matrix",
+    "Full 0.8 deployment regressions and release/archive install/upgrade/redeployment"
+  ],
+  "commercialValidation": "No Shopify/Printify account or paid production request exercised",
+  "readyForNextPhase": false
+}

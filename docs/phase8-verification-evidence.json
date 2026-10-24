@@ -1,152 +1,731 @@
 {
-  "reportVersion": 1,
-  "status": "phase8_incomplete",
-  "baseline": {
-    "commit": "59a3b865ccc59b2024644e558670f9402632ab2e",
-    "tag": "v0.7.0",
-    "initialWorkingTree": "clean",
-    "backendTestsPassed": 52
-  },
-  "implementationCommit": "dae8583a2ddc142ab292a548126f570da4bcb0fb",
-  "sourceTargetVersion": "0.8.0",
-  "releaseTag": null,
-  "releaseArtifacts": null,
-  "build": {
-    "command": "npm run build",
-    "status": "passed"
-  },
+  "recordedAt": "2026-10-24T02:28:13.130Z",
+  "status": "runtime_passed_final_archive_pending",
+  "checkpoint": "fa79ac7",
   "backendTests": {
-    "command": "npm test",
-    "passed": 63,
+    "total": 80,
+    "passed": 80,
     "failed": 0,
-    "suites": {
+    "bySuite": {
       "sdk": 14,
-      "moduleHost": 2,
-      "platform": 23,
-      "installer": 6,
+      "host": 2,
+      "platform": 28,
+      "installer": 7,
       "inventory": 2,
       "operations": 2,
       "business": 7,
-      "smart": 7
+      "ssma": 8,
+      "commerce": 10
     }
   },
-  "ssmaBackend": {
-    "verificationVersion": 1,
-    "startedAt": "2026-10-23T22:56:12.614Z",
-    "scope": "Isolated SSMA kernel acceptance; synthetic module and health-transport fixtures, real PostgreSQL/authentication/inboxes. Not commerce or packaged-release acceptance.",
-    "checks": [
-      {
-        "name": "additive upgrade from the actual schema-6 migrations preserves installation, accounts and signed module configuration",
-        "status": "passed",
-        "elapsedMs": 453
-      },
-      {
-        "name": "SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers",
-        "status": "passed",
-        "elapsedMs": 70
-      },
-      {
-        "name": "approved workflows enforce lifecycle, pin receipts, survive lost ACK, concurrent execution and provider substitution",
-        "status": "passed",
-        "elapsedMs": 352
-      },
-      {
-        "name": "provider upgrade, reinstall, configuration mismatch, entity mismatch and revoked authority suspend before effects",
-        "status": "passed",
-        "elapsedMs": 806
-      },
-      {
-        "name": "capability outbox routing pins real inbox effects and never moves an existing obligation to a substitute",
-        "status": "passed",
-        "elapsedMs": 150
-      },
-      {
-        "name": "malformed results suspend without fabricated completion and safe transport failures exhaust a bounded retry budget",
-        "status": "passed",
-        "elapsedMs": 202
-      },
-      {
-        "name": "non-repeatable submissions keep independent issuance journals and never blindly retry uncertain effects",
-        "status": "passed",
-        "elapsedMs": 141
-      }
-    ],
-    "finishedAt": "2026-10-23T22:56:19.248Z",
-    "status": "passed"
+  "smartBrowser": {
+    "total": 9,
+    "includesRepeatedBackendCases": 8,
+    "errors": []
   },
-  "ssmaBrowser": {
-    "verificationVersion": 1,
-    "startedAt": "2026-10-23T22:56:37.634Z",
-    "scope": "Isolated SSMA kernel acceptance; synthetic module and health-transport fixtures, real PostgreSQL/authentication/inboxes. Not commerce or packaged-release acceptance.",
-    "checks": [
-      {
-        "name": "additive upgrade from the actual schema-6 migrations preserves installation, accounts and signed module configuration",
-        "status": "passed",
-        "elapsedMs": 462
-      },
-      {
-        "name": "SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers",
-        "status": "passed",
-        "elapsedMs": 73
-      },
-      {
-        "name": "approved workflows enforce lifecycle, pin receipts, survive lost ACK, concurrent execution and provider substitution",
-        "status": "passed",
-        "elapsedMs": 332
-      },
-      {
-        "name": "provider upgrade, reinstall, configuration mismatch, entity mismatch and revoked authority suspend before effects",
-        "status": "passed",
-        "elapsedMs": 819
-      },
-      {
-        "name": "capability outbox routing pins real inbox effects and never moves an existing obligation to a substitute",
-        "status": "passed",
-        "elapsedMs": 136
-      },
-      {
-        "name": "malformed results suspend without fabricated completion and safe transport failures exhaust a bounded retry budget",
-        "status": "passed",
-        "elapsedMs": 207
-      },
-      {
-        "name": "non-repeatable submissions keep independent issuance journals and never blindly retry uncertain effects",
-        "status": "passed",
-        "elapsedMs": 157
-      },
-      {
-        "name": "browser performs discovery, explicit provider approval, retained-state reload and unavailable-state inspection",
-        "status": "passed",
-        "elapsedMs": 2410
-      }
-    ],
-    "finishedAt": "2026-10-23T22:56:47.092Z",
-    "status": "passed"
-  },
-  "retainedRuntime": {
-    "release": "0.7.0",
-    "smoke": "passed",
-    "archiveChecksums": "passed",
-    "project": "steward-phase7-release-acceptance2",
-    "containerCount": 27,
-    "totalMemoryMiB": 1179.26,
-    "totalCpuPercent": 26.44,
-    "observedAt": "2026-10-23T22:55:21.758Z",
-    "loadedOllamaModels": [],
-    "operationalBusinessCodeAbsentFromWorkerImages": true
-  },
-  "releaseGate": "0.8 packaging intentionally rejected; Phase 7 image selection cannot establish Phase 8 acceptance",
-  "unimplemented": [
-    "Independent production capability providers and Sales substitution demonstration",
-    "Shopify adapter",
-    "Printify adapter",
-    "Commerce simulators and signed event ingestion",
-    "Full Sales/stock/production/shipping commerce workflow",
-    "Master commerce projections/metrics/MCP and reviewed AI findings",
-    "Operator reconciliation/resume UI and business-specific workflow dataflow/compensation",
-    "Complete deployed failure matrix",
-    "Full 0.8 deployment regressions and release/archive install/upgrade/redeployment"
+  "earlierRegressions": [
+    {
+      "suite": "smoke",
+      "status": "passed",
+      "elapsedMs": 17238
+    },
+    {
+      "suite": "browser-smoke",
+      "status": "passed",
+      "elapsedMs": 4193
+    },
+    {
+      "suite": "verify-phase4-seed",
+      "status": "passed",
+      "elapsedMs": 5931
+    },
+    {
+      "suite": "verify-phase4",
+      "status": "passed",
+      "elapsedMs": 137783
+    },
+    {
+      "suite": "verify-inventory-mcp-upgrade",
+      "status": "passed",
+      "elapsedMs": 13877
+    },
+    {
+      "suite": "mcp-smoke",
+      "status": "passed",
+      "elapsedMs": 3026
+    },
+    {
+      "suite": "verify-phase5",
+      "status": "passed",
+      "elapsedMs": 141150
+    },
+    {
+      "suite": "verify-analyst-browser",
+      "status": "passed",
+      "elapsedMs": 3656
+    },
+    {
+      "suite": "verify-compact-mcp",
+      "status": "passed",
+      "elapsedMs": 1804
+    },
+    {
+      "suite": "verify-compact-analyst",
+      "status": "passed",
+      "elapsedMs": 66525
+    },
+    {
+      "suite": "verify-analyst-concurrency",
+      "status": "passed",
+      "elapsedMs": 28159
+    },
+    {
+      "suite": "verify-isolation",
+      "status": "passed",
+      "elapsedMs": 36977
+    },
+    {
+      "suite": "verify-outage-independence",
+      "status": "passed",
+      "elapsedMs": 42805
+    },
+    {
+      "suite": "verify-module-restart",
+      "status": "passed",
+      "elapsedMs": 57897
+    },
+    {
+      "suite": "verify-module-provision",
+      "status": "passed",
+      "elapsedMs": 8652
+    },
+    {
+      "suite": "verify-module-secrets",
+      "status": "passed",
+      "elapsedMs": 9591
+    },
+    {
+      "suite": "verify-analyst-unconfigured",
+      "status": "passed",
+      "elapsedMs": 2345
+    }
   ],
-  "commercialValidation": "No Shopify/Printify account or paid production request exercised",
-  "readyForNextPhase": false
+  "legacy": {
+    "phase2": "passed on separate actual v0.8 fixture",
+    "phase3": "passed on the same fixture after correcting hardcoded ports",
+    "phase5": "passed on the same fixture; actual test-model failures and browser flows"
+  },
+  "phase7": [
+    {
+      "suite": "browser",
+      "status": "passed"
+    },
+    {
+      "suite": "mcp",
+      "status": "passed"
+    },
+    {
+      "suite": "recovery",
+      "status": "passed"
+    },
+    {
+      "suite": "configuration",
+      "status": "passed"
+    },
+    {
+      "suite": "test-model",
+      "status": "passed"
+    }
+  ],
+  "commerce": {
+    "startedAt": "2026-10-24T02:08:51.287Z",
+    "scope": "Real module APIs/databases, SSMA governance/routing and separate TLS simulator processes. No commercial account or paid production.",
+    "checks": [
+      {
+        "name": "real TLS simulators paginate authenticated source APIs; adapters preserve authoritative IDs and explicit mappings",
+        "status": "passed",
+        "elapsedMs": 232
+      },
+      {
+        "name": "approved SSMA workflows import Shopify orders, reserve real stock and queue production without manufacturing",
+        "status": "passed",
+        "elapsedMs": 831
+      },
+      {
+        "name": "local permission and explicit production approval precede external creation; genuine simulated production and shipment complete the order",
+        "status": "passed",
+        "elapsedMs": 5501
+      },
+      {
+        "name": "signed webhooks accept exact retries and reject forged or altered identities without duplicate effects",
+        "status": "passed",
+        "elapsedMs": 52
+      },
+      {
+        "name": "governed commerce projection carries exact revenue, estimated costs, source provenance and no personal data",
+        "status": "passed",
+        "elapsedMs": 14
+      },
+      {
+        "name": "substitution selects an independently implemented provider without changing Sales source or another provider inventory",
+        "status": "passed",
+        "elapsedMs": 2144
+      },
+      {
+        "name": "lost external create, production and fulfillment responses reconcile without repeating non-repeatable effects",
+        "status": "passed",
+        "elapsedMs": 20927
+      },
+      {
+        "name": "Printify signed replay, wrong shop identity and unavailable credentials preserve records and recover",
+        "status": "passed",
+        "elapsedMs": 33325
+      },
+      {
+        "name": "explicit retention keeps original aggregate workflows and stock obligations while new work selects the replacement",
+        "status": "passed",
+        "elapsedMs": 4158
+      },
+      {
+        "name": "refunds and source cancellations preserve completed effects; stale source observations and reordered signed webhooks cannot regress state",
+        "status": "passed",
+        "elapsedMs": 10855
+      }
+    ],
+    "commerce": {
+      "recognizedRevenueCents": 5000,
+      "productionCostCents": 1600,
+      "shippingCostCents": 400,
+      "costBasis": "estimated",
+      "sourceId": "gid://shopify/Order/1"
+    },
+    "finishedAt": "2026-10-24T02:10:15.250Z",
+    "status": "passed"
+  },
+  "providerSubstitution": {
+    "startedAt": "2026-10-24T02:09:52.085Z",
+    "checks": [
+      "browser resolved, approved and activated stock-ledger for new work",
+      "browser resolved, approved and activated inventory for new work",
+      "original and substitute reservations release only at their pinned provider; unchanged Sales image"
+    ],
+    "browserErrors": [],
+    "consumerImageBefore": "sha256:87c2b9cf2de1dce25f7087ded83622028d4b36df238aaf45eea373f694d552dd",
+    "consumerImageAfter": "sha256:87c2b9cf2de1dce25f7087ded83622028d4b36df238aaf45eea373f694d552dd",
+    "status": "passed",
+    "finishedAt": "2026-10-24T02:10:01.755Z"
+  },
+  "connectorFailures": {
+    "startedAt": "2026-10-24T01:52:09.105Z",
+    "simulation": true,
+    "checks": [
+      {
+        "name": "rate limit",
+        "error": "CONNECTOR_RATE_LIMITED",
+        "elapsedMs": 7080,
+        "authoritativeSalesRecordsPreserved": true
+      },
+      {
+        "name": "credential/scope rejection",
+        "error": "CONNECTOR_CREDENTIAL_OR_SCOPE_REJECTED",
+        "elapsedMs": 31811,
+        "authoritativeSalesRecordsPreserved": true
+      },
+      {
+        "name": "malformed response",
+        "error": "CONNECTOR_MALFORMED_RESPONSE",
+        "elapsedMs": 31922,
+        "authoritativeSalesRecordsPreserved": true
+      },
+      {
+        "name": "bounded provider timeout",
+        "error": "CONNECTOR_UNAVAILABLE",
+        "elapsedMs": 10058,
+        "authoritativeSalesRecordsPreserved": true
+      }
+    ],
+    "status": "passed",
+    "finishedAt": "2026-10-24T01:53:30.465Z"
+  },
+  "moduleUpgrades": {
+    "startedAt": "2026-10-24T02:09:02.468Z",
+    "checks": [
+      {
+        "worker": "worker-1",
+        "moduleId": "cee.sales",
+        "version": "1.1.1",
+        "businessRecordsPreserved": true,
+        "coreImageUnchanged": true
+      },
+      {
+        "worker": "worker-1",
+        "moduleId": "cee.printify",
+        "version": "1.0.2",
+        "businessRecordsPreserved": true,
+        "coreImageUnchanged": true
+      },
+      {
+        "worker": "worker-3",
+        "moduleId": "cee.sales",
+        "version": "1.1.1",
+        "businessRecordsPreserved": true,
+        "coreImageUnchanged": true
+      },
+      {
+        "worker": "worker-3",
+        "moduleId": "cee.printify",
+        "version": "1.0.2",
+        "businessRecordsPreserved": true,
+        "coreImageUnchanged": true
+      }
+    ],
+    "browserErrors": [],
+    "status": "passed",
+    "finishedAt": "2026-10-24T02:09:19.149Z"
+  },
+  "directV07Upgrade": {
+    "status": "passed",
+    "project": "steward-phase8-direct",
+    "images": {
+      "master-api": "sha256:cd9f9cf7b1d0fcaf11b5bde44f1ec42bc702fdce902fb4814ad00ee91717c35b",
+      "master-web": "sha256:5ab06b2acd3ae425fecbd419382adda59aff13c4f6934756bea9b8f37993b379",
+      "worker-1-api": "sha256:6a96c93e9bcc87d7dd90583cd9a16ea892b1c653b1ff94070ef3520f29de79e1",
+      "worker-1-web": "sha256:3718895a1c2d3febac543f133b4ef592019b63f4a82cd1d671418d9d6f8eff2a",
+      "worker-1-module-host": "sha256:d3fb3f84cf4c05daa365c48263b6d4c37c47bac89c031bdca04880a68d05a93c"
+    }
+  },
+  "redeployment": {
+    "status": "passed",
+    "project": "steward-phase8-accept",
+    "images": {
+      "master-api": "sha256:cd9f9cf7b1d0fcaf11b5bde44f1ec42bc702fdce902fb4814ad00ee91717c35b",
+      "master-web": "sha256:5ab06b2acd3ae425fecbd419382adda59aff13c4f6934756bea9b8f37993b379",
+      "worker-1-api": "sha256:6a96c93e9bcc87d7dd90583cd9a16ea892b1c653b1ff94070ef3520f29de79e1",
+      "worker-1-web": "sha256:3718895a1c2d3febac543f133b4ef592019b63f4a82cd1d671418d9d6f8eff2a",
+      "worker-1-module-host": "sha256:d3fb3f84cf4c05daa365c48263b6d4c37c47bac89c031bdca04880a68d05a93c",
+      "worker-2-api": "sha256:6a96c93e9bcc87d7dd90583cd9a16ea892b1c653b1ff94070ef3520f29de79e1",
+      "worker-2-web": "sha256:3718895a1c2d3febac543f133b4ef592019b63f4a82cd1d671418d9d6f8eff2a",
+      "worker-2-module-host": "sha256:d3fb3f84cf4c05daa365c48263b6d4c37c47bac89c031bdca04880a68d05a93c",
+      "worker-3-api": "sha256:6a96c93e9bcc87d7dd90583cd9a16ea892b1c653b1ff94070ef3520f29de79e1",
+      "worker-3-web": "sha256:3718895a1c2d3febac543f133b4ef592019b63f4a82cd1d671418d9d6f8eff2a",
+      "worker-3-module-host": "sha256:d3fb3f84cf4c05daa365c48263b6d4c37c47bac89c031bdca04880a68d05a93c"
+    },
+    "connectorObservations": "Lifecycle health/revision may change; stable connector identity and every authoritative business row remain compared."
+  },
+  "finalArchiveCommerce": {
+    "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\phase8-final-portable",
+    "startedAt": "2026-10-24T02:23:35.592Z",
+    "simulation": true,
+    "checks": [
+      {
+        "name": "worker-1 deterministic approved SSMA commerce workflows"
+      },
+      {
+        "name": "worker-1 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+        "sourceId": "gid://shopify/Order/1",
+        "creates": 1,
+        "productionSubmissions": 1,
+        "channelFulfillments": 1,
+        "inventoryQuantity": 18
+      },
+      {
+        "name": "worker-3 deterministic approved SSMA commerce workflows"
+      },
+      {
+        "name": "worker-3 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+        "sourceId": "gid://shopify/Order/3",
+        "creates": 1,
+        "productionSubmissions": 1,
+        "channelFulfillments": 1,
+        "inventoryQuantity": 18
+      }
+    ],
+    "browserErrors": [],
+    "status": "passed",
+    "finishedAt": "2026-10-24T02:24:10.601Z"
+  },
+  "finalArchiveMcp": {
+    "status": "passed",
+    "amounts": {
+      "recognizedRevenue": "EUR 100.00",
+      "refunds": "EUR 0.00",
+      "netRevenue": "EUR 100.00",
+      "production": "EUR 48.00",
+      "shipping": "EUR 8.00",
+      "grossMargin": "EUR 44.00"
+    },
+    "sourceReferences": [
+      {
+        "entityId": "8d0f10a9-7d82-4ed5-a417-99f732014d54",
+        "moduleId": "cee.sales",
+        "streamId": "commerce_orders",
+        "recordId": "058a2de1-91fb-4a6c-a729-354a8b0be119",
+        "revision": 11
+      },
+      {
+        "entityId": "0bea4c34-0ff6-45b4-b18e-528224ebadcf",
+        "moduleId": "cee.sales",
+        "streamId": "commerce_orders",
+        "recordId": "be9bdb79-49e6-44c6-b507-09024e213cd3",
+        "revision": 11
+      }
+    ]
+  },
+  "realModel": {
+    "provider": "local-ollama",
+    "model": "steward-analyst-qwen2.5-ctx16384:7b",
+    "baseModel": "qwen2.5:7b",
+    "digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "investigationId": "fd26030c-ccf0-4114-b2b4-75fe32c7dd5e",
+    "elapsedMs": 26531,
+    "testModel": false,
+    "calls": [
+      {
+        "elapsedMs": 2600,
+        "selectedTools": [
+          {
+            "name": "list_entities",
+            "arguments": "{}"
+          },
+          {
+            "name": "query_commerce_evidence",
+            "arguments": "{\"status\":\"fulfilled\",\"limit\":4}"
+          }
+        ],
+        "status": 200
+      },
+      {
+        "elapsedMs": 6602,
+        "selectedTools": [
+          {
+            "name": "analyze_commerce_by_id",
+            "arguments": "{\"sources\":[{\"recordId\":\"1c6775a4-714b-42c5-be66-974e51aa1c1f\",\"revision\":11},{\"recordId\":\"eae3f330-36a3-4920-bef0-b1068a6cec33\",\"revision\":11}]}"
+          }
+        ],
+        "status": 200
+      },
+      {
+        "elapsedMs": 16830,
+        "selectedTools": [],
+        "status": 200
+      }
+    ],
+    "tools": [
+      {
+        "name": "list_entities",
+        "arguments": {}
+      },
+      {
+        "name": "query_commerce_evidence",
+        "arguments": {
+          "limit": 4,
+          "status": "fulfilled"
+        }
+      },
+      {
+        "name": "analyze_commerce_by_id",
+        "arguments": {
+          "sources": [
+            {
+              "recordId": "1c6775a4-714b-42c5-be66-974e51aa1c1f",
+              "revision": 11
+            },
+            {
+              "recordId": "eae3f330-36a3-4920-bef0-b1068a6cec33",
+              "revision": 11
+            }
+          ]
+        }
+      }
+    ],
+    "result": {
+      "analyses": [
+        {
+          "observed": {
+            "sources": [
+              {
+                "payload": {
+                  "id": "1c6775a4-714b-42c5-be66-974e51aa1c1f",
+                  "revision": 11,
+                  "projection": {
+                    "units": "items",
+                    "status": "fulfilled",
+                    "channel": "shopify",
+                    "approved": true,
+                    "currency": "EUR",
+                    "products": [
+                      {
+                        "sku": "SYN-P8-TEE",
+                        "quantity": 2,
+                        "unitPriceCents": 2500,
+                        "sourceVariantId": "gid://shopify/ProductVariant/1",
+                        "lineRevenueCents": 5000,
+                        "fulfilledQuantity": 2,
+                        "recognizedRevenueCents": 5000
+                      }
+                    ],
+                    "quantity": 2,
+                    "sourceId": "gid://shopify/Order/1",
+                    "stockout": false,
+                    "costBasis": "estimated",
+                    "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                    "fulfilledAt": "2026-10-24T01:21:39.361Z",
+                    "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                    "refundCents": 0,
+                    "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                    "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                    "contractVersion": 1,
+                    "sourceUpdatedAt": "2026-10-24T01:21:42.191Z",
+                    "productionStatus": "shipped",
+                    "shippingCostCents": 400,
+                    "productionCostCents": 1600,
+                    "recognizedRevenueCents": 5000
+                  }
+                },
+                "reference": {
+                  "entityId": "e2810429-28a3-42dd-bca4-c278faa90cbd",
+                  "moduleId": "cee.sales",
+                  "recordId": "1c6775a4-714b-42c5-be66-974e51aa1c1f",
+                  "revision": 11,
+                  "streamId": "commerce_orders"
+                },
+                "ingestedAt": "2026-10-24T01:21:44.793Z",
+                "observedAt": "2026-10-24T01:21:44.336Z",
+                "sourceWorker": "24528127-2c47-4f57-b2ea-705194854350"
+              },
+              {
+                "payload": {
+                  "id": "eae3f330-36a3-4920-bef0-b1068a6cec33",
+                  "revision": 11,
+                  "projection": {
+                    "units": "items",
+                    "status": "fulfilled",
+                    "channel": "shopify",
+                    "approved": true,
+                    "currency": "EUR",
+                    "products": [
+                      {
+                        "sku": "SYN-P8-TEE",
+                        "quantity": 2,
+                        "unitPriceCents": 2500,
+                        "sourceVariantId": "gid://shopify/ProductVariant/1",
+                        "lineRevenueCents": 5000,
+                        "fulfilledQuantity": 2,
+                        "recognizedRevenueCents": 5000
+                      }
+                    ],
+                    "quantity": 2,
+                    "sourceId": "gid://shopify/Order/3",
+                    "stockout": false,
+                    "costBasis": "estimated",
+                    "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                    "fulfilledAt": "2026-10-24T01:21:54.646Z",
+                    "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                    "refundCents": 0,
+                    "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                    "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                    "contractVersion": 1,
+                    "sourceUpdatedAt": "2026-10-24T01:21:55.570Z",
+                    "productionStatus": "shipped",
+                    "shippingCostCents": 400,
+                    "productionCostCents": 3200,
+                    "recognizedRevenueCents": 5000
+                  }
+                },
+                "reference": {
+                  "entityId": "5201ec54-0544-40f8-9bf0-e7ae0132e199",
+                  "moduleId": "cee.sales",
+                  "recordId": "eae3f330-36a3-4920-bef0-b1068a6cec33",
+                  "revision": 11,
+                  "streamId": "commerce_orders"
+                },
+                "ingestedAt": "2026-10-24T01:22:03.638Z",
+                "observedAt": "2026-10-24T01:21:57.613Z",
+                "sourceWorker": "4f45dd3b-f3e4-4256-8712-b175e6ad4071"
+              }
+            ]
+          },
+          "calculation": {
+            "units": "items",
+            "orders": [
+              {
+                "status": "fulfilled",
+                "channel": "shopify",
+                "sourceId": "gid://shopify/Order/1",
+                "costBasis": "estimated",
+                "displayAmounts": {
+                  "totalCost": "EUR 20.00",
+                  "netRevenue": "EUR 50.00",
+                  "grossMargin": "EUR 30.00"
+                },
+                "grossMarginBasisPoints": 6000
+              },
+              {
+                "status": "fulfilled",
+                "channel": "shopify",
+                "sourceId": "gid://shopify/Order/3",
+                "costBasis": "estimated",
+                "displayAmounts": {
+                  "totalCost": "EUR 36.00",
+                  "netRevenue": "EUR 50.00",
+                  "grossMargin": "EUR 14.00"
+                },
+                "grossMarginBasisPoints": 2800
+              }
+            ],
+            "period": {
+              "to": "2026-10-20T12:00:00.000Z",
+              "from": "2026-10-20T12:00:00.000Z",
+              "basis": "Explicit selected source orders; endpoints describe observed range, not a complete-period census"
+            },
+            "currency": "EUR",
+            "products": [
+              {
+                "sku": "SYN-P8-TEE",
+                "byChannel": [
+                  {
+                    "channel": "shopify",
+                    "recognizedRevenueCents": 10000
+                  }
+                ],
+                "orderVolume": 2,
+                "costAllocation": "Single-product orders; all source order costs/refunds attributed explicitly.",
+                "totalCostCents": 5600,
+                "orderedQuantity": 4,
+                "grossMarginCents": 4400,
+                "fulfilledQuantity": 4,
+                "recognizedRevenueCents": 10000
+              }
+            ],
+            "byChannel": [
+              {
+                "channel": "shopify",
+                "orderVolume": 2,
+                "revenueCents": 10000
+              }
+            ],
+            "costBasis": "estimated",
+            "assumptions": [
+              "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+              "Source total refunds may include tax/shipping and are not allocated to products.",
+              "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+              "No currency conversion, supplier substitution, production authorization or business action is performed."
+            ],
+            "orderVolume": 2,
+            "refundCents": 0,
+            "capabilityId": "steward.commerce-performance",
+            "costCoverage": {
+              "totalOrders": 2,
+              "completeOrders": 2
+            },
+            "failedOrders": 0,
+            "schemaVersion": 1,
+            "displayAmounts": {
+              "refunds": "EUR 0.00",
+              "shipping": "EUR 8.00",
+              "netRevenue": "EUR 100.00",
+              "production": "EUR 48.00",
+              "grossMargin": "EUR 44.00",
+              "recognizedRevenue": "EUR 100.00"
+            },
+            "stockoutOrders": 0,
+            "totalCostCents": 5600,
+            "fulfilledOrders": 2,
+            "netRevenueCents": 10000,
+            "decisionExecuted": false,
+            "grossMarginCents": 4400,
+            "fulfilledQuantity": 4,
+            "shippingCostCents": 800,
+            "estimatedCOGSCents": 4800,
+            "costRatioBasisPoints": 5600,
+            "fulfillmentTimeSeconds": {
+              "total": 614614,
+              "average": 307307,
+              "completedOrders": 2
+            },
+            "grossMarginBasisPoints": 4400,
+            "recognizedRevenueCents": 10000
+          },
+          "authoritative": false,
+          "affectedEntities": [
+            "e2810429-28a3-42dd-bca4-c278faa90cbd",
+            "5201ec54-0544-40f8-9bf0-e7ae0132e199"
+          ],
+          "decisionExecuted": false,
+          "supportingReferences": [
+            {
+              "entityId": "e2810429-28a3-42dd-bca4-c278faa90cbd",
+              "moduleId": "cee.sales",
+              "recordId": "1c6775a4-714b-42c5-be66-974e51aa1c1f",
+              "revision": 11,
+              "streamId": "commerce_orders"
+            },
+            {
+              "entityId": "5201ec54-0544-40f8-9bf0-e7ae0132e199",
+              "moduleId": "cee.sales",
+              "recordId": "eae3f330-36a3-4920-bef0-b1068a6cec33",
+              "revision": 11,
+              "streamId": "commerce_orders"
+            }
+          ]
+        }
+      ],
+      "narrative": "The analysis of the synthetic fulfilled commerce orders across two distinct entities shows a total recognized revenue of EUR 100.00 from two orders, each with a quantity of 2 items. The production cost for these orders is estimated at EUR 48.00, and the shipping cost is EUR 8.00, leading to a total cost of EUR 56.00. The gross margin is estimated at EUR 44.00, representing a gross margin basis points of 4400. The costs and margins are estimated, and unknown values are not treated as zero. The analysis was based on explicit selected source orders, and no currency conversion, supplier substitution, or business action was performed.",
+      "testModel": false,
+      "assumptions": [
+        "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+        "Source total refunds may include tax/shipping and are not allocated to products.",
+        "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+        "No currency conversion, supplier substitution, production authorization or business action is performed."
+      ],
+      "schemaVersion": 1,
+      "humanDecisions": [
+        "Conditional review of high costs and source variant mappings is recommended.",
+        "Pricing and fulfillment should be reviewed for accuracy and consistency."
+      ],
+      "decisionExecuted": false
+    },
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "finalRecheck": {
+      "verifiedAt": "2026-10-24T02:26:52.786Z",
+      "status": "passed",
+      "investigationId": "fd26030c-ccf0-4114-b2b4-75fe32c7dd5e",
+      "exactOriginalCalculationAndRevisionsRecomputed": true,
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-2",
+          "received": false,
+          "acknowledged": false
+        },
+        {
+          "worker": "worker-3",
+          "received": true,
+          "acknowledged": true
+        }
+      ]
+    },
+    "unpublishedRepeats": [
+      {
+        "id": "857b1697-12d3-429d-88bd-094cfb250ab1",
+        "elapsedMs": 27346,
+        "reason": "Review did not endorse an unsupported timing-absence remark; not published."
+      },
+      {
+        "id": "c7e9a053-3692-4ead-9b10-1aff1e79650f",
+        "elapsedMs": 35336,
+        "reason": "Review rejected net-revenue wording and an incorrect high-cost entity label; not published."
+      }
+    ]
+  },
+  "liveCommercialValidation": false,
+  "retainedPhase7": "27 containers preserved; no volume reset, identity/configuration replacement or business-record writes",
+  "finalArchive": {
+    "status": "pending final script refresh and exact archive redeployment"
+  }
 }

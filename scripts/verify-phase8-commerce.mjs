@@ -57,7 +57,15 @@ async function seed(key){const index=Number(key.split('-')[1]);await control('sh
  await waitFor(async()=>((await records(key,'shopify','catalog')).length&&(await records(key,'printify','catalog')).length),'connector catalog reconciliation');
  for(const [id,url,body]of [['shopify','/mappings',{sourceVariantId:'gid://shopify/ProductVariant/1',sku:'SYN-P8-TEE'}],['printify','/mappings',{sku:'SYN-P8-TEE',productId:'syn-p8-product',variantId:101}],['inventory','/items',{sku:'SYN-P8-TEE',name:'Synthetic Phase 8 shirt',quantity:20}]])if(!(await moduleApi(key,id,url)).records.length)await moduleApi(key,id,url,'POST',body,201);
 }
-async function uiAction(page,key,moduleId,label,operation,match){await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:moduleId==='sales'?'sales order':moduleId+' '+(moduleId==='shopify'?'order':'job'),exact:true}).click();const screen=page.getByTestId('module-screen-cee.'+moduleId);await screen.getByRole('button',{name:'Refresh records',exact:true}).click();const row=screen.getByRole('row').filter({hasText:match});await row.waitFor({state:'visible'});assert.equal(await row.count(),1);const response=page.waitForResponse(r=>r.url().includes('/api/'+operation+'/')&&r.request().method()==='POST');await row.getByRole('button',{name:label,exact:true}).click();assert.equal((await response).status(),200);}
+async function uiAction(page,key,moduleId,label,operation,match){
+ await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:moduleId==='sales'?'sales order':moduleId+' '+(moduleId==='shopify'?'order':'job'),exact:true}).click();const screen=page.getByTestId('module-screen-cee.'+moduleId),list=moduleId==='printify'?'jobs':'orders';
+ for(let attempt=0;attempt<4;attempt++){
+  const refreshed=page.waitForResponse(r=>r.request().method()==='GET'&&new URL(r.url()).pathname.endsWith('/api/'+list));await screen.getByRole('button',{name:'Refresh records',exact:true}).click();assert.equal((await refreshed).status(),200);
+  const row=screen.getByRole('row').filter({hasText:match});await row.waitFor({state:'visible'});assert.equal(await row.count(),1);const response=page.waitForResponse(r=>r.url().includes('/api/'+operation+'/')&&r.request().method()==='POST');await row.getByRole('button',{name:label,exact:true}).click();const result=await response;
+  if(result.status()===200)return;const body=await result.json();if(result.status()===409&&body.error==='Revision conflict'&&attempt<3){console.log('Observed optimistic revision conflict; re-reading source-backed row before explicit retry.');continue;}assert.equal(result.status(),200,body.error);
+ }
+}
+
 async function commerce(){await logins();await withBrowser(async browser=>{for(const key of ['worker-1','worker-3']){
  await governance(key);await seed(key);const page=await pageFor(browser,key),sourceId='gid://shopify/Order/'+Number(key.split('-')[1]);let channel=(await records(key,'shopify','orders')).find(r=>r.sourceId===sourceId);assert.ok(channel);
  let sale=(await records(key,'sales','orders')).find(r=>r.sourceId===sourceId);if(!sale){await uiAction(page,key,'shopify','Dispatch authorized order','dispatch',sourceId);sale=await waitFor(async()=>(await records(key,'sales','orders')).find(r=>r.sourceId===sourceId),'durable order import');}

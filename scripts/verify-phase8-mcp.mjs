@@ -7,7 +7,7 @@ import {calculateCommerce} from '../packages/platform/dist/commerce-analysis.js'
 process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.json');
 const {api,logins,login,sessions,credentials}=await import('./phase4-client.mjs'),{mcp}=await import('./mcp-client.mjs');
 await logins();const clients=[],client=async()=>{const c=await mcp('master');clients.push(c);return c;},call=(c,name,args={})=>c.callTool({name,arguments:args},{timeout:15000});
-const report={verifiedAt:new Date().toISOString(),simulation:true,checks:[]};
+const report={directory,verifiedAt:new Date().toISOString(),simulation:true,checks:[]};
 try{
  const c=await client(),tools=(await c.listTools()).tools.map(t=>t.name);for(const name of ['query_commerce_evidence','query_commerce_anomalies','analyze_commerce_by_id'])assert(tools.includes(name));
  const p=await call(c,'query_commerce_evidence',{limit:20});assert(!p.isError);const records=p.structuredContent.data.records;assert(records.length>=2);
@@ -19,4 +19,4 @@ try{
  const anomalies=await call(c,'query_commerce_anomalies',{limit:20});assert(!anomalies.isError);assert(anomalies.structuredContent.data.matches.some(r=>r.issues.includes('high_estimated_cost')));report.anomalies=anomalies.structuredContent.data;
  const registry=sessions.master;await login('master',credentials.accounts.enroller);const scoped=await client(),visible=await call(scoped,'query_commerce_evidence',{limit:20});assert(!visible.isError);assert(visible.structuredContent.data.records.every(r=>r.entityId===credentials.entityA));const foreign=records.find(r=>r.entityId!==credentials.entityA);assert(foreign);assert.equal((await call(scoped,'analyze_commerce_by_id',{sources:[{recordId:foreign.reference.recordId,revision:foreign.reference.revision}]})).isError,true);sessions.master=registry;report.checks.push('entity-scoped MCP evidence/calculation authorization and attributed high-cost anomaly');
  report.status='passed';console.log('PASS governed commerce MCP, exact cents, source revisions, anomaly evidence and entity isolation: '+JSON.stringify(calculation.displayAmounts));
-}catch(e){report.status='failed';report.error=e.message;throw e;}finally{for(const c of clients)await c.close();await writeFile('artifacts/phase8-commerce-mcp.json',JSON.stringify(report,null,2)+'\n');}
+}catch(e){report.status='failed';report.error=e.message;throw e;}finally{for(const c of clients)await c.close();await writeFile(process.env.STEWARD_PHASE8_MCP_REPORT??'artifacts/phase8-commerce-mcp.json',JSON.stringify(report,null,2)+'\n');}
