@@ -1,3 +1,4 @@
+import {monitorCommerce,commerceExceptionSchema} from './commerce-monitor.js';
 import { randomUUID } from 'node:crypto';
 import type pg from 'pg';
 import type { DataEvent, InstallationConfig, SyncExchange, SyncReceipt } from '@steward/contracts';
@@ -17,6 +18,9 @@ export function validateEvent(e: DataEvent) {
       typeof e.moduleId !== 'string' || !/^[a-z][a-z0-9.-]{0,79}$/.test(e.moduleId) || typeof e.streamId !== 'string' || !/^[a-z][a-z0-9_]{0,49}$/.test(e.streamId) || !e.payload || Array.isArray(e.payload) || typeof e.payload !== 'object' || Buffer.byteLength(JSON.stringify(e)) > 12000) fail(400, 'Invalid synchronization event');
   if(e.eventType==='record.upsert'&&e.streamId==='commerce_orders'){
     if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceWireSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce projection');
+  }
+  if(e.eventType==='record.upsert'&&e.streamId==='commerce_exceptions'){
+    if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceExceptionSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce exception');
   }
 }
 export async function inbox(sql: Sql, e: DataEvent): Promise<boolean> {
@@ -54,6 +58,8 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
         peers: (await pool.query('SELECT * FROM sync_peers WHERE '+predicate,args)).rows,
         relationships: (await pool.query('SELECT * FROM entity_relationships WHERE ($1::boolean OR from_entity=ANY($2::uuid[]) AND to_entity=ANY($2::uuid[])) AND ($3::uuid IS NULL OR from_entity=$3 OR to_entity=$3)',args)).rows };
     });
+    app.get('/api/v4/commerce-monitor',async req=>{const s=await scope(req);return{policies:(await pool.query('SELECT entity_id,enabled,updated_at FROM commerce_monitor_policies WHERE $1::boolean OR entity_id=ANY($2::uuid[])',[s.all,s.entities])).rows,conditions:(await pool.query("SELECT c.*,r.entity_id FROM commerce_monitor_conditions c JOIN analytical_records r ON r.installation_id=c.installation_id AND r.module_id=c.module_id AND r.record_id=c.record_id AND r.stream_id=c.stream_id WHERE $1::boolean OR r.entity_id=ANY($2::uuid[])",[s.all,s.entities])).rows};});
+    app.put<{Body:{entityId:string;enabled:boolean}}>('/api/v4/commerce-monitor',async req=>{const actor=await registry(req);const b=req.body;if(!validUuid(b?.entityId)||typeof b.enabled!=='boolean')fail(400,'Invalid monitoring policy');return transaction(pool,async sql=>{if(!(await sql.query('SELECT 1 FROM legal_entities WHERE entity_id=$1',[b.entityId])).rowCount)fail(404,'Unknown entity');await sql.query('INSERT INTO commerce_monitor_policies VALUES($1,$2,$3,now()) ON CONFLICT(entity_id) DO UPDATE SET enabled=excluded.enabled,approved_by=excluded.approved_by,updated_at=now()',[b.entityId,b.enabled,actor.account_id]);if(b.enabled){const rows=(await sql.query("SELECT * FROM analytical_records WHERE entity_id=$1 AND stream_id IN ('commerce_orders','commerce_exceptions')",[b.entityId])).rows;for(const row of rows)await monitorCommerce(sql,row);await materializeFindings(sql);}await audit(sql,actor.account_id,'commerce.monitor.policy',b.entityId,{enabled:b.enabled});return{saved:true};});});
     app.get('/api/v4/financial-report',async req=>{
       const s=await scope(req);
       const rows=(await pool.query("SELECT * FROM analytical_records WHERE stream_id='commerce_orders' AND ($1::boolean OR entity_id=ANY($2::uuid[])) ORDER BY entity_id,source_at DESC,record_id",[s.all,s.entities])).rows;
@@ -108,6 +114,7 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
               const old=(await sql.query('SELECT revision,payload FROM analytical_records WHERE installation_id=$1 AND module_id=$2 AND stream_id=$3 AND record_id=$4',[p.installationId,e.moduleId,e.streamId,e.recordId])).rows[0];
               if(old&&Number(old.revision)===e.recordRevision&&canonical(old.payload)!==canonical(e.payload))fail(409,'Conflicting source revision');
               await sql.query(`INSERT INTO analytical_records VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,now()) ON CONFLICT(installation_id,module_id,stream_id,record_id) DO UPDATE SET revision=excluded.revision,payload=excluded.payload,event_id=excluded.event_id,source_at=excluded.source_at,ingested_at=now() WHERE analytical_records.revision<excluded.revision`,[worker.entity_id,p.installationId,e.moduleId,e.streamId,e.recordId,e.recordRevision,e.payload,e.eventId,e.occurredAt]);
+              if(['commerce_orders','commerce_exceptions'].includes(e.streamId)){const current=(await sql.query('SELECT * FROM analytical_records WHERE installation_id=$1 AND module_id=$2 AND stream_id=$3 AND record_id=$4',[p.installationId,e.moduleId,e.streamId,e.recordId])).rows[0];await monitorCommerce(sql,current);}
             }else{
               if(e.moduleId!=='steward.findings'||!['acknowledged','resolved','dismissed'].includes(String(e.payload.status))||!(await sql.query('SELECT 1 FROM finding_entities WHERE finding_id=$1 AND entity_id=$2',[e.recordId,worker.entity_id])).rowCount)fail(403,'Finding does not affect this entity');
               const old=(await sql.query('SELECT revision,status FROM finding_receipts WHERE finding_id=$1 AND installation_id=$2',[e.recordId,p.installationId])).rows[0];

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/test/server.test.js dist/test/security.test.js dist/test/synchronization.test.js dist/test/analyst.test.js dist/test/business-analysis.test.js dist/test/commerce-analysis.test.js dist/test/workspace.test.js dist/test/intelligence.test.js"
+    "test": "node --test dist/test/server.test.js dist/test/security.test.js dist/test/synchronization.test.js dist/test/analyst.test.js dist/test/business-analysis.test.js dist/test/commerce-analysis.test.js dist/test/workspace.test.js dist/test/intelligence.test.js dist/test/commerce-intelligence.test.js"
   },
   "dependencies": {
     "@fastify/helmet": "13.2.0",
@@ -23,7 +23,8 @@
     "@steward/module-sdk": "1.4.0",
     "fastify": "5.12.7",
     "pg": "8.23.1",
-    "zod": "4.6.7"
+    "zod": "4.6.7",
+    "@steward/commerce-kit": "1.1.0"
   },
   "devDependencies": {
     "@types/pg": "8.23.1"

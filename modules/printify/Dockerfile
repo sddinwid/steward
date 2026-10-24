@@ -20,5 +20,5 @@ COPY modules/printify/package.json modules/printify/manifest.json ./
 COPY modules/printify/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="cee.printify" steward.module.version="1.0.6" steward.module.sdk="1"
+LABEL steward.module.id="cee.printify" steward.module.version="1.1.0" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

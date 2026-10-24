@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.1.3",
+  "version": "1.2.0",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.8.0",
+  "minimumPlatformVersion": "0.10.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -137,6 +137,46 @@
       "method": "POST",
       "path": "/withdraw-commerce/:id",
       "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "commerceIntelligence",
+      "method": "GET",
+      "path": "/commerce-intelligence",
+      "permission": "cee.sales.read",
+      "query": [
+        "from",
+        "to",
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "commerceExceptions",
+      "method": "GET",
+      "path": "/commerce-exceptions",
+      "permission": "cee.sales.read"
+    },
+    {
+      "operationId": "listAssessment",
+      "method": "GET",
+      "path": "/financial-assessments",
+      "permission": "cee.sales.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createAssessment",
+      "method": "POST",
+      "path": "/financial-assessments",
+      "permission": "cee.sales.finance"
+    },
+    {
+      "operationId": "updateAssessment",
+      "method": "PUT",
+      "path": "/financial-assessments/:id",
+      "permission": "cee.sales.finance"
     }
   ],
   "ui": [
@@ -447,6 +487,266 @@
         "attempts",
         "error"
       ]
+    },
+    {
+      "screenId": "commerce-intelligence",
+      "title": "Commerce intelligence",
+      "navigationLabel": "Commerce intelligence",
+      "listOperation": "commerceIntelligence",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "grossSalesCents",
+          "label": "Gross sales",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "discountCents",
+          "label": "Discounts",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recognizedRevenueCents",
+          "label": "Recognized revenue",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "refundCents",
+          "label": "Source refunds",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "productionCostCents",
+          "label": "Production costs",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shippingCostCents",
+          "label": "Shipping expenses",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "transactionFeeCents",
+          "label": "Transaction fees",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "channelFeeCents",
+          "label": "Channel fees",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "contributionMarginCents",
+          "label": "Contribution margin",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "marginBasis",
+          "label": "Margin basis",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "missingCosts",
+          "label": "Missing costs",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "products",
+          "label": "Product performance",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "exceptions",
+          "label": "Exceptions",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "Calculation explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sourceReference",
+          "label": "Source evidence",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "grossSalesCents",
+        "discountCents",
+        "recognizedRevenueCents",
+        "refundCents",
+        "productionCostCents",
+        "shippingCostCents",
+        "transactionFeeCents",
+        "channelFeeCents",
+        "contributionMarginCents",
+        "marginBasis",
+        "missingCosts",
+        "products",
+        "exceptions",
+        "explanation",
+        "sourceReference"
+      ]
+    },
+    {
+      "screenId": "commerce-exceptions",
+      "title": "Commerce exceptions",
+      "navigationLabel": "Commerce exceptions",
+      "listOperation": "commerceExceptions",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "Condition",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "Explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Production status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "code",
+        "severity",
+        "explanation",
+        "status"
+      ]
+    },
+    {
+      "screenId": "financial-assessment",
+      "title": "Commerce cost evidence",
+      "navigationLabel": "Commerce cost evidence",
+      "listOperation": "listAssessment",
+      "createOperation": "createAssessment",
+      "updateOperation": "updateAssessment",
+      "fields": [
+        {
+          "name": "orderNumber",
+          "label": "Order number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "productionAmount",
+          "label": "Production amount",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "shippingAmount",
+          "label": "Shipping amount",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "transactionFeeAmount",
+          "label": "Transaction fee amount",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "channelFeeAmount",
+          "label": "Channel fee amount",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "basis",
+          "label": "Cost basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "known",
+            "estimated"
+          ]
+        },
+        {
+          "name": "reference",
+          "label": "Evidence reference",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "columns": [
+        "orderNumber",
+        "currency",
+        "productionAmount",
+        "shippingAmount",
+        "transactionFeeAmount",
+        "channelFeeAmount",
+        "basis",
+        "reference"
+      ]
     }
   ],
   "configurationSchema": {
@@ -474,7 +774,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -562,6 +862,16 @@
       "name": "sales_by_period",
       "description": "Revenue from actual completed fulfillments and order volume in UTC; from inclusive, to exclusive. Currencies remain separate.",
       "operationId": "salesByPeriod"
+    },
+    {
+      "name": "sales_commerce_intelligence",
+      "description": "Deterministic period merchandise profitability, fees, missing costs and product contribution; currencies separate.",
+      "operationId": "commerceIntelligence"
+    },
+    {
+      "name": "sales_commerce_exceptions",
+      "description": "Read-only fulfillment and missing-cost conditions; uncertain production requires reconciliation.",
+      "operationId": "commerceExceptions"
     }
   ],
   "replication": {

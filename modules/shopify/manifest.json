@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "name": "Shopify",
   "description": "Independent SSMA shopify module; simulator/live mode and authority remain explicit.",
-  "minimumPlatformVersion": "0.8.0",
+  "minimumPlatformVersion": "0.10.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -86,12 +86,18 @@
       "method": "POST",
       "path": "/dispatch/:id",
       "permission": "cee.shopify.write"
+    },
+    {
+      "operationId": "commerceExceptions",
+      "method": "GET",
+      "path": "/commerce-exceptions",
+      "permission": "cee.shopify.read"
     }
   ],
   "ui": [
     {
       "screenId": "mapping",
-      "title": "shopify — mapping",
+      "title": "shopify \u00e2\u20ac\u201d mapping",
       "navigationLabel": "shopify mapping",
       "listOperation": "listmapping",
       "createOperation": "createmapping",
@@ -117,7 +123,7 @@
     },
     {
       "screenId": "connection",
-      "title": "shopify — connection",
+      "title": "shopify \u00e2\u20ac\u201d connection",
       "navigationLabel": "shopify connection",
       "listOperation": "listconnection",
       "fields": [
@@ -165,7 +171,7 @@
     },
     {
       "screenId": "product",
-      "title": "shopify — product",
+      "title": "shopify \u00e2\u20ac\u201d product",
       "navigationLabel": "shopify product",
       "listOperation": "listproduct",
       "fields": [
@@ -207,7 +213,7 @@
     },
     {
       "screenId": "order",
-      "title": "shopify — order",
+      "title": "shopify \u00e2\u20ac\u201d order",
       "navigationLabel": "shopify order",
       "listOperation": "listorder",
       "fields": [
@@ -276,6 +282,48 @@
           "operationId": "dispatch"
         }
       ]
+    },
+    {
+      "screenId": "commerce-exceptions",
+      "title": "Shopify operational exceptions",
+      "navigationLabel": "Shopify exceptions",
+      "listOperation": "commerceExceptions",
+      "fields": [
+        {
+          "name": "order",
+          "label": "Order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "Condition",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "Explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "order",
+        "code",
+        "severity",
+        "explanation"
+      ]
     }
   ],
   "configurationSchema": {
@@ -305,6 +353,10 @@
           "live"
         ],
         "default": "simulator"
+      },
+      "publishOperationalAlerts": {
+        "type": "boolean",
+        "default": false
       }
     },
     "required": [
@@ -315,7 +367,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 3,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -594,6 +646,11 @@
       "name": "shopify_order",
       "description": "Read paginated authorized shopify order evidence; credentials and personal information excluded.",
       "operationId": "listorder"
+    },
+    {
+      "name": "shopify_exceptions",
+      "description": "Read-only connector conditions; uncertain provider outcomes require reconciliation.",
+      "operationId": "commerceExceptions"
     }
   ],
   "connector": {
@@ -607,6 +664,22 @@
       "refunds/create",
       "inventory_levels/update",
       "fulfillments/update"
+    ]
+  },
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "commerce_exceptions",
+        "table": "commerce_exceptions",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
     ]
   }
 }

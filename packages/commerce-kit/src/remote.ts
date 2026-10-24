@@ -4,10 +4,20 @@ import {createHmac,timingSafeEqual} from 'node:crypto';
 import {boundedLookup} from '@steward/module-sdk';
 import {ensure,type Data} from '@steward/business-kit';
 export class ConnectorError extends Error{constructor(public code:string,public retryable=false){super(code);}}
-export async function connectorSecret(provider:'shopify'|'printify',mode:string,file='/run/module-secrets/connector.json'):Promise<Data>{
- let s:Data;try{s=JSON.parse(await readFile(file,'utf8'));}catch{throw new ConnectorError('CONNECTOR_CONFIGURATION_REQUIRED');}
+export async function connectorConnections(provider:'shopify'|'printify',mode:string,file='/run/module-secrets/connector.json'):Promise<Data[]>{
+ let bundle:Data;try{bundle=JSON.parse(await readFile(file,'utf8'));}catch{throw new ConnectorError('CONNECTOR_CONFIGURATION_REQUIRED');}
+ const connections:Data[]=bundle.version===2?bundle.connections:[{...bundle,connectionId:'default'}];
+ ensure(Array.isArray(connections)&&connections.length>0&&connections.length<=10,'Invalid connector connection bundle',503);
+ ensure(connections.every(s=>/^[a-z][a-z0-9-]{0,39}$/.test(s.connectionId))&&new Set(connections.map(s=>s.connectionId)).size===connections.length,'Connection identities must be unique',503);
+ ensure(new Set(connections.map(s=>provider==='shopify'?s.shopDomain:s.shopId)).size===connections.length,'Store identities must be unique',503);
+ return connections.map(s=>validateSecret(provider,mode,s));
+}
+export async function connectorSecret(provider:'shopify'|'printify',mode:string,file='/run/module-secrets/connector.json',connectionId='default'):Promise<Data>{
+ const s=(await connectorConnections(provider,mode,file)).find(s=>s.connectionId===connectionId);if(!s)throw new ConnectorError('CONNECTOR_CONNECTION_NOT_CONFIGURED');return s;
+}
+function validateSecret(provider:'shopify'|'printify',mode:string,s:Data):Data{
  const url=new URL(s.baseUrl);ensure(s.provider===provider&&s.mode===mode&&url.protocol==='https:'&&!url.username&&!url.password&&!url.search&&!url.hash&&url.pathname==='/'&&typeof s.token==='string'&&s.token.length>=24&&typeof s.webhookSecret==='string'&&s.webhookSecret.length>=24,'Connector trust or credential configuration invalid',503);
- if(s.expiresAt&&Date.parse(s.expiresAt)<=Date.now())throw new ConnectorError('CONNECTOR_CREDENTIAL_EXPIRED');
+ if(s.expiresAt&&(!Number.isFinite(Date.parse(s.expiresAt))||Date.parse(s.expiresAt)<=Date.now()))throw new ConnectorError('CONNECTOR_CREDENTIAL_EXPIRED');
  if(mode==='live')ensure(provider==='shopify'?/^[a-z0-9][a-z0-9-]*\.myshopify\.com$/.test(url.hostname):url.hostname==='api.printify.com','Untrusted commercial endpoint',503);
  else ensure(mode==='simulator'&&['localhost','127.0.0.1',provider+'-simulator'].includes(url.hostname)&&typeof s.caPem==='string'&&s.serverName===provider+'-simulator','Untrusted simulator endpoint',503);
  return s;

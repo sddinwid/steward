@@ -30,7 +30,7 @@ async function enroll(){
 }
 async function withBrowser(fn){const {chromium}=await import('playwright'),browser=await chromium.launch({headless:true});try{await fn(browser);}finally{await browser.close();}}
 async function pageFor(browser,key){const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.on('pageerror',e=>report.browserErrors.push(e.message));page.setDefaultTimeout(60000);await page.goto(origin(key));await page.getByLabel('Username',{exact:true}).fill(credentials.accounts[key].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts[key].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.getByRole('navigation',{name:'Workspaces',exact:true}).waitFor();await openWorkspace(page,'/administration/modules');await page.getByRole('heading',{name:'Module Manager',exact:true,level:2}).waitFor();return page;}
-const versions={inventory:'1.4.2',sales:'1.1.3',shopify:'1.0.1',printify:'1.0.6','stock-ledger':'1.0.0'};
+const versions={inventory:'1.4.2',sales:'1.1.3',shopify:'1.0.1',printify:'1.0.6','stock-ledger':'1.0.0',...JSON.parse(process.env.STEWARD_COMMERCE_MODULE_VERSIONS??'{}')};
 async function modules(){await logins();const before=await coreImages();await withBrowser(async browser=>{
  for(const key of ['worker-1','worker-2','worker-3']){
   const page=await pageFor(browser,key),names=key==='worker-2'?['stock-ledger']:['inventory','sales','shopify','printify',...(key==='worker-1'?['stock-ledger']:[])];

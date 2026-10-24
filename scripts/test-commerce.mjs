@@ -1,3 +1,6 @@
+import {connectionSource} from '../packages/commerce-kit/dist/index.js';
+import {syncMigration} from '../packages/platform/dist/sync-migration.js';
+import {commerceMonitorMigration,monitorCommerce} from '../packages/platform/dist/commerce-monitor.js';
 import {execFileSync,spawn} from 'node:child_process';
 import {mkdir,readFile,writeFile,readdir,rm,rmdir} from 'node:fs/promises';
 import path from 'node:path';
@@ -46,7 +49,7 @@ try{
  for(const [provider,simPort]of [['shopify',19481],['printify',19482]]){
   const keyFile=runDir+'/'+provider+'-key.pem',certFile=runDir+'/'+provider+'-cert.pem';execFileSync(openssl,['req','-x509','-newkey','ec','-pkeyopt','ec_paramgen_curve:P-256','-nodes','-days','1','-subj','/CN='+provider+'-simulator','-addext','subjectAltName=DNS:'+provider+'-simulator','-config',runDir+'/openssl.cnf','-keyout',keyFile,'-out',certFile],{stdio:'ignore'});
   const cert=await readFile(certFile,'utf8'),token=randomBytes(32).toString('hex'),webhookSecret=randomBytes(32).toString('hex'),adminToken=randomBytes(32).toString('hex');simulators[provider]={port:simPort,cert,token,adminToken};
-  const config={provider,adminToken,tlsKeyFile:keyFile,tlsCertFile:certFile,accounts:[{shopId:'1001',shopDomain:'synthetic-test.myshopify.com',token,webhookSecret,currency:'EUR',scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']}]};await writeFile(runDir+'/'+provider+'-sim.json',JSON.stringify(config),{mode:0o600});
+  const secondToken=randomBytes(32).toString('hex'),secondWebhookSecret=randomBytes(32).toString('hex');simulators[provider].secondToken=secondToken;simulators[provider].secondWebhookSecret=secondWebhookSecret;const config={provider,adminToken,tlsKeyFile:keyFile,tlsCertFile:certFile,accounts:[{shopId:'1001',shopDomain:'synthetic-test.myshopify.com',token,webhookSecret,currency:'EUR',scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']},{shopId:'1002',shopDomain:'synthetic-second.myshopify.com',token:secondToken,webhookSecret:secondWebhookSecret,currency:'EUR',scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']}]};await writeFile(runDir+'/'+provider+'-sim.json',JSON.stringify(config),{mode:0o600});
   const child=spawn(process.execPath,['tools/commerce-simulator/dist/index.js'],{windowsHide:true,env:{...process.env,SIMULATOR_CONFIG_FILE:runDir+'/'+provider+'-sim.json',SIMULATOR_STATE_DIRECTORY:runDir+'/'+provider+'-state',PORT:String(simPort)},stdio:['ignore','pipe','pipe']});processes.push(child);child.stderr.on('data',()=>{});
   for(let n=0;;n++){try{await simRequest(provider,'/health');break;}catch(e){if(n===40||child.exitCode!==null)throw new Error('Simulator failed to start: '+provider);await delay(200);}}
   secretFiles[provider]=runDir+'/'+provider+'-connector.json';await writeFile(secretFiles[provider],JSON.stringify({provider,mode:'simulator',baseUrl:`https://127.0.0.1:${simPort}/`,caPem:cert,serverName:provider+'-simulator',token,webhookSecret,shopId:'1001',shopDomain:'synthetic-test.myshopify.com',productionEnabled:true,syntheticAddress:{first_name:'Synthetic',last_name:'Fixture',email:'fixture@example.invalid',country:'US',region:'CA',address1:'Synthetic address',city:'Synthetic',zip:'00000'}}),{mode:0o600});
@@ -146,8 +149,51 @@ try{
   assert.equal((await control('printify','snapshot')).creates,3);assert.equal((await control('printify','snapshot')).productionSubmissions,3);assert.equal((await control('shopify','snapshot')).fulfillments,3);
  });
 
+ await test('commerce intelligence preserves costs, rejects unauthorized assessments and deduplicates durable alert episodes',async()=>{
+  const sales=worker('cee.sales'),source=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/1'));
+  const body={orderNumber:source.key,currency:'EUR',productionAmount:'16.00',shippingAmount:'4.00',transactionFeeAmount:'1.25',channelFeeAmount:'0.75',basis:'estimated',reference:'Synthetic invoice and fee estimate'};
+  await sales.api('POST','/financial-assessments',body,403,['cee.sales.write']);
+  await sales.api('POST','/financial-assessments',body,201);const report=await sales.api('GET','/commerce-intelligence');
+  const entry=report.records.find(o=>o.sourceId.endsWith('/1'));assert.equal(entry.contributionMarginCents,1800);assert.equal(entry.marginBasis,'estimated');assert.deepEqual(entry.missingCosts,[]);
+  const projection=(await sales.pool.query('SELECT * FROM commerce_orders WHERE id=$1',[source.id])).rows[0];assert.equal(projection.projection.financials.transactionFeeCents,125);
+  await db.query(syncMigration);await db.query(commerceMonitorMigration);
+  await db.query("INSERT INTO legal_entities VALUES($1,'Synthetic monitor entity','synthetic',true,now())",[entityId]);
+  await createAccount(db,'monitor-admin',adminPassword,'registry_admin');const account=(await db.query("SELECT account_id FROM security_accounts WHERE username='monitor-admin'")).rows[0].account_id;
+  const row={installation_id:installationId,entity_id:entityId,module_id:'cee.sales',stream_id:'commerce_orders',record_id:source.id,revision:projection.revision,payload:{projection:{...projection.projection,financials:undefined}},source_at:new Date()};
+  await monitorCommerce(db,row);assert.equal((await db.query('SELECT count(*) FROM analytical_findings')).rows[0].count,'0');
+  await db.query('INSERT INTO commerce_monitor_policies VALUES($1,true,$2,now())',[entityId,account]);
+  await monitorCommerce(db,row);await monitorCommerce(db,{...row,revision:row.revision+1});const before=Number((await db.query('SELECT count(*) FROM analytical_findings')).rows[0].count);assert.equal(before,1);
+  const resolved={...row,payload:{projection:projection.projection}};await monitorCommerce(db,resolved);assert.equal((await db.query('SELECT active FROM commerce_monitor_conditions')).rows[0].active,false);
+  await monitorCommerce(db,row);assert.equal(Number((await db.query('SELECT count(*) FROM analytical_findings')).rows[0].count),before+1);
+  await db.query('UPDATE security_accounts SET enabled=false WHERE account_id=$1',[account]);await monitorCommerce(db,{...row,record_id:randomUUID()});assert.equal(Number((await db.query('SELECT count(*) FROM analytical_findings')).rows[0].count),before+1);await db.query('UPDATE security_accounts SET enabled=true WHERE account_id=$1',[account]);
+ });
+
+ await test('two store connections isolate identical remote IDs, webhook receipts, mappings and production ownership',async()=>{
+  const originals={};for(const provider of ['shopify','printify']){
+   originals[provider]=await readFile(secretFiles[provider],'utf8');const original=JSON.parse(originals[provider]),second={...original,connectionId:'second',shopId:'1002',shopDomain:'synthetic-second.myshopify.com',token:simulators[provider].secondToken,webhookSecret:simulators[provider].secondWebhookSecret};await writeFile(secretFiles[provider],JSON.stringify({version:2,connections:[{...original,connectionId:'default'},second]}));
+  }
+  const product=(await control('shopify','snapshot')).products[0],printProduct=(await control('printify','snapshot')).products[0];
+  await control('shopify','seed',{shopId:'1002',products:[product],orders:[sourceOrder(1)]});await control('printify','seed',{shopId:'1002',products:[printProduct],orders:[]});await delay(2100);await backgrounds();
+  const secondId=connectionSource('second','gid://shopify/Order/1'),channel=(await read('cee.shopify','order')).find(r=>r.key===secondId);assert.ok(channel);assert.equal(channel.data.remoteSourceId,'gid://shopify/Order/1');assert.equal((await read('cee.shopify','order')).filter(r=>r.data.remoteSourceId==='gid://shopify/Order/1').length,2);
+  assert.equal((await read('cee.printify','product')).filter(p=>p.data.remoteSourceId===printProduct.id).length,2);
+  await worker('cee.shopify').api('POST','/mappings',{sourceVariantId:connectionSource('second','gid://shopify/ProductVariant/1'),sku:'SYN-SECOND'},201);
+  await worker('cee.printify').api('POST','/mappings',{sku:'SYN-SECOND',productId:connectionSource('second',printProduct.id),variantId:printProduct.variants[0].id},201);
+  await action('cee.shopify','order','dispatch',channel);await delivery();const sale=(await read('cee.sales','order')).find(o=>o.data.sourceId===secondId);assert.ok(sale);assert.equal(sale.data.lines[0].sku,'SYN-SECOND');
+  await worker('cee.inventory').api('POST','/items',{sku:'SYN-SECOND',name:'Second store stock',quantity:20},201);
+  await action('cee.sales','order','confirm',sale);await delivery();const reserved=(await read('cee.sales','order')).find(o=>o.id===sale.id);await action('cee.sales','order','production',reserved);await delivery();const secondJob=(await read('cee.printify','job')).find(j=>j.key===sale.id);assert.equal(secondJob.data.connectionId,'second');await action('cee.printify','job','authorize',secondJob);
+  await wait(async()=>{await backgrounds();return(await control('printify','snapshot',{shopId:'1002'})).productionSubmissions===1;},'second-store production');
+  const remote=(await control('printify','snapshot',{shopId:'1002'})).orders[0];await control('printify','update',{shopId:'1002',kind:'orders',id:remote.id,patch:{status:'fulfilled',shipments:[{number:'SYN-SECOND-TRACK'}]}});
+  await wait(async()=>{await backgrounds();return(await read('cee.printify','job')).find(j=>j.key===sale.id).data.status==='shipped';},'second-store shipment');for(let n=0;n<4;n++)await delivery();await wait(async()=>{await backgrounds();return(await control('shopify','snapshot',{shopId:'1002'})).fulfillments===1;},'second-store channel fulfillment');assert.equal((await control('printify','snapshot')).creates,3);assert.equal((await control('shopify','snapshot')).fulfillments,3);
+  const event=(await control('shopify','event',{shopId:'1002',kind:'orders',id:'gid://shopify/Order/1',topic:'orders/updated',duplicate:true})).event;
+  await worker('cee.shopify').api('POST','/connector-webhook',{bodyBase64:Buffer.from(event.body).toString('base64'),headers:event.headers});const replay=await worker('cee.shopify').api('POST','/connector-webhook',{bodyBase64:Buffer.from(event.body).toString('base64'),headers:event.headers});assert.equal(replay.replay,true);
+  await worker('cee.shopify').api('POST','/connector-webhook',{bodyBase64:Buffer.from(event.body).toString('base64'),headers:{...event.headers,'x-shopify-shop-domain':'synthetic-test.myshopify.com'}},403);
+  // Connection identity substitution is rejected before touching the other store's catalog or jobs.
+  const bundle=JSON.parse(await readFile(secretFiles.shopify,'utf8'));bundle.connections[1].shopId='9999';await writeFile(secretFiles.shopify,JSON.stringify(bundle));await delay(2100);await backgrounds();assert.equal((await read('cee.shopify','connector')).find(c=>c.key==='second').data.status,'connection_unavailable');
+  for(const provider of ['shopify','printify'])await writeFile(secretFiles[provider],originals[provider]);
+ });
+
 }finally{
  for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
- report.finishedAt=new Date().toISOString();report.status=report.checks.length===10&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
+ report.finishedAt=new Date().toISOString();report.status=report.checks.length===12&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
  const resolved=path.resolve(runDir);if(!resolved.startsWith(base+path.sep))throw new Error('Unsafe fixture cleanup path');await rm(resolved,{recursive:true,force:true});await rmdir(lock);
 }

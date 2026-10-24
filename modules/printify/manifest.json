@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
-  "minimumPlatformVersion": "0.8.0",
+  "minimumPlatformVersion": "0.10.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -116,12 +116,18 @@
         "status",
         "q"
       ]
+    },
+    {
+      "operationId": "commerceExceptions",
+      "method": "GET",
+      "path": "/commerce-exceptions",
+      "permission": "cee.printify.read"
     }
   ],
   "ui": [
     {
       "screenId": "mapping",
-      "title": "printify — mapping",
+      "title": "printify \u00e2\u20ac\u201d mapping",
       "navigationLabel": "printify mapping",
       "listOperation": "listmapping",
       "createOperation": "createmapping",
@@ -154,7 +160,7 @@
     },
     {
       "screenId": "connection",
-      "title": "printify — connection",
+      "title": "printify \u00e2\u20ac\u201d connection",
       "navigationLabel": "printify connection",
       "listOperation": "listconnection",
       "fields": [
@@ -202,7 +208,7 @@
     },
     {
       "screenId": "product",
-      "title": "printify — product",
+      "title": "printify \u00e2\u20ac\u201d product",
       "navigationLabel": "printify product",
       "listOperation": "listproduct",
       "fields": [
@@ -244,7 +250,7 @@
     },
     {
       "screenId": "job",
-      "title": "printify — job",
+      "title": "printify \u00e2\u20ac\u201d job",
       "navigationLabel": "printify job",
       "listOperation": "listjob",
       "fields": [
@@ -408,6 +414,48 @@
         "tracking",
         "currency"
       ]
+    },
+    {
+      "screenId": "commerce-exceptions",
+      "title": "Printify operational exceptions",
+      "navigationLabel": "Printify exceptions",
+      "listOperation": "commerceExceptions",
+      "fields": [
+        {
+          "name": "order",
+          "label": "Order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "Condition",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "severity",
+          "label": "Severity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "Explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "order",
+        "code",
+        "severity",
+        "explanation"
+      ]
     }
   ],
   "configurationSchema": {
@@ -447,6 +495,10 @@
         "minimum": 1,
         "maximum": 100000000,
         "default": 10000
+      },
+      "publishOperationalAlerts": {
+        "type": "boolean",
+        "default": false
       }
     },
     "required": [
@@ -459,7 +511,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 3,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -730,6 +782,11 @@
       "name": "printify_shop",
       "description": "Read only the configured authorized shop identity and source channel, without credentials.",
       "operationId": "listshop"
+    },
+    {
+      "name": "printify_exceptions",
+      "description": "Read-only connector conditions; uncertain provider outcomes require reconciliation.",
+      "operationId": "commerceExceptions"
     }
   ],
   "connector": {
@@ -740,6 +797,22 @@
       "order:updated",
       "order:sent-to-production",
       "order:shipment:created"
+    ]
+  },
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "commerce_exceptions",
+        "table": "commerce_exceptions",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
     ]
   }
 }
