@@ -21,3 +21,7 @@ test('ownership mismatch or stop failure never deletes a container',async()=>{
  const calls=[];await assert.rejects(stopOwnedModules({installationId},async(method,url)=>{calls.push(method);return [{Id,Labels:{...Labels,'steward.installation':'another'}}];}),/ownership/);assert.deepEqual(calls,['GET']);
  await assert.rejects(stopOwnedModules({installationId},async(method)=>{if(method==='GET')return[{Id,Labels}];if(method==='POST')throw Error('stop failed');assert.fail('must not delete');}),/stop failed/);
 });
+
+import {unexpectedStewardContainers} from './verify-single-stack.mjs';
+test('single-stack audit accepts selected core and owned dynamic modules',()=>{const selected={project:'steward-current',instances:[{installationId}]};const c=Labels=>({Config:{Labels}});assert.deepEqual(unexpectedStewardContainers([c({'com.docker.compose.project':'steward-current'}),c({'steward.managed-by':'module-host-v1','steward.installation':installationId}),c({'com.docker.compose.project':'unrelated-app'})],selected),[]);});
+test('single-stack audit detects obsolete stacks and orphaned module services',()=>{const selected={project:'steward-current',instances:[{installationId}]};const old={Config:{Labels:{'com.docker.compose.project':'steward-old'}}},orphan={Config:{Labels:{'steward.managed-by':'module-host-v1','steward.installation':'other'}}};assert.deepEqual(unexpectedStewardContainers([old,orphan],selected),[old,orphan]);});

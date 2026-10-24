@@ -1,5 +1,7 @@
 # Phase 10A acceptance verification
 
+**Subsequent operator correction:** [single-stack operations](single-stack-operations.md) records promotion into the existing operator installation and removal of temporary acceptance containers. The acceptance results below describe the original test run; its final operational state has since been superseded by that in-place promotion.
+
 **Result: Phase 10A simulated-commerce acceptance passed.**
 
 Branch `phase10a/commerce-intelligence`; original baseline `d0385b6`. The accepted v0.9.1 tag remains at `c9768025e6a95da057617f405225a3b6da006691` (annotated tag object `da9de5ff4fa8faff94672329c42cde9d9c391bc3`). No release tag is created. Version 0.10.0 denotes development packages, not a promoted production release.

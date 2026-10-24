@@ -1,5 +1,7 @@
 # Phase 10A commerce intelligence
 
+**Operator update:** the selected existing stack now runs Phase 10A in place on its original ports and credentials; see [single-stack operations](single-stack-operations.md). The isolated acceptance commands below describe the earlier test procedure. Its containers have been removed while configuration/data remain archived. Do not start it alongside the operator stack.
+
 This development phase extends the existing Sales, Shopify and Printify packages. It does not replace the dynamic Worker UI, introduce a second integration bus, or authorize paid production. The accepted v0.9.1 release remains unchanged.
 
 ## Business workflow
