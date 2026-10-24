@@ -12,6 +12,8 @@ const identifier = { type: 'string', pattern: '^[a-z][a-z0-9.-]{0,79}$' };
 const body = (properties: object, required = Object.keys(properties)) => ({ body: { type: 'object', additionalProperties: false, required, properties } });
 export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Authentication, identity: InstallationConfig, broker: Broker, trust: () => Promise<PublisherTrust>) {
   async function admin(req: Parameters<Authentication['session']>[0], mutate = false) { const a = await auth.session(req,mutate); if (a.role !== 'local_admin') fail(403,'Worker-local Smart Modules administrator required'); return a; }
+  // Governance follows the persisted enrolled legal entity, independently of Master availability.
+  async function entityId(){return (await pool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0]?.entity_id??identity.entity.entityId;}
   async function installed() {
     const publishers = await trust();
     return (await pool.query('SELECT * FROM module_installations ORDER BY module_id')).rows.map(row => {
@@ -26,7 +28,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
         try { if ((await broker('inspect',row.descriptor,row.configuration)).status !== 200) state = 'unavailable'; } catch { state = 'unavailable'; }
       }
       for (const capability of row.manifest?.smart?.provides ?? []) {
-        const provider: CapabilityProvider = { moduleId: row.module_id, moduleVersion: row.version, installationId: row.operation_id, entityId: identity.entity.entityId, packageDigest: digest(canonical(row.descriptor)), state,
+        const provider: CapabilityProvider = { moduleId: row.module_id, moduleVersion: row.version, installationId: row.operation_id, entityId: await entityId(), packageDigest: digest(canonical(row.descriptor)), state,
           configured: Object.entries(row.manifest.smart.prerequisites.configuration).every(([k,v]) => row.configuration[k] === v), capability };
         providers.push(provider);
       }
@@ -50,7 +52,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
   app.addHook('onClose',async()=>{clearInterval(timer);});
   app.get('/api/v8/smart-modules',async req => {
     await admin(req); const { rows,providers } = await registry();
-    return { entityId: identity.entity.entityId, providers, consumers: rows.filter(r => r.manifest?.smart?.consumes.length).map(r => ({ moduleId:r.module_id, requirements:r.manifest.smart.consumes })),
+    return { entityId: await entityId(), providers, consumers: rows.filter(r => r.manifest?.smart?.consumes.length).map(r => ({ moduleId:r.module_id, requirements:r.manifest.smart.consumes })),
       bindings:(await pool.query('SELECT * FROM smart_bindings ORDER BY created_at DESC LIMIT 100')).rows,
       workflows:(await pool.query('SELECT * FROM smart_workflows ORDER BY created_at DESC LIMIT 100')).rows,
       executions:(await pool.query('SELECT execution_id,workflow_id,state,step,attempts,error_code,created_at,updated_at FROM smart_executions ORDER BY created_at DESC LIMIT 100')).rows,
@@ -59,11 +61,11 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
   });
   app.post<{Body:{consumerId:string;capabilityId:string;preferredProvider?:string}}>('/api/v8/smart-modules/resolve',{schema:body({consumerId:identifier,capabilityId:identifier,preferredProvider:identifier},['consumerId','capabilityId'])},async req => {
     await admin(req,true); const {rows,providers}=await registry(), r=requirement(rows,req.body.consumerId,req.body.capabilityId);
-    return resolveCapability(r,providers.filter(p=>p.capability.capabilityId===r.capabilityId),{entityId:identity.entity.entityId,permissions:privileges(providers),...(req.body.preferredProvider?{preferredProvider:req.body.preferredProvider}:{})});
+    return resolveCapability(r,providers.filter(p=>p.capability.capabilityId===r.capabilityId),{entityId:await entityId(),permissions:privileges(providers),...(req.body.preferredProvider?{preferredProvider:req.body.preferredProvider}:{})});
   });
   app.post<{Body:{bindingId:string;consumerId:string;capabilityId:string;providerId:string;packageDigest:string;reason:string;preserveExistingObligations?:boolean}}>('/api/v8/smart-modules/bindings',{schema:body({bindingId:uuid,consumerId:identifier,capabilityId:identifier,providerId:identifier,packageDigest:{type:'string',pattern:'^[a-f0-9]{64}$'},reason:{type:'string',minLength:20,maxLength:1000},preserveExistingObligations:{type:'boolean'}},['bindingId','consumerId','capabilityId','providerId','packageDigest','reason'])},async req => {
     const actor=await admin(req,true), b=req.body, {rows,providers}=await registry(), r=requirement(rows,b.consumerId,b.capabilityId);
-    const resolved=resolveCapability(r,providers,{entityId:identity.entity.entityId,permissions:privileges(providers),preferredProvider:b.providerId});
+    const resolved=resolveCapability(r,providers,{entityId:await entityId(),permissions:privileges(providers),preferredProvider:b.providerId});
     if(!resolved.selected || resolved.selected.packageDigest!==b.packageDigest)fail(409,'Provider is incompatible, ambiguous, unavailable or changed; resolve again');
     const p=resolved.selected;
     return transaction(pool,async db=>{
@@ -72,7 +74,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       if(previous){if(previous.consumer_id!==b.consumerId||previous.provider_id!==b.providerId||previous.capability_id!==b.capabilityId||previous.package_digest!==b.packageDigest||previous.actor_id!==actor.account_id||previous.reason!==b.reason)fail(409,'Binding identity was reused');return{binding:previous};}
       // Existing obligations retain their historical binding; no stock or external job is transferred.
       await db.query("UPDATE smart_bindings SET state=$3,reason='Superseded for new work; original obligations remain pinned',updated_at=now(),revision=revision+1 WHERE consumer_id=$1 AND capability_id=$2 AND state='approved'",[b.consumerId,b.capabilityId,b.preserveExistingObligations?'retained':'disabled']);
-      const result=await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved',$11) RETURNING *",[b.bindingId,b.consumerId,b.capabilityId,b.providerId,p.installationId,p.packageDigest,r,p.capability,actor.account_id,identity.entity.entityId,b.reason]);
+      const result=await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved',$11) RETURNING *",[b.bindingId,b.consumerId,b.capabilityId,b.providerId,p.installationId,p.packageDigest,r,p.capability,actor.account_id,await entityId(),b.reason]);
       await audit(db,actor.account_id,'smart.binding_approved',b.bindingId,{consumer:b.consumerId,provider:b.providerId,capability:b.capabilityId,packageDigest:p.packageDigest}); return{binding:result.rows[0]};
     });
   });
@@ -109,7 +111,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       for(let i=0;i<b.inputs.length;i++){
         const step=w.definition.steps[i],binding=(await db.query('SELECT * FROM smart_bindings WHERE binding_id=$1',[step.bindingId])).rows[0];
         if(!binding||binding.state!=='approved')fail(409,'Binding requires reconciliation');
-        const r=requirement(rows,w.consumer_id,binding.capability_id),selection=resolveCapability(r,providers,{entityId:identity.entity.entityId,permissions:privileges(providers),preferredProvider:binding.provider_id});
+        const r=requirement(rows,w.consumer_id,binding.capability_id),selection=resolveCapability(r,providers,{entityId:await entityId(),permissions:privileges(providers),preferredProvider:binding.provider_id});
         if(!selection.selected||selection.selected.packageDigest!==binding.package_digest)fail(409,'Provider changed or unavailable; review the binding');
         const op=binding.capability.operations.find((o:any)=>o.name===step.operation);try{validateCapabilityValue(b.inputs[i],op.input);}catch{fail(400,'Workflow input does not match its signed schema');}
       }

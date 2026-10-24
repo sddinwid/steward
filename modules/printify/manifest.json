@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.8.0",
@@ -92,12 +92,23 @@
       "method": "POST",
       "path": "/reconcile/:id",
       "permission": "cee.printify.write"
+    },
+    {
+      "operationId": "listshop",
+      "method": "GET",
+      "path": "/shops",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields"
+      ]
     }
   ],
   "ui": [
     {
       "screenId": "mapping",
-      "title": "printify — mapping",
+      "title": "printify \u2014 mapping",
       "navigationLabel": "printify mapping",
       "listOperation": "listmapping",
       "createOperation": "createmapping",
@@ -130,7 +141,7 @@
     },
     {
       "screenId": "connection",
-      "title": "printify — connection",
+      "title": "printify \u2014 connection",
       "navigationLabel": "printify connection",
       "listOperation": "listconnection",
       "fields": [
@@ -178,7 +189,7 @@
     },
     {
       "screenId": "product",
-      "title": "printify — product",
+      "title": "printify \u2014 product",
       "navigationLabel": "printify product",
       "listOperation": "listproduct",
       "fields": [
@@ -220,7 +231,7 @@
     },
     {
       "screenId": "job",
-      "title": "printify — job",
+      "title": "printify \u2014 job",
       "navigationLabel": "printify job",
       "listOperation": "listjob",
       "fields": [
@@ -292,6 +303,40 @@
           "label": "Reconcile production",
           "operationId": "reconcile"
         }
+      ]
+    },
+    {
+      "screenId": "shop",
+      "title": "Printify - configured shop",
+      "navigationLabel": "printify shop",
+      "listOperation": "listshop",
+      "fields": [
+        {
+          "name": "sourceId",
+          "label": "sourceId",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "title",
+          "label": "title",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "salesChannel",
+          "label": "salesChannel",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "sourceId",
+        "title",
+        "salesChannel"
       ]
     }
   ],
@@ -610,6 +655,11 @@
       "name": "printify_job",
       "description": "Read paginated authorized printify job evidence; credentials and personal information excluded.",
       "operationId": "listjob"
+    },
+    {
+      "name": "printify_shop",
+      "description": "Read only the configured authorized shop identity and source channel, without credentials.",
+      "operationId": "listshop"
     }
   ],
   "connector": {

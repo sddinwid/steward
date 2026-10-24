@@ -21,7 +21,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const step=w.definition.steps[e.step];if(!step)throw new Error('INVALID_WORKFLOW_STEP');
       const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state IN ('approved','retained')",[step.bindingId,w.consumer_id])).rows[0];
       if(!binding)throw new Error('BINDING_REQUIRES_RECONCILIATION');
-      const local=(await db.query('SELECT entity_id FROM platform_installation WHERE singleton AND installation_id=$1',[installationId])).rows[0];
+      const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
       if(!local||binding.entity_id!==local.entity_id)throw new Error('ENTITY_SCOPE_MISMATCH');
       if(!(await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[binding.actor_id])).rowCount)throw new Error('APPROVAL_REVOKED');
       const rows=(await db.query('SELECT * FROM module_installations WHERE module_id=ANY($1::text[])',[ [w.consumer_id,binding.provider_id] ])).rows;
@@ -34,7 +34,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const requirement=sm.smart?.consumes.find(r=>r.capabilityId===binding.capability_id),capability=tm.smart?.provides.find(c=>c.capabilityId===binding.capability_id);
       if(!requirement||canonical(requirement)!==canonical(binding.requirement)||!capability)throw new Error('CONTRACT_CHANGED_REVIEW_REQUIRED');
       if(!Object.entries(sm.smart!.prerequisites.configuration).every(([k,v])=>source.configuration[k]===v))throw new Error('CONSUMER_CONFIGURATION_PREREQUISITE');
-      const p:CapabilityProvider={moduleId:tm.moduleId,moduleVersion:tm.version,installationId,entityId:binding.entity_id,packageDigest:binding.package_digest,state:'active',configured:Object.entries(tm.smart!.prerequisites.configuration).every(([k,v])=>target.configuration[k]===v),capability};
+      const p:CapabilityProvider={moduleId:tm.moduleId,moduleVersion:tm.version,installationId:target.operation_id,entityId:binding.entity_id,packageDigest:binding.package_digest,state:'active',configured:Object.entries(tm.smart!.prerequisites.configuration).every(([k,v])=>target.configuration[k]===v),capability};
       if(!resolveCapability(requirement,[p],{entityId:binding.entity_id,permissions:capability.operations.map(o=>o.permission)}).selected)throw new Error('INCOMPATIBLE_PROVIDER');
       if(!await runtimeMatches(tm.moduleId,target.configuration)||!await runtimeMatches(sm.moduleId,source.configuration))throw new Error('CONFIGURATION_MISMATCH');
       const op=capability.operations.find(o=>o.name===step.operation);if(!op)throw new Error('OPERATION_NOT_DECLARED');

@@ -8,7 +8,7 @@ export function printify(manifest:ModulePackageManifest,secretFile?:string):Defi
  ensure(ctx.config.productionEnabled===true,'Production is disabled in module configuration',403);ensure(r.data.status==='awaiting_authorization','Job is not awaiting authorization',409);
  const mapped=await mapLines(ctx,r.data.lines);return{record:publicRecord(await save(ctx,'job',r.key,{...r.data,status:'authorized',authorizedBy:ctx.actor,authorizedAt:new Date().toISOString(),maximumCostCents:ctx.config.maximumOrderCostCents,productionLines:mapped},r))};
 }},{path:'/reconcile/:id',kind:'job',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{const receipt=(await ctx.db.query('SELECT state FROM connector_issuance WHERE request_key=$1',['create:'+r.key])).rows[0];const safe=!receipt&&!r.data.remoteId&&r.data.authorizedAt&&['issuing','uncertain'].includes(r.data.status);return{record:publicRecord(await save(ctx,'job',r.key,{...r.data,...(safe?{status:'authorized',error:null}:{}),reconcileRequestedAt:new Date().toISOString(),reconciledBy:ctx.actor},r))};}},{path:'/synchronize/:id',kind:'connector',permission:manifest.moduleId+'.write',run:async(r,ctx)=>({record:publicRecord(await save(ctx,'connector',r.key,{...r.data,requestedAt:new Date().toISOString()},r))})}],
- queries:[{path:'/connections',run:(ctx,q)=>page(ctx,'connector',q,['name','mode','status','error'])},{path:'/catalog',run:(ctx,q)=>page(ctx,'product',q,['sourceId','title','printProviderId','variants'])},{path:'/jobs',run:(ctx,q)=>page(ctx,'job',q,['orderId','remoteId','status','productionCostCents','shippingCostCents','tracking','error'])}],
+ queries:[{path:'/shops',run:(ctx,q)=>page(ctx,'shop',q,['sourceId','title','salesChannel'])},{path:'/connections',run:(ctx,q)=>page(ctx,'connector',q,['name','mode','status','error'])},{path:'/catalog',run:(ctx,q)=>page(ctx,'product',q,['sourceId','title','printProviderId','variants'])},{path:'/jobs',run:(ctx,q)=>page(ctx,'job',q,['orderId','remoteId','status','productionCostCents','shippingCostCents','tracking','error'])}],
  receive:async(command,ctx)=>{
  const op=contracts.production!.operations.find(o=>o.name===command.command);ensure(op,'Unsupported fulfillment operation',403);validateCapabilityValue(command.payload,op.input);const b=command.payload as Data;
  ensure(b.orderId===command.aggregateId,'Fulfillment aggregate identity mismatch',403);
@@ -21,13 +21,15 @@ export function printify(manifest:ModulePackageManifest,secretFile?:string):Defi
  const hash=digest(raw.toString()),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[body.id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[body.id,hash]);return{accepted:true,replay:false};
  }};}
 async function mapLines(ctx:Context,lines:Data[]){const result=[];for(const l of lines){const m=await find(ctx,'mapping',l.sku);ensure(m,'Explicit Printify SKU/variant mapping required');const p=await find(ctx,'product',m.data.productId),v=p?.data.variants.find((v:Data)=>v.id===m.data.variantId&&v.isEnabled);ensure(v,'Mapped Printify variant unavailable');result.push({product_id:m.data.productId,variant_id:m.data.variantId,quantity:l.quantity});}return result;}
+export function validatePrintifyCurrency(secret:Data,currency:string){if(secret.mode==='live'&&secret.costCurrency!==currency)throw new ConnectorError('CONNECTOR_COST_CURRENCY_CONFIRMATION_REQUIRED');}
 const cooldown=new WeakMap<pg.Pool,number>();
 async function pages(s:Data,kind:string){const all=[];for(let p=1;p<=50;p++){const r=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/${kind}.json?page=${p}&limit=2`);ensure(Array.isArray(r.data),'Invalid Printify page');all.push(...r.data);if(p>=r.last_page)return all;}throw new ConnectorError('CONNECTOR_PAGE_BUDGET_REACHED');}
 export async function printifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
  if((cooldown.get(pool)??0)>Date.now())return;cooldown.set(pool,Date.now()+2000);const lock=await pool.connect();let acquired=false;
  try{
   acquired=(await lock.query('SELECT pg_try_advisory_lock(8148001) acquired')).rows[0].acquired;if(!acquired)return;
-  const s=await connectorSecret('printify',runtime.configuration.mode,secretFile),shops=await remote(s,'/v1/shops.json');ensure(shops.some((shop:Data)=>String(shop.id)===s.shopId),'Printify shop not authorized',403);
+  const s=await connectorSecret('printify',runtime.configuration.mode,secretFile);validatePrintifyCurrency(s,runtime.configuration.currency);const shops=await remote(s,'/v1/shops.json');ensure(shops.some((shop:Data)=>String(shop.id)===s.shopId),'Printify shop not authorized',403);
+  await transaction(pool,async db=>{const ctx=context(db,runtime);for(const shop of shops.filter((shop:Data)=>String(shop.id)===s.shopId)){const data={sourceId:String(shop.id),title:String(shop.title??shop.id),salesChannel:String(shop.sales_channel??'unknown')},old=await find(ctx,'shop',data.sourceId);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'shop',data.sourceId,data,old);}});
   const products=await pages(s,'products');
   await transaction(pool,async db=>{const ctx=context(db,runtime),seen=new Set();for(const p of products){const data={sourceId:p.id,title:p.title,printProviderId:p.print_provider_id,blueprintId:p.blueprint_id,variants:p.variants.map((v:Data)=>({id:v.id,isEnabled:v.is_enabled&&v.is_available!==false,unitCostCents:Number.isSafeInteger(v.cost)&&v.cost>=0?v.cost:null,sourceSku:v.sku??null}))};seen.add(p.id);const old=await find(ctx,'product',p.id);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'product',p.id,data,old);}for(const old of await records(ctx,'product'))if(!seen.has(old.key)&&old.data.variants.some((v:Data)=>v.isEnabled))await save(ctx,'product',old.key,{...old.data,variants:old.data.variants.map((v:Data)=>({...v,isEnabled:false}))},old);});
   const jobs=(await pool.query("SELECT * FROM business_records WHERE kind='job' AND data->>'status' NOT IN ('awaiting_authorization','canceled') ORDER BY key LIMIT 20")).rows;
@@ -44,7 +46,7 @@ async function reconcileJob(pool:pg.Pool,runtime:Data,s:Data,job:any,external:Da
  if(!current&&!data.remoteId){
   if(data.status!=='authorized'){await jobPatch(pool,runtime,job.key,{status:'uncertain',error:'EXTERNAL_ORDER_NOT_YET_RECONCILED'});return;}
   ensure(runtime.configuration.productionEnabled===true&&s.productionEnabled===true,'Operator has not enabled production',403);
-  if(s.mode==='live'){const grant=s.productionApprovals?.[data.orderId];ensure(grant&&Date.parse(grant.expiresAt)>Date.now()&&grant.maximumCostCents<=data.maximumCostCents,'Live production requires a private, time-limited per-order operator grant',403);}
+  if(s.mode==='live'){const grant=s.productionApprovals?.[data.orderId];ensure(grant&&grant.currency===data.currency&&Date.parse(grant.expiresAt)>Date.now()&&grant.maximumCostCents<=data.maximumCostCents,'Live production requires a private, time-limited per-order operator grant',403);}
   const address=s.mode==='simulator'?s.syntheticAddress:s.deliveryByReference?.[data.orderId];ensure(address&&address.country,'Private delivery configuration required');
   const shipping=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/orders/shipping.json`,'POST',{line_items:data.productionLines,address_to:address});
   let production=0;await transaction(pool,async db=>{const ctx=context(db,runtime);for(const l of data.productionLines){const p=await find(ctx,'product',l.product_id),v=p?.data.variants.find((v:Data)=>v.id===l.variant_id);ensure(v&&Number.isSafeInteger(v.unitCostCents),'Production cost is unknown; authorization cannot proceed');production+=v.unitCostCents*l.quantity;}});
@@ -56,13 +58,14 @@ async function reconcileJob(pool:pg.Pool,runtime:Data,s:Data,job:any,external:Da
  }
  if(!current&&data.remoteId)current=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/orders/${encodeURIComponent(data.remoteId)}.json`);
  if(!current)return;
+ if(current.currency)ensure(String(current.currency).toUpperCase()===data.currency,'External production currency mismatch',409);
  if(!data.remoteId)data=(await jobPatch(pool,runtime,job.key,{remoteId:current.id,status:'pending'})).data;
  const externalStatus=String(current.status);
  if(['pending','on-hold'].includes(externalStatus)){
   const previous=(await pool.query('SELECT state FROM connector_issuance WHERE request_key=$1',['produce:'+job.key])).rows[0];
   if(previous?.state==='issued'){await jobPatch(pool,runtime,job.key,{status:'uncertain',error:'PRODUCTION_OUTCOME_UNCERTAIN'});return;}
   ensure(runtime.configuration.productionEnabled===true&&s.productionEnabled===true,'Production authorization revoked',403);
-  if(s.mode==='live'){const grant=s.productionApprovals?.[data.orderId];ensure(grant&&Date.parse(grant.expiresAt)>Date.now()&&data.productionCostCents+data.shippingCostCents<=grant.maximumCostCents,'Production grant expired or insufficient',403);}
+  if(s.mode==='live'){const grant=s.productionApprovals?.[data.orderId];ensure(grant&&grant.currency===data.currency&&Date.parse(grant.expiresAt)>Date.now()&&data.productionCostCents+data.shippingCostCents<=grant.maximumCostCents,'Production grant expired or insufficient',403);}
   try{await issued(pool,'produce:'+job.key,{remoteId:current.id},()=>remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/orders/${encodeURIComponent(current.id)}/send_to_production.json`,'POST',{}));}catch{await jobPatch(pool,runtime,job.key,{status:'uncertain',error:'PRODUCTION_OUTCOME_UNCERTAIN'});return;}
   current=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/orders/${encodeURIComponent(current.id)}.json`);
  }else if(['in-production','sending-to-production','fulfilled','partially-fulfilled'].includes(externalStatus))await reconciled(pool,'produce:'+job.key,{});

@@ -12,7 +12,7 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
     await db.query('BEGIN');await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',['smart:'+source.moduleId+':'+command.aggregateId]);
     const consumer=(await db.query('SELECT * FROM module_installations WHERE module_id=$1',[source.moduleId])).rows[0];
     if(!consumer||consumer.state!=='active'||canonical(verifyPackage(consumer.descriptor,trust).manifest)!==canonical(source)||!Object.entries(source.smart!.prerequisites.configuration).every(([k,v])=>consumer.configuration[k]===v))throw new Error('INTEGRATION_NOT_AUTHORIZED');
-    const local=(await db.query('SELECT entity_id FROM platform_installation WHERE singleton AND installation_id=$1',[installationId])).rows[0];if(!local)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
+    const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];if(!local)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
     const pinned=(await db.query('SELECT * FROM smart_obligations WHERE consumer_id=$1 AND aggregate_id=$2 AND capability_id=$3',[source.moduleId,command.aggregateId,reference.capabilityId])).rows[0];
     // An aggregate keeps its reviewed workflow even when later operations use another capability.
     const aggregateWorkflow=pinned?.workflow_id??(await db.query('SELECT workflow_id FROM smart_obligations WHERE consumer_id=$1 AND aggregate_id=$2 AND workflow_id IS NOT NULL LIMIT 1',[source.moduleId,command.aggregateId])).rows[0]?.workflow_id;

@@ -1,10 +1,10 @@
-# Phase 8 SSMA implementation reference — development checkpoint
+# Phase 8 SSMA implementation reference
 
-This branch contains a tested SSMA kernel, not a completed v0.8.0 release. Shopify/Printify adapters, commerce simulators, Master commerce analysis and packaged deployment acceptance remain outstanding. The package/core version identifies the development target; it is not a release certification. The accepted distribution remains v0.7.0.
+Signed SSMA governance and separately packaged commerce modules are implemented. Final release acceptance is recorded in [verification](phase8-verification.md); see [architecture](phase8-architecture.md), [commerce operations](phase8-commerce.md) and [release procedure](phase8-release.md). Simulator results do not establish live commercial connectivity.
 
 ## Reuse and contracts
 
-SDK package 1.3.0 preserves manifest/SDK wire version 1. Legacy packages omit `smart` and continue using existing bilateral integration contracts. SSMA packages require minimum platform 0.8.0. The optional `smart` member is covered by the existing Ed25519 package signature and immutable image identity.
+SDK package 1.4.0 preserves manifest/SDK wire version 1. Legacy packages omit `smart` and continue using existing bilateral integration contracts. SSMA packages require minimum platform 0.8.0. The optional `smart` member is covered by the existing Ed25519 package signature and immutable image identity.
 
 `packages/module-sdk/src/capabilities.ts` is the TypeScript contract reference. `smart.version` is 1; `provides` and `consumes` contain at most 20 unique capabilities each. Providers specify capability/contract/version, named operations with input/output JSON schemas, permission, communication mode, idempotency, retry policy, events, sensitivity, entity scope and provider ownership. Consumers specify contract identity, minimum version, maximum compatible major, required operations/events, maximum sensitivity and optionality. Prerequisites require an active, healthy provider and explicitly declared configuration values. Prerequisites must reference declared configuration keys and must never contain secrets.
 
@@ -12,7 +12,7 @@ Input/output/event schemas are bounded to 16 KiB and compile locally. Remote sch
 
 ## Registry and deterministic resolution
 
-Worker-local platform migration 7 adds provider snapshots, bindings, obligations, pinned command routes, workflow definitions, executions, history and a separate issuance journal. Migrations 1–6 are unchanged. Module business tables remain in their dedicated databases.
+Worker-local platform migration 7 adds provider snapshots, bindings, obligations, pinned command routes, workflow definitions, executions, history and a separate issuance journal. Migrations 1–6 are unchanged. Additive migrations 8–9 add routing outcomes and retained workflow selection. Module business tables remain in their dedicated databases.
 
 `GET /api/v8/smart-modules` verifies installed package signatures and refreshes provider snapshots. A ten-second background refresh also reconciles snapshots. Health inspection is authenticated through the existing host and bounded by the broker timeout. States are active, inactive, failed or unavailable; configuration prerequisites are separate. There is no API for registering arbitrary metadata.
 
@@ -22,7 +22,7 @@ All new governance routes require an enabled Worker `local_admin` session. Mutat
 
 `POST /api/v8/smart-modules/bindings` requires a new UUID `bindingId`, consumer/capability/provider IDs, the exact inspected `packageDigest`, and an explanation of 20–1000 characters. Bindings pin the provider installation operation UUID, signed descriptor digest and full contract/requirement. A changed package requires inspection and approval again. The UUID cannot be reused for different approval contents.
 
-Substitution disables the old binding for execution and selects a provider only for new work. Existing `smart_obligations` retain their original binding/provider/package. Work using a disabled binding suspends; it does not migrate reservations to the replacement. `POST .../bindings/:id/disable` requires an explicit reason. No automatic business-data transfer or destructive rollback exists.
+Substitution selects a provider only for new work. By default the old binding is disabled. Optional `preserveExistingObligations: true` explicitly retains its authority for previously pinned aggregates only; the administration checkbox makes that choice visible. Existing `smart_obligations` retain their original binding/provider/package. Work using a disabled binding suspends; explicitly retained bindings can continue only their original obligations. Workflow activation sets previous versions to `accepting_new=false`, preserving them for pinned aggregates; new aggregates use the newly activated definition. Existing aggregate workflow identities also govern later operations against other capabilities. This avoids ambiguous shared steps after substitution. it does not migrate reservations to the replacement. `POST .../bindings/:id/disable` requires an explicit reason. No automatic business-data transfer or destructive rollback exists.
 
 ## Governed workflow execution
 
@@ -73,3 +73,5 @@ The SSMA tests use an isolated PostgreSQL 17.10 container, real password/session
 ## Remaining release gates
 
 Do not install this checkpoint as a completed commercial or MVP Phase 8 distribution. The release packer explicitly refuses unsupported version targets rather than accidentally relabeling Phase 7 images as Phase 8. Complete independent module packages, commerce adapters/simulators, business workflows and cross-module dataflow, Master commerce projections/MCP/calculations/reviewed findings, full failure matrix, retained-deployment upgrade, clean package install, archive checksum/digest verification and redeployment before enabling packaging and tagging v0.8.0.
+
+Governance scope is the persisted enrolled legal entity, independent of Master connectivity. The initial installation entity is used only before enrollment, when modules cannot be installed. Checkpoint bindings stamped with that initial entity fail closed after the correction and require explicit local review for new work; historical obligations are retained. Never change a Worker legal entity or rewrite an old obligation to bypass that review.

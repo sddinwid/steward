@@ -108,7 +108,7 @@ try{
  await page.reload({waitUntil:'networkidle'});await page.getByTestId('finding-'+finding.finding_id).waitFor();await page.screenshot({path:'artifacts/phase4-worker-finding.png',fullPage:true});await masterPage.getByRole('button',{name:'Refresh business data',exact:true}).click();await masterPage.screenshot({path:'artifacts/phase4-master-finding.png',fullPage:true});
  assert.deepEqual(pageErrors,[]);for(const i of deployment.instances)assert.equal((await json(`http://127.0.0.1:${i.apiPort}/ready`)).status,'ready');
  for(const i of deployment.instances)assert.equal(sql(i.key,'SELECT installation_id FROM platform_installation'),i.installationId);
- const preserved=JSON.parse(await readFile('artifacts/phase4-preserved-baseline.json','utf8'));
+ const preserved=JSON.parse(await readFile(process.env.STEWARD_PHASE4_BASELINE_FILE??'artifacts/phase4-preserved-baseline.json','utf8'));
  for(const i of deployment.instances)assert.deepEqual(JSON.parse(await readFile(path.join(directory,i.key,'installation.json'),'utf8')),preserved.installations[i.key]);
  for(const [worker,oldRows]of Object.entries(preserved.inventory)){
   const current=JSON.parse(moduleDb(worker,'cee.inventory',"SELECT coalesce(json_agg(r),'[]') FROM (SELECT item_id,sku,name,quantity,revision,created_at,updated_at FROM inventory_items ORDER BY item_id)r"));

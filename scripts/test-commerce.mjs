@@ -20,7 +20,7 @@ import {createBusinessServer} from '../packages/business-kit/dist/index.js';
 import {createInventoryServer} from '../modules/inventory/dist/server.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
 import {shopify,shopifyBackground} from '../modules/shopify/dist/definition.js';
-import {printify,printifyBackground} from '../modules/printify/dist/definition.js';
+import {printify,printifyBackground,validatePrintifyCurrency} from '../modules/printify/dist/definition.js';
 import {sales} from '../modules/sales/dist/definition.js';
 import {stockLedger} from '../modules/stock-ledger/dist/definition.js';
 const base=path.resolve('.steward/commerce-tests');await mkdir(base,{recursive:true});privateDirectory(base);const lock=base+'/run.lock';await mkdir(lock);
@@ -77,7 +77,8 @@ try{
  await control('printify','seed',{products:[1,2,3].map(n=>({id:'syn-product-'+n,title:'Synthetic production shirt',blueprint_id:1,print_provider_id:9,variants:[{id:101,is_enabled:true,is_available:true,cost:800,shipping_cost:200,sku:'POD-TEE'}]})),orders:[]});
  const sourceHash=digest(await readFile('modules/sales/src/definition.ts','utf8'));
  await test('real TLS simulators paginate authenticated source APIs; adapters preserve authoritative IDs and explicit mappings',async()=>{
-  await backgrounds();assert.equal((await read('cee.shopify','product')).length,3);assert.equal((await read('cee.printify','product')).length,3);assert.equal((await read('cee.shopify','order')).length,1);
+  assert.throws(()=>validatePrintifyCurrency({mode:'live'},'EUR'),/CURRENCY/);assert.throws(()=>validatePrintifyCurrency({mode:'live',costCurrency:'USD'},'EUR'),/CURRENCY/);validatePrintifyCurrency({mode:'live',costCurrency:'USD'},'USD');
+  await backgrounds();assert.equal((await read('cee.shopify','product')).length,3);assert.equal((await read('cee.printify','product')).length,3);assert.equal((await read('cee.printify','shop'))[0].data.sourceId,'1001');assert.equal((await read('cee.shopify','order')).length,1);
   await worker('cee.shopify').api('POST','/mappings',{sourceVariantId:'gid://shopify/ProductVariant/1',sku:'SYN-TEE'},201);await worker('cee.printify').api('POST','/mappings',{sku:'SYN-TEE',productId:'syn-product-1',variantId:101},201);
   await worker('cee.inventory').api('POST','/items',{sku:'SYN-TEE',name:'Synthetic shirt',quantity:10},201);await worker('cee.stock-ledger').api('POST','/items',{sku:'SYN-TEE',name:'Independent stock ledger shirt',quantity:20},201);
   assert.equal(Number((await worker('cee.inventory').pool.query('SELECT quantity FROM inventory_items')).rows[0].quantity),10);
@@ -136,8 +137,17 @@ try{
   const next=await imported(6);assert.equal((await db.query("SELECT provider_id FROM smart_obligations WHERE consumer_id='cee.sales' AND aggregate_id=$1 AND capability_id='inventory.stock.reserve'",[next.id])).rows[0].provider_id,'cee.inventory');await action('cee.sales','order','cancel',next);await delivery();assert.equal((await db.query("SELECT workflow_id FROM smart_obligations WHERE consumer_id='cee.sales' AND aggregate_id=$1 AND capability_id='inventory.stock.reserve'",[original.id])).rows[0].workflow_id,pinned.workflow_id);
  });
 
+ await test('refunds and source cancellations preserve completed effects; stale source observations and reordered signed webhooks cannot regress state',async()=>{
+  const alreadyCanceled={...sourceOrder(8),cancelledAt:new Date().toISOString()};await control('shopify','seed',{products:[],orders:[alreadyCanceled]});await wait(async()=>{await backgrounds();return(await read('cee.shopify','order')).some(o=>o.data.sourceId.endsWith('/8'));},'source already canceled');const canceledChannel=(await read('cee.shopify','order')).find(o=>o.data.sourceId.endsWith('/8'));await action('cee.shopify','order','dispatch',canceledChannel);await delivery();const canceledSale=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/8'));assert.equal(canceledSale.data.status,'canceled');await worker('cee.sales').api('POST','/confirm/'+canceledSale.id,{revision:canceledSale.revision,requestId:randomUUID()},422);
+  const currentTime=new Date().toISOString();await control('shopify','update',{kind:'orders',id:'gid://shopify/Order/1',patch:{displayFinancialStatus:'REFUNDED',totalRefundedSet:money('10.00'),updatedAt:currentTime}});
+  await wait(async()=>{await backgrounds();await delivery();return(await read('cee.sales','order')).some(o=>o.data.sourceId.endsWith('/1')&&o.data.refundCents===1000);},'source refund propagation');
+  await control('shopify','update',{kind:'orders',id:'gid://shopify/Order/1',patch:{displayFinancialStatus:'PAID',totalRefundedSet:money('0.00'),updatedAt:'2020-01-01T00:00:00.000Z'}});const event=(await control('shopify','event',{kind:'orders',id:'gid://shopify/Order/1',topic:'orders/updated'})).event;await worker('cee.shopify').api('POST','/connector-webhook',{bodyBase64:Buffer.from(event.body).toString('base64'),headers:event.headers});await delay(2100);await backgrounds();await delivery();const first=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/1'));assert.equal(first.data.refundCents,1000);assert.equal(first.data.status,'fulfilled');
+  await control('shopify','seed',{products:[],orders:[sourceOrder(7)]});await wait(async()=>{await backgrounds();return(await read('cee.shopify','order')).some(o=>o.data.sourceId.endsWith('/7'));},'cancelable source');const ch=(await read('cee.shopify','order')).find(o=>o.data.sourceId.endsWith('/7'));await action('cee.shopify','order','dispatch',ch);await delivery();let sale=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/7'));await action('cee.sales','order','confirm',sale);await delivery();await control('shopify','update',{kind:'orders',id:'gid://shopify/Order/7',patch:{cancelledAt:new Date().toISOString()}});await wait(async()=>{await backgrounds();await delivery();sale=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/7'));return sale.data.status==='canceled'&&sale.data.stockStatus==='released';},'source cancellation compensation');
+  assert.equal((await control('printify','snapshot')).creates,3);assert.equal((await control('printify','snapshot')).productionSubmissions,3);assert.equal((await control('shopify','snapshot')).fulfillments,3);
+ });
+
 }finally{
  for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
- report.finishedAt=new Date().toISOString();report.status=report.checks.length===9&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
+ report.finishedAt=new Date().toISOString();report.status=report.checks.length===10&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
  const resolved=path.resolve(runDir);if(!resolved.startsWith(base+path.sep))throw new Error('Unsafe fixture cleanup path');await rm(resolved,{recursive:true,force:true});await rmdir(lock);
 }

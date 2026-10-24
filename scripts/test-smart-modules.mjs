@@ -175,6 +175,12 @@ try{
    await db.query("UPDATE smart_executions SET state='pending',next_attempt_at=now() WHERE execution_id=$1",[e]);await run(async(...args)=>{calls++;return call(...args);});
    assert.equal(calls,1);assert.equal((await state(e)).error_code,'UNCERTAIN_OUTCOME_RECONCILE');assert.equal(await value('example.uncertain'),17);
  });
+
+ await test('governance and durable execution use the enrolled legal entity and fail closed if that scope changes',async()=>{
+  const legal=randomUUID();await db.query("INSERT INTO local_enrollment(singleton,profile_id,state,entity_id) VALUES(true,'fixture','enrolled',$1)",[legal]);
+  try{const discovered=await api('');assert.equal(discovered.entityId,legal);assert(discovered.providers.every(p=>p.entityId===legal));const b=await bind('example.stock-b');assert.equal(b.entity_id,legal);const w=await workflow(b),e=await enqueue(w);await run();assert.equal((await state(e)).state,'completed');const before=await value('example.stock-b'),pending=await enqueue(w);await db.query('UPDATE local_enrollment SET entity_id=$1',[randomUUID()]);await run();assert.equal((await state(pending)).error_code,'ENTITY_SCOPE_MISMATCH');assert.equal(await value('example.stock-b'),before);}
+  finally{await db.query('DELETE FROM local_enrollment');}
+ });
  if(browserMode)await test('browser performs discovery, explicit provider approval, retained-state reload and unavailable-state inspection',async()=>{
    const {chromium}=await import('playwright');const browser=await chromium.launch({headless:true});
    try{

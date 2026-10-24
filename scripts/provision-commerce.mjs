@@ -28,6 +28,7 @@ try{
   }
   const offset=deployment.instances[0].apiPort-(deployment.instances[0].role==='master'?4100:4200+Number(deployment.instances[0].key.split('-')[1]));
   if(simulators){
+   if(offset+18444>65535)throw new Error('Simulator port range exceeds 65535; choose a smaller installation port offset');
    const caPem=await readFile(path.join(directory,'security/ca-cert.pem'),'utf8');
    for(const [provider,port]of [['shopify',18443+offset],['printify',18444+offset]]){
     await mkdir(path.join(staging,'private',provider),{recursive:true});const base=path.join(staging,'private',provider),openssl=process.env.STEWARD_OPENSSL??(process.platform==='win32'?'C:/Program Files/Git/usr/bin/openssl.exe':'openssl');

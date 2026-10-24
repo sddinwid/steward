@@ -2,7 +2,7 @@
 
 Phase 8 is under acceptance. This document describes implemented interfaces; it does not establish a successful release or live commercial connectivity.
 
-Shopify and Printify are separate signed OCI module packages, outside Worker core. Inventory 1.4.0 and Sales 1.1.0 declare the shared contracts. Stock Ledger 1.0.0 implements stock reservation independently, using its own business-record ledger. Sales does not import either inventory provider. See ADR 0019 and the SSMA reference.
+Shopify and Printify are separate signed OCI module packages, outside Worker core. Inventory 1.4.0 and Sales 1.1.1 declare the shared contracts. Stock Ledger 1.0.0 implements stock reservation independently, using its own business-record ledger. Sales does not import either inventory provider. See ADR 0019 and the SSMA reference.
 
 ## Private connector configuration
 
@@ -12,7 +12,7 @@ Connector credentials belong in `DEPLOYMENT/commerce/private/WORKER/m_SHA256_MOD
 
 The private JSON contains `provider`, `mode`, HTTPS `baseUrl`, `token`, `webhookSecret`, `shopId`, and Shopify `shopDomain`. Simulator configurations also supply `caPem` and exact `serverName`; only loopback or the corresponding simulator hostname is accepted. Optional `expiresAt` refuses expired credentials. Live mode requires the canonical Shopify shop domain or `api.printify.com`, normal TLS verification and an operator-provided restricted outbound network. Default module networks are internal and deliberately provide no live commercial egress.
 
-Printify requires public `productionEnabled`, a configured cost ceiling, private `productionEnabled`, and a Worker-local `cee.printify.production.authorize` action for each job. Live mode additionally requires a private, expiring per-order `productionApprovals[orderId]` grant with `maximumCostCents`, plus `deliveryByReference[orderId]`. Never enable live production for synthetic demonstrations. Production grants are checked again before submission. No live commercial account has been exercised.
+Printify requires public `productionEnabled`, a configured cost ceiling, private `productionEnabled`, and a Worker-local `cee.printify.production.authorize` action for each job. Live Printify additionally requires an operator-verified private `costCurrency` matching the configured business currency, and each per-order grant must declare that currency. No FX or silent relabeling of provider cents is performed. Live mode additionally requires a private, expiring per-order `productionApprovals[orderId]` grant with `maximumCostCents`, plus `deliveryByReference[orderId]`. Never enable live production for synthetic demonstrations. Production grants are checked again before submission. No live commercial account has been exercised.
 
 ## Local demonstration
 

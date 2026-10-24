@@ -17,3 +17,7 @@ The official reference documents bearer authentication, shop/product/variant/pro
 ## Required work before acceptance
 
 Implement separately packaged adapters and realistic isolated simulators, secret provisioning, authenticated ingress/polling, canonical mappings, replay/out-of-order handling, throttling and missed-event reconciliation. Production submission must be explicitly authorized and disabled by default. No adapter, simulator, commerce E2E, production trust/rotation procedure or commercial-account validation is supplied by this research checkpoint. Keep all corresponding Phase 8 gates open until actual evidence exists.
+
+## Native cost currency guard
+
+The [official Printify reference](https://developers.printify.com/) exposes currency on shipping profiles; product/quote cents must not silently inherit a Shopify order currency. The live adapter requires an operator-verified private `costCurrency` matching module currency and a matching currency in each time-limited production grant. Mismatches stop before external API processing; observed remote order currency is also checked when supplied. Simulator accounts explicitly declare their synthetic currency. This is an explicit trust/configuration condition, not verified live account behavior or FX conversion.

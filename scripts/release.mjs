@@ -29,10 +29,17 @@ async function verifyBundle(){
  if(!['0.5.0','0.7.0','0.8.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
  return m;
 }
+async function acceptanceGates(){const gates=JSON.parse(await readFile(path.join(root,'docs/phase8-release-gates.json'),'utf8'));if(gates.status!=='passed'||!Array.isArray(gates.gates)||JSON.stringify(gates.gates.map(g=>g.id).sort())!==JSON.stringify(['A','B','C','D','E','F'])||gates.gates.some(g=>g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length))throw new Error('Mandatory Phase 8 acceptance gates remain open');return gates;}
+async function promote(){
+ const m=await verifyBundle();if(m.version!=='0.8.0'||m.acceptanceStatus!=='candidate')throw new Error('Promotion requires a verified Phase 8 candidate');
+ if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Commit acceptance evidence before promotion');
+ const gates=await acceptanceGates();if(gates.sourceCommit!==m.sourceCommit||gates.verifiedCandidateManifestSha256!==await digest(path.join(bundle,'release.json')))throw new Error('Acceptance evidence does not identify this exact candidate');
+ await writeFile(path.join(bundle,'release.json'),JSON.stringify({...m,acceptanceStatus:'accepted',acceptanceEvidenceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim()},null,2)+'\n');await verifyBundle();console.log('Promoted exact verified candidate to accepted release; payload checksums and all image IDs are unchanged.');
+}
 async function pack(){
  if(values.version!==JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).version)throw new Error('Pack from source matching the target release version; use the preserved tagged source for historical releases.');
  if(!['0.6.0','0.7.0','0.8.0'].includes(values.version))throw new Error('Unsupported release version');
- if(values.version==='0.8.0'){if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Phase 8 packaging requires clean committed source');if(!values.candidate){const gates=JSON.parse(await readFile(path.join(root,'docs/phase8-release-gates.json'),'utf8'));if(gates.status!=='passed'||gates.gates.some(g=>g.status!=='passed'))throw new Error('Mandatory Phase 8 gates remain open; package only an explicitly marked candidate');}}
+ if(values.version==='0.8.0'){if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Phase 8 packaging requires clean committed source');if(!values.candidate){await acceptanceGates();}}
  if(!/^\d+\.\d+\.\d+$/.test(values.version))throw new Error('Version must be semver');
  if(path.resolve(run('git',['rev-parse','--show-toplevel'],{stdio:['ignore','pipe','pipe']}).trim())!==root)throw new Error('Pack from the verified repository root, not an installed toolkit');
  await mkdir(path.dirname(bundle),{recursive:true});await mkdir(bundle,{recursive:false});
@@ -40,7 +47,7 @@ async function pack(){
  const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
  const {verifyPackage}=await import('../packages/module-sdk/dist/index.js');
  const compatibility=values.version==='0.8.0'?'0.8.0':values.version==='0.6.0'?'0.5.0':'0.7.0';
- const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(compatibility==='0.8.0'?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0']:[])];
+ const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(compatibility==='0.8.0'?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0','cee.sales@1.1.1','cee.printify@1.0.1','cee.printify@1.0.2']:[])];
  const packages=selected.map(id=>{
   const signed=source.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===id);
   if(!signed)throw new Error('Publish required package '+id+' before packaging');return verifyPackage(signed,trust);
@@ -117,7 +124,8 @@ async function install(upgrade=false){
  }finally{await rmdir(lock);}
 }
 try{
- if(action==='pack')await pack();
+ if(action==='promote')await promote();
+ else if(action==='pack')await pack();
  else if(action==='verify'){const m=await verifyBundle();console.log('PASS all release checksums: '+m.version);}
  else if(action==='install'||action==='upgrade')await install(action==='upgrade');
  else if(['start','stop','status'].includes(action)){
