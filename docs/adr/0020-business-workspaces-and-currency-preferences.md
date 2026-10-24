@@ -1,6 +1,6 @@
 # ADR 0020: Business workspaces and explicit currency preferences
 
-Status: accepted for implementation; UI acceptance in progress.
+Status: accepted; implemented and exercised through browser acceptance.
 
 Keep React, the shared UI package, signed declarative module contributions and existing APIs. Add hash-based deep links so existing nginx deployments require no router rewrite. Navigation is permission-filtered discovery; business, administration and developer workspaces separate presentation, while backend roles and module permissions remain authoritative. Local administrators already hold technical module governance authority; ordinary module users never acquire that authority through a route.
 

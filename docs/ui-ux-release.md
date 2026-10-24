@@ -12,14 +12,14 @@ Run from the distributed `toolkit` directory; no original checkout is required:
 npm ci
 npm run build
 node scripts/release.mjs verify --bundle ..
-node scripts/release.mjs install --bundle .. --directory .steward/demo --project steward-ui-demo --port-offset 30000 --trust-bundled-modules --simulators
-$env:STEWARD_DEPLOYMENT = '.steward/demo'
+$env:STEWARD_DEPLOYMENT = [IO.Path]::GetFullPath('../../steward-demo-state')
+node scripts/release.mjs install --bundle .. --directory $env:STEWARD_DEPLOYMENT --project steward-ui-demo --port-offset 30000 --trust-bundled-modules --simulators
 node scripts/compose.mjs up -d --no-build --wait
 node scripts/demo.mjs $env:STEWARD_DEPLOYMENT setup
 node scripts/verify-phase8-commerce.mjs $env:STEWARD_DEPLOYMENT enroll
 ```
 
-The fresh-install presenter setup creates private accounts; it refuses to appropriate an existing operator installation. Credentials are stored only in the selected deployment's `demo/presenter.json`. Master uses `accounts.registry`; Workers use `accounts.worker-1`, `accounts.worker-2`, and `accounts.worker-3`. Existing installations keep their existing accounts. No password reset occurs during upgrade.
+Keep deployment state outside the distribution and never redistribute private state. The fresh-install presenter setup creates private accounts; it refuses to appropriate an existing operator installation. Credentials are stored only in the selected deployment's `demo/presenter.json`. Master uses `accounts.registry`; Workers use `accounts.worker-1`, `accounts.worker-2`, and `accounts.worker-3`. Existing installations keep their existing accounts. No password reset occurs during upgrade.
 
 Use **https://master.localhost:36100** and **https://worker-1.localhost:36201** (Workers 2/3: 36202/36203) for this offset. Plain `localhost`, alternate hostnames, HTTP, and API ports are not equivalent secure sign-in origins. Install the generated development CA in a dedicated browser profile if desired; production requires operator-managed TLS and explicit Master identity trust. Never disable backend origin or certificate verification to resolve a sign-in error.
 
@@ -30,9 +30,9 @@ If Docker reports exhausted address pools, choose an unused private prefix and r
 Back up all operational/module PostgreSQL databases and private deployment files before an upgrade. Keep the distribution beside the selected deployment, and run:
 
 ```powershell
-node scripts/release.mjs upgrade --bundle .. --directory .steward/demo --trust-bundled-modules --simulators
-node scripts/release.mjs start --directory .steward/demo
-node scripts/smoke.mjs .steward/demo
+node scripts/release.mjs upgrade --bundle .. --directory $env:STEWARD_DEPLOYMENT --trust-bundled-modules --simulators
+node scripts/release.mjs start --directory $env:STEWARD_DEPLOYMENT
+node scripts/smoke.mjs $env:STEWARD_DEPLOYMENT
 node scripts/compose.mjs down
 ```
 

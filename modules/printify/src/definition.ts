@@ -77,4 +77,4 @@ async function reconcileJob(pool:pg.Pool,runtime:Data,s:Data,job:any,external:Da
   if(hash!==r.data.progressDigest){await enqueueCapability(ctx,contracts.status!.id,'fulfillment.progress',r.id,{...progress,updatedAt:new Date().toISOString()});await save(ctx,'job',r.key,{...r.data,status,remoteId:current.id,tracking,progressDigest:hash,error:null},r);}
  });
 }
-async function jobPatch(pool:pg.Pool,runtime:Data,key:string,patch:Data){return transaction(pool,async db=>{const ctx=context(db,runtime),r=(await find(ctx,'job',key))!;return save(ctx,'job',key,{...r.data,...patch},r);});}
+async function jobPatch(pool:pg.Pool,runtime:Data,key:string,patch:Data){return transaction(pool,async db=>{const ctx=context(db,runtime),r=(await find(ctx,'job',key))!;const next={...r.data,...patch};return canonical(next)===canonical(r.data)?r:save(ctx,'job',key,next,r);});}

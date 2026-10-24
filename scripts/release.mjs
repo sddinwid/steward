@@ -49,7 +49,7 @@ async function pack(){
  const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
  const {verifyPackage}=await import('../packages/module-sdk/dist/index.js');
  const compatibility=['0.8.0','0.9.0'].includes(values.version)?values.version:values.version==='0.6.0'?'0.5.0':'0.7.0';
- const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(['0.8.0','0.9.0'].includes(compatibility)?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0','cee.sales@1.1.1','cee.printify@1.0.1','cee.printify@1.0.2',...(compatibility==='0.9.0'?['cee.shopify@1.0.1','cee.printify@1.0.3']:[])]:[])];
+ const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(['0.8.0','0.9.0'].includes(compatibility)?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0','cee.sales@1.1.1','cee.printify@1.0.1','cee.printify@1.0.2',...(compatibility==='0.9.0'?['cee.shopify@1.0.1','cee.printify@1.0.3','cee.printify@1.0.4']:[])]:[])];
  const packages=selected.map(id=>{
   const signed=source.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===id);
   if(!signed)throw new Error('Publish required package '+id+' before packaging');return verifyPackage(signed,trust);
@@ -93,10 +93,11 @@ async function install(upgrade=false){
   for(const image of Object.values(m.images))if(JSON.parse(docker('image','inspect',image.id))[0].Id!==image.id)throw new Error('Pinned core image missing from the loaded release');
   const previous=existsSync(path.join(directory,'manifest.json'))?JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8')):null;
   if(upgrade&&!previous)throw new Error('Upgrade requires an existing deployment');
+  const commerceManifest=path.join(directory,'commerce/manifest.json'),simulatorMode=values.simulators||(previous&&existsSync(commerceManifest)?JSON.parse(await readFile(commerceManifest,'utf8')).simulators:false);
   node('tools/installer/dist/cli.js',['provision','--directory',directory,'--mode',previous?.mode??values.mode,'--workers',String(previous?Math.max(1,previous.instances.filter(i=>i.role==='worker').length):values.workers),'--project',previous?.project??values.project,'--label',previous?.label??'Steward MVP',...(values['port-offset']?['--port-offset',values['port-offset']]:[])]);
   for(const cli of ['security','modules','data','analyst'])node('tools/installer/dist/'+cli+'-cli.js',[directory,...(cli==='security'&&values.trust?[path.resolve(values.trust)]:[])]);
   if(m.version==='0.9.0')process.env.STEWARD_SIMULATOR_CURRENCY??='USD';
-  if(['0.8.0','0.9.0'].includes(m.platformCompatibility))node('scripts/provision-commerce.mjs',[directory,...(values.simulators?['--simulators']:[])]);
+  if(['0.8.0','0.9.0'].includes(m.platformCompatibility))node('scripts/provision-commerce.mjs',[directory,...(simulatorMode?['--simulators']:[])]);
   const {signPackage,canonical}=await import('../packages/module-sdk/dist/index.js');
   const key=await readFile(path.join(directory,'security/module-publisher-key.pem'),'utf8');
   const catalogPath=path.join(directory,'modules/public/catalog.json'),catalog=JSON.parse(await readFile(catalogPath,'utf8'));
@@ -114,7 +115,7 @@ async function install(upgrade=false){
    services.push('  '+i.key+'-db:\n    image: '+m.images.postgres.id+'\n    pull_policy: never');
    if(i.role==='worker')services.push('  '+i.key+'-module-host:\n    image: '+m.images['module-host'].id+'\n    build: !reset null\n    pull_policy: never');
   }
-  if(m.images['commerce-simulator']&&values.simulators)for(const provider of ['shopify','printify'])services.push('  '+provider+'-simulator:\n    image: '+m.images['commerce-simulator'].id+'\n    pull_policy: never');
+  if(m.images['commerce-simulator']&&simulatorMode)for(const provider of ['shopify','printify'])services.push('  '+provider+'-simulator:\n    image: '+m.images['commerce-simulator'].id+'\n    pull_policy: never');
   const releaseDir=path.join(directory,'release');await mkdir(releaseDir,{recursive:true});
   const overlay='services:\n'+services.join('\n')+'\n',candidate=path.join(releaseDir,'candidate.yaml');await writeFile(candidate,overlay);
   const overlays=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','commerce/compose.yaml'].filter(f=>existsSync(path.join(directory,f))).flatMap(f=>['-f',path.join(directory,f)]);
@@ -136,6 +137,7 @@ try{
    const installed=JSON.parse(await readFile(path.join(directory,'release/installed.json'),'utf8'));
    for(const image of Object.values(installed.images))if(JSON.parse(docker('image','inspect',image.id))[0].Id!==image.id)throw new Error('Pinned release image unavailable; reinstall release archive');
   }
-  run(process.execPath,[path.join(root,'scripts/compose.mjs'),...(action==='start'?['up','--no-build','-d','--wait','--wait-timeout','180']:action==='stop'?['down']:['ps'])],{env:{...process.env,STEWARD_DEPLOYMENT:directory}});
+  const invoke=()=>run(process.execPath,[path.join(root,'scripts/compose.mjs'),...(action==='start'?['up','--no-build','-d','--wait','--wait-timeout','180']:action==='stop'?['down']:['ps'])],{env:{...process.env,STEWARD_DEPLOYMENT:directory}});
+  try{invoke();}catch(error){if(action!=='start')throw error;console.log('Initial startup did not reach readiness. Repeating the idempotent startup once to allow restarted services to recover; persistent failures still fail the release command.');invoke();}
  }else throw new Error('Usage: node scripts/release.mjs pack|verify|install|upgrade|start|stop|status --bundle PATH --directory PATH [--trust-bundled-modules] [--mode all|master|worker] [--trust PUBLIC_MASTER_BUNDLE]');
 }catch(e){console.error('Release command failed: '+e.message);process.exitCode=1;}

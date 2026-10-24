@@ -1,0 +1,856 @@
+{
+  "formatVersion": 1,
+  "verifiedAt": "2026-10-24T06:07:29.030Z",
+  "status": "functional_acceptance_passed_release_validation_pending",
+  "baseline": "566da466",
+  "release": "0.9.0",
+  "modules": {
+    "shopify": "1.0.1",
+    "printify": "1.0.4",
+    "sales": "1.1.1",
+    "inventory": "1.4.0",
+    "procurement": "1.0.2",
+    "assets": "1.0.3",
+    "workforce": "1.0.2"
+  },
+  "tests": {
+    "backend": 82,
+    "failed": 0,
+    "smartBrowserChecks": 9,
+    "note": "The 9 SSMA/browser checks include 8 repeated backend checks; the final Printify patch also passed the 10 commerce tests."
+  },
+  "regressions": [
+    {
+      "suite": "smoke",
+      "status": "passed",
+      "elapsedMs": 17778
+    },
+    {
+      "suite": "browser-smoke",
+      "status": "passed",
+      "elapsedMs": 4186
+    },
+    {
+      "suite": "verify-phase4-seed",
+      "status": "passed",
+      "elapsedMs": 6036
+    },
+    {
+      "suite": "verify-phase4",
+      "status": "passed",
+      "elapsedMs": 196203
+    },
+    {
+      "suite": "verify-inventory-mcp-upgrade",
+      "status": "passed",
+      "elapsedMs": 14168
+    },
+    {
+      "suite": "mcp-smoke",
+      "status": "passed",
+      "elapsedMs": 3224
+    },
+    {
+      "suite": "verify-phase5",
+      "status": "passed",
+      "elapsedMs": 130177
+    },
+    {
+      "suite": "verify-analyst-browser",
+      "status": "passed",
+      "elapsedMs": 5344
+    },
+    {
+      "suite": "verify-compact-mcp",
+      "status": "passed",
+      "elapsedMs": 1699
+    },
+    {
+      "suite": "verify-compact-analyst",
+      "status": "passed",
+      "elapsedMs": 86417
+    },
+    {
+      "suite": "verify-analyst-concurrency",
+      "status": "passed",
+      "elapsedMs": 28252
+    },
+    {
+      "suite": "verify-isolation",
+      "status": "passed",
+      "elapsedMs": 37587
+    },
+    {
+      "suite": "verify-outage-independence",
+      "status": "passed",
+      "elapsedMs": 49131
+    },
+    {
+      "suite": "verify-module-restart",
+      "status": "passed",
+      "elapsedMs": 60926
+    },
+    {
+      "suite": "verify-module-provision",
+      "status": "passed",
+      "elapsedMs": 8405
+    },
+    {
+      "suite": "verify-module-secrets",
+      "status": "passed",
+      "elapsedMs": 11427
+    },
+    {
+      "suite": "verify-analyst-unconfigured",
+      "status": "passed",
+      "elapsedMs": 2157
+    }
+  ],
+  "catalog": {
+    "startedAt": "2026-10-24T05:48:24.133Z",
+    "checks": [
+      "Master dashboard, companies, relationships, reports, history, findings, Analyst and administration deep links",
+      "worker-1 cee.assets/facility visible, readable, refresh and deep link",
+      "worker-1 cee.assets/asset visible, readable, refresh and deep link",
+      "worker-1 cee.assets/maintenance visible, readable, refresh and deep link",
+      "worker-1 cee.assets/booking visible, readable, refresh and deep link",
+      "worker-1 cee.assets/reports visible, readable, refresh and deep link",
+      "worker-1 cee.assets/integration-status visible, readable, refresh and deep link",
+      "worker-1 cee.inventory/items visible, readable, refresh and deep link",
+      "worker-1 cee.operations/capacities visible, readable, refresh and deep link",
+      "worker-1 cee.operations/storage visible, readable, refresh and deep link",
+      "worker-1 cee.operations/assets visible, readable, refresh and deep link",
+      "worker-1 cee.printify/mapping visible, readable, refresh and deep link",
+      "worker-1 cee.printify/connection visible, readable, refresh and deep link",
+      "worker-1 cee.printify/product visible, readable, refresh and deep link",
+      "worker-1 cee.printify/job visible, readable, refresh and deep link",
+      "worker-1 cee.printify/shop visible, readable, refresh and deep link",
+      "worker-1 cee.printify/external-order visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/supplier visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/requisition visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/order visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/receipt visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/quote visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/reports visible, readable, refresh and deep link",
+      "worker-1 cee.procurement/integration-status visible, readable, refresh and deep link",
+      "worker-1 cee.sales/customer visible, readable, refresh and deep link",
+      "worker-1 cee.sales/order visible, readable, refresh and deep link",
+      "worker-1 cee.sales/fulfillment visible, readable, refresh and deep link",
+      "worker-1 cee.sales/reports visible, readable, refresh and deep link",
+      "worker-1 cee.sales/integration-status visible, readable, refresh and deep link",
+      "worker-1 cee.shopify/mapping visible, readable, refresh and deep link",
+      "worker-1 cee.shopify/connection visible, readable, refresh and deep link",
+      "worker-1 cee.shopify/product visible, readable, refresh and deep link",
+      "worker-1 cee.shopify/order visible, readable, refresh and deep link",
+      "worker-1 cee.stock-ledger/item visible, readable, refresh and deep link",
+      "worker-1 cee.stock-ledger/reservation visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/skill visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/person visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/program visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/enrollment visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/achievement visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/position visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/reports visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/candidate-matches visible, readable, refresh and deep link",
+      "worker-1 cee.workforce/integration-status visible, readable, refresh and deep link",
+      "worker-1 unavailable module state",
+      "worker-2 cee.operations/capacities visible, readable, refresh and deep link",
+      "worker-2 cee.operations/storage visible, readable, refresh and deep link",
+      "worker-2 cee.operations/assets visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/supplier visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/requisition visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/order visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/receipt visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/quote visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/reports visible, readable, refresh and deep link",
+      "worker-2 cee.procurement/integration-status visible, readable, refresh and deep link",
+      "worker-2 cee.sales/customer visible, readable, refresh and deep link",
+      "worker-2 cee.sales/order visible, readable, refresh and deep link",
+      "worker-2 cee.sales/fulfillment visible, readable, refresh and deep link",
+      "worker-2 cee.sales/reports visible, readable, refresh and deep link",
+      "worker-2 cee.sales/integration-status visible, readable, refresh and deep link",
+      "worker-2 cee.stock-ledger/item visible, readable, refresh and deep link",
+      "worker-2 cee.stock-ledger/reservation visible, readable, refresh and deep link",
+      "worker-2 unavailable module state",
+      "worker-3 cee.assets/facility visible, readable, refresh and deep link",
+      "worker-3 cee.assets/asset visible, readable, refresh and deep link",
+      "worker-3 cee.assets/maintenance visible, readable, refresh and deep link",
+      "worker-3 cee.assets/booking visible, readable, refresh and deep link",
+      "worker-3 cee.assets/reports visible, readable, refresh and deep link",
+      "worker-3 cee.assets/integration-status visible, readable, refresh and deep link",
+      "worker-3 cee.inventory/items visible, readable, refresh and deep link",
+      "worker-3 cee.operations/capacities visible, readable, refresh and deep link",
+      "worker-3 cee.operations/storage visible, readable, refresh and deep link",
+      "worker-3 cee.operations/assets visible, readable, refresh and deep link",
+      "worker-3 cee.printify/mapping visible, readable, refresh and deep link",
+      "worker-3 cee.printify/connection visible, readable, refresh and deep link",
+      "worker-3 cee.printify/product visible, readable, refresh and deep link",
+      "worker-3 cee.printify/job visible, readable, refresh and deep link",
+      "worker-3 cee.printify/shop visible, readable, refresh and deep link",
+      "worker-3 cee.printify/external-order visible, readable, refresh and deep link",
+      "worker-3 cee.sales/customer visible, readable, refresh and deep link",
+      "worker-3 cee.sales/order visible, readable, refresh and deep link",
+      "worker-3 cee.sales/fulfillment visible, readable, refresh and deep link",
+      "worker-3 cee.sales/reports visible, readable, refresh and deep link",
+      "worker-3 cee.sales/integration-status visible, readable, refresh and deep link",
+      "worker-3 cee.shopify/mapping visible, readable, refresh and deep link",
+      "worker-3 cee.shopify/connection visible, readable, refresh and deep link",
+      "worker-3 cee.shopify/product visible, readable, refresh and deep link",
+      "worker-3 cee.shopify/order visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/skill visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/person visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/program visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/enrollment visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/achievement visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/position visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/reports visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/candidate-matches visible, readable, refresh and deep link",
+      "worker-3 cee.workforce/integration-status visible, readable, refresh and deep link",
+      "worker-3 unavailable module state"
+    ],
+    "errors": [],
+    "status": "passed",
+    "finishedAt": "2026-10-24T05:48:59.201Z"
+  },
+  "journeys": {
+    "checks": [
+      "ordinary business user logs in, creates customer/USD order without JSON, inspects Inventory, Shopify, Printify and affected finding through visible navigation",
+      "failed investigation displays retained activity and no fabricated recommendation",
+      "Master executive login, dashboard, companies/relationships, real investigation/evidence/calculations, finding and Analyst navigation; fresh UI launch independently recorded in live report",
+      "ordinary module configuration saves with advanced JSON closed"
+    ],
+    "errors": [],
+    "worker": "worker-3",
+    "investigationId": "b58ac473-4510-40c0-afa8-034d695f1c70",
+    "findingId": "b58ac473-4510-40c0-afa8-034d695f1c70",
+    "status": "passed"
+  },
+  "nativeCommerce": {
+    "checks": [
+      "worker-1 browser upgrade shopify 1.0.1 preserves operational installation",
+      "worker-1 browser upgrade printify 1.0.4 preserves operational installation",
+      "worker-3 browser upgrade shopify 1.0.1 preserves operational installation",
+      "worker-3 browser upgrade printify 1.0.4 preserves operational installation",
+      "native Printify status/tracking visible with no mutation controls",
+      "native Shopify fulfillment ownership blocks duplicate Steward dispatch at API",
+      "monitoring creates no external orders or production submissions",
+      "Worker core image IDs unchanged"
+    ],
+    "errors": [],
+    "simulation": true,
+    "status": "passed"
+  },
+  "currency": {
+    "status": "passed",
+    "verifiedAt": "2026-10-24T05:49:51.762Z",
+    "eurTablesCompared": 26,
+    "checks": [
+      "original EUR record count/hash unchanged through explicit EUR/USD preference changes",
+      "USD preference restored and persisted",
+      "repeat USD seed creates no duplicates and preserves existing records",
+      "cross-entity configuration mutation rejected",
+      "no implicit FX conversion or relabeling",
+      "discovery exposes the approved module currency default without full configuration"
+    ]
+  },
+  "pollIntegrity": {
+    "status": "passed",
+    "before": "11:1d102eb91518c78c5f7c47465f12c37c",
+    "after": "11:1d102eb91518c78c5f7c47465f12c37c",
+    "pollWindowMs": 6500,
+    "unchangedObservationsDoNotRewriteRecords": true
+  },
+  "liveAI": [
+    {
+      "investigationId": "084d04dd-5a8a-46d1-8b02-b22b45bdff04",
+      "findingId": "084d04dd-5a8a-46d1-8b02-b22b45bdff04",
+      "testModel": false,
+      "status": "completed",
+      "elapsedMs": 69198,
+      "modelTurns": [
+        {
+          "status": 200,
+          "elapsedMs": 1847,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1133,
+            "outputTokens": 16,
+            "totalDurationNs": 1843229200
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 3689,
+          "selectedTools": [
+            {
+              "name": "query_resource_matches",
+              "arguments": "{\"limit\":1,\"offset\":0,\"entityId\":\"8ff40000-0000-4000-8000-000000000003\"}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1427,
+            "outputTokens": 68,
+            "totalDurationNs": 3685765600
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 4036,
+          "selectedTools": [
+            {
+              "name": "query_business_relationships",
+              "arguments": "{\"limit\":4,\"offset\":0,\"entityId\":\"8ff40000-0000-4000-8000-000000000003\"}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1994,
+            "outputTokens": 69,
+            "totalDurationNs": 4032593000
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10364,
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"supplyRevision\":2,\"demandRevision\":2,\"transitionExpense\":6000,\"horizonMonths\":12,\"avoidableExternalFraction\":1,\"locationCompatible\":true,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"transitionExpense\":12000}],\"supplyRecordId\":\"42fd5ce8-f987-45ba-ae0e-a4aa4eaa4709\",\"demandRecordId\":\"10d5e959-1bfa-4e48-a127-ac608ced6d2c\",\"internalMonthlyPayment\":3000,\"incrementalMonthlyCost\":1000}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 2252,
+            "outputTokens": 189,
+            "totalDurationNs": 10360526900
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 19587,
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"avoidableExternalFraction\":1,\"demandRecordId\":\"10d5e959-1bfa-4e48-a127-ac608ced6d2c\",\"demandRevision\":2,\"horizonMonths\":12,\"incrementalMonthlyCost\":1000,\"locationCompatible\":true,\"supplyRecordId\":\"42fd5ce8-f987-45ba-ae0e-a4aa4eaa4709\",\"transitionExpense\":6000,\"internalMonthlyPayment\":3000,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Alternative cost scenario\",\"transitionExpense\":12000}],\"supplyRevision\":2}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 2488,
+            "outputTokens": 351,
+            "totalDurationNs": 19585085100
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 28476,
+          "selectedTools": [],
+          "usage": {
+            "promptTokens": 3171,
+            "outputTokens": 467,
+            "totalDurationNs": 28473414800
+          }
+        }
+      ],
+      "tools": [
+        {
+          "tool": "list_entities",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "query_resource_matches",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "query_business_relationships",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "analyze_resource_sharing_by_id",
+          "source": "master-synchronized-data"
+        }
+      ],
+      "analyses": [
+        {
+          "observed": {
+            "demand": {
+              "id": "10d5e959-1bfa-4e48-a127-ac608ced6d2c",
+              "name": "Browser phase4 worker-2 ca2e6075",
+              "site": "Verified edited site",
+              "currency": "EUR",
+              "revision": 2,
+              "required_m3": 500,
+              "utilized_m3": 420,
+              "monthly_external_cost": 10000
+            },
+            "supply": {
+              "id": "42fd5ce8-f987-45ba-ae0e-a4aa4eaa4709",
+              "name": "Browser phase4 worker-3 1f2735ed",
+              "site": "Verified edited site",
+              "currency": "EUR",
+              "revision": 2,
+              "capacity_m3": 1500,
+              "utilized_m3": 300,
+              "available_m3": 1200,
+              "monthly_operating_cost": 4500
+            },
+            "demandAt": "2026-10-24T01:34:53.345Z",
+            "supplyAt": "2026-10-24T01:34:54.048Z",
+            "demandWorker": "4dca34da-12c6-46d4-bab5-8fb0e7c040da",
+            "supplyWorker": "61c545d7-88c1-4b4f-9384-6b351a493e7c",
+            "demandIngestedAt": "2026-10-24T01:34:54.182Z",
+            "supplyIngestedAt": "2026-10-24T01:34:55.749Z"
+          },
+          "calculation": {
+            "baseline": {
+              "label": "Keep external storage",
+              "consumerHorizonBenefit": 0,
+              "providerHorizonBenefit": 0,
+              "ecosystemHorizonBenefit": 0
+            },
+            "currency": "EUR",
+            "proposal": {
+              "label": "Share internal capacity",
+              "breakEvenMonths": 0.67,
+              "transitionExpense": 6000,
+              "consumerHorizonBenefit": 78000,
+              "consumerMonthlyBenefit": 7000,
+              "providerHorizonBenefit": 24000,
+              "providerMonthlyBenefit": 2000,
+              "ecosystemHorizonBenefit": 102000,
+              "ecosystemMonthlyBenefit": 9000
+            },
+            "assumptions": {
+              "currency": "EUR",
+              "sensitivity": [
+                {
+                  "label": "Alternative cost scenario",
+                  "transitionExpense": 12000,
+                  "incrementalMonthlyCost": 2000
+                }
+              ],
+              "horizonMonths": 12,
+              "requiredCapacity": 500,
+              "availableCapacity": 1200,
+              "transitionExpense": 6000,
+              "locationCompatible": true,
+              "externalMonthlyCost": 10000,
+              "incrementalMonthlyCost": 1000,
+              "internalMonthlyPayment": 3000,
+              "avoidableExternalFraction": 1
+            },
+            "alternatives": [
+              {
+                "label": "Alternative cost scenario",
+                "breakEvenMonths": 1.5,
+                "transitionExpense": 12000,
+                "consumerHorizonBenefit": 72000,
+                "consumerMonthlyBenefit": 7000,
+                "providerHorizonBenefit": 12000,
+                "providerMonthlyBenefit": 1000,
+                "ecosystemHorizonBenefit": 84000,
+                "ecosystemMonthlyBenefit": 8000
+              }
+            ],
+            "capabilityId": "steward.resource-sharing",
+            "horizonMonths": 12,
+            "schemaVersion": 1,
+            "uncertainties": [
+              "External cost avoidance assumes proportional volume pricing and the specified avoidable fraction.",
+              "Incremental operating cost is an assumption, separate from observed total warehouse operating cost.",
+              "Internal payments cancel at ecosystem level; transition expense is allocated to the consumer once.",
+              "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed."
+            ],
+            "unmetCapacity": 0,
+            "sharedCapacity": 500,
+            "avoidedExternalMonthlyCost": 10000
+          },
+          "authoritative": false,
+          "relationships": [
+            {
+              "kind": "potential_storage_partner",
+              "to_entity": "8ff40000-0000-4000-8000-000000000003",
+              "description": "Unused warehouse capacity may substitute external storage, subject to feasibility and incremental operating costs.",
+              "from_entity": "8ff40000-0000-4000-8000-000000000002",
+              "relationship_id": "85aee4b0-b5b5-4123-bc3d-e6b4800e17a6"
+            }
+          ],
+          "affectedEntities": [
+            "8ff40000-0000-4000-8000-000000000003",
+            "8ff40000-0000-4000-8000-000000000002"
+          ],
+          "decisionExecuted": false,
+          "supportingReferences": [
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000003",
+              "moduleId": "cee.operations",
+              "recordId": "42fd5ce8-f987-45ba-ae0e-a4aa4eaa4709",
+              "revision": 2,
+              "streamId": "warehouse_assets"
+            },
+            {
+              "entityId": "8ff40000-0000-4000-8000-000000000002",
+              "moduleId": "cee.operations",
+              "recordId": "10d5e959-1bfa-4e48-a127-ac608ced6d2c",
+              "revision": 2,
+              "streamId": "storage_requirements"
+            }
+          ]
+        }
+      ],
+      "narrative": "The analysis of intercompany storage sharing between the Synthetic Distributor and the Synthetic Manufacturer has identified a shared capacity of 500 units. The tool-computed consumerMonthlyBenefit is EUR 7,000, the providerMonthlyBenefit is EUR 2,000, and the ecosystemMonthlyBenefit is EUR 9,000. Over the 12-month horizon, the ecosystemHorizonBenefit is EUR 102,000. The alternative cost scenario, with an incrementalMonthlyCost of EUR 2,000 and a transitionExpense of EUR 12,000, yields a consumerMonthlyBenefit of EUR 7,000, a providerMonthlyBenefit of EUR 1,000, and an ecosystemMonthlyBenefit of EUR 8,000, with an ecosystemHorizonBenefit of EUR 84,000. The zero-change baseline, keeping external storage, results in no benefit for the ecosystem, consumers, or providers. The break-even point for the proposal is at 0.67 months, and for the alternative cost scenario, it is at 1.5 months. The assumptions include an internal monthly payment of EUR 3,000, an incremental monthly cost of EUR 1,000, a transition expense of EUR 6,000, a horizon of 12 months, a full proportional avoidance of external costs, and conditional location compatibility. The sensitivity analysis shows that the alternative cost scenario results in a lower ecosystem benefit compared to the base scenario.",
+      "humanDecisions": [
+        "Proceed with the proposal under the base scenario",
+        "Consider the alternative cost scenario as a sensitivity analysis",
+        "Confirm location, transport, service levels, taxes, contracts, safety, and investment approval"
+      ],
+      "browser": {
+        "launchedThroughUI": true,
+        "publishedThroughUI": true,
+        "historyRefresh": true,
+        "workerAcknowledgments": true,
+        "errors": []
+      },
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "affected": false,
+          "received": false
+        },
+        {
+          "worker": "worker-2",
+          "affected": true,
+          "received": true
+        },
+        {
+          "worker": "worker-3",
+          "affected": true,
+          "received": true
+        }
+      ],
+      "configurationRestored": true,
+      "modelUnloaded": true
+    },
+    {
+      "investigationId": "b58ac473-4510-40c0-afa8-034d695f1c70",
+      "findingId": "b58ac473-4510-40c0-afa8-034d695f1c70",
+      "testModel": false,
+      "status": "completed",
+      "elapsedMs": 67869,
+      "modelTurns": [
+        {
+          "status": 200,
+          "elapsedMs": 1817,
+          "selectedTools": [
+            {
+              "name": "list_entities",
+              "arguments": "{}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1133,
+            "outputTokens": 16,
+            "totalDurationNs": 1814056900
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 3186,
+          "selectedTools": [
+            {
+              "name": "query_resource_matches",
+              "arguments": "{\"entityId\":\"c172abc0-9d4b-4d15-a66e-a92246bd1b77\",\"limit\":1}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1425,
+            "outputTokens": 58,
+            "totalDurationNs": 3183428800
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 3798,
+          "selectedTools": [
+            {
+              "name": "query_business_relationships",
+              "arguments": "{\"entityId\":\"c172abc0-9d4b-4d15-a66e-a92246bd1b77\",\"limit\":4}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 1972,
+            "outputTokens": 59,
+            "totalDurationNs": 3795563500
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 10632,
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"demandRevision\":1,\"internalMonthlyPayment\":3000,\"transitionExpense\":6000,\"horizonMonths\":12,\"locationCompatible\":true,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"transitionExpense\":12000}],\"supplyRecordId\":\"2d1888b2-a151-4df8-9888-4feda62dc236\",\"demandRecordId\":\"e6b02166-5e23-460d-a7ba-8cbbabe7bd97\",\"supplyRevision\":1,\"incrementalMonthlyCost\":1000,\"avoidableExternalFraction\":1}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 2218,
+            "outputTokens": 192,
+            "totalDurationNs": 10628730000
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 15430,
+          "selectedTools": [
+            {
+              "name": "analyze_resource_sharing_by_id",
+              "arguments": "{\"avoidableExternalFraction\":1,\"demandRevision\":1,\"horizonMonths\":12,\"internalMonthlyPayment\":3000,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Sensitivity: Lower incremental cost\",\"transitionExpense\":12000},{\"incrementalMonthlyCost\":1500,\"label\":\"Sensitivity: Moderate incremental cost\",\"transitionExpense\":9000}],\"supplyRecordId\":\"2d1888b2-a151-4df8-9888-4feda62dc236\",\"supplyRevision\":1,\"transitionExpense\":6000,\"demandRecordId\":\"e6b02166-5e23-460d-a7ba-8cbbabe7bd97\",\"incrementalMonthlyCost\":1000,\"locationCompatible\":true}"
+            }
+          ],
+          "usage": {
+            "promptTokens": 2457,
+            "outputTokens": 283,
+            "totalDurationNs": 15427077900
+          }
+        },
+        {
+          "status": 200,
+          "elapsedMs": 31760,
+          "selectedTools": [],
+          "usage": {
+            "promptTokens": 3293,
+            "outputTokens": 504,
+            "totalDurationNs": 31757394300
+          }
+        }
+      ],
+      "tools": [
+        {
+          "tool": "list_entities",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "query_resource_matches",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "query_business_relationships",
+          "source": "master-synchronized-data"
+        },
+        {
+          "tool": "analyze_resource_sharing_by_id",
+          "source": "master-synchronized-data"
+        }
+      ],
+      "analyses": [
+        {
+          "observed": {
+            "demand": {
+              "id": "e6b02166-5e23-460d-a7ba-8cbbabe7bd97",
+              "name": "SYN-P7-G0001-external storage",
+              "site": "Synthetic Phase 7 hub",
+              "currency": "EUR",
+              "revision": 1,
+              "required_m3": 500,
+              "utilized_m3": 400,
+              "monthly_external_cost": 12000
+            },
+            "supply": {
+              "id": "2d1888b2-a151-4df8-9888-4feda62dc236",
+              "name": "Synthetic Phase 7 shared warehouse",
+              "site": "Synthetic Phase 7 hub",
+              "currency": "EUR",
+              "revision": 1,
+              "ownership": {
+                "accessBasis": "leased",
+                "userEntityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "ownerEntityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "custodianEntityId": "3adf0560-6551-4d83-99f1-9db0ba978a15"
+              },
+              "capacity_m3": 1000,
+              "utilized_m3": 200,
+              "valid_until": null,
+              "available_m3": 800,
+              "monthly_operating_cost": 3000
+            },
+            "demandAt": "2026-10-24T05:42:58.627Z",
+            "supplyAt": "2026-10-24T05:42:58.410Z",
+            "demandWorker": "a20b47ec-e6a7-47bb-bf4a-b2b7fdb773d4",
+            "supplyWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+            "demandIngestedAt": "2026-10-24T05:43:01.583Z",
+            "supplyIngestedAt": "2026-10-24T05:43:00.543Z"
+          },
+          "calculation": {
+            "baseline": {
+              "label": "Keep external storage",
+              "consumerHorizonBenefit": 0,
+              "providerHorizonBenefit": 0,
+              "ecosystemHorizonBenefit": 0
+            },
+            "currency": "EUR",
+            "proposal": {
+              "label": "Share internal capacity",
+              "breakEvenMonths": 0.55,
+              "transitionExpense": 6000,
+              "consumerHorizonBenefit": 102000,
+              "consumerMonthlyBenefit": 9000,
+              "providerHorizonBenefit": 24000,
+              "providerMonthlyBenefit": 2000,
+              "ecosystemHorizonBenefit": 126000,
+              "ecosystemMonthlyBenefit": 11000
+            },
+            "assumptions": {
+              "currency": "EUR",
+              "sensitivity": [
+                {
+                  "label": "Sensitivity: Lower incremental cost",
+                  "transitionExpense": 12000,
+                  "incrementalMonthlyCost": 2000
+                },
+                {
+                  "label": "Sensitivity: Moderate incremental cost",
+                  "transitionExpense": 9000,
+                  "incrementalMonthlyCost": 1500
+                }
+              ],
+              "horizonMonths": 12,
+              "requiredCapacity": 500,
+              "availableCapacity": 800,
+              "transitionExpense": 6000,
+              "locationCompatible": true,
+              "externalMonthlyCost": 12000,
+              "incrementalMonthlyCost": 1000,
+              "internalMonthlyPayment": 3000,
+              "avoidableExternalFraction": 1
+            },
+            "alternatives": [
+              {
+                "label": "Sensitivity: Lower incremental cost",
+                "breakEvenMonths": 1.2,
+                "transitionExpense": 12000,
+                "consumerHorizonBenefit": 96000,
+                "consumerMonthlyBenefit": 9000,
+                "providerHorizonBenefit": 12000,
+                "providerMonthlyBenefit": 1000,
+                "ecosystemHorizonBenefit": 108000,
+                "ecosystemMonthlyBenefit": 10000
+              },
+              {
+                "label": "Sensitivity: Moderate incremental cost",
+                "breakEvenMonths": 0.86,
+                "transitionExpense": 9000,
+                "consumerHorizonBenefit": 99000,
+                "consumerMonthlyBenefit": 9000,
+                "providerHorizonBenefit": 18000,
+                "providerMonthlyBenefit": 1500,
+                "ecosystemHorizonBenefit": 117000,
+                "ecosystemMonthlyBenefit": 10500
+              }
+            ],
+            "capabilityId": "steward.resource-sharing",
+            "horizonMonths": 12,
+            "schemaVersion": 1,
+            "uncertainties": [
+              "External cost avoidance assumes proportional volume pricing and the specified avoidable fraction.",
+              "Incremental operating cost is an assumption, separate from observed total warehouse operating cost.",
+              "Internal payments cancel at ecosystem level; transition expense is allocated to the consumer once.",
+              "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed."
+            ],
+            "unmetCapacity": 0,
+            "sharedCapacity": 500,
+            "avoidedExternalMonthlyCost": 12000
+          },
+          "authoritative": false,
+          "relationships": [
+            {
+              "kind": "potential_storage_partner",
+              "to_entity": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "description": "Unused warehouse capacity may substitute external storage, subject to feasibility and incremental operating costs.",
+              "from_entity": "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d",
+              "relationship_id": "5c4bd370-96f8-4d13-ae32-5a5404580c55"
+            }
+          ],
+          "affectedEntities": [
+            "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d"
+          ],
+          "decisionExecuted": false,
+          "supportingReferences": [
+            {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.assets",
+              "recordId": "2d1888b2-a151-4df8-9888-4feda62dc236",
+              "revision": 1,
+              "streamId": "capacities"
+            },
+            {
+              "entityId": "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d",
+              "moduleId": "cee.operations",
+              "recordId": "e6b02166-5e23-460d-a7ba-8cbbabe7bd97",
+              "revision": 1,
+              "streamId": "storage_requirements"
+            }
+          ]
+        }
+      ],
+      "narrative": "The analysis of intercompany storage sharing between 'Synthetic Phase 7 shared warehouse' and 'SYN-P7-G0001-external storage' reveals that the shared capacity is 500 units. The tool-computed consumerMonthlyBenefit is EUR 9000, providerMonthlyBenefit is EUR 2000, and the ecosystemMonthlyBenefit is EUR 11000. Over the 12-month horizon, the ecosystemHorizonBenefit is EUR 126000. The sensitivity analysis shows that with a lower incremental cost of EUR 2000 and a transition expense of EUR 12000, the consumerMonthlyBenefit remains EUR 9000, but the providerMonthlyBenefit drops to EUR 1000, with an ecosystemMonthlyBenefit of EUR 10000 and an ecosystemHorizonBenefit of EUR 108000. With a moderate incremental cost of EUR 1500 and a transition expense of EUR 9000, the consumerMonthlyBenefit is EUR 9000, the providerMonthlyBenefit is EUR 1500, the ecosystemMonthlyBenefit is EUR 10500, and the ecosystemHorizonBenefit is EUR 117000. The zero-change baseline, keeping external storage, results in zero ecosystem benefit. The proposal is more beneficial than the baseline, with a break-even point of 0.55 months. The sensitivity results indicate that the proposal is more robust under moderate incremental cost conditions.",
+      "humanDecisions": [
+        "Confirm location, transport, service levels, taxes, contracts, safety, and investment approval",
+        "Evaluate the sensitivity of the proposal to changes in incremental operating cost and transition expense"
+      ],
+      "browser": {
+        "launchedThroughUI": true,
+        "publishedThroughUI": true,
+        "historyRefresh": true,
+        "workerAcknowledgments": true,
+        "errors": []
+      },
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "affected": false,
+          "received": false
+        },
+        {
+          "worker": "worker-2",
+          "affected": true,
+          "received": true
+        },
+        {
+          "worker": "worker-3",
+          "affected": true,
+          "received": true
+        }
+      ],
+      "configurationRestored": true,
+      "modelUnloaded": true
+    }
+  ],
+  "review": {
+    "recommendation": "Investigate conditional storage sharing using the actual referenced capacity/demand records; do not execute a business decision.",
+    "primaryNumericalClaimsVerified": true,
+    "demoNumericalClaimsVerified": true,
+    "demoWordingCorrection": "The model calls EUR 2000 incremental cost lower; it is higher than the EUR 1000 proposal assumption. Reject that adjective. The deterministic tables and the positive-opportunity comparison remain the reviewed basis.",
+    "limitations": "Location, transport, service levels, taxes, contracts, safety and investment require human confirmation."
+  },
+  "failuresObserved": [
+    {
+      "case": "first narrative",
+      "result": "completed but ambiguous baseline wording; not used as accepted evidence"
+    },
+    {
+      "case": "second local model",
+      "result": "MODEL_OUTPUT_INVALID; persisted failed run, no recommendation"
+    },
+    {
+      "case": "first USD simulator order",
+      "result": "EUR provider currency rejected; original record preserved and not manufactured; later USD transactions use separate source identities"
+    },
+    {
+      "case": "portable cold start",
+      "result": "one API restarted; repeated idempotent startup reached readiness without reset"
+    }
+  ]
+}

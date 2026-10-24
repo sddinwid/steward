@@ -1,83 +1,72 @@
-# UI/UX and USD implementation verification
+# UI/UX 0.9.0 acceptance verification
 
-Status: implementation in progress; this is an automatically verified checkpoint, not final phase acceptance. No v0.9.0 release tag or accepted distribution has been produced.
+Status: functional acceptance passed; final archive verification, preservation redeployment and release promotion are being completed. This file must not be read as acceptance of an unverified distribution. The exact accepted manifest and final runtime evidence are recorded in ui-ux-release-gates.json and the final section below.
 
-## Preserved release
+## Baseline and preservation
 
-The preflight working tree was clean on phase8/smart-modules-commerce at 7d3a70d6349ca684111b7e2b879650c2be4c54d6 (v0.8.0). That commit/tag and its accepted release artifacts remain intact. UI work is isolated on ux/business-workspaces. Source identifies the next candidate as 0.9.0, with append-only migration 10. Existing 0.8 images cannot run against a migrated schema-10 database; retained deployments were not migrated.
+Continued branch ux/business-workspaces from 566da466; did not restart the implementation. The accepted v0.8.0/7d3a70d baseline and retained Phase 7 deployment were preserved. The checkpoint's schema-9 to schema-10 upgrade compared 18 protected table hashes without changing accounts, installation/enrollment identities, module state or pre-existing findings/investigations. Schema 10 remains append-only; 0.8 correctly refuses a newer schema.
 
-## Implemented checkpoint
+Original Phase 7 (6100/6201–6203) and accepted Phase 8 (16100/16201–16203) were not upgraded or reset. Existing preview accounts at 26100/26201–26203 were not reset. Test acceptance uses a separate private deployment at .steward/ux-release-acceptance and its own existing demo/presenter.json. Use the configured master.localhost and worker-N.localhost hostnames; plain localhost is rejected by origin enforcement.
 
-- Shared responsive shell with persistent workspace navigation and hash-based deep links. Worker Business is the default. Administration and Developer are restricted to existing authorized administrator roles, including direct navigation.
-- Business navigation uses active, trusted, permission-filtered module discovery. Groups cover Sales & Orders, Inventory, Procurement, Assets, Workforce, Shopify and Printify as those packages become available. Uninstalled and unauthorized modules are absent.
-- Existing declarative operational screens retain backend authority. Added search, loading/empty/error states, readable structured details, structured line-item forms and original-currency amount formatting. Sales line prices are entered as dollars and stored as integer cents.
-- Module Manager has schema-derived configuration controls, with an optional advanced JSON editor. Governance, signed contracts and raw diagnostics are separated into Developer.
-- Master overview reads actual authorized companies, synchronization freshness, findings and persisted investigations. History, AI Analyst, reports/opportunities and consolidated Findings & Alerts have visible destinations. Investigation lists now include their existing question, timestamps and finding link, under unchanged account ownership enforcement.
-- Findings show original evidence references and affected-entity review/delivery status. Local business users can read only the local affected-only finding projection; acknowledgment/resolution remains administrator-controlled.
-- Company preferences store country, base currency, locale and time zone, using scoped, audited HTTPS APIs. Worker business identity resolves persisted enrollment; bootstrap/runtime identity remains explicitly labeled in diagnostics.
-- New US setup proposes USD. New currency-aware module installations inherit explicit local company preferences. Existing module configuration, EUR records and analytical evidence are never automatically rewritten. Display preserves original currency and labels a different configured base currency as unconverted.
-- Separately authored datasets/us-workspace-demo.json and an idempotent seed runner add controlled USD Inventory, customer and order records, requiring explicit US/USD setup and a USD Sales configuration first.
+## Implemented and exercised
 
-## Actual verification so far
+- Shared responsive Business/Executive, Administration and Developer workspaces, persistent permission-filtered module navigation and refreshable hash routes.
+- Business CRUD, structured line items and comma-separated skills, human-readable nested evidence, search/loading/empty/unavailable states, exact transaction-currency formatting and explicit unconverted currency labels.
+- Trusted Module Manager installation/configuration/activation, ordinary Save outside advanced JSON, and dynamic module screens without Worker rebuild. Local and entity-scoped backend authorization remain authoritative.
+- Master executive overview, real registered companies/relationships, source freshness, investigation history, tool activity, deterministic calculations, original evidence references, related findings and delivery/acknowledgment.
+- Explicit company localization and USD defaults for new US modules/records. Existing EUR values and module configurations retain their currency identities. No implicit FX conversion or mixed-currency financial aggregation.
+- Separately signed Shopify 1.0.1 and Printify 1.0.4 add fulfillment ownership/status and native/external status/tracking monitoring. Native Shopify dispatch is rejected. No native-monitoring control authorizes paid production. Unchanged Printify reconciliation patches preserve row revisions.
+- Release 0.9 packaging, digest-pinned Master/Worker distributions, preserved simulator topology during upgrades, configurable new simulator currency, and one bounded retry of idempotent cold startup.
 
-| Command/check | Result |
+See ADRs 0020/0021, ui-ux-capability-inventory.md and ui-ux-release.md for scope, commands, security and presenter recovery.
+
+## Actual verification
+
+| Verification | Actual result |
 |---|---|
-| npm run build | Passed all workspace applications/packages and business modules |
-| npm test | 82 passed, zero failed: previous 80 plus two localization/identity/authorization checks |
-| npm run test:smart:browser | 9 passed, including actual Chromium governance navigation in the new Developer workspace |
-| node scripts/verify-workspaces.mjs .steward/phase8-upgrade-regressions | 7 checks passed: exact protected-row preservation, installed-screen deep links, separated workspaces, persisted USD preference, actual Master history/findings and desktop/mobile rendering |
-| node scripts/verify-workspace-operations.mjs .steward/phase8-upgrade-regressions | Passed module management/core-image checks, actual customer/USD order creation with line-item controls, and ordinary-user visibility plus backend installation denial |
-| node scripts/seed-us-workspace.mjs .steward/phase8-upgrade-regressions (twice) | First run created 3 new USD records; repeat created 0 and preserved all 3 |
-| Earlier operational regression rerun | 12 suites passed: smoke, idempotent seeding, Inventory MCP upgrade, MCP smoke, compact MCP/Analyst, concurrency, isolation, Master-outage independence, module restart/provisioning/secrets |
-| node scripts/verify-workspace-installation.mjs .steward/phase8-upgrade-regressions | 6 checks passed for fresh Workforce 1.0.2 installation, generated USD configuration, dynamic navigation/refresh, unchanged Worker images and other-Worker configuration hashes |
-| node scripts/verify-workspace-currency.mjs .steward/phase8-upgrade-regressions | 6 checks passed; all 12 existing EUR table snapshots unchanged through explicit EUR/USD preference updates and repeated USD seeding; foreign-entity mutation rejected |
-| node scripts/verify-workspace-investigations.mjs .steward/phase8-upgrade-regressions | 6 read-only Chromium checks passed for a persisted test-model finding, its originating investigation, question, deterministic result, source Workers and refresh; no fresh live-model claim |
-| Historical verify-phase4.mjs with the explicit candidate override | 13 checks passed through Chromium: operational edits, durable events, conflicts/replays, outages/SIGKILL, affected-only findings and offline acknowledgment, with zero page errors |
+| npm run build | Passed all packages, applications and modules |
+| npm test | 82 passed, zero failed: 14 SDK, 2 host, 30 platform, 7 installer, 2 Inventory, 2 operations, 7 business, 8 SSMA, 10 commerce |
+| npm run test:smart:browser | 9 passed; includes 8 repeated SSMA backend checks and actual Chromium governance |
+| Final Printify patch commerce rerun | All 10 passed, including lost responses, real module APIs, cancellations/refunds, signed webhooks and interrupted effects |
+| Full historical deployment regression runner | All 17 suites passed: smoke, browser-smoke, idempotent Phase 4 seed, Phase 4 browser/durable synchronization, Inventory MCP upgrade, MCP smoke, Phase 5 backend/browser, Analyst browser publication, compact MCP/Analyst, concurrency, isolation, outage independence, module recreation/provisioning/secrets and unconfigured-model UI |
+| Fresh Phase 2 enrollment/browser suite | Passed registry registration, scoped approval/rejection, unauthorized/unknown/wrong entity rejection, proof replay/signature/duplicate-key protection, trust/CA pin rejection, enrollment persistence, Master outage and secret checks |
+| Expanded Chromium catalog | 98 workspace/screen/deep-link/refresh checks across Master and all three Workers; zero page errors |
+| Business CRUD through normal controls | Sales/Procurement/Assets/Workforce create/edit/transitions passed without JSON; Inventory creation independently passed through the running Module Manager demo |
+| User journeys | Ordinary business user created a USD customer/order, inspected Inventory/Shopify/Printify and affected finding; Master navigated companies, real investigation/evidence/calculations, finding and Analyst; failed history displayed no recommendation; normal module configuration saved with advanced JSON closed |
+| Dynamic/native commerce | Eight latest-package browser checks passed; signed module upgrades, ownership guard, native shipping observations and unchanged Worker core image IDs |
+| Commerce browser workflow | Workers 1 and 3 completed import → Sales reservation → explicit Printify production authorization → shipment → Shopify fulfillment → governed evidence publication; exact duplicate webhooks accepted once, forged signatures rejected |
+| Commerce MCP | Seven completed synthetic orders: USD 350 revenue, USD 160 estimated production, USD 28 shipping, USD 162 estimated margin; independently recomputed exact cents and source revisions; scoped and stale/duplicate-source denials passed |
+| Commerce interruption | Master/provider outages and API/module/coordinator restarts recovered exactly once without duplicate external creation, manufacturing or channel fulfillment |
+| Further Phase 7/8 regressions | MCP analytics/private permissions; three reproducible test-model capabilities plus failure budgets; configuration mismatch/retry; outage/restart preservation; governed provider substitution with original obligations; four real deployed connector fault/recovery modes; ordinary-user denied administration |
+| Currency integrity | 26 EUR table snapshots unchanged through explicit EUR/USD preference changes and repeated USD seeding. Worker restarts retained localization, module configuration and records. Cross-entity preference mutation denied |
+| Poll idempotency | All Printify business rows/revisions unchanged across multiple polls, including a retained reconciliation error |
+| Portable clean toolkit | npm ci/build, checksum validation, fresh Master/three-Worker installation/enrollments, smoke/Chromium and running Inventory installation passed without the original checkout |
 
-Raw evidence: artifacts/ux-build.log, ux-tests.log, ux-smart-browser.log, ux-workspaces.json, ux-operations.json, ux-regressions.json and ux-*.png. Evidence contains no passwords, session cookies, private keys or connector credentials. Initial schema-9 to schema-10 redeployment compared 18 protected table hashes, preserving installation/account/enrollment/module/finding/investigation rows exactly before deliberate synthetic tests.
+Detailed sanitized evidence is committed in ui-ux-acceptance-evidence.json. Raw logs/screenshots are under artifacts/ux-*. Private account files, keys, cookies, connector secrets and generated deployments are excluded from Git and final release payloads.
 
-Browser acceptance caught a nested-label accessibility defect in the line editor and historical field-selector mismatches; these were corrected and actual order creation was repeated. The original smoke check assumed schema 9 for all 0.8 runtimes; the new source candidate is explicitly versioned 0.9.0/schema 10 rather than misidentifying the migrated application as the accepted release.
+## Real Ollama evidence and human review
 
-## Running candidate and retained environments
+The UI launched, selected and invoked real MCP tools using installed qwen2.5:7b through a 16384-context alias. No cloud key or simulated model response was used for these runs.
 
-The isolated regression fixture serves candidate Master at https://master.localhost:26100 and Workers at https://worker-1.localhost:26201, https://worker-2.localhost:26202 and https://worker-3.localhost:26203. Use its existing private demo/presenter.json credentials. Do not reuse accounts from another installation or publish that file.
+- Accepted primary run 084d04dd-5a8a-46d1-8b02-b22b45bdff04: six model calls, 69198 ms; live list_entities, query_resource_matches, query_business_relationships and analyze_resource_sharing_by_id. Independent calculations verified EUR 9000/month and EUR 102000/12 months; sensitivity EUR 8000/month and EUR 84000/12 months. Source Worker identities/revisions and assumptions are retained.
+- Fresh final demo run b58ac473-4510-40c0-afa8-034d695f1c70: six model calls, 67869 ms; actual Phase 7 warehouse/storage records gave EUR 11000/month and EUR 126000/12 months, with source-backed sensitivity scenarios. The finding reached only Workers 2/3; browser acknowledgments appeared in Master. UI history/deep-link refresh and evidence display passed.
+- Exact provider configuration/key bytes were restored after each run; the temporary model alias was unloaded. The installed base model was not modified.
+- Human review accepts only the conditional sharing opportunity supported by the calculations. The demo wording calls EUR 2000 incremental cost lower; this is higher than the EUR 1000 assumption. Reject that adjective and use the explicit deterministic tables. Location, transport, service levels, taxes, contracts, safety and investment remain human checks. No business decision was executed.
 
-Retained Phase 7 remains on HTTPS 6100/6201-6203; accepted Phase 8 remains on 16100/16201-16203. Their database, identity, credentials and application images were not changed for this checkpoint.
+Earlier attempts are retained honestly: one completed response had ambiguous baseline wording and is not accepted evidence; another returned MODEL_OUTPUT_INVALID and persisted no recommendation. Reproducible provider outage/timeout/malformed/undeclared-tool/tool-budget cases passed. Model prose is untrusted wording, not numerical authority.
 
-## Outstanding acceptance
+## Defects and recovery observed
 
-Finish browser Shopify/Printify commerce and remaining module demonstrations across the expanded catalog; complete all earlier deployment regressions against the new navigation; validate analytical finding links/calculation screens with accepted live-model evidence; extend currency/locale and failure-state browser coverage; improve remaining advanced-only business/configuration fields where their signed schema is insufficient. A fresh three-Worker installation and final source/artifact verification remain required. Account creation/password recovery still uses the operator CLI; this checkpoint adds no password-changing shortcuts. No new live Shopify/Printify connectivity, paid order or fresh live-model acceptance is claimed.
+Corrected ambiguous heading selectors and generated dropdown accessible names, ordinary configuration Save placement, empty skills becoming null, bounded read-only busy retries (never automatic mutation replay), scenario currency assumptions, monotonic governance test versions, and continual rewrites of identical Printify job errors.
 
-## Recovery and regression invocation
+An initial USD connector attempt received an EUR simulator order and correctly refused production. The EUR source record remains pending with its reconciliation error, without currency rewriting or paid production. Subsequent source identities and new USD simulator configuration verified the corrected flow. Repeated provisioning preserves old simulator configuration. A financial assertion briefly observed different legitimate source revisions during durable catch-up; the final runner waits for fulfilled source observations before publication, then verifies current exact revisions.
 
-Tests on a source candidate must consistently select its image overlay. Both scripts/lib.mjs and scripts/compose.mjs now accept STEWARD_COMPOSE_OVERRIDE_FILE, restricted to an existing file inside the selected deployment. Omitting that override during a regression recovery initially reapplied pinned 0.8 images to the isolated schema-10 fixture; the old images correctly refused the newer schema. The fixture was restored with the explicit override, its disposable phase1_probe tables were removed, and all 12 suites were rerun successfully. No business records or schema migrations were rolled back.
+Docker's default subnet pool was exhausted. Explicit unused private subnets restored clean test installation without pruning any other deployment. One cold API start restarted before readiness; a repeated startup recovered, and release startup now repeats that safe operation at most once. Private test state is outside the final distribution; development candidates containing operator state are not distributable artifacts.
 
-For the already provisioned isolated candidate in this workspace:
+## Remaining production limitations
 
-```powershell
-$env:STEWARD_DEPLOYMENT = '.steward/phase8-upgrade-regressions'
-$env:STEWARD_COMPOSE_OVERRIDE_FILE = 'ux-compose.yaml'
-$env:STEWARD_SEED_CREDENTIALS_FILE = Join-Path (Resolve-Path $env:STEWARD_DEPLOYMENT) 'demo/presenter.json'
-$env:STEWARD_DEMO_RETRY_LOGIN = '1'
-node scripts/compose.mjs up -d --no-build --wait
-node scripts/verify-workspace-currency.mjs $env:STEWARD_DEPLOYMENT
-node scripts/seed-us-workspace.mjs $env:STEWARD_DEPLOYMENT
-```
+Simulated Shopify/Printify results do not establish live commercial API compatibility. No live credentials or paid production orders were used. Costs remain estimates and unknown values remain unknown. Human review and reconciliation remain essential, including occasional model wording errors. Enterprise authentication/operations, account recovery UI, production backup/restore and external security/load certification are deferred deployment work. Saved time-zone preferences do not yet localize every timestamp. This MVP is not commercial production certification.
 
-The fresh-install check deliberately requires an absent eligible signed package; it must not delete an existing module to manufacture an absence result. Historical browser verifiers now navigate by signed discovery through actual workspace links; advanced JSON configuration is explicitly opened when testing an older operator workflow. These adapters also retain the legacy navigation path, but the entire historical browser matrix is not yet reaccepted.
+## Final distribution gate
 
-One failed browser-test diagnostic included its ephemeral fixture session cookie. That session was revoked and the captured diagnostic was sanitized. The test helper now discovers modules using the authenticated browser fetch rather than Node's API request context, which cannot resolve these local-development hostnames on this system. No operator password, connector credential, private key or retained-deployment session was changed.
-
-Final checkpoint health: retained Phase 7 has 27 running containers, accepted Phase 8 has 37, and the isolated candidate has 24. Master and all three Worker health/readiness endpoints returned HTTP 200 in each environment. Existing module form defaults now preserve the approved module currency even when it differs from the company base currency. The final currency check asserts that discovery provides only this non-secret default, without full configuration.
-
-## Finalization run (acceptance in progress)
-
-The continuation starts from 566da466. Full 17-suite deployment regression acceptance has now passed, including actual Chromium Analyst publication, failure/timeout/malformed/loop cases, outage independence, complete recreation, repeated provisioning and secrets checks. Fresh digest-pinned 0.9 installation at `.steward/ux-release-acceptance` passed Master/three-Worker startup and enrollments. A separate fresh `.steward/ux-enrollment-acceptance` passed all historical Phase 2 security/browser checks and was shut down with volumes retained. Default Docker network exhaustion was resolved by allocating explicit unused private subnets; no existing network/volume pruning occurred.
-
-Newly exercised USD commerce on Workers 1 and 3 passed browser import, reservation, explicit production authorization, shipping/status synchronization and exact duplicate-webhook rejection. MCP independently recomputed USD 100 revenue, USD 48 estimated production, USD 8 shipping and USD 44 margin across the two completed orders. A further interrupted workflow survived Master/provider/coordinator/module outages and recovered exactly once.
-
-Corrections include accessible configuration dropdowns, ordinary configuration Save outside Advanced JSON, bounded retry for read-only busy responses (never mutation replay), and empty structured array defaults. Historical browser selectors now distinguish page titles from section headings, and operational browser checks use line controls/comma-separated skills rather than JSON.
-
-Native fulfillment acceptance uncovered a missing module observation screen and routing guard. Separate signed Shopify 1.0.1 and Printify 1.0.3 packages add native/external ownership/status/tracking observations and reject native Shopify dispatch; eight deployed Chromium checks passed with unchanged Worker images. All 10 commerce backend tests passed after these changes. No existing signed package was overwritten.
-
-The first USD simulator attempt correctly refused an EUR remote order. New 0.9 simulator provisioning now defaults to USD (explicitly configurable); existing accounts/records retain their currencies. The initial mismatched synthetic order remains pending with a reconciliation error; it was not relabeled, erased or sent to production. A separate order namespace exercised successful USD orders without resetting prior history. The first real Qwen run completed but used ambiguous baseline wording. A second failed MODEL_OUTPUT_INVALID safely with retained activity and no recommendation. A final run completed with unambiguous zero-change/proposal/sensitivity wording, full tool evidence and independently recomputed EUR 9000/month, EUR 102000/12 months, sensitivity EUR 8000/month and EUR 84000/12 months. Browser launch/publication/history refresh/affected-only acknowledgments passed, configuration was restored and alias unloaded. Full evidence is in artifacts/ux-live-ollama-final.json; acceptance still requires final packaging and remaining browser/currency gates.
+Pending final archive checksums/image selection, preservation redeployment and accepted-manifest promotion. No v0.9.0 tag is authorized until these mandatory release checks pass.
