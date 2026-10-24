@@ -14,7 +14,7 @@ test('commerce calculations use exact cents, explicit estimates, product/channel
 });
 test('commerce evidence is approved, period-bounded, attributed and paginated with strict query fields',()=>{
  const a=row(),b=row(projection({approved:false as any})),c=row(projection({orderCreatedAt:'2026-10-22T12:00:00.000Z'}));
- const page=commercePage([a,b,c],{entityId:a.entity_id,from:'2026-10-20T00:00:00.000Z',to:'2026-10-22T00:00:00.000Z',limit:1});assert.equal(page.total,1);assert.equal(page.records[0]!.reference.recordId,a.record_id);assert.equal(page.records[0]!.sourceWorker,a.installation_id);assert.equal(page.records[0]!.costBasis,'estimated');assert.equal(page.nextOffset,null);
+ const page=commercePage([a,b,c],{entityId:a.entity_id,from:'2026-10-20T00:00:00.000Z',to:'2026-10-22T00:00:00.000Z',limit:1});assert.equal(page.total,1);assert.equal(page.records[0]!.reference.recordId,a.record_id);assert.equal(page.records[0]!.sourceWorker,a.installation_id);assert.equal(page.records[0]!.costBasis,'estimated');assert.equal(page.nextOffset,null);assert.equal(commercePage([a],{sku:'OTHER-SKU'}).total,0);assert.equal(commercePage([a],{sku:'SYN-TEE'}).total,1);
  assert.throws(()=>commerceQuerySchema.parse({apiKey:'never allowed'}));assert.throws(()=>commercePage([a],{from:'2026-10-22T00:00:00.000Z',to:'2026-10-20T00:00:00.000Z'}));
 });
 test('deterministic anomaly screening distinguishes high estimated costs, delays and observed stockouts',()=>{
