@@ -1,3 +1,5 @@
-name: steward-dev
+# Select an installed deployment once with scripts/select-deployment.mjs.
+# Missing selection fails closed instead of starting the unsecured foundation.
+name: ${STEWARD_COMPOSE_PROJECT:?Run node scripts/select-deployment.mjs PATH to select your installed deployment}
 include:
-  - .steward/dev/compose.yaml
+  - path: ${STEWARD_COMPOSE_ENTRYPOINT:?No complete deployment has been selected}

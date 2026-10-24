@@ -71,7 +71,7 @@ async function pack(){
   // Acceptance evidence is emitted after packaging as a sidecar; avoid a
   // self-referential manifest checksum and stale evidence in later packages.
   if(['docs/phase6-verification-evidence.json','docs/phase7-verification-evidence.json'].includes(name))continue;
-  if(!/^(apps\/|packages\/|tools\/|modules\/|scripts\/|infra\/|datasets\/|docs\/|package(?:-lock)?\.json$|tsconfig.base.json$|README.md$|\.dockerignore$)/.test(name))continue;
+  if(!/^(apps\/|packages\/|tools\/|modules\/|scripts\/|infra\/|datasets\/|docs\/|package(?:-lock)?\.json$|tsconfig.base.json$|README.md$|compose\.yaml$|\.dockerignore$)/.test(name))continue;
   if(/(^|\/)(node_modules|dist)\//.test(name))continue;
   const src=path.join(root,name);if(!(await lstat(src)).isFile())throw new Error('Non-file source');
   if(/\.(pem|key|p12|pfx)$/i.test(name)||/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\r?\n[A-Za-z0-9+/=]{20}/.test(await readFile(src,'utf8')))throw new Error('Secret-like source file must not enter a release: '+name);
