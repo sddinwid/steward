@@ -28,7 +28,7 @@ const recoveryPath=path.join(directory,'analyst/local-provider-recovery.json');
 await writeFile(recoveryPath,JSON.stringify({pid:process.pid,createdAt:new Date().toISOString(),config:originalConfig.toString('base64'),key:originalKey.toString('base64'),model}),{flag:'wx',mode:0o600});
 const report={verifiedAt:new Date().toISOString(),status:'not_verified',provider:'local-ollama',capability,baseModel,model,context,modelTimeout,testModel:false,modelTurns:[],checks:[],configurationRestored:false,modelUnloaded:false};
 await mkdir('artifacts',{recursive:true});
-let active=0;
+let active=0;let browserSession;
 const server=createServer({cert:await readFile(path.join(directory,'security/master/tls-cert.pem')),key:await readFile(path.join(directory,'security/master/tls-key.pem'))},async(req,res)=>{
   const supplied=Buffer.from(req.headers.authorization??''),expected=Buffer.from('Bearer '+token);
   if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected)){res.writeHead(401).end();return;}
@@ -62,8 +62,10 @@ try{
   await logins();
   await writeFile(keyPath,token+'\n');
   await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:8000,maxContextChars:48000}));
+  if(process.env.STEWARD_OLLAMA_BROWSER==='1')browserSession=await(await import('./analyst-browser-session.mjs')).analystBrowserSession();
   const investigationStart=Date.now();
-  const started=await api('master','/api/v5/analyst/investigations','POST',{capability,prompt:process.env.STEWARD_ANALYST_PROMPT??'Investigate intercompany storage sharing using the synthetic business dataset. Discover authorized entities and inspect their source records and relationships through tools. Choose actual compatible supply and external demand records. Use explicit illustrative assumptions of EUR 3000 internal monthly payment, EUR 1000 incremental monthly cost, EUR 6000 transition expense, 12 months, full proportional avoidance and conditional location compatibility; test EUR 2000 incremental cost/EUR 12000 transition as a sensitivity. Calculate through analyze_resource_sharing. Report only tool-supported observations and calculations, label location and cost assumptions, compare the baseline and sensitivity, and list human decisions. Do not publish a finding.'},202);
+  const startInvestigation=(body)=>browserSession?browserSession.start(body.capability,body.prompt):api('master','/api/v5/analyst/investigations','POST',body,202);
+  const started=await startInvestigation({capability,prompt:process.env.STEWARD_ANALYST_PROMPT??'Investigate intercompany storage sharing using the synthetic business dataset. Discover authorized entities and inspect their source records and relationships through tools. Choose actual compatible supply and external demand records. Use explicit illustrative assumptions of EUR 3000 internal monthly payment, EUR 1000 incremental monthly cost, EUR 6000 transition expense, 12 months, full proportional avoidance and conditional location compatibility; test EUR 2000 incremental cost/EUR 12000 transition as a sensitivity. Calculate through analyze_resource_sharing. Report only tool-supported observations and calculations, label location and cost assumptions, compare the baseline and sensitivity, and list human decisions. Do not publish a finding.'});
   report.investigationId=started.value.investigationId;
   const run=await waitFor(async()=>{const r=(await api('master','/api/v5/analyst/investigations/'+report.investigationId)).value;return r.investigation.status!=='running'?r:false;},'real Ollama investigation',620000);report.investigationMs=Date.now()-investigationStart;
   report.investigationStatus=run.investigation.status;report.error=run.investigation.error_code;report.activity=run.activity;report.result=run.investigation.result;
@@ -91,7 +93,7 @@ try{
   report.checks.push('deterministic calculations independently recomputed and source revisions rechecked');
   if((capability==='resource-sharing'&&process.env.STEWARD_OLLAMA_DEFER_PUBLICATION!=='1')||process.env.STEWARD_OLLAMA_PUBLISH_REVIEWED==='1'){
   // Legacy storage verifier compatibility; Phase 7 defaults to separate text review.
-  const finding=(await api('master','/api/v5/analyst/investigations/'+report.investigationId+'/finding','POST',{})).value;
+  const finding=(await (browserSession?browserSession.publish(report.investigationId):api('master','/api/v5/analyst/investigations/'+report.investigationId+'/finding','POST',{}))).value;
   report.findingId=finding.findingId;report.deliveries=[];
   for(const worker of ['worker-1','worker-2','worker-3']){
     const entityId=(await api(worker,'/api/v2/worker/status')).value.entityId;
@@ -101,10 +103,12 @@ try{
   }
   report.checks.push('explicit finding publication delivered only to affected Workers');
   }else report.checks.push('Finding publication deferred until separate operator narrative review');
+  if(browserSession)await browserSession.verify(report);
   report.status='passed_pending_narrative_review';
   console.log('PASS real local model MCP investigation and independently recomputed source-backed calculations. Review narrative before publishing a Phase 7 finding.');
 }catch(error){report.status='failed';report.failure=error.message;process.exitCode=1;console.log('Real Ollama validation failed: '+error.message);}
 finally{
+  if(browserSession)await browserSession.close();
   await writeFile(configPath,originalConfig);await writeFile(keyPath,originalKey);report.configurationRestored=true;
   server.closeAllConnections();await new Promise(resolve=>server.close(resolve));
   try{const stop=await fetch('http://127.0.0.1:11434/api/generate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model,keep_alive:0}),signal:AbortSignal.timeout(10000)});await stop.text();report.modelUnloaded=stop.ok;}catch{}
