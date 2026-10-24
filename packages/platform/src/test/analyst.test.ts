@@ -75,3 +75,12 @@ test('commerce model view excludes legacy pre-fee margins and preserves unknown 
  const raw={structuredContent:{data:{calculation:{capabilityId:'steward.commerce-performance',schemaVersion:1,currency:'USD',displayAmounts:{grossMargin:'USD 999.00',recognizedRevenue:'USD 1200.00',refunds:'USD 0.00'},orders:[{grossMargin:'USD 999.00'}],contributionSummary:{marginBasis:'incomplete',displayAmounts:{contributionMargin:'UNKNOWN'}},contributionAnalysis:[{sourceId:'source-1',marginBasis:'incomplete',displayAmounts:{contributionMargin:'UNKNOWN'},missingCosts:['transactionFees']}],assumptions:['Unknown is not zero']},supportingReferences:[{recordId:'source-1'}],affectedEntities:['entity'],observed:{sources:[{reference:{recordId:'source-1'},sourceWorker:'worker',observedAt:'now',payload:{complete:'retained'}}]}}}};
  const original=JSON.stringify(raw);for(const compact of [true,false]){const view=modelToolResult('analyze_commerce_by_id',raw,compact).structuredContent.data.calculation;assert.equal(view.displayAmounts.contributionMargin,'UNKNOWN');assert.equal(view.displayAmounts.grossMargin,undefined);assert.equal(view.orders,undefined);assert.equal(view.contributionAnalysis[0].displayAmounts.contributionMargin,'UNKNOWN');assert(!JSON.stringify(view).includes('USD 999.00'));}assert.equal(JSON.stringify(raw),original);
 });
+
+import {commerceStageTools} from '../investigation-profiles.js';
+test('commerce planning offers calculation only after entity and source discovery without widening tool authority',()=>{
+ const tools=['list_entities','query_commerce_evidence','query_commerce_exceptions','analyze_commerce_by_id'].map(name=>({name}));
+ assert.deepEqual(commerceStageTools(tools,false,false).map(t=>t.name),['list_entities']);
+ assert.deepEqual(commerceStageTools(tools,true,false).map(t=>t.name),['query_commerce_evidence','query_commerce_exceptions']);
+ assert.deepEqual(commerceStageTools(tools,true,true).map(t=>t.name),['query_commerce_evidence','query_commerce_exceptions','analyze_commerce_by_id']);
+ assert.deepEqual(commerceStageTools([],true,true),[]);
+});
