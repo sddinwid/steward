@@ -18,7 +18,9 @@ const workers = deployment.instances.filter(i => i.role === 'worker');
 assert.ok(master && workers.length >= 3, 'Verification requires the default Master + three Worker topology');
 const masterOrigin = `https://master.localhost:${master.webPort + 1000}`;
 const workerOrigin = i => `https://${i.key}.localhost:${i.webPort + 1000}`;
-const composeArgs = ['compose', '-f', path.join(directory, 'compose.yaml'), '-f', path.join(securityDir, 'compose.yaml')];
+const composeArgs=['compose','-f',path.join(directory,'compose.yaml')];
+for(const file of ['network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','commerce/compose.yaml','release/compose.yaml'])if(existsSync(path.join(directory,file)))composeArgs.push('-f',path.join(directory,file));
+if(process.env.STEWARD_COMPOSE_OVERRIDE_FILE){const file=path.resolve(directory,process.env.STEWARD_COMPOSE_OVERRIDE_FILE),relative=path.relative(directory,file);assert(!relative.startsWith('..')&&!path.isAbsolute(relative)&&existsSync(file));composeArgs.push('-f',file);}
 const fixturePath = path.join(securityDir, 'verification.json');
 let fixture;
 if (existsSync(fixturePath)) fixture = JSON.parse(await readFile(fixturePath, 'utf8'));
