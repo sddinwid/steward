@@ -1,0 +1,2428 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-10-24T22:42:00.121Z",
+  "status": "passed",
+  "integrationMode": "explicit simulated Shopify/Printify; no live commercial connectivity or chargeable operations",
+  "branch": "phase10a/commerce-intelligence",
+  "baseline": "d0385b6",
+  "runtimeSourceCommit": "98537e25d6f209d70e5d4d792e2a4a7cb05c6a25",
+  "preservedRelease": {
+    "tag": "v0.9.1",
+    "tagObject": "da9de5ff4fa8faff94672329c42cde9d9c391bc3",
+    "commit": "c9768025e6a95da057617f405225a3b6da006691",
+    "retagged": false
+  },
+  "automated": {
+    "build": "passed",
+    "rootTests": 107,
+    "failed": 0,
+    "skipped": 0,
+    "suites": {
+      "sdk": 14,
+      "moduleHost": 2,
+      "platform": 42,
+      "installer": 9,
+      "inventory": 2,
+      "operations": 2,
+      "businessModules": 7,
+      "smartModules": 8,
+      "commerce": 13,
+      "intelligencePresentation": 4,
+      "composeOperator": 4
+    },
+    "smartBrowser": {
+      "tests": 9,
+      "overlapWithRoot": 8
+    },
+    "earlierPhaseDeploymentRegressions": {
+      "startedAt": "2026-10-24T21:00:47.987Z",
+      "directory": ".steward/phase10a-acceptance",
+      "checks": [
+        {
+          "suite": "smoke",
+          "status": "passed",
+          "elapsedMs": 17955
+        },
+        {
+          "suite": "browser-smoke",
+          "status": "passed",
+          "elapsedMs": 4303
+        },
+        {
+          "suite": "verify-phase4-seed",
+          "status": "passed",
+          "elapsedMs": 12259
+        },
+        {
+          "suite": "verify-phase4",
+          "status": "passed",
+          "elapsedMs": 208151
+        },
+        {
+          "suite": "verify-inventory-mcp-upgrade",
+          "status": "passed",
+          "elapsedMs": 14263
+        },
+        {
+          "suite": "mcp-smoke",
+          "status": "passed",
+          "elapsedMs": 2763
+        },
+        {
+          "suite": "verify-phase5",
+          "status": "passed",
+          "elapsedMs": 144229
+        },
+        {
+          "suite": "verify-analyst-browser",
+          "status": "passed",
+          "elapsedMs": 4270
+        },
+        {
+          "suite": "verify-compact-mcp",
+          "status": "passed",
+          "elapsedMs": 1702
+        },
+        {
+          "suite": "verify-compact-analyst",
+          "status": "passed",
+          "elapsedMs": 67257
+        },
+        {
+          "suite": "verify-analyst-concurrency",
+          "status": "passed",
+          "elapsedMs": 28348
+        },
+        {
+          "suite": "verify-isolation",
+          "status": "passed",
+          "elapsedMs": 36364
+        },
+        {
+          "suite": "verify-outage-independence",
+          "status": "passed",
+          "elapsedMs": 43733
+        },
+        {
+          "suite": "verify-module-restart",
+          "status": "passed",
+          "elapsedMs": 60593
+        },
+        {
+          "suite": "verify-module-provision",
+          "status": "passed",
+          "elapsedMs": 8611
+        },
+        {
+          "suite": "verify-module-secrets",
+          "status": "passed",
+          "elapsedMs": 14924
+        },
+        {
+          "suite": "verify-analyst-unconfigured",
+          "status": "passed",
+          "elapsedMs": 2283
+        }
+      ],
+      "status": "passed",
+      "finishedAt": "2026-10-24T21:13:13.078Z"
+    }
+  },
+  "modulePackages": [
+    {
+      "id": "cee.sales",
+      "version": "1.2.3",
+      "schema": 5,
+      "image": "sha256:7f678c7854de5abaf8af3f2ce9bc01c9d59a89aa4d793ee9085b03137cc961e7"
+    },
+    {
+      "id": "cee.shopify",
+      "version": "1.1.1",
+      "schema": 4,
+      "image": "sha256:f5f825e01bad9c6df5a11132125661abd1cf86fab1580d9c72e4a4edd165251f"
+    },
+    {
+      "id": "cee.printify",
+      "version": "1.1.1",
+      "schema": 4,
+      "image": "sha256:23a06051fd4968e7d3aee9ae4bb8530482ffbfe49aa8ec181998ab02b4669f9b"
+    }
+  ],
+  "redeployment": {
+    "startedAt": "2026-10-24T22:35:26.197Z",
+    "sourceCommit": "98537e25d6f209d70e5d4d792e2a4a7cb05c6a25",
+    "checks": [
+      "Clean-commit pinned-image redeployment preserves protected tables, module records, credentials, trust, identities and settings",
+      "All APIs/frontends ready; identical Worker API/web artifacts",
+      "Repeated base/security/module/data/analyst/simulator provisioning preserves configuration and data"
+    ],
+    "images": {
+      "master-api": "sha256:71a2b60a638df76fd052d23b01937734bb60de64aa1d1e47942e7500e47edd43",
+      "master-web": "sha256:c5bef8dc91299d329930bded38a3a10aadede3f7307c6d4b38aa95aa74812139",
+      "worker-1-api": "sha256:28683439e5550d3665ff3dda387ddce3f2335c889412eadc3c5e05de0a8c520a",
+      "worker-1-web": "sha256:0df4664d49d9b7e332c15225e914fff47da76161c1bab1aa3473b7730eb5cb66",
+      "worker-1-module-host": "sha256:a537e6eab266844d18573279ec559ce4f6867c3c0ae0d729167e7857165de419",
+      "worker-2-api": "sha256:28683439e5550d3665ff3dda387ddce3f2335c889412eadc3c5e05de0a8c520a",
+      "worker-2-web": "sha256:0df4664d49d9b7e332c15225e914fff47da76161c1bab1aa3473b7730eb5cb66",
+      "worker-2-module-host": "sha256:a537e6eab266844d18573279ec559ce4f6867c3c0ae0d729167e7857165de419",
+      "worker-3-api": "sha256:28683439e5550d3665ff3dda387ddce3f2335c889412eadc3c5e05de0a8c520a",
+      "worker-3-web": "sha256:0df4664d49d9b7e332c15225e914fff47da76161c1bab1aa3473b7730eb5cb66",
+      "worker-3-module-host": "sha256:a537e6eab266844d18573279ec559ce4f6867c3c0ae0d729167e7857165de419"
+    },
+    "privateFilesCompared": 53,
+    "status": "passed",
+    "finishedAt": "2026-10-24T22:38:16.019Z"
+  },
+  "publicationAndResolution": {
+    "startedAt": "2026-10-24T21:59:44.125Z",
+    "simulation": true,
+    "checks": [
+      "An actual new paid/unmapped source order is observed and monitored locally with zero replicated projection or Master copy while publication is off",
+      "Explicit publication creates the new authorized copies while existing unchanged conditions retain their original finding and episode",
+      "Synthetic provider cancellation publishes a real resolution without deleting records, credentials or findings",
+      "Affected Worker acknowledges and resolves the actual canceled-source alerts; signed receipts reach Master and an explicit registry action closes them"
+    ],
+    "resolvedFindings": [
+      "c5c5f452-2df7-4972-b706-7ab65459e9d4",
+      "5456e7f4-3106-4cdb-b0f0-4e19e3abd4e2"
+    ],
+    "sourceRecordId": "76ba6bfc-ac2c-444d-96f4-0fe394ee6e7c",
+    "status": "passed",
+    "finishedAt": "2026-10-24T22:01:24.304Z"
+  },
+  "scenario": {
+    "version": 1,
+    "startedAt": "2026-10-24T22:40:51.270Z",
+    "simulation": true,
+    "checks": [
+      {
+        "name": "exact USD contribution, estimates, cancel/refund evidence, deduplicated affected-only alert and acknowledgment",
+        "sources": [
+          {
+            "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+            "revision": "15"
+          },
+          {
+            "recordId": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+            "revision": "6"
+          },
+          {
+            "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+            "revision": "14"
+          },
+          {
+            "recordId": "d94dc211-bdaa-46a5-9a92-42a3faf657e9",
+            "revision": "2"
+          },
+          {
+            "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+            "revision": "13"
+          }
+        ],
+        "historicalEvidence": {
+          "evidence": [
+            {
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.sales",
+                "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                "revision": 13,
+                "streamId": "commerce_orders"
+              },
+              "available": true,
+              "observedAt": "2026-10-24T20:41:23.947634+00:00",
+              "ingestedAt": "2026-10-24T20:41:25.304Z",
+              "payload": {
+                "id": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                "revision": 13,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-10-LOW",
+                      "quantity": 2,
+                      "unitPriceCents": 1500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/910002",
+                      "lineRevenueCents": 3000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 3000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/910002",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "financials": {
+                    "basis": "estimated",
+                    "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                    "channelFeeCents": 0,
+                    "shippingCostCents": 400,
+                    "productionCostCents": 2400,
+                    "transactionFeeCents": 100
+                  },
+                  "fulfilledAt": "2026-10-24T20:31:43.650Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T20:31:44.652Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 2400,
+                  "recognizedRevenueCents": 3000
+                }
+              }
+            }
+          ],
+          "historical": true,
+          "authoritative": false,
+          "decisionExecuted": false
+        },
+        "conditions": [
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "4b6855dd-5905-476d-90a0-d8c259851ae9",
+            "code": "fulfillment_owner_unknown",
+            "active": false,
+            "episode": 1,
+            "finding_id": "c5c5f452-2df7-4972-b706-7ab65459e9d4",
+            "source_revision": "3",
+            "updated_at": "2026-10-24T22:01:19.138Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "c36de205-e2e4-4e77-84c1-9950396077ec",
+            "code": "mapping_missing",
+            "active": false,
+            "episode": 1,
+            "finding_id": "5456e7f4-3106-4cdb-b0f0-4e19e3abd4e2",
+            "source_revision": "3",
+            "updated_at": "2026-10-24T22:01:19.138Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "91e66f14-1655-44f7-8abc-5f91bd8e8aac",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "9ec1cb76-e827-4352-b4b8-2b396dac2e86",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+            "code": "low_contribution_margin",
+            "active": true,
+            "episode": 1,
+            "finding_id": "4c3731da-9085-4118-a03b-5fd0fd01d631",
+            "source_revision": "14",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "0e23bbe5-f1fc-4454-a0aa-2ce257cfc7b3",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "293f5caa-bef0-4876-a71a-71bfed41f0d9",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "1ee34eee-a4d4-4a6c-9426-e0329b0c3797",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.689Z",
+            "entity_id": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "0e23bbe5-f1fc-4454-a0aa-2ce257cfc7b3",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "01c12777-237f-47bd-b356-40ba8580745a",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "eb26d952-915b-43fe-92da-7c77f8339e2c",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.689Z",
+            "entity_id": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "e5498446-bd81-4b09-9c95-436ad8048427",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "86da413d-ce2f-490e-b6ff-2d624b8f9c38",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.printify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "3b02d162-63c8-406f-99f9-cf27efb123db",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "a5dff81c-bc8e-488b-be5b-1798a1925b71",
+            "source_revision": "1",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.printify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "3b26e020-fdf3-4ffa-8808-791f6b044e36",
+            "code": "production_authorization",
+            "active": true,
+            "episode": 1,
+            "finding_id": "19d8b0bc-6e9b-4fd0-9b43-377a82e40a57",
+            "source_revision": "1",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "014396c0-a0ab-449f-8d75-5e74a1971e5a",
+            "code": "mapping_missing",
+            "active": false,
+            "episode": 1,
+            "finding_id": "763e4e5e-12f7-4d0f-b226-4b1a16e52eab",
+            "source_revision": "3",
+            "updated_at": "2026-10-24T21:57:03.095Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "c3ef1670-4e8c-4108-b9ab-ef2d737df705",
+            "code": "fulfillment_owner_unknown",
+            "active": false,
+            "episode": 1,
+            "finding_id": "e298a24b-cca9-405b-8add-400396b51874",
+            "source_revision": "3",
+            "updated_at": "2026-10-24T21:57:03.095Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+            "code": "production_authorization",
+            "active": true,
+            "episode": 1,
+            "finding_id": "e6cc77e8-330b-49c5-b2a4-9fc5e24b2281",
+            "source_revision": "6",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+            "code": "fulfillment_delayed",
+            "active": true,
+            "episode": 1,
+            "finding_id": "89261cf0-f283-4656-af05-e7190560a2f7",
+            "source_revision": "6",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "aa6943fa-d2f2-448f-9c3a-8784fd14f3b9",
+            "source_revision": "6",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "37990528-6b29-407c-9298-65cc7bedd50f",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "96012cde-280b-42d6-a418-45547f01cdfc",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "480e5ea8-390d-4682-9ecf-a2e7b877f46a",
+            "code": "mapping_missing",
+            "active": true,
+            "episode": 1,
+            "finding_id": "48c18f42-7eb1-425d-8793-2f6530ab8e74",
+            "source_revision": "5",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.shopify",
+            "stream_id": "commerce_exceptions",
+            "record_id": "46ec855f-ae82-4c9b-b5a6-1ee7b2d40b94",
+            "code": "fulfillment_owner_unknown",
+            "active": true,
+            "episode": 1,
+            "finding_id": "ff6997eb-570e-4f1b-b789-6ce55630eb1f",
+            "source_revision": "5",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          },
+          {
+            "installation_id": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+            "module_id": "cee.sales",
+            "stream_id": "commerce_orders",
+            "record_id": "b2a32659-c1d0-4d30-9263-af1716325107",
+            "code": "costs_incomplete",
+            "active": true,
+            "episode": 1,
+            "finding_id": "fbe0b9ba-f606-4374-8c58-f753804edec3",
+            "source_revision": "11",
+            "updated_at": "2026-10-24T22:40:52.655Z",
+            "entity_id": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "publication_approved": true
+          }
+        ]
+      },
+      {
+        "name": "live authorized MCP discovery, exact contribution, exception screening, demand windows and foreign-entity rejection",
+        "calculation": {
+          "calculation": {
+            "capabilityId": "steward.commerce-performance",
+            "schemaVersion": 1,
+            "currency": "USD",
+            "units": "items",
+            "orderVolume": 3,
+            "fulfilledOrders": 3,
+            "fulfilledQuantity": 7,
+            "recognizedRevenueCents": 19000,
+            "refundCents": 500,
+            "netRevenueCents": 18500,
+            "estimatedCOGSCents": 8000,
+            "shippingCostCents": 1600,
+            "totalCostCents": 9600,
+            "grossMarginCents": 8900,
+            "costBasis": "estimated",
+            "costCoverage": {
+              "completeOrders": 3,
+              "totalOrders": 3
+            },
+            "grossMarginBasisPoints": 4810,
+            "costRatioBasisPoints": 5189,
+            "fulfillmentTimeSeconds": {
+              "completedOrders": 3,
+              "total": 1128911,
+              "average": 376304
+            },
+            "failedOrders": 0,
+            "stockoutOrders": 0,
+            "byChannel": [
+              {
+                "channel": "shopify",
+                "orderVolume": 3,
+                "revenueCents": 19000
+              }
+            ],
+            "products": [
+              {
+                "sku": "SYN-10-LOW",
+                "orderedQuantity": 2,
+                "fulfilledQuantity": 2,
+                "recognizedRevenueCents": 3000,
+                "orderVolume": 1,
+                "totalCostCents": 2800,
+                "grossMarginCents": 200,
+                "costAllocation": "Single-product orders; all source order costs/refunds attributed explicitly.",
+                "byChannel": [
+                  {
+                    "channel": "shopify",
+                    "recognizedRevenueCents": 3000
+                  }
+                ]
+              },
+              {
+                "sku": "SYN-10-PREMIUM",
+                "orderedQuantity": 5,
+                "fulfilledQuantity": 5,
+                "recognizedRevenueCents": 16000,
+                "orderVolume": 2,
+                "totalCostCents": 6800,
+                "grossMarginCents": 8700,
+                "costAllocation": "Single-product orders; all source order costs/refunds attributed explicitly.",
+                "byChannel": [
+                  {
+                    "channel": "shopify",
+                    "recognizedRevenueCents": 16000
+                  }
+                ]
+              }
+            ],
+            "orders": [
+              {
+                "sourceId": "gid://shopify/Order/910002",
+                "channel": "shopify",
+                "status": "fulfilled",
+                "costBasis": "estimated",
+                "grossMarginBasisPoints": 666,
+                "displayAmounts": {
+                  "netRevenue": "USD 30.00",
+                  "totalCost": "USD 28.00",
+                  "grossMargin": "USD 2.00"
+                }
+              },
+              {
+                "sourceId": "gid://shopify/Order/910001",
+                "channel": "shopify",
+                "status": "fulfilled",
+                "costBasis": "estimated",
+                "grossMarginBasisPoints": 6470,
+                "displayAmounts": {
+                  "netRevenue": "USD 85.00",
+                  "totalCost": "USD 30.00",
+                  "grossMargin": "USD 55.00"
+                }
+              },
+              {
+                "sourceId": "gid://shopify/Order/910003",
+                "channel": "shopify",
+                "status": "fulfilled",
+                "costBasis": "estimated",
+                "grossMarginBasisPoints": 4571,
+                "displayAmounts": {
+                  "netRevenue": "USD 70.00",
+                  "totalCost": "USD 38.00",
+                  "grossMargin": "USD 32.00"
+                }
+              }
+            ],
+            "displayAmounts": {
+              "recognizedRevenue": "USD 190.00",
+              "refunds": "USD 5.00",
+              "netRevenue": "USD 185.00",
+              "production": "USD 80.00",
+              "shipping": "USD 16.00",
+              "grossMargin": "USD 89.00"
+            },
+            "period": {
+              "from": "2026-10-20T12:00:00.000Z",
+              "to": "2026-10-20T12:00:00.000Z",
+              "basis": "Explicit selected source orders; endpoints describe observed range, not a complete-period census"
+            },
+            "assumptions": [
+              "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+              "Source total refunds may include tax/shipping and are not allocated to products.",
+              "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+              "No currency conversion, supplier substitution, production authorization or business action is performed."
+            ],
+            "contributionSummary": {
+              "currency": "USD",
+              "completeMarginOrders": 3,
+              "totalOrders": 3,
+              "contributionMarginCents": 8450,
+              "marginBasis": "estimated",
+              "displayAmounts": {
+                "contributionMargin": "USD 84.50"
+              }
+            },
+            "contributionAnalysis": [
+              {
+                "sourceId": "gid://shopify/Order/910002",
+                "channel": "shopify",
+                "currency": "USD",
+                "status": "fulfilled",
+                "grossSalesCents": 3000,
+                "discountCents": 0,
+                "bookedRevenueCents": 3000,
+                "recognizedRevenueCents": 3000,
+                "refundCents": 0,
+                "netRecognizedRevenueCents": 3000,
+                "productionCostCents": 2400,
+                "shippingCostCents": 400,
+                "transactionFeeCents": 100,
+                "channelFeeCents": 0,
+                "recordedCostSubtotalCents": 2900,
+                "totalCostCents": 2900,
+                "missingCosts": [],
+                "contributionMarginCents": 100,
+                "marginBasis": "estimated",
+                "contributionMarginBasisPoints": 333,
+                "recognitionComplete": true,
+                "costReference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                "explanation": "Gross less source discounts gives booked merchandise revenue. Completed merchandise revenue less source refunds and all four recorded cost components gives contribution margin. Excludes tax, shipping income, overhead and income tax; refunds can include non-merchandise amounts. Partial recognition and unknown costs prevent a complete margin.",
+                "displayAmounts": {
+                  "grossSales": "USD 30.00",
+                  "refunds": "USD 0.00",
+                  "transactionFees": "USD 1.00",
+                  "channelFees": "USD 0.00",
+                  "contributionMargin": "USD 1.00"
+                }
+              },
+              {
+                "sourceId": "gid://shopify/Order/910001",
+                "channel": "shopify",
+                "currency": "USD",
+                "status": "fulfilled",
+                "grossSalesCents": 10500,
+                "discountCents": 1500,
+                "bookedRevenueCents": 9000,
+                "recognizedRevenueCents": 9000,
+                "refundCents": 500,
+                "netRecognizedRevenueCents": 8500,
+                "productionCostCents": 2400,
+                "shippingCostCents": 600,
+                "transactionFeeCents": 200,
+                "channelFeeCents": 0,
+                "recordedCostSubtotalCents": 3200,
+                "totalCostCents": 3200,
+                "missingCosts": [],
+                "contributionMarginCents": 5300,
+                "marginBasis": "estimated",
+                "contributionMarginBasisPoints": 6235,
+                "recognitionComplete": true,
+                "costReference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                "explanation": "Gross less source discounts gives booked merchandise revenue. Completed merchandise revenue less source refunds and all four recorded cost components gives contribution margin. Excludes tax, shipping income, overhead and income tax; refunds can include non-merchandise amounts. Partial recognition and unknown costs prevent a complete margin.",
+                "displayAmounts": {
+                  "grossSales": "USD 105.00",
+                  "refunds": "USD 5.00",
+                  "transactionFees": "USD 2.00",
+                  "channelFees": "USD 0.00",
+                  "contributionMargin": "USD 53.00"
+                }
+              },
+              {
+                "sourceId": "gid://shopify/Order/910003",
+                "channel": "shopify",
+                "currency": "USD",
+                "status": "fulfilled",
+                "grossSalesCents": 7000,
+                "discountCents": 0,
+                "bookedRevenueCents": 7000,
+                "recognizedRevenueCents": 7000,
+                "refundCents": 0,
+                "netRecognizedRevenueCents": 7000,
+                "productionCostCents": 3200,
+                "shippingCostCents": 600,
+                "transactionFeeCents": 150,
+                "channelFeeCents": 0,
+                "recordedCostSubtotalCents": 3950,
+                "totalCostCents": 3950,
+                "missingCosts": [],
+                "contributionMarginCents": 3050,
+                "marginBasis": "estimated",
+                "contributionMarginBasisPoints": 4357,
+                "recognitionComplete": true,
+                "costReference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                "explanation": "Gross less source discounts gives booked merchandise revenue. Completed merchandise revenue less source refunds and all four recorded cost components gives contribution margin. Excludes tax, shipping income, overhead and income tax; refunds can include non-merchandise amounts. Partial recognition and unknown costs prevent a complete margin.",
+                "displayAmounts": {
+                  "grossSales": "USD 70.00",
+                  "refunds": "USD 0.00",
+                  "transactionFees": "USD 1.50",
+                  "channelFees": "USD 0.00",
+                  "contributionMargin": "USD 30.50"
+                }
+              }
+            ],
+            "decisionExecuted": false
+          },
+          "supportingReferences": [
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+              "revision": 15
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+              "revision": 14
+            },
+            {
+              "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+              "revision": 13
+            }
+          ],
+          "affectedEntities": [
+            "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "b3952d14-f12b-4272-9d23-c478c8d8522e"
+          ],
+          "observed": {
+            "sources": [
+              {
+                "reference": {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                  "revision": 15
+                },
+                "sourceWorker": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+                "observedAt": "2026-10-24T22:40:52.902Z",
+                "ingestedAt": "2026-10-24T22:40:54.616Z",
+                "payload": {
+                  "id": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                  "revision": 15,
+                  "projection": {
+                    "units": "items",
+                    "status": "fulfilled",
+                    "channel": "shopify",
+                    "approved": true,
+                    "currency": "USD",
+                    "products": [
+                      {
+                        "sku": "SYN-10-LOW",
+                        "quantity": 2,
+                        "unitPriceCents": 1500,
+                        "sourceVariantId": "gid://shopify/ProductVariant/910002",
+                        "lineRevenueCents": 3000,
+                        "fulfilledQuantity": 2,
+                        "recognizedRevenueCents": 3000
+                      }
+                    ],
+                    "quantity": 2,
+                    "sourceId": "gid://shopify/Order/910002",
+                    "stockout": false,
+                    "costBasis": "estimated",
+                    "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                    "financials": {
+                      "basis": "estimated",
+                      "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                      "channelFeeCents": 0,
+                      "shippingCostCents": 400,
+                      "productionCostCents": 2400,
+                      "transactionFeeCents": 100
+                    },
+                    "fulfilledAt": "2026-10-24T20:31:43.650Z",
+                    "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                    "refundCents": 0,
+                    "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                    "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                    "contractVersion": 1,
+                    "sourceUpdatedAt": "2026-10-24T20:31:44.652Z",
+                    "productionStatus": "shipped",
+                    "shippingCostCents": 400,
+                    "productionCostCents": 2400,
+                    "recognizedRevenueCents": 3000
+                  }
+                }
+              },
+              {
+                "reference": {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                  "revision": 14
+                },
+                "sourceWorker": "cd8e4b51-c740-4075-9d49-f6b9db168f38",
+                "observedAt": "2026-10-24T20:41:23.946Z",
+                "ingestedAt": "2026-10-24T20:41:25.304Z",
+                "payload": {
+                  "id": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                  "revision": 14,
+                  "projection": {
+                    "units": "items",
+                    "status": "fulfilled",
+                    "channel": "shopify",
+                    "approved": true,
+                    "currency": "USD",
+                    "products": [
+                      {
+                        "sku": "SYN-10-PREMIUM",
+                        "quantity": 3,
+                        "unitPriceCents": 3500,
+                        "sourceVariantId": "gid://shopify/ProductVariant/910001",
+                        "lineRevenueCents": 9000,
+                        "fulfilledQuantity": 3,
+                        "recognizedRevenueCents": 9000
+                      }
+                    ],
+                    "quantity": 3,
+                    "sourceId": "gid://shopify/Order/910001",
+                    "stockout": false,
+                    "costBasis": "estimated",
+                    "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                    "financials": {
+                      "basis": "estimated",
+                      "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                      "channelFeeCents": 0,
+                      "shippingCostCents": 600,
+                      "productionCostCents": 2400,
+                      "transactionFeeCents": 200
+                    },
+                    "fulfilledAt": "2026-10-24T20:31:26.654Z",
+                    "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                    "refundCents": 500,
+                    "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                    "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                    "contractVersion": 1,
+                    "sourceUpdatedAt": "2026-10-24T20:31:32.160Z",
+                    "productionStatus": "shipped",
+                    "shippingCostCents": 600,
+                    "productionCostCents": 2400,
+                    "recognizedRevenueCents": 9000
+                  }
+                }
+              },
+              {
+                "reference": {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                  "revision": 13
+                },
+                "sourceWorker": "0e23bbe5-f1fc-4454-a0aa-2ce257cfc7b3",
+                "observedAt": "2026-10-24T20:41:32.115Z",
+                "ingestedAt": "2026-10-24T20:41:51.241Z",
+                "payload": {
+                  "id": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                  "revision": 13,
+                  "projection": {
+                    "units": "items",
+                    "status": "fulfilled",
+                    "channel": "shopify",
+                    "approved": true,
+                    "currency": "USD",
+                    "products": [
+                      {
+                        "sku": "SYN-10-PREMIUM",
+                        "quantity": 2,
+                        "unitPriceCents": 3500,
+                        "sourceVariantId": "gid://shopify/ProductVariant/910003",
+                        "lineRevenueCents": 7000,
+                        "fulfilledQuantity": 2,
+                        "recognizedRevenueCents": 7000
+                      }
+                    ],
+                    "quantity": 2,
+                    "sourceId": "gid://shopify/Order/910003",
+                    "stockout": false,
+                    "costBasis": "estimated",
+                    "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                    "financials": {
+                      "basis": "estimated",
+                      "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                      "channelFeeCents": 0,
+                      "shippingCostCents": 600,
+                      "productionCostCents": 3200,
+                      "transactionFeeCents": 150
+                    },
+                    "fulfilledAt": "2026-10-24T20:32:00.291Z",
+                    "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                    "refundCents": 0,
+                    "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                    "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                    "contractVersion": 1,
+                    "sourceUpdatedAt": "2026-10-24T20:32:02.919Z",
+                    "productionStatus": "shipped",
+                    "shippingCostCents": 600,
+                    "productionCostCents": 3200,
+                    "recognizedRevenueCents": 7000
+                  }
+                }
+              }
+            ]
+          },
+          "authoritative": false,
+          "decisionExecuted": false
+        },
+        "exceptions": {
+          "records": [
+            {
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.printify",
+                "streamId": "commerce_exceptions",
+                "recordId": "3b02d162-63c8-406f-99f9-cf27efb123db",
+                "revision": 1
+              },
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "observedAt": "2026-10-24T20:32:13.661Z",
+              "ingestedAt": "2026-10-24T20:33:01.193Z",
+              "contractVersion": 1,
+              "approved": true,
+              "active": true,
+              "sourceId": "7260a6a4-6574-4eef-9ab8-17d3a19a25d5",
+              "order": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+              "code": "costs_incomplete",
+              "explanation": "Supplier production or shipping cost is missing; profitability is incomplete.",
+              "severity": "warning"
+            },
+            {
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.printify",
+                "streamId": "commerce_exceptions",
+                "recordId": "3b26e020-fdf3-4ffa-8808-791f6b044e36",
+                "revision": 1
+              },
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "observedAt": "2026-10-24T20:32:13.660Z",
+              "ingestedAt": "2026-10-24T20:33:01.193Z",
+              "contractVersion": 1,
+              "approved": true,
+              "active": true,
+              "sourceId": "7260a6a4-6574-4eef-9ab8-17d3a19a25d5",
+              "order": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+              "code": "production_authorization",
+              "explanation": "Production requires explicit Worker-local administrator approval.",
+              "severity": "warning"
+            },
+            {
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.shopify",
+                "streamId": "commerce_exceptions",
+                "recordId": "46ec855f-ae82-4c9b-b5a6-1ee7b2d40b94",
+                "revision": 5
+              },
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "observedAt": "2026-10-24T22:00:48.502Z",
+              "ingestedAt": "2026-10-24T22:00:49.211Z",
+              "contractVersion": 1,
+              "approved": true,
+              "active": true,
+              "sourceId": "c0b6b130-e177-43ba-b207-0c8b8c6150ef",
+              "order": "gid://shopify/Order/910099",
+              "code": "fulfillment_owner_unknown",
+              "explanation": "Paid order has no confirmed fulfillment owner. Explicit ownership review is required.",
+              "severity": "warning"
+            },
+            {
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.shopify",
+                "streamId": "commerce_exceptions",
+                "recordId": "480e5ea8-390d-4682-9ecf-a2e7b877f46a",
+                "revision": 5
+              },
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "observedAt": "2026-10-24T22:00:48.503Z",
+              "ingestedAt": "2026-10-24T22:00:49.211Z",
+              "contractVersion": 1,
+              "approved": true,
+              "active": true,
+              "sourceId": "c0b6b130-e177-43ba-b207-0c8b8c6150ef",
+              "order": "gid://shopify/Order/910099",
+              "code": "mapping_missing",
+              "explanation": "One or more source variants lack an explicit local SKU mapping.",
+              "severity": "warning"
+            }
+          ],
+          "total": 4,
+          "nextOffset": null,
+          "decisionExecuted": false
+        },
+        "trends": {
+          "records": [
+            {
+              "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+              "currency": "USD",
+              "sku": "SYN-P8-TEE",
+              "beforeQuantity": 0,
+              "afterQuantity": 4,
+              "beforeOrders": 0,
+              "afterOrders": 2,
+              "sourceCount": 2,
+              "sources": [
+                {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "01c12777-237f-47bd-b356-40ba8580745a",
+                  "revision": 11
+                },
+                {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "293f5caa-bef0-4876-a71a-71bfed41f0d9",
+                  "revision": 11
+                }
+              ],
+              "changeQuantity": 4,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "currency": "USD",
+              "sku": "SYN-P8-TEE",
+              "beforeQuantity": 0,
+              "afterQuantity": 8,
+              "beforeOrders": 0,
+              "afterOrders": 4,
+              "sourceCount": 4,
+              "sources": [
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "37990528-6b29-407c-9298-65cc7bedd50f",
+                  "revision": 11
+                },
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "91e66f14-1655-44f7-8abc-5f91bd8e8aac",
+                  "revision": 11
+                },
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "b2a32659-c1d0-4d30-9263-af1716325107",
+                  "revision": 11
+                },
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "e5498446-bd81-4b09-9c95-436ad8048427",
+                  "revision": 11
+                }
+              ],
+              "changeQuantity": 8,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+              "currency": "USD",
+              "sku": "SYN-10-PREMIUM",
+              "beforeQuantity": 0,
+              "afterQuantity": 2,
+              "beforeOrders": 0,
+              "afterOrders": 1,
+              "sourceCount": 1,
+              "sources": [
+                {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                  "revision": 13
+                }
+              ],
+              "changeQuantity": 2,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "currency": "USD",
+              "sku": "SYN-10-LOW",
+              "beforeQuantity": 0,
+              "afterQuantity": 2,
+              "beforeOrders": 0,
+              "afterOrders": 1,
+              "sourceCount": 1,
+              "sources": [
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                  "revision": 15
+                }
+              ],
+              "changeQuantity": 2,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "currency": "USD",
+              "sku": "SYN-10-WAITING",
+              "beforeQuantity": 0,
+              "afterQuantity": 1,
+              "beforeOrders": 0,
+              "afterOrders": 1,
+              "sourceCount": 1,
+              "sources": [
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+                  "revision": 6
+                }
+              ],
+              "changeQuantity": 1,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "currency": "USD",
+              "sku": "SYN-10-PREMIUM",
+              "beforeQuantity": 0,
+              "afterQuantity": 3,
+              "beforeOrders": 0,
+              "afterOrders": 1,
+              "sourceCount": 1,
+              "sources": [
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                  "revision": 14
+                }
+              ],
+              "changeQuantity": 3,
+              "changeBasisPoints": null
+            },
+            {
+              "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "currency": "USD",
+              "sku": "SYN-10-CANCELED",
+              "beforeQuantity": 0,
+              "afterQuantity": 1,
+              "beforeOrders": 0,
+              "afterOrders": 1,
+              "sourceCount": 1,
+              "sources": [
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "d94dc211-bdaa-46a5-9a92-42a3faf657e9",
+                  "revision": 2
+                }
+              ],
+              "changeQuantity": 1,
+              "changeBasisPoints": null
+            }
+          ],
+          "total": 7,
+          "nextOffset": null,
+          "orderCohorts": {
+            "records": [
+              {
+                "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                "currency": "USD",
+                "before": {
+                  "orders": 0,
+                  "canceledOrders": 0,
+                  "refundCents": 0,
+                  "recognizedRevenueCents": 0
+                },
+                "after": {
+                  "orders": 3,
+                  "canceledOrders": 0,
+                  "refundCents": 0,
+                  "recognizedRevenueCents": 17000
+                },
+                "sourceCount": 3,
+                "sources": [
+                  {
+                    "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "01c12777-237f-47bd-b356-40ba8580745a",
+                    "revision": 11
+                  },
+                  {
+                    "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "293f5caa-bef0-4876-a71a-71bfed41f0d9",
+                    "revision": 11
+                  },
+                  {
+                    "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                    "revision": 13
+                  }
+                ]
+              },
+              {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "currency": "USD",
+                "before": {
+                  "orders": 0,
+                  "canceledOrders": 0,
+                  "refundCents": 0,
+                  "recognizedRevenueCents": 0
+                },
+                "after": {
+                  "orders": 8,
+                  "canceledOrders": 1,
+                  "refundCents": 500,
+                  "recognizedRevenueCents": 32000
+                },
+                "sourceCount": 8,
+                "sources": [
+                  {
+                    "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "37990528-6b29-407c-9298-65cc7bedd50f",
+                    "revision": 11
+                  },
+                  {
+                    "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "8d089fa4-dfc6-4462-bb5c-6da97ae9ecdc",
+                    "revision": 15
+                  },
+                  {
+                    "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "91e66f14-1655-44f7-8abc-5f91bd8e8aac",
+                    "revision": 11
+                  },
+                  {
+                    "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                    "moduleId": "cee.sales",
+                    "streamId": "commerce_orders",
+                    "recordId": "991ef88e-46d8-4a51-aeb2-6847099c1e7d",
+                    "revision": 6
+                  }
+                ]
+              }
+            ],
+            "total": 2,
+            "nextOffset": null,
+            "basis": "Latest recognized revenue, refunds and cancellation state of orders created in each period; not dated refund cash flow or a complete store census"
+          },
+          "supplierCostComparisons": [
+            {
+              "sku": "SYN-P8-TEE",
+              "currency": "USD",
+              "firstEntityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+              "secondEntityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "costBasis": "estimated",
+              "differenceCentsPerOrderedUnit": {
+                "numerator": "3200",
+                "denominator": "4",
+                "exactCents": 800
+              },
+              "supportingReferences": [
+                {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "01c12777-237f-47bd-b356-40ba8580745a",
+                  "revision": 11
+                },
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "37990528-6b29-407c-9298-65cc7bedd50f",
+                  "revision": 11
+                }
+              ],
+              "opportunity": "Review supplier quotes, specifications, variants, capacity and company consent. Supplier identity and product equivalence are unconfirmed. This observed cost difference is not procurement savings or authorization."
+            },
+            {
+              "sku": "SYN-10-PREMIUM",
+              "currency": "USD",
+              "firstEntityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+              "secondEntityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+              "costBasis": "estimated",
+              "differenceCentsPerOrderedUnit": {
+                "numerator": "4800",
+                "denominator": "6",
+                "exactCents": 800
+              },
+              "supportingReferences": [
+                {
+                  "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                  "revision": 13
+                },
+                {
+                  "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                  "moduleId": "cee.sales",
+                  "streamId": "commerce_orders",
+                  "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                  "revision": 14
+                }
+              ],
+              "opportunity": "Review supplier quotes, specifications, variants, capacity and company consent. Supplier identity and product equivalence are unconfirmed. This observed cost difference is not procurement savings or authorization."
+            }
+          ],
+          "period": {
+            "from": "2026-10-01T00:00:00Z",
+            "split": "2026-10-15T00:00:00Z",
+            "to": "2026-11-01T00:00:00Z"
+          },
+          "basis": "Approved observed order quantities grouped by company, currency and SKU; not total store demand. Period durations may differ. Canceled orders remain source observations. References are limited to the first 4 per group; sourceCount is explicit.",
+          "decisionExecuted": false
+        }
+      }
+    ],
+    "scenarios": [],
+    "browserErrors": [],
+    "status": "passed",
+    "finishedAt": "2026-10-24T22:40:55.680Z"
+  },
+  "browser": {
+    "version": 1,
+    "startedAt": "2026-10-24T22:40:55.951Z",
+    "simulation": true,
+    "checks": [
+      {
+        "name": "Chromium Business workspace dashboards, period controls, exception presentation and Master evidence reports"
+      }
+    ],
+    "scenarios": [],
+    "browserErrors": [],
+    "status": "passed",
+    "finishedAt": "2026-10-24T22:41:00.468Z"
+  },
+  "reproducibleModel": {
+    "testModel": true,
+    "status": "passed",
+    "configurationRestored": true,
+    "runs": [
+      {
+        "id": "0097bca7-14c2-4d96-8b80-60507d8b12fd",
+        "status": "completed",
+        "error": null,
+        "tools": [
+          {
+            "name": "list_entities",
+            "status": "running"
+          },
+          {
+            "name": "list_entities",
+            "status": "success",
+            "milliseconds": 17
+          },
+          {
+            "name": "query_commerce_evidence",
+            "status": "running"
+          },
+          {
+            "name": "query_commerce_evidence",
+            "status": "success",
+            "milliseconds": 28
+          },
+          {
+            "name": "analyze_commerce_by_id",
+            "status": "running"
+          },
+          {
+            "name": "analyze_commerce_by_id",
+            "status": "success",
+            "milliseconds": 22
+          }
+        ]
+      },
+      {
+        "id": "633a471a-3541-403c-b0f1-8e719c7b8629",
+        "status": "failed",
+        "error": "MODEL_UNAVAILABLE",
+        "tools": []
+      },
+      {
+        "id": "0d4e0726-3f7c-4c2f-ac9d-83a4dd361f94",
+        "status": "failed",
+        "error": "MODEL_OUTPUT_INVALID",
+        "tools": []
+      },
+      {
+        "id": "5a492d69-a224-4dbc-b07b-e1a54cbc5d8c",
+        "status": "failed",
+        "error": "MODEL_UNDECLARED_TOOL",
+        "tools": []
+      },
+      {
+        "id": "21c79a43-c87b-421f-bc9b-7f05bec66771",
+        "status": "failed",
+        "error": "TRANSPORT_TIMEOUT",
+        "tools": []
+      },
+      {
+        "id": "e411a029-1bb4-450c-bd99-b3ed0622448b",
+        "status": "failed",
+        "error": "TOOL_BUDGET_EXCEEDED",
+        "tools": [
+          {
+            "name": "list_entities",
+            "status": "running"
+          },
+          {
+            "name": "list_entities",
+            "status": "success",
+            "milliseconds": 14
+          }
+        ]
+      }
+    ]
+  },
+  "realModel": {
+    "testModel": false,
+    "provider": "local-ollama",
+    "baseModel": "qwen2.5:7b",
+    "model": "steward-analyst-qwen2.5-ctx16384:7b",
+    "modelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "ollamaVersion": "0.40.4",
+    "context": 16384,
+    "modelTimeout": 90000,
+    "investigationId": "8880d658-be26-4d73-ac12-ad9f88e48e8c",
+    "elapsedMs": 32369,
+    "modelTurns": [
+      {
+        "toolDefinitions": [
+          "list_entities"
+        ],
+        "inputChars": 3321,
+        "requestBytes": 3732,
+        "status": 200,
+        "elapsedMs": 1213,
+        "selectedTools": [
+          {
+            "name": "list_entities",
+            "arguments": "{}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 714,
+          "outputTokens": 16,
+          "totalDurationNs": 1211009300
+        }
+      },
+      {
+        "toolDefinitions": [
+          "query_commerce_evidence",
+          "query_commerce_demand_trends",
+          "query_commerce_exceptions",
+          "query_commerce_anomalies"
+        ],
+        "inputChars": 4235,
+        "requestBytes": 10384,
+        "status": 200,
+        "elapsedMs": 2344,
+        "selectedTools": [
+          {
+            "name": "query_commerce_evidence",
+            "arguments": "{\"sku\":\"SYN-10-PREMIUM\",\"limit\":4}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 1432,
+          "outputTokens": 37,
+          "totalDurationNs": 2342754700
+        }
+      },
+      {
+        "toolDefinitions": [
+          "query_commerce_evidence",
+          "query_commerce_demand_trends",
+          "query_commerce_exceptions",
+          "query_commerce_anomalies",
+          "analyze_commerce_by_id"
+        ],
+        "inputChars": 6878,
+        "requestBytes": 13973,
+        "status": 200,
+        "elapsedMs": 6597,
+        "selectedTools": [
+          {
+            "name": "analyze_commerce_by_id",
+            "arguments": "{\"sources\":[{\"recordId\":\"72d2c74e-531d-4b80-b3ca-bcb53e55e714\",\"revision\":13},{\"recordId\":\"a214e9dd-43a7-40dd-b55a-b40345ee7121\",\"revision\":14}]}"
+          }
+        ],
+        "responseStatus": "stop",
+        "outputText": "",
+        "usage": {
+          "promptTokens": 2700,
+          "outputTokens": 111,
+          "totalDurationNs": 6594816500
+        }
+      },
+      {
+        "toolDefinitions": [],
+        "inputChars": 11175,
+        "requestBytes": 11579,
+        "status": 200,
+        "elapsedMs": 20966,
+        "selectedTools": [],
+        "responseStatus": "stop",
+        "outputText": "{\n  \"narrative\": \"The investigation of synthetic USD SKU SYN-10-PREMIUM across the authorized companies has revealed the following. Two orders were identified, each with a recognized revenue and production cost basis. The contribution margin for each order is estimated and not verified as net profit. The total contribution margin is USD 83.50, derived from the combined contributions of the two orders. The contribution margin for the first order is USD 30.50, and for the second order, it is USD 53.00. Both contributions are based on estimated costs and margins, with no verified net profit claims. The costs and margins are estimated, and unknown values are not treated as zero. The sources of the contribution margins are explicitly recorded and recognized. The findings are subject to the assumptions that revenue recognizes completed merchandise quantities after source line discounts, total refunds may include tax/shipping and are not allocated to products, and catalog production and shipping quotes remain estimates. The contribution margins are not verified as net profit, and pre-fee gross margins are omitted. The calculation is conditional and requires human review of supplier quotes, product equivalence, fee evidence, and pricing. No business action has been executed, and the findings await human review.\",\n  \"assumptions\": [\n    \"Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.\",\n    \"Source total refunds may include tax/shipping and are not allocated to products.\",\n    \"Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.\",\n    \"No currency conversion, supplier substitution, production authorization or business action is performed.\"\n  ],\n  \"humanDecisions\": [\n    \"Conditional human review of supplier quotes, product equivalence, fee evidence, pricing, and both companies consent is recommended.\"\n  ]\n}",
+        "usage": {
+          "promptTokens": 3303,
+          "outputTokens": 370,
+          "totalDurationNs": 20964051700
+        }
+      }
+    ],
+    "toolActivity": [
+      {
+        "name": "list_entities",
+        "status": "running",
+        "arguments": {}
+      },
+      {
+        "name": "list_entities",
+        "status": "success",
+        "milliseconds": 52,
+        "evidenceBytes": 2926,
+        "modelBytes": 650
+      },
+      {
+        "name": "query_commerce_evidence",
+        "status": "running",
+        "arguments": {
+          "sku": "SYN-10-PREMIUM",
+          "limit": 4
+        }
+      },
+      {
+        "name": "query_commerce_evidence",
+        "status": "success",
+        "milliseconds": 39,
+        "evidenceBytes": 4554,
+        "modelBytes": 2152
+      },
+      {
+        "name": "analyze_commerce_by_id",
+        "status": "running",
+        "arguments": {
+          "sources": [
+            {
+              "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+              "revision": 13
+            },
+            {
+              "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+              "revision": 14
+            }
+          ]
+        }
+      },
+      {
+        "name": "analyze_commerce_by_id",
+        "status": "success",
+        "milliseconds": 41,
+        "evidenceBytes": 17908,
+        "modelBytes": 3546
+      }
+    ],
+    "narrative": "The investigation of synthetic USD SKU SYN-10-PREMIUM across the authorized companies has revealed the following. Two orders were identified, each with a recognized revenue and production cost basis. The contribution margin for each order is estimated and not verified as net profit. The total contribution margin is USD 83.50, derived from the combined contributions of the two orders. The contribution margin for the first order is USD 30.50, and for the second order, it is USD 53.00. Both contributions are based on estimated costs and margins, with no verified net profit claims. The costs and margins are estimated, and unknown values are not treated as zero. The sources of the contribution margins are explicitly recorded and recognized. The findings are subject to the assumptions that revenue recognizes completed merchandise quantities after source line discounts, total refunds may include tax/shipping and are not allocated to products, and catalog production and shipping quotes remain estimates. The contribution margins are not verified as net profit, and pre-fee gross margins are omitted. The calculation is conditional and requires human review of supplier quotes, product equivalence, fee evidence, and pricing. No business action has been executed, and the findings await human review.",
+    "assumptions": [
+      "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+      "Source total refunds may include tax/shipping and are not allocated to products.",
+      "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+      "No currency conversion, supplier substitution, production authorization or business action is performed."
+    ],
+    "humanDecisions": [
+      "Conditional human review of supplier quotes, product equivalence, fee evidence, pricing, and both companies consent is recommended."
+    ],
+    "analyses": [
+      {
+        "observed": {
+          "sources": [
+            {
+              "payload": {
+                "id": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                "revision": 13,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-10-PREMIUM",
+                      "quantity": 2,
+                      "unitPriceCents": 3500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/910003",
+                      "lineRevenueCents": 7000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 7000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/910003",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "financials": {
+                    "basis": "estimated",
+                    "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                    "channelFeeCents": 0,
+                    "shippingCostCents": 600,
+                    "productionCostCents": 3200,
+                    "transactionFeeCents": 150
+                  },
+                  "fulfilledAt": "2026-10-24T20:32:00.291Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T20:32:02.919Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 600,
+                  "productionCostCents": 3200,
+                  "recognizedRevenueCents": 7000
+                }
+              },
+              "reference": {
+                "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+                "moduleId": "cee.sales",
+                "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+                "revision": 13,
+                "streamId": "commerce_orders"
+              },
+              "ingestedAt": "2026-10-24T20:41:51.241Z",
+              "observedAt": "2026-10-24T20:41:32.115Z",
+              "sourceWorker": "0e23bbe5-f1fc-4454-a0aa-2ce257cfc7b3"
+            },
+            {
+              "payload": {
+                "id": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                "revision": 14,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-10-PREMIUM",
+                      "quantity": 3,
+                      "unitPriceCents": 3500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/910001",
+                      "lineRevenueCents": 9000,
+                      "fulfilledQuantity": 3,
+                      "recognizedRevenueCents": 9000
+                    }
+                  ],
+                  "quantity": 3,
+                  "sourceId": "gid://shopify/Order/910001",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "financials": {
+                    "basis": "estimated",
+                    "reference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+                    "channelFeeCents": 0,
+                    "shippingCostCents": 600,
+                    "productionCostCents": 2400,
+                    "transactionFeeCents": 200
+                  },
+                  "fulfilledAt": "2026-10-24T20:31:26.654Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 500,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T20:31:32.160Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 600,
+                  "productionCostCents": 2400,
+                  "recognizedRevenueCents": 9000
+                }
+              },
+              "reference": {
+                "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+                "moduleId": "cee.sales",
+                "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+                "revision": 14,
+                "streamId": "commerce_orders"
+              },
+              "ingestedAt": "2026-10-24T20:41:25.304Z",
+              "observedAt": "2026-10-24T20:41:23.946Z",
+              "sourceWorker": "cd8e4b51-c740-4075-9d49-f6b9db168f38"
+            }
+          ]
+        },
+        "calculation": {
+          "units": "items",
+          "orders": [
+            {
+              "status": "fulfilled",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/910003",
+              "costBasis": "estimated",
+              "displayAmounts": {
+                "totalCost": "USD 38.00",
+                "netRevenue": "USD 70.00",
+                "grossMargin": "USD 32.00"
+              },
+              "grossMarginBasisPoints": 4571
+            },
+            {
+              "status": "fulfilled",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/910001",
+              "costBasis": "estimated",
+              "displayAmounts": {
+                "totalCost": "USD 30.00",
+                "netRevenue": "USD 85.00",
+                "grossMargin": "USD 55.00"
+              },
+              "grossMarginBasisPoints": 6470
+            }
+          ],
+          "period": {
+            "to": "2026-10-20T12:00:00.000Z",
+            "from": "2026-10-20T12:00:00.000Z",
+            "basis": "Explicit selected source orders; endpoints describe observed range, not a complete-period census"
+          },
+          "currency": "USD",
+          "products": [
+            {
+              "sku": "SYN-10-PREMIUM",
+              "byChannel": [
+                {
+                  "channel": "shopify",
+                  "recognizedRevenueCents": 16000
+                }
+              ],
+              "orderVolume": 2,
+              "costAllocation": "Single-product orders; all source order costs/refunds attributed explicitly.",
+              "totalCostCents": 6800,
+              "orderedQuantity": 5,
+              "grossMarginCents": 8700,
+              "fulfilledQuantity": 5,
+              "recognizedRevenueCents": 16000
+            }
+          ],
+          "byChannel": [
+            {
+              "channel": "shopify",
+              "orderVolume": 2,
+              "revenueCents": 16000
+            }
+          ],
+          "costBasis": "estimated",
+          "assumptions": [
+            "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+            "Source total refunds may include tax/shipping and are not allocated to products.",
+            "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+            "No currency conversion, supplier substitution, production authorization or business action is performed."
+          ],
+          "orderVolume": 2,
+          "refundCents": 500,
+          "capabilityId": "steward.commerce-performance",
+          "costCoverage": {
+            "totalOrders": 2,
+            "completeOrders": 2
+          },
+          "failedOrders": 0,
+          "schemaVersion": 1,
+          "displayAmounts": {
+            "refunds": "USD 5.00",
+            "shipping": "USD 12.00",
+            "netRevenue": "USD 155.00",
+            "production": "USD 56.00",
+            "grossMargin": "USD 87.00",
+            "recognizedRevenue": "USD 160.00"
+          },
+          "stockoutOrders": 0,
+          "totalCostCents": 6800,
+          "fulfilledOrders": 2,
+          "netRevenueCents": 15500,
+          "decisionExecuted": false,
+          "grossMarginCents": 8700,
+          "fulfilledQuantity": 5,
+          "shippingCostCents": 1200,
+          "estimatedCOGSCents": 5600,
+          "contributionSummary": {
+            "currency": "USD",
+            "marginBasis": "estimated",
+            "totalOrders": 2,
+            "displayAmounts": {
+              "contributionMargin": "USD 83.50"
+            },
+            "completeMarginOrders": 2,
+            "contributionMarginCents": 8350
+          },
+          "contributionAnalysis": [
+            {
+              "status": "fulfilled",
+              "channel": "shopify",
+              "currency": "USD",
+              "sourceId": "gid://shopify/Order/910003",
+              "explanation": "Gross less source discounts gives booked merchandise revenue. Completed merchandise revenue less source refunds and all four recorded cost components gives contribution margin. Excludes tax, shipping income, overhead and income tax; refunds can include non-merchandise amounts. Partial recognition and unknown costs prevent a complete margin.",
+              "marginBasis": "estimated",
+              "refundCents": 0,
+              "missingCosts": [],
+              "costReference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+              "discountCents": 0,
+              "displayAmounts": {
+                "refunds": "USD 0.00",
+                "grossSales": "USD 70.00",
+                "channelFees": "USD 0.00",
+                "transactionFees": "USD 1.50",
+                "contributionMargin": "USD 30.50"
+              },
+              "totalCostCents": 3950,
+              "channelFeeCents": 0,
+              "grossSalesCents": 7000,
+              "shippingCostCents": 600,
+              "bookedRevenueCents": 7000,
+              "productionCostCents": 3200,
+              "recognitionComplete": true,
+              "transactionFeeCents": 150,
+              "recognizedRevenueCents": 7000,
+              "contributionMarginCents": 3050,
+              "netRecognizedRevenueCents": 7000,
+              "recordedCostSubtotalCents": 3950,
+              "contributionMarginBasisPoints": 4357
+            },
+            {
+              "status": "fulfilled",
+              "channel": "shopify",
+              "currency": "USD",
+              "sourceId": "gid://shopify/Order/910001",
+              "explanation": "Gross less source discounts gives booked merchandise revenue. Completed merchandise revenue less source refunds and all four recorded cost components gives contribution margin. Excludes tax, shipping income, overhead and income tax; refunds can include non-merchandise amounts. Partial recognition and unknown costs prevent a complete margin.",
+              "marginBasis": "estimated",
+              "refundCents": 500,
+              "missingCosts": [],
+              "costReference": "Synthetic Phase 10A supplier quotes and fee schedule; not settlement evidence",
+              "discountCents": 1500,
+              "displayAmounts": {
+                "refunds": "USD 5.00",
+                "grossSales": "USD 105.00",
+                "channelFees": "USD 0.00",
+                "transactionFees": "USD 2.00",
+                "contributionMargin": "USD 53.00"
+              },
+              "totalCostCents": 3200,
+              "channelFeeCents": 0,
+              "grossSalesCents": 10500,
+              "shippingCostCents": 600,
+              "bookedRevenueCents": 9000,
+              "productionCostCents": 2400,
+              "recognitionComplete": true,
+              "transactionFeeCents": 200,
+              "recognizedRevenueCents": 9000,
+              "contributionMarginCents": 5300,
+              "netRecognizedRevenueCents": 8500,
+              "recordedCostSubtotalCents": 3200,
+              "contributionMarginBasisPoints": 6235
+            }
+          ],
+          "costRatioBasisPoints": 4387,
+          "fulfillmentTimeSeconds": {
+            "total": 752607,
+            "average": 376304,
+            "completedOrders": 2
+          },
+          "grossMarginBasisPoints": 5612,
+          "recognizedRevenueCents": 16000
+        },
+        "authoritative": false,
+        "affectedEntities": [
+          "b3952d14-f12b-4272-9d23-c478c8d8522e",
+          "0292a88b-f02c-4545-bf89-5cc30cd5a00c"
+        ],
+        "decisionExecuted": false,
+        "supportingReferences": [
+          {
+            "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+            "moduleId": "cee.sales",
+            "recordId": "72d2c74e-531d-4b80-b3ca-bcb53e55e714",
+            "revision": 13,
+            "streamId": "commerce_orders"
+          },
+          {
+            "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+            "moduleId": "cee.sales",
+            "recordId": "a214e9dd-43a7-40dd-b55a-b40345ee7121",
+            "revision": 14,
+            "streamId": "commerce_orders"
+          }
+        ]
+      }
+    ],
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "reviewAndDelivery": {
+      "startedAt": "2026-10-24T22:41:21.047Z",
+      "simulation": true,
+      "testModel": false,
+      "investigationId": "8880d658-be26-4d73-ac12-ad9f88e48e8c",
+      "narrativeHash": "3545b6b0a58172d92c1a446741898697dd2485ec21b2fbf1ba711e415744612b",
+      "narrativeReview": "Accepted against actual fee-aware source calculations; estimated contribution is not verified profit; consequential decisions remain human review.",
+      "deliveries": [
+        {
+          "worker": "worker-1",
+          "entityId": "0292a88b-f02c-4545-bf89-5cc30cd5a00c",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        },
+        {
+          "worker": "worker-2",
+          "entityId": "098345b2-3a38-4a35-961a-1b5ccba89847",
+          "affected": false,
+          "received": false,
+          "acknowledged": false
+        },
+        {
+          "worker": "worker-3",
+          "entityId": "b3952d14-f12b-4272-9d23-c478c8d8522e",
+          "affected": true,
+          "received": true,
+          "acknowledged": true
+        }
+      ],
+      "browserErrors": [],
+      "checks": [
+        "Reviewed real-model narrative matches refreshed browser investigation and independently recomputed source calculations",
+        "Finding published through the existing authenticated Business UI",
+        "Only affected Workers receive finding; browser acknowledgments synchronize signed receipts to Master",
+        "No JavaScript errors, manufacturing or purchasing execution"
+      ],
+      "findingId": "8880d658-be26-4d73-ac12-ad9f88e48e8c",
+      "status": "passed",
+      "finishedAt": "2026-10-24T22:41:25.658Z"
+    },
+    "unsuccessfulRuns": [
+      {
+        "run": "first",
+        "investigationId": "9f6bbe33-a0ca-47f7-b7b3-e5398feffff4",
+        "pipelineStatus": "completed",
+        "acceptance": "rejected_unpublished",
+        "milliseconds": 35281,
+        "error": null,
+        "narrative": "The analysis of the commerce records across companies reveals that the contribution margins for the orders are estimated due to missing transaction and channel fees. The contribution margins are as follows: Order 203 and Order 3 each have a contribution margin of USD 14.00, Order 4 has a contribution margin of USD 30.00, and Order 910003 has a contribution margin of USD 30.50. These margins are based on the recognized revenue and estimated costs, with the costs excluding transaction and channel fees.",
+        "review": {
+          "accepted": false,
+          "reason": "Model mislabeled pre-fee gross margins as contribution for three source orders whose transaction/channel fees and full contribution were UNKNOWN. No finding was published."
+        },
+        "modelTurns": [
+          {
+            "elapsedMs": 3041,
+            "selectedTools": [
+              {
+                "name": "list_entities",
+                "arguments": "{}"
+              },
+              {
+                "name": "query_commerce_evidence",
+                "arguments": "{\"limit\":4,\"status\":\"fulfilled\"}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 12158,
+            "selectedTools": [
+              {
+                "name": "analyze_commerce_by_id",
+                "arguments": "{\"sources\":[{\"recordId\":\"01c12777-237f-47bd-b356-40ba8580745a\",\"revision\":11},{\"recordId\":\"293f5caa-bef0-4876-a71a-71bfed41f0d9\",\"revision\":11},{\"recordId\":\"37990528-6b29-407c-9298-65cc7bedd50f\",\"revision\":11},{\"recordId\":\"72d2c74e-531d-4b80-b3ca-bcb53e55e714\",\"revision\":13}]}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 19271,
+            "selectedTools": []
+          }
+        ]
+      },
+      {
+        "run": "second",
+        "investigationId": "5ec1be73-6949-4fb8-b1e2-59bc317639a5",
+        "pipelineStatus": "failed",
+        "acceptance": "rejected_unpublished",
+        "milliseconds": 19352,
+        "error": "REPEATED_TOOL_CALL",
+        "review": {
+          "accepted": false,
+          "reason": "REPEATED_TOOL_CALL\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n"
+        },
+        "modelTurns": [
+          {
+            "elapsedMs": 5924,
+            "selectedTools": [
+              {
+                "name": "list_entities",
+                "arguments": "{}"
+              },
+              {
+                "name": "query_commerce_evidence",
+                "arguments": "{\"sku\":\"SYN-10-PREMIUM\",\"limit\":4}"
+              },
+              {
+                "name": "analyze_commerce_by_id",
+                "arguments": "{\"sources\":[{\"recordId\":\"actual observed UUID 1\",\"revision\":123},{\"recordId\":\"actual observed UUID 2\",\"revision\":456}]}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 12833,
+            "selectedTools": [
+              {
+                "name": "query_commerce_evidence",
+                "arguments": "{\"sku\":\"SYN-10-PREMIUM\",\"limit\":4}"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "run": "third",
+        "investigationId": "cb157ff9-7041-4eb4-9274-a837067321d7",
+        "pipelineStatus": "completed",
+        "acceptance": "rejected_unpublished",
+        "milliseconds": 24436,
+        "error": null,
+        "narrative": "The investigation of the synthetic USD SKU SYN-10-PREMIUM across the authorized companies has revealed the following details. Two orders were identified, each with a recognized revenue and production cost basis. The contribution margin for each order is estimated, and the total contribution margin is also estimated. The financial rule indicates that the contribution is not a complete number due to missing fees or partial recognition, and pre-fee gross margins are deliberately omitted. The costs and margins are estimated, and unknown values are not treated as zero.",
+        "review": {
+          "accepted": false,
+          "reason": "Actual source components are complete estimates, but the narrative wrongly interprets a conditional financial rule as missing selected fees/recognition and omits the calculated amounts. No finding published."
+        },
+        "modelTurns": [
+          {
+            "elapsedMs": 1238,
+            "selectedTools": [
+              {
+                "name": "list_entities",
+                "arguments": "{}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 2246,
+            "selectedTools": [
+              {
+                "name": "query_commerce_evidence",
+                "arguments": "{\"sku\":\"SYN-10-PREMIUM\",\"limit\":4}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 6555,
+            "selectedTools": [
+              {
+                "name": "analyze_commerce_by_id",
+                "arguments": "{\"sources\":[{\"recordId\":\"72d2c74e-531d-4b80-b3ca-bcb53e55e714\",\"revision\":13},{\"recordId\":\"a214e9dd-43a7-40dd-b55a-b40345ee7121\",\"revision\":14}]}"
+              }
+            ]
+          },
+          {
+            "elapsedMs": 13541,
+            "selectedTools": []
+          }
+        ]
+      }
+    ]
+  },
+  "rawEvidence": [
+    {
+      "path": "artifacts/phase10a-build.log",
+      "sha256": "965ae7a9f16b4b9e241949b0e18a3f3ae4fd9d8098df29bf89d6eb0384eeb487"
+    },
+    {
+      "path": "artifacts/phase10a-regression-tests.log",
+      "sha256": "268b064b4584be044f9b081e778069677a86d9123a65cea38f5b5279e7955d46"
+    },
+    {
+      "path": "artifacts/phase10a-smart-browser.log",
+      "sha256": "7979de5dd615ea25255b903662fdc1b5206a14a9e0e78434e18d293d2c3012d4"
+    },
+    {
+      "path": "artifacts/phase8-regressions.json",
+      "sha256": "f69f5054d2aef003021e026641a1ff5c0a5dd45d77d5eb18f726b513220b0698"
+    },
+    {
+      "path": "artifacts/phase8-deployed-commerce.json",
+      "sha256": "cf1203c92beeae199f24658fc5b3a42958f374e524f81ae7e25ae6b9a16a5144"
+    },
+    {
+      "path": "artifacts/phase8-deployed-recovery.json",
+      "sha256": "e2b0c3ed764bb4adff6a40cdd0bd78eafdb1a2461d8efc077baceb5c52d45c1c"
+    },
+    {
+      "path": "artifacts/phase10a-redeployment.json",
+      "sha256": "acbcb217f6af7860469c4fc96c2c65d6a07d200aed5bc5f48e833fde66412be7"
+    },
+    {
+      "path": "artifacts/phase10a-upgrade.json",
+      "sha256": "5739a746750eeb11f4f4ebd1dc615a1a2815368069066f7168a1e3326f08a254"
+    },
+    {
+      "path": "artifacts/phase10a-report-module-upgrade.json",
+      "sha256": "4b86965483199d1643c8db47fc20bf34e57bc30cb921cfad39d2758959ee8078"
+    },
+    {
+      "path": "artifacts/phase10a-sales-final-upgrade.json",
+      "sha256": "29cc22806f5f08b3d3dacd63fd9652ba131132dfb4a74c666f9e21cf75594ec9"
+    },
+    {
+      "path": "artifacts/phase10a-connector-upgrade.json",
+      "sha256": "5431dde35be2ed195088002c77d4cb94274904be09a29dcb74875417a8735042"
+    },
+    {
+      "path": "artifacts/phase10a-demo-seed.json",
+      "sha256": "9cedf0b0ba2b57346bf1e6ddc212192f9950f843d9906afd8bc078cee3fd4e26"
+    },
+    {
+      "path": "artifacts/phase10a-demo-verify.json",
+      "sha256": "65ff9c72ab7488df5986b3cb612bd1f73e0cbe2d5af5f6dda09c9ca97cdd8e1e"
+    },
+    {
+      "path": "artifacts/phase10a-demo-browser.json",
+      "sha256": "9d365c4b96c613b831fcd31e02bd56673fac67d6e9c704b10a58e2922a911464"
+    },
+    {
+      "path": "artifacts/phase10a-publication.json",
+      "sha256": "fdcf8e3c55af085d8d4954bc190bc7be406be80eddbe0148924d37cc825057dd"
+    },
+    {
+      "path": "artifacts/phase10a-test-model.json",
+      "sha256": "d7dba4cca94afe4a7e7d539e93d196818d9ee27df83e4b7b62998cbe4c5e8f9d"
+    },
+    {
+      "path": "artifacts/phase10a-ollama-first-run.json",
+      "sha256": "3cb74d62948510f5fa04b45c58ac784ea7b54d59ca32a43c6026404268f56841"
+    },
+    {
+      "path": "artifacts/phase10a-ollama-second-run.json",
+      "sha256": "456c8c57d6d4293b660ef4d8e4426a940b17674b54ea246cae0a0ad7fafe8227"
+    },
+    {
+      "path": "artifacts/phase10a-ollama-third-run.json",
+      "sha256": "18a88cde41a48e903e6ca34a30c344f06fc8ddb24870a9f523cdcdadbdfb8945"
+    },
+    {
+      "path": "artifacts/phase10a-ollama.json",
+      "sha256": "5a81c8d80713e669acd743dc6bf9ed89e8aa1d9253a81d6e854e9bc6b3e1302e"
+    },
+    {
+      "path": "artifacts/phase10a-reviewed-finding.json",
+      "sha256": "9d38482c92d39c5d6761b8e9d0ef6410f4cb4b0d153bc936f26afb5d4d39aaa6"
+    }
+  ],
+  "limitations": [
+    "All provider commerce is simulated, not verified live Shopify/Printify compatibility",
+    "Explicit estimated costs and fees are not verified settlement, contribution is not net profit",
+    "No unattended semantic validation or AI business authority; rejected narratives retained",
+    "No global cross-Worker store lock, automatic obligation migration, scheduled trend investigations or per-line multi-SKU allocation",
+    "Original operator preview is preserved; Phase 10A is an isolated development deployment, not a production release"
+  ],
+  "finalRuntime": {
+    "verifiedAt": "2026-10-24T22:43:14.202Z",
+    "previewProject": "steward-phase8-upgrade-reg",
+    "previewRunningContainers": 24,
+    "previewServices": [
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_f7b7e9d62f4f73bc531c",
+        "image": "084b1a04b964",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_7a51719aba0bcd58eed8",
+        "image": "edc73caa5237",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_46911fffce08b41184c3",
+        "image": "bb323f25a5ce",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_f7b7e9d62f4f73bc531c",
+        "image": "084b1a04b964",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_3cf2b05be8bc4acde2ec",
+        "image": "87c2b9cf2de1",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_1675588e58787da091eb",
+        "image": "7b2cdefceb5a",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_f7b7e9d62f4f73bc531c",
+        "image": "084b1a04b964",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_1675588e58787da091eb",
+        "image": "add7f6217579",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_1675588e58787da091eb",
+        "image": "7b2cdefceb5a",
+        "status": "Up 3 hours"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-web-1",
+        "image": "75d096575fad",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-web-1",
+        "image": "75d096575fad",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-web-1",
+        "image": "75d096575fad",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-api-1",
+        "image": "0997751e8690",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-module-host-1",
+        "image": "6a4f5fc00b70",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-api-1",
+        "image": "0997751e8690",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-module-host-1",
+        "image": "6a4f5fc00b70",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-master-web-1",
+        "image": "1fa728f9723c",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-api-1",
+        "image": "0997751e8690",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-module-host-1",
+        "image": "6a4f5fc00b70",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-db-1",
+        "image": "8bb11c4aae58",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-db-1",
+        "image": "8bb11c4aae58",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-master-api-1",
+        "image": "b92bbec05931",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-db-1",
+        "image": "8bb11c4aae58",
+        "status": "Up 3 hours (healthy)"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-master-db-1",
+        "image": "8bb11c4aae58",
+        "status": "Up 3 hours (healthy)"
+      }
+    ],
+    "previewReadiness": [
+      {
+        "instance": "master",
+        "apiReady": 200,
+        "web": 200
+      },
+      {
+        "instance": "worker-1",
+        "apiReady": 200,
+        "web": 200
+      },
+      {
+        "instance": "worker-2",
+        "apiReady": 200,
+        "web": 200
+      },
+      {
+        "instance": "worker-3",
+        "apiReady": 200,
+        "web": 200
+      }
+    ],
+    "phase10aProject": "steward-phase10a-accept",
+    "phase10aRunningContainers": 0,
+    "phase10aVolumesRetained": 9,
+    "shutdown": "Only isolated Phase 10A fixture and its owned module containers stopped; no volumes removed",
+    "ollamaLoadedModels": 0,
+    "credentials": "Original preview credentials and root deployment selection preserved; no secret values recorded"
+  }
+}
