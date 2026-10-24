@@ -13,6 +13,7 @@ import { AGENT_ID } from './mcp.js';
 import { agentProof } from './mcp-agent-identity.js';
 import { compactToolNames, modelToolResult } from './analyst-context.js';
 import {profileInstructions,profileTools,type InvestigationProfile} from './investigation-profiles.js';
+import { investigationSummary } from './intelligence.js';
 
 export const narrativeSchema=z.object({narrative:z.string().min(1).max(6000),assumptions:z.array(z.string().max(1000)).max(20),humanDecisions:z.array(z.string().max(1000)).min(1).max(20)}).strict();
 export function parseNarrative(text:string){
@@ -34,7 +35,25 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
     }return{a,row};
   }
   app.get('/api/v5/analyst/config',async req=>{await actor(req);try{const c=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));return{configured:true,provider:c.provider,model:c.model,testModel:c.testModel,maxSteps:c.maxSteps,maxToolCalls:c.maxToolCalls};}catch{return{configured:false,error:'MODEL_NOT_CONFIGURED'};}});
-  app.get('/api/v5/analyst/investigations',async req=>{const a=await actor(req);return{investigations:(await pool.query('SELECT investigation_id,prompt,status,provider,test_model,created_at,updated_at,error_code,finding_id FROM analyst_investigations WHERE owner_id=$1 ORDER BY created_at DESC LIMIT 50',[a.account_id])).rows};});
+  app.get('/api/v5/analyst/provider-status',async req=>{
+    await actor(req);let c;try{c=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));}catch{return{state:'not-configured',configured:false};}
+    try{const endpoint=new URL(c.endpoint);if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.hash||endpoint.search)throw Error();
+      // Probe only the operator-configured endpoint. Never send a model prompt or expose credentials.
+      if(c.provider==='ollama')endpoint.pathname='/api/tags';
+      const key=(await readFile(c.apiKeyFile,'utf8')).trim();if(!key)throw Error();
+      const res=await tlsFetch(c.caFile?await readFile(c.caFile):undefined,c.servername,3000)(endpoint.href,{method:'GET',headers:{authorization:'Bearer '+key}});
+      return{configured:true,provider:c.provider,model:c.model,testModel:c.testModel,state:res.ok||res.status===405?'reachable':'unavailable',checkedAt:new Date().toISOString(),modelReadiness:'Confirmed only by a successful investigation'};
+    }catch{return{configured:true,provider:c.provider,model:c.model,testModel:c.testModel,state:'unavailable',checkedAt:new Date().toISOString()};}
+  });
+  app.get<{Querystring:{limit?:number;offset?:number;search?:string;status?:string;sort?:string}}>('/api/v5/analyst/investigations',{schema:{querystring:{type:'object',additionalProperties:false,properties:{limit:{type:'integer',minimum:1,maximum:100,default:50},offset:{type:'integer',minimum:0,maximum:100000,default:0},search:{type:'string',maxLength:200},status:{type:'string',enum:['running','completed','failed','interrupted']},sort:{type:'string',enum:['newest','oldest'],default:'newest'}}}}},async req=>{
+    const a=await actor(req),q=req.query;
+    const where=`i.owner_id=$1 AND ($2='' OR strpos(lower(i.prompt||' '||coalesce(i.result->>'narrative','')),lower($2))>0) AND ($3='' OR i.status=$3)
+      AND ($4 OR NOT EXISTS(SELECT 1 FROM analyst_activity d CROSS JOIN LATERAL jsonb_array_elements_text(d.detail->'entities') e(entity_id) WHERE d.investigation_id=i.investigation_id AND d.kind='discovery' AND NOT EXISTS(SELECT 1 FROM entity_authorizations s WHERE s.account_id=$1 AND s.entity_id::text=e.entity_id)))`;
+    const params=[a.account_id,q.search??'',q.status??'',a.role==='registry_admin'];
+    const total=Number((await pool.query(`SELECT count(*) FROM analyst_investigations i WHERE ${where}`,params)).rows[0].count);
+    const rows=(await pool.query(`SELECT i.* FROM analyst_investigations i WHERE ${where} ORDER BY i.created_at ${q.sort==='oldest'?'ASC':'DESC'},i.investigation_id LIMIT $5 OFFSET $6`,[...params,q.limit??50,q.offset??0])).rows;
+    return{investigations:rows.map(({result,...r})=>({...r,...investigationSummary({...r,result})})),total,nextOffset:(q.offset??0)+rows.length<total?(q.offset??0)+rows.length:null};
+  });
   app.get<{Params:{id:string}}>('/api/v5/analyst/investigations/:id',{schema:{params:{type:'object',required:['id'],properties:{id:{type:'string',format:'uuid'}}}}},async req=>{const{row}=await owned(req);return{investigation:row,activity:(await pool.query('SELECT * FROM analyst_activity WHERE investigation_id=$1 ORDER BY activity_id',[row.investigation_id])).rows};});
   app.post<{Body:{prompt:string;parentId?:string;capability?:InvestigationProfile}}>('/api/v5/analyst/investigations',{schema:{body:{type:'object',additionalProperties:false,required:['prompt'],properties:{capability:{type:'string',enum:['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance']},prompt:{type:'string',minLength:1,maxLength:4000},parentId:{type:'string',format:'uuid'}}}}},async(req,reply)=>{
     const a=await actor(req,true);if(running>=2)fail(429,'Analyst concurrency limit reached');await auth.rateLimit('analyst:'+a.account_id,5);

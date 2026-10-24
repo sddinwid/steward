@@ -1,6 +1,6 @@
 {
   "name": "@steward/printify",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,8 +9,7 @@
   "dependencies": {
     "@steward/business-kit": "file:../../packages/business-kit",
     "@steward/commerce-kit": "file:../../packages/commerce-kit",
-    "@steward/module-sdk": "file:../../packages/module-sdk",
-    "steward-platform": "file:../.."
+    "@steward/module-sdk": "file:../../packages/module-sdk"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

@@ -4,7 +4,7 @@ import type { ScreenContribution } from '@steward/module-sdk';
 import type { DiscoveredModule } from './modules.js';
 export const humanize=(value:string)=>value.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/[_-]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
 export function screenLabel(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
- const label=humanize(s.navigationLabel);return label.replace(/\bJob\b/g,'Production Orders').replace(/\bOrder\b/g,'Orders').replace(/\bProduct\b/g,'Products').replace(/\bCustomer\b/g,'Customers').replace(/\bSupplier\b/g,'Suppliers').replace(/\bPerson\b/g,'People').replace(/\bFacility\b/g,'Facilities').replace(/\bMapping\b/g,'Product Mapping');
+ const label=humanize(s.navigationLabel).replace(/^Sales /,'').replace(/^Procurement Requisition$/,'Purchase Requisitions').replace(/^Workforce (People|Person)$/,'Workforce Directory').replace(/^Printify Job$/,'Production Orders');return label.replace(/\bJob\b/g,'Production Orders').replace(/\bOrder\b/g,'Orders').replace(/\bProduct\b/g,'Products').replace(/\bCustomer\b/g,'Customers').replace(/\bSupplier\b/g,'Suppliers').replace(/\bPerson\b/g,'People').replace(/\bFacility\b/g,'Facilities').replace(/\bMapping\b/g,'Product Mapping');
 }
 export function screenGroup(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
  const text=(m.name+' '+s.navigationLabel).toLowerCase();
@@ -20,6 +20,7 @@ export function Money({cents,currency}:{cents:unknown;currency:string}){const pr
 export function ReadableValue({value,name='',currency}:{value:any;name?:string;currency?:string | undefined}){
  if(value===null||value===undefined)return <span className="muted">Unknown</span>;
  if(/Cents$/.test(name)&&currency)return <Money cents={value} currency={currency}/>;
+ if(typeof value==='string'&&/^\d{4}-\d\d-\d\dT/.test(value)&&Number.isFinite(Date.parse(value)))return <time dateTime={value}>{new Date(value).toLocaleString()}</time>;
  if(typeof value==='boolean')return <>{value?'Yes':'No'}</>;
  if(Array.isArray(value))return value.length?<ul>{value.map((v,i)=><li key={i}><ReadableValue value={v} currency={currency}/></li>)}</ul>:<span className="muted">None</span>;
  if(typeof value==='object')return <dl className="readable-fields">{Object.entries(value).map(([k,v])=><div key={k}><dt>{humanize(k)}</dt><dd><ReadableValue value={v} name={k} currency={value.currency??currency}/></dd></div>)}</dl>;

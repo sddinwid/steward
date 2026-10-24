@@ -8,6 +8,7 @@ const snapshot=()=>Object.fromEntries(deployment.instances.flatMap(i=>['api','we
 await logins();const before=snapshot();
 for(const w of ['worker-1','worker-2','worker-3']){
  const installed=(await api(w,'/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.inventory');
+ if(!installed){await api(w,'/api/v3/modules/cee.inventory/api/items','GET',undefined,404);console.log('PASS '+w+': Inventory remains absent; no package was installed by this regression');continue;}
  const records=(await api(w,'/api/v3/modules/cee.inventory/api/items')).value.records;
  if(!atLeast(installed.version,'1.2.1')){
   await api(w,'/api/v3/modules/install','POST',{packageId:'cee.inventory@1.2.1',operationId:randomUUID(),configuration:installed.configuration,upgrade:true});

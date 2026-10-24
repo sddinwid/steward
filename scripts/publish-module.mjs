@@ -5,6 +5,8 @@ import { canonical, digest, signPackage } from '../packages/module-sdk/dist/inde
 const source = path.resolve(process.argv[2] ?? 'modules/inventory');
 const directory = path.resolve(process.argv[3] ?? '.steward/dev');
 try {
+  const sourcePackage=JSON.parse(await readFile(path.join(source,'package.json'),'utf8'));
+  if(['steward-platform','@steward/platform'].some(name=>sourcePackage.dependencies?.[name]))throw new Error('Independent module packages must not depend on the Steward core');
   const manifest = JSON.parse(await readFile(path.join(source, 'manifest.json'), 'utf8'));
   const migrations = (await readdir(path.join(source, 'migrations'))).filter(f => /^\d{3}-[a-z-]+\.sql$/.test(f)).sort();
   manifest.persistence.migrations = await Promise.all(migrations.map(async (f, i) => ({ version: i + 1, sha256: digest(await readFile(path.join(source, 'migrations', f), 'utf8')) })));

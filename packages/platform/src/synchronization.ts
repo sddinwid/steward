@@ -8,7 +8,8 @@ import { fail, signAssertion, verifyAssertion, validUuid } from './security/cryp
 import { transaction, audit, type Sql } from './security/store.js';
 import { masterRequest } from './security/worker.js';
 import { createModuleBroker } from './module-broker.js';
-import {commerceWireSchema} from './commerce-analysis.js';
+import {commerceWireSchema,commerceProjectionSchema,calculateCommerce} from './commerce-analysis.js';
+import {canonicalBusinessPayload,sourceReference} from './business-analysis.js';
 
 export function validateEvent(e: DataEvent) {
   if (!e || e.envelopeVersion !== 1 || e.payloadVersion !== 1 || !validUuid(e.eventId) || !validUuid(e.recordId) || !validUuid(e.source?.installationId) || !validUuid(e.source?.entity?.entityId) || !validUuid(e.destinationInstallationId) ||
@@ -52,6 +53,13 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
         records: (await pool.query('SELECT * FROM analytical_records WHERE '+predicate+' ORDER BY entity_id,module_id,stream_id,record_id',args)).rows,
         peers: (await pool.query('SELECT * FROM sync_peers WHERE '+predicate,args)).rows,
         relationships: (await pool.query('SELECT * FROM entity_relationships WHERE ($1::boolean OR from_entity=ANY($2::uuid[]) AND to_entity=ANY($2::uuid[])) AND ($3::uuid IS NULL OR from_entity=$3 OR to_entity=$3)',args)).rows };
+    });
+    app.get('/api/v4/financial-report',async req=>{
+      const s=await scope(req);
+      const rows=(await pool.query("SELECT * FROM analytical_records WHERE stream_id='commerce_orders' AND ($1::boolean OR entity_id=ANY($2::uuid[])) ORDER BY entity_id,source_at DESC,record_id",[s.all,s.entities])).rows;
+      const groups=new Map<string,{entityId:string;currency:string;rows:any[]}>();let excluded=0;
+      for(const r of rows){const p=commerceProjectionSchema.safeParse(canonicalBusinessPayload(r));if(!p.success){excluded++;continue;}const k=r.entity_id+':'+p.data.currency;const g:{entityId:string;currency:string;rows:any[]}=groups.get(k)??{entityId:r.entity_id,currency:p.data.currency,rows:[]};g.rows.push({row:r,payload:p.data});groups.set(k,g);}
+      return{authoritative:false,excludedRecords:excluded,reports:[...groups.values()].map(g=>{const selected=g.rows.slice(0,20);return{entityId:g.entityId,currency:g.currency,totalAvailable:g.rows.length,selectedCount:selected.length,selection:'Most recent 20 approved synchronized source orders per entity and currency; not a complete-period census',calculation:calculateCommerce(selected.map(v=>v.payload)),sources:selected.map(v=>({reference:sourceReference(v.row),observedAt:v.row.source_at,ingestedAt:v.row.ingested_at}))};})};
     });
     app.put<{Body:{relationshipId:string;fromEntity:string;toEntity:string;kind:string;description:string}}>('/api/v4/relationships', async req => {
       const actor=await registry(req);const b=req.body;

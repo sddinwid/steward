@@ -93,4 +93,4 @@ export interface SyncReceipt {
   acknowledged: string[]; events: DataEvent[];
 }
 export * from './business.js';
-export const PLATFORM_RELEASE='0.9.0';
+export const PLATFORM_RELEASE='0.9.1';

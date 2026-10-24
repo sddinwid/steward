@@ -32,7 +32,9 @@ let active=0;let browserSession;
 const server=createServer({cert:await readFile(path.join(directory,'security/master/tls-cert.pem')),key:await readFile(path.join(directory,'security/master/tls-key.pem'))},async(req,res)=>{
   const supplied=Buffer.from(req.headers.authorization??''),expected=Buffer.from('Bearer '+token);
   if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected)){res.writeHead(401).end();return;}
-  if(req.method!=='POST'||req.url!=='/api/chat'||!['host.docker.internal:'+port,'localhost:'+port].includes(req.headers.host??'')||req.headers.origin){res.writeHead(403).end();return;}
+  if(!['host.docker.internal:'+port,'localhost:'+port].includes(req.headers.host??'')||req.headers.origin){res.writeHead(403).end();return;}
+  if(req.method==='GET'&&req.url==='/api/tags'){try{const response=await fetch('http://127.0.0.1:11434/api/tags',{signal:AbortSignal.timeout(2500)});const value=await response.json();res.writeHead(response.status,{'content-type':'application/json'}).end(JSON.stringify({models:(value.models??[]).filter(v=>v.name===model).map(v=>({name:v.name}))}));}catch{res.writeHead(503).end();}return;}
+  if(req.method!=='POST'||req.url!=='/api/chat'){res.writeHead(403).end();return;}
   if(active>=1){res.writeHead(429).end();return;}active++;
   const abort=new AbortController(),start=Date.now();let turn;res.on('close',()=>abort.abort());
   try{
@@ -62,6 +64,7 @@ try{
   await logins();
   await writeFile(keyPath,token+'\n');
   await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:8000,maxContextChars:48000}));
+  if(process.env.STEWARD_VERIFY_PROVIDER_STATUS==='1'){report.providerStatus=(await api('master','/api/v5/analyst/provider-status')).value;assert.equal(report.providerStatus.state,'reachable');assert.equal(report.providerStatus.testModel,false);}
   if(process.env.STEWARD_OLLAMA_BROWSER==='1')browserSession=await(await import('./analyst-browser-session.mjs')).analystBrowserSession();
   const investigationStart=Date.now();
   const startInvestigation=(body)=>browserSession?browserSession.start(body.capability,body.prompt):api('master','/api/v5/analyst/investigations','POST',body,202);

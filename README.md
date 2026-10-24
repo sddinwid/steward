@@ -4,3 +4,5 @@
 
 
 **UI/UX 0.9.0:** Business/Executive, Administration and Developer workspaces, signed module navigation, persisted investigations/findings and explicit USD company preferences. Use the [release and presenter guide](docs/ui-ux-release.md), [capability inventory](docs/ui-ux-capability-inventory.md), [architecture decisions](docs/adr/0020-business-workspaces-and-currency-preferences.md) and [actual acceptance evidence](docs/ui-ux-verification.md). Distribution acceptance is identified by its verified release manifest and release gates.
+
+Version 0.9.1 refinement: see [installation and presenter guide](docs/v0.9.1-release.md), [acceptance record](docs/v0.9.1-verification.md), and [evidence-derived UI decision](docs/adr/0022-evidence-derived-business-intelligence.md).
