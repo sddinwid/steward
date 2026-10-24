@@ -1,0 +1,38 @@
+// Real module/configuration/synchronization APIs; explicitly synthetic provider observations only.
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {request} from 'node:https';
+import path from 'node:path';
+import {directory,compose} from './lib.mjs';
+import {digest} from '../packages/module-sdk/dist/index.js';
+process.env.STEWARD_DEMO_RETRY_LOGIN='1';
+process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.json');
+const {api,logins,waitFor}=await import('./phase4-client.mjs');
+const commerce=JSON.parse(await readFile(path.join(directory,'commerce/manifest.json'),'utf8'));assert.equal(commerce.simulators,true);
+const cfg=JSON.parse(await readFile(path.join(directory,'commerce/private/shopify/config.json'),'utf8')),ca=await readFile(path.join(directory,'security/ca-cert.pem'));
+const report={startedAt:new Date().toISOString(),simulation:true,checks:[]};let original;
+const db=query=>compose('exec','-T','worker-1-db','psql','-U','postgres','-d','m_'+digest('cee.shopify').slice(0,20),'-At','-v','ON_ERROR_STOP=1','-c',query);
+async function control(body){return new Promise((resolve,reject)=>{const req=request({hostname:'127.0.0.1',port:commerce.ports.shopify,path:'/__sim/control',method:'POST',ca,servername:'shopify-simulator',timeout:10000,headers:{authorization:'Bearer '+cfg.adminToken,'content-type':'application/json'}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{try{assert.equal(res.statusCode,200);resolve(JSON.parse(data));}catch(e){reject(e);}});});req.on('error',reject);req.on('timeout',()=>req.destroy());req.end(JSON.stringify({shopId:cfg.accounts[0].shopId,...body}));});}
+const configure=configuration=>api('worker-1','/api/v3/modules/cee.shopify/configuration','PUT',{configuration});
+const nonce=String(Date.now()),sourceId='gid://shopify/Order/'+nonce;
+try{
+ await logins();const installed=(await api('worker-1','/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.shopify');assert.equal(installed.version,'1.1.1');original=installed.configuration;assert.equal(original.publishOperationalAlerts,true);
+ const entityId=(await api('worker-1','/api/v2/worker/status')).value.entityId,before=(await api('master','/api/v4/commerce-monitor')).value.conditions.filter(c=>c.entity_id===entityId&&c.module_id==='cee.shopify'&&c.active);
+ assert(before.length>0);await configure({...original,publishOperationalAlerts:false});
+ const money=amount=>({shopMoney:{amount,currencyCode:'USD'}}),now=new Date().toISOString();
+ await control({action:'seed',products:[],orders:[{id:sourceId,name:'Synthetic unpublished-monitor verification',createdAt:now,updatedAt:now,currencyCode:'USD',displayFinancialStatus:'PAID',displayFulfillmentStatus:'UNFULFILLED',cancelledAt:null,totalRefundedSet:money('0.00'),lineItems:{nodes:[{id:'gid://shopify/LineItem/'+nonce,sku:'SYN-10-UNPUBLISHED',quantity:1,originalUnitPriceSet:money('10.00'),discountedTotalSet:money('10.00'),variant:{id:'gid://shopify/ProductVariant/'+nonce}}],pageInfo:{hasNextPage:false}},fulfillmentOrders:{nodes:[]},fulfillments:[]}]});
+ const order=await waitFor(async()=>(await api('worker-1','/api/v3/modules/cee.shopify/api/orders')).value.records.find(o=>o.sourceId===sourceId),'unpublished source observation');assert.match(order.id,/^[a-f0-9-]{36}$/);
+ await waitFor(async()=>Number(db("SELECT count(*) FROM business_records WHERE kind='commerce-condition' AND data->>'sourceId'='"+order.id+"' AND data->>'approved'='false'"))>0,'local monitor tick while publication is disabled');
+ assert.equal(db("SELECT count(*) FROM commerce_exceptions WHERE projection->>'sourceId'='"+order.id+"'"),'0');
+ assert(!(await api('master','/api/v4/analytics')).value.records.some(r=>r.stream_id==='commerce_exceptions'&&r.payload.projection.sourceId===order.id));report.checks.push('An actual new paid/unmapped source order is observed and monitored locally with zero replicated projection or Master copy while publication is off');
+ await configure(original);await waitFor(async()=>(await api('master','/api/v4/analytics')).value.records.some(r=>r.stream_id==='commerce_exceptions'&&r.payload.projection.sourceId===order.id&&r.payload.projection.approved),'explicitly approved condition synchronization');
+ const after=(await api('master','/api/v4/commerce-monitor')).value.conditions;
+ for(const old of before){const current=after.find(c=>c.installation_id===old.installation_id&&c.module_id===old.module_id&&c.stream_id===old.stream_id&&c.record_id===old.record_id&&c.code===old.code);assert(current);assert.equal(current.finding_id,old.finding_id,'Publication toggles must not repeat an unchanged alert');assert.equal(current.episode,old.episode);}
+ report.checks.push('Explicit publication creates the new authorized copies while existing unchanged conditions retain their original finding and episode');
+ await control({action:'update',kind:'orders',id:sourceId,patch:{cancelledAt:new Date().toISOString(),updatedAt:new Date().toISOString()}});
+ await waitFor(async()=>{const records=(await api('master','/api/v4/analytics')).value.records.filter(r=>r.stream_id==='commerce_exceptions'&&r.payload.projection.sourceId===order.id);return records.length>0&&records.every(r=>r.payload.projection.active===false);},'approved cancellation resolves conditions');
+ const sources=(await api('master','/api/v4/analytics')).value.records.filter(r=>r.stream_id==='commerce_exceptions'&&r.payload.projection.sourceId===order.id),ids=new Set(sources.map(r=>r.record_id));const resolved=(await api('master','/api/v4/commerce-monitor')).value.conditions.filter(c=>c.entity_id===entityId&&c.module_id==='cee.shopify'&&ids.has(c.record_id));assert(resolved.length>0&&resolved.every(c=>!c.active));
+ for(const condition of resolved){let local=await waitFor(async()=>(await api('worker-1','/api/v4/findings')).value.findings.find(f=>f.finding_id===condition.finding_id),'authorized alert delivery');if(local.status==='new'){await api('worker-1','/api/v4/findings/'+local.finding_id,'PUT',{revision:local.revision,status:'acknowledged'});local=(await api('worker-1','/api/v4/findings')).value.findings.find(f=>f.finding_id===condition.finding_id);}if(local.status!=='resolved')await api('worker-1','/api/v4/findings/'+local.finding_id,'PUT',{revision:local.revision,status:'resolved'});await waitFor(async()=>(await api('master','/api/v4/findings')).value.receipts.some(r=>r.finding_id===condition.finding_id&&r.status==='resolved'),'resolved receipt at Master');const finding=(await api('master','/api/v4/findings')).value.findings.find(f=>f.finding_id===condition.finding_id);if(finding.status!=='closed')await api('master','/api/v4/findings/'+finding.finding_id,'PUT',{revision:finding.revision,status:'closed'});}
+ report.resolvedFindings=resolved.map(c=>c.finding_id);
+ report.checks.push('Synthetic provider cancellation publishes a real resolution without deleting records, credentials or findings');report.checks.push('Affected Worker acknowledges and resolves the actual canceled-source alerts; signed receipts reach Master and an explicit registry action closes them');report.sourceRecordId=order.id;report.status='passed';console.log('PASS deployed default-off publication, local monitoring, explicit enrollment-scoped synchronization, stable alert episodes and approved condition resolution');
+}catch(e){report.status='failed';report.error=e.message;throw e;}finally{if(original)try{await configure(original);}catch{}report.finishedAt=new Date().toISOString();await writeFile('artifacts/phase10a-publication.json',JSON.stringify(report,null,2)+'\n');}

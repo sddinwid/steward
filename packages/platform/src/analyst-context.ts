@@ -30,6 +30,13 @@ export function modelToolResult(name:string,result:any,compact=false) {
   let data=result.structuredContent.data;
   if(compact&&name==='list_entities')data={entities:data.entities.map((e:any)=>({entity_id:e.entity_id,name:e.name,classification:e.classification})),authoritative:false};
   if(compact&&data?.calculation)data={calculation:data.calculation,supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,observed:{supplyWorker:data.observed.supplyWorker,demandWorker:data.observed.demandWorker,supplyAt:data.observed.supplyAt,demandAt:data.observed.demandAt,...(data.observed.sources?{sources:data.observed.sources.map((s:any)=>({reference:s.reference,sourceWorker:s.sourceWorker,observedAt:s.observedAt}))}:{})},decisionExecuted:false};
+  if(data?.calculation?.capabilityId==='steward.commerce-performance'){
+    const c=data.calculation,summary=c.contributionSummary??{marginBasis:'incomplete',displayAmounts:{contributionMargin:'UNKNOWN'},reason:'Fee-aware contribution evidence is unavailable'};
+    data={...data,calculation:{capabilityId:c.capabilityId,schemaVersion:c.schemaVersion,currency:c.currency,orderVolume:c.orderVolume,
+      displayAmounts:{recognizedRevenue:c.displayAmounts?.recognizedRevenue??'UNKNOWN',refunds:c.displayAmounts?.refunds??'UNKNOWN',contributionMargin:summary.displayAmounts.contributionMargin},
+      contributionSummary:summary,contributionAnalysis:(c.contributionAnalysis??[]).map((order:any)=>({sourceId:order.sourceId,status:order.status,marginBasis:order.marginBasis,displayAmounts:order.displayAmounts,missingCosts:order.missingCosts,recognitionComplete:order.recognitionComplete,costReference:order.costReference})),
+      financialRule:'UNKNOWN contribution is not an estimated number. Missing fees or partial recognition prevent contribution. Pre-fee gross margins are deliberately omitted; never relabel them as contribution or net profit.',assumptions:c.assumptions,period:c.period,decisionExecuted:false}};
+  }
   if(compact&&data?.calculation?.capabilityId==='steward.shared-procurement'){
     const c=data.calculation;data={...data,calculation:{capabilityId:c.capabilityId,schemaVersion:c.schemaVersion,currency:c.currency,sku:c.sku,unit:c.unit,totalQuantity:c.totalQuantity,displayAmounts:c.displayAmounts,assumptions:{internalTransfersCancel:true,baseline:c.assumptions.baseline,proposal:c.assumptions.proposal},uncertainties:c.uncertainties,decisionExecuted:false}};
   }
