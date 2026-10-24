@@ -18,7 +18,7 @@ import {commerceMigration,commerceGovernanceMigration} from '../packages/platfor
 import {authentication,createAccount} from '../packages/platform/dist/security/auth.js';
 import {smartModuleRoutes} from '../packages/platform/dist/smart-modules.js';
 import {routeSmartCommand} from '../packages/module-host/dist/smart-routing.js';
-import {canonical,digest,signPackage,validateManifest,validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
+import {canonical,digest,captureSql,signPackage,validateManifest,validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
 import {createBusinessServer} from '../packages/business-kit/dist/index.js';
 import {createInventoryServer} from '../modules/inventory/dist/server.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
@@ -57,7 +57,7 @@ try{
  const defs={sales,shopify,printify,'stock-ledger':stockLedger};
  for(const name of ['inventory','stock-ledger','sales','shopify','printify']){
   const m=JSON.parse(await readFile('modules/'+name+'/manifest.json','utf8')),database='m_'+digest(name).slice(0,20);await db.query('CREATE DATABASE '+database);const pool=new pg.Pool({...connection,database});pools.push(pool);m.persistence.migrations=[];
-  const files=(await readdir('modules/'+name+'/migrations')).filter(f=>f.endsWith('.sql')).sort();m.persistence.schemaVersion=files.length;for(let n=0;n<files.length;n++){const sql=await readFile('modules/'+name+'/migrations/'+files[n],'utf8');await pool.query(sql);m.persistence.migrations.push({version:n+1,sha256:digest(sql)});}validateManifest(m);
+  const files=(await readdir('modules/'+name+'/migrations')).filter(f=>f.endsWith('.sql')).sort();m.persistence.schemaVersion=files.length;for(let n=0;n<files.length;n++){const sql=await readFile('modules/'+name+'/migrations/'+files[n],'utf8');await pool.query(sql);m.persistence.migrations.push({version:n+1,sha256:digest(sql)});}validateManifest(m);if(m.replication)await pool.query(captureSql(m,{installationId,role:'worker',entity:{entityId,displayName:'Synthetic commerce test'}},randomUUID()));
   const configuration=Object.fromEntries(Object.entries(m.configurationSchema.properties).filter(([,v])=>Object.hasOwn(v,'default')).map(([k,v])=>[k,v.default]));configuration.integrationsEnabled=true;if(name==='sales')configuration.smartInventory=true;if(name==='printify')configuration.productionEnabled=true;
   const runtime={moduleId:m.moduleId,installationId,configuration},token=randomBytes(32).toString('hex');const definition=name==='inventory'?null:defs[name](m,secretFiles[name]);
   const app=name==='inventory'?createInventoryServer(pool,token,async()=>m.persistence.schemaVersion,async()=>{},'units',runtime,m):createBusinessServer(pool,token,runtime,definition,async()=>m.persistence.schemaVersion,async()=>{});apps.push(app);const descriptor=signPackage({formatVersion:1,publisherId:'test',imageId:'sha256:'+digest(name),manifest:m},privateKey);await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'active',$5)",[m.moduleId,m.version,descriptor,configuration,randomUUID()]);
@@ -155,7 +155,7 @@ try{
   await sales.api('POST','/financial-assessments',body,403,['cee.sales.write']);
   await sales.api('POST','/financial-assessments',body,201);const report=await sales.api('GET','/commerce-intelligence');
   const entry=report.records.find(o=>o.sourceId.endsWith('/1'));assert.equal(entry.contributionMarginCents,1800);assert.equal(entry.marginBasis,'estimated');assert.deepEqual(entry.missingCosts,[]);
-  const projection=(await sales.pool.query('SELECT * FROM commerce_orders WHERE id=$1',[source.id])).rows[0];assert.equal(projection.projection.financials.transactionFeeCents,125);
+  const projection=(await sales.pool.query('SELECT * FROM commerce_orders WHERE id=$1',[source.id])).rows[0];assert.equal(projection.projection.financials.transactionFeeCents,125);const conflicts=await sales.pool.query("SELECT envelope->>'recordId' FROM sync_outbox WHERE envelope->>'streamId'='commerce_orders' GROUP BY envelope->>'recordId',envelope->>'recordRevision' HAVING count(DISTINCT envelope->'payload')>1");assert.equal(conflicts.rowCount,0,'One canonical projection per source revision');
   await db.query(syncMigration);await db.query(commerceMonitorMigration);
   await db.query("INSERT INTO legal_entities VALUES($1,'Synthetic monitor entity','synthetic',true,now())",[entityId]);
   await createAccount(db,'monitor-admin',adminPassword,'registry_admin');const account=(await db.query("SELECT account_id FROM security_accounts WHERE username='monitor-admin'")).rows[0].account_id;

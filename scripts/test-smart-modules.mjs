@@ -116,7 +116,7 @@ try{
    const snapshot=async()=>canonical(await Promise.all(['platform_installation','security_accounts','module_installations'].map(async table=>(await baseline.query('SELECT * FROM '+table+' ORDER BY 1')).rows)));
    const before=await snapshot(),database=new PostgresDatabase({...connection,database:'upgrade_baseline',ssl:false},identity);pools.push(database.pool);
    await database.migrate();await database.check();assert.equal(await snapshot(),before);await database.migrate();await database.check();assert.equal(await snapshot(),before);
-   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,10);
+   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,11);
  });
  await test('SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers',async()=>{
    await api('','GET',undefined,user,403);await api('/resolve','POST',{consumerId:'example.checkout',capabilityId:requirement.capabilityId},user,403);

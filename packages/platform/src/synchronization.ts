@@ -76,6 +76,15 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
       const s=await scope(req);
       return { findings:(await pool.query(`SELECT f.*,array_agg(e.entity_id ORDER BY e.entity_id) affected_entities FROM analytical_findings f JOIN finding_entities e USING(finding_id) WHERE $1::boolean OR e.entity_id=ANY($2::uuid[]) GROUP BY f.finding_id ORDER BY f.created_at DESC`,[s.all,s.entities])).rows.map(f=>({...f,supporting_references:s.all?f.supporting_references:f.supporting_references.filter((r:any)=>s.entities.includes(r.entityId))})), receipts:(await pool.query('SELECT * FROM finding_receipts WHERE $1::boolean OR entity_id=ANY($2::uuid[])',[s.all,s.entities])).rows };
     });
+    app.get<{Params:{id:string}}>('/api/v4/findings/:id/evidence',async req=>{
+      const s=await scope(req);if(!validUuid(req.params.id))fail(400,'Invalid finding identity');
+      const finding=(await pool.query('SELECT f.supporting_references FROM analytical_findings f WHERE f.finding_id=$1 AND ($2::boolean OR EXISTS(SELECT 1 FROM finding_entities e WHERE e.finding_id=f.finding_id AND e.entity_id=ANY($3::uuid[])))',[req.params.id,s.all,s.entities])).rows[0];if(!finding)fail(404,'Finding unavailable');
+      const evidence=[];for(const ref of finding.supporting_references.filter((r:any)=>s.all||s.entities.includes(r.entityId))){
+        if(!['commerce_orders','commerce_exceptions'].includes(ref.streamId)){evidence.push({reference:ref,available:false,reason:'Use the retained originating investigation for this evidence stream'});continue;}
+        const rows=(await pool.query(`SELECT envelope,ingested_at FROM sync_inbox WHERE envelope->>'eventType'='record.upsert' AND envelope->'source'->'entity'->>'entityId'=$1 AND envelope->>'moduleId'=$2 AND envelope->>'streamId'=$3 AND envelope->>'recordId'=$4 AND envelope->>'recordRevision'=$5 ORDER BY ingested_at LIMIT 2`,[ref.entityId,ref.moduleId,ref.streamId,ref.recordId,String(ref.revision)])).rows;
+        const signatures=new Set(rows.map(r=>canonical({source:r.envelope.source.installationId,payload:r.envelope.payload})));const row=rows[0];evidence.push(row&&signatures.size===1?{reference:ref,available:true,observedAt:row.envelope.occurredAt,ingestedAt:row.ingested_at,payload:row.envelope.payload}:{reference:ref,available:false,reason:signatures.size>1?'Ambiguous retained source identity':'Original envelope is not retained'});
+      }return{evidence,historical:true,authoritative:false,decisionExecuted:false};
+    });
     app.post<{Body:{findingId:string;severity:string;explanation:string;affectedEntities:string[];supportingReferences:any[]}}>('/api/v4/findings', async req => {
       const actor=await registry(req);const b=req.body;
       if (!validUuid(b?.findingId)||!['info','warning','critical'].includes(b.severity)||typeof b.explanation!=='string'||!b.explanation.trim()||b.explanation.length>4000||!Array.isArray(b.affectedEntities)||!b.affectedEntities.length||b.affectedEntities.length>20||b.affectedEntities.some(e=>!validUuid(e))||!Array.isArray(b.supportingReferences)||b.supportingReferences.length>20) fail(400,'Invalid finding');

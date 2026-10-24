@@ -1,3 +1,4 @@
+import {commerceDemandTrends} from '../commerce-analysis.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
@@ -30,4 +31,11 @@ test('declining margin compares chronological same-entity/product/currency evide
  const entity=randomUUID(),first=row(projection({orderCreatedAt:'2026-10-19T12:00:00.000Z',productionCostCents:1000}),entity),second=row(projection({productionCostCents:2000}),entity);
  const result=commerceAnomalies([first,second],{});assert.equal(result.matches[0]!.issues.includes('declining_estimated_margin'),true);assert.equal(result.matches[0]!.supportingReferences.length,2);assert.equal(result.matches[0]!.marginComparison!.declineBasisPoints,2083);
  assert.equal(commerceAnomalies([first,{...second,entity_id:randomUUID()}],{}).matches.some(v=>v.issues.includes('declining_estimated_margin')),false);
+});
+
+test('commerce demand windows keep cohort refunds/cancellations separate and supplier comparisons conditional',()=>{
+ const a=row(projection({currency:'USD',sourceId:'one'})),b=row(projection({currency:'USD',sourceId:'two',productionCostCents:2000,status:'canceled'}));
+ const result=commerceDemandTrends([a,b],{from:'2026-10-01T00:00:00Z',split:'2026-10-20T00:00:00Z',to:'2026-11-01T00:00:00Z'});assert.equal(result.records.length,2);assert.equal(result.records[0]!.beforeQuantity,0);assert.equal(result.records[0]!.changeBasisPoints,null);assert.equal(result.orderCohorts.records.reduce((n,g)=>n+g.after.refundCents,0),400);assert.equal(result.orderCohorts.records.reduce((n,g)=>n+g.after.canceledOrders,0),1);assert.equal(Math.abs(result.supplierCostComparisons[0]!.differenceCentsPerOrderedUnit.exactCents!),500);assert.match(result.supplierCostComparisons[0]!.opportunity,/not procurement savings/);
+ assert.equal(commerceDemandTrends([a,{...b,entity_id:a.entity_id}],{from:'2026-10-01T00:00:00Z',split:'2026-10-20T00:00:00Z',to:'2026-11-01T00:00:00Z'}).supplierCostComparisons.length,0);
+ assert.throws(()=>commerceDemandTrends([a],{from:'2026-10-21T00:00:00Z',split:'2026-10-20T00:00:00Z',to:'2026-11-01T00:00:00Z'}));
 });
