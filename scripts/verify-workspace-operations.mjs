@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';import path from 'node:path';import {randomUUID,randomBytes} from 'node:crypto';import {execFileSync} from 'node:child_process';
-import {chromium} from 'playwright';import {directory,compose,sql} from './lib.mjs';import {signPackage} from '../packages/module-sdk/dist/index.js';
+import {chromium} from 'playwright';import {directory,compose,sql,docker} from './lib.mjs';import {signPackage} from '../packages/module-sdk/dist/index.js';
 process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.json');
 const {api,login,origin,credentials,deployment}=await import('./phase4-client.mjs');const key='worker-1';await login(key,credentials.accounts[key]);
 const report={startedAt:new Date().toISOString(),checks:[],errors:[]},check=s=>{report.checks.push(s);console.log('PASS '+s);};
@@ -10,7 +10,7 @@ for(const id of ['cee.sales@1.1.1','cee.printify@1.0.2'])if(!catalog.packages.so
 const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.setDefaultTimeout(25000);page.on('pageerror',e=>report.errors.push(e.message));await page.goto(origin(key)+'/#/administration/modules');await page.getByLabel('Username',{exact:true}).fill(credentials.accounts[key].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts[key].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.getByRole('heading',{name:'Module Manager',exact:true,level:2}).waitFor();
- const images=()=>compose('images','-q',key+'-api',key+'-web');const before=images();let manager=(await api(key,'/api/v3/modules')).value;
+ const images=()=>JSON.stringify(Object.fromEntries([key+'-api',key+'-web'].map(service=>[service,JSON.parse(docker(['inspect',compose('ps','-q',service)]))[0].Image])));const before=images();let manager=(await api(key,'/api/v3/modules')).value;
  if(!manager.installed.some(m=>m.moduleId==='cee.sales')){const card=page.getByTestId('package-cee.sales@1.1.1');await page.waitForFunction(()=>Array.from(document.querySelectorAll('[data-testid="package-cee.sales@1.1.1"] input')).some(i=>i.value==='USD'));assert.equal(await card.getByLabel('Currency',{exact:true}).inputValue(),'USD');const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST');await card.getByRole('button',{name:'Install Sales',exact:true}).click();assert.equal((await response).status(),200);}
  manager=(await api(key,'/api/v3/modules')).value;const installed=manager.installed.find(m=>m.moduleId==='cee.sales');if(installed.state!=='active'){const response=page.waitForResponse(r=>r.url().endsWith('/cee.sales/lifecycle'));await page.getByTestId('installed-cee.sales').getByRole('button',{name:'Activate Sales',exact:true}).click();assert.equal((await response).status(),200);}assert.equal(images(),before);check('Module Manager installs signed Sales through generated configuration form with USD; Worker API and frontend images unchanged');
  const marker='SYN-UX-'+randomUUID().slice(0,8);
