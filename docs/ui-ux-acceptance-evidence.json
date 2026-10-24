@@ -14,10 +14,11 @@
     "workforce": "1.0.2"
   },
   "tests": {
-    "backend": 82,
+    "backend": 84,
     "failed": 0,
     "smartBrowserChecks": 9,
-    "note": "The 9 SSMA/browser checks include 8 repeated backend checks; the final Printify patch also passed the 10 commerce tests."
+    "note": "The 9 SSMA/browser checks include 8 repeated backend checks; the final Printify patch also passed the 10 commerce tests.",
+    "installer": 9
   },
   "regressions": [
     {
@@ -852,5 +853,10 @@
       "case": "portable cold start",
       "result": "one API restarted; repeated idempotent startup reached readiness without reset"
     }
-  ]
+  ],
+  "atomicPublication": {
+    "tests": 2,
+    "transientContentionPreservesPreparedIdentity": true,
+    "existingTargetRefusedWithoutDataLoss": true
+  }
 }

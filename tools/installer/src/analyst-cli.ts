@@ -1,3 +1,4 @@
+import {publishDirectory} from './atomic.js';
 import { mkdir, readFile, writeFile, rename, mkdtemp, rm, rmdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
@@ -30,7 +31,7 @@ try{
    await writeFile(path.join(staging,'config/ca.pem'),await readFile(path.join(directory,'security/ca-cert.pem')));
    await writeFile(path.join(staging,'compose.yaml'),'services:\n'+services.join('\n')+'\n');
    await writeFile(path.join(staging,'manifest.json'),JSON.stringify({version:1,installations:deployment.instances.map((i:any)=>i.installationId)},null,2)+'\n');
-   await rename(staging,target);staging=undefined;console.log('Created additive Phase 5 overlay; model unavailable until configured.');
+   await publishDirectory(staging,target);staging=undefined;console.log('Created additive Phase 5 overlay; model unavailable until configured.');
  }
 }catch{console.error('Phase 5 provisioning failed; existing deployment preserved.');process.exitCode=1;}
 finally{if(staging)await rm(staging,{recursive:true,force:true});if(locked)await rmdir(lock);}

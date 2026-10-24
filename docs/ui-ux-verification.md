@@ -25,7 +25,7 @@ See ADRs 0020/0021, ui-ux-capability-inventory.md and ui-ux-release.md for scope
 | Verification | Actual result |
 |---|---|
 | npm run build | Passed all packages, applications and modules |
-| npm test | 82 passed, zero failed: 14 SDK, 2 host, 30 platform, 7 installer, 2 Inventory, 2 operations, 7 business, 8 SSMA, 10 commerce |
+| npm test | 84 passed, zero failed: 14 SDK, 2 host, 30 platform, 9 installer, 2 Inventory, 2 operations, 7 business, 8 SSMA, 10 commerce |
 | npm run test:smart:browser | 9 passed; includes 8 repeated SSMA backend checks and actual Chromium governance |
 | Final Printify patch commerce rerun | All 10 passed, including lost responses, real module APIs, cancellations/refunds, signed webhooks and interrupted effects |
 | Full historical deployment regression runner | All 17 suites passed: smoke, browser-smoke, idempotent Phase 4 seed, Phase 4 browser/durable synchronization, Inventory MCP upgrade, MCP smoke, Phase 5 backend/browser, Analyst browser publication, compact MCP/Analyst, concurrency, isolation, outage independence, module recreation/provisioning/secrets and unconfigured-model UI |
@@ -61,7 +61,7 @@ Corrected ambiguous heading selectors and generated dropdown accessible names, o
 
 An initial USD connector attempt received an EUR simulator order and correctly refused production. The EUR source record remains pending with its reconciliation error, without currency rewriting or paid production. Subsequent source identities and new USD simulator configuration verified the corrected flow. Repeated provisioning preserves old simulator configuration. A financial assertion briefly observed different legitimate source revisions during durable catch-up; the final runner waits for fulfilled source observations before publication, then verifies current exact revisions.
 
-Docker's default subnet pool was exhausted. Explicit unused private subnets restored clean test installation without pruning any other deployment. One cold API start restarted before readiness; a repeated startup recovered, and release startup now repeats that safe operation at most once. Private test state is outside the final distribution; development candidates containing operator state are not distributable artifacts.
+Docker's default subnet pool was exhausted. Explicit unused private subnets restored clean test installation without pruning any other deployment. One cold API start restarted before readiness; a repeated startup recovered, and release startup now repeats that safe operation at most once. A further copied-toolkit install encountered Windows EPERM during atomic configuration-directory publication. Bounded publication retries now preserve prepared private bytes, reject existing targets and fail on persistent errors; two additional preservation tests passed. Private test state is outside the final distribution; development candidates containing operator state are not distributable artifacts.
 
 ## Remaining production limitations
 

@@ -1,3 +1,4 @@
+import {publishDirectory} from './atomic.js';
 import { generateKeyPairSync, createPublicKey } from 'node:crypto';
 import { mkdir, readFile, writeFile, mkdtemp, rename, rm, rmdir } from 'node:fs/promises';
 import path from 'node:path';
@@ -110,7 +111,7 @@ export async function provisionModules(directory: string, sourceRoot: string) {
     }
     await writeFile(path.join(staging, 'compose.yaml'), `# Phase 3 generic module provider; no module application is included.\nservices:\n${services.join('\n')}\nnetworks:\n${networks.join('\n')}\nvolumes:\n${volumes.join('\n')}\n`);
     await writeFile(path.join(staging, 'manifest.json'), JSON.stringify({ version: 1, installations: manifest.instances.map(i => i.installationId) }, null, 2));
-    await rename(staging, target); staging = undefined;
+    await publishDirectory(staging, target); staging = undefined;
     return true;
   } finally { if (staging) await rm(staging, { recursive: true, force: true }); await rmdir(lock); }
 }

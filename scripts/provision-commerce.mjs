@@ -1,3 +1,4 @@
+import {publishDirectory} from '../tools/installer/dist/atomic.js';
 // Additive versioned connector ingress/trust and optional explicitly synthetic services.
 import {mkdir,readFile,writeFile,rename,mkdtemp,rmdir} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
@@ -51,6 +52,6 @@ try{
   }
   await put('compose.yaml','# Steward connector provisioning v1; all simulator services are synthetic.\nservices:\n'+services.join('\n')+'\n'+(simulators?'volumes:\n  shopify-simulator: {}\n  printify-simulator: {}\nnetworks:\n  commerce-simulators: {}\n':''));
   await put('manifest.json',JSON.stringify({version:2,installations:deployment.instances.map(i=>i.installationId),simulators,ports:simulators?{shopify:18443+offset,printify:18444+offset}:{},files},null,2)+'\n');
-  await rename(staging,target);console.log('Created connector ingress and private configuration'+(simulators?' with explicitly synthetic Shopify/Printify simulators.':'; no commercial credential or simulator was configured.'));
+  await publishDirectory(staging,target);console.log('Created connector ingress and private configuration'+(simulators?' with explicitly synthetic Shopify/Printify simulators.':'; no commercial credential or simulator was configured.'));
  }
 }finally{await rmdir(lock);}

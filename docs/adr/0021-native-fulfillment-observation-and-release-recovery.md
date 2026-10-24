@@ -13,3 +13,5 @@ Repeated identical job patches are no-ops. Polling an unchanged reconciliation e
 New 0.9 synthetic simulator accounts default to USD, with an explicit provisioning override. Re-provisioning preserves existing account settings and historical currency. Upgrading a deployment preserves its existing simulator topology even when an operator omits the optional simulator flag. It does not silently turn a live connector into a simulator.
 
 The release startup command repeats its idempotent Compose startup at most once after failure, accommodating a service that has restarted during cold initialization. Both attempts still require health/readiness and persistent failures still fail. It never resets volumes, credentials or identities. Database migrations remain append-only; schema-10 downgrade protection is unchanged.
+
+Private configuration publication uses a sibling-directory atomic rename with bounded EPERM/EBUSY retries. Prepared identities are not regenerated while retrying, existing targets are refused, and persistent permission errors remain failures. This addresses observed Windows directory contention without deleting configuration or loosening ACLs.

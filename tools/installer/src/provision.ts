@@ -1,3 +1,4 @@
+import {publishDirectory} from './atomic.js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, readFile, writeFile, rename, rm, rmdir, mkdtemp, stat } from 'node:fs/promises';
 import path from 'node:path';
@@ -172,7 +173,7 @@ export async function provision(o: ProvisionOptions): Promise<{ created: boolean
     }
     await writeFile(path.join(staging, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n', { flag: 'wx' });
     await writeFile(path.join(staging, 'compose.yaml'), renderCompose(manifest, path.resolve(o.sourceRoot)), { flag: 'wx' });
-    await rename(staging, directory);
+    await publishDirectory(staging, directory);
     staging = undefined;
     return { created: true, manifest };
   } finally {

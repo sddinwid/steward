@@ -1,3 +1,4 @@
+import {publishDirectory} from './atomic.js';
 import { execFileSync } from 'node:child_process';
 import { generateKeyPairSync, createHash } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, writeFile, rename, rm, rmdir, stat, chmod } from 'node:fs/promises';
@@ -146,7 +147,7 @@ export async function provisionSecurity(directory: string, sourceRoot: string, t
     }
     await writeFile(path.join(staging, 'compose.yaml'), `# Additive Phase 2 overlay. Phase 1 deployment and volumes are preserved.\nservices:\n${services.join('\n')}\nnetworks:\n  enrollment: {}\nsecrets:\n${secrets.join('\n')}\n`);
     await writeFile(path.join(staging, 'manifest.json'), JSON.stringify({ version: 1, release: '0.4.0', deploymentHash }, null, 2) + '\n');
-    await rename(staging, target);
+    await publishDirectory(staging, target);
     staging = undefined;
     return true;
   } finally {
