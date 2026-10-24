@@ -22,6 +22,8 @@ export async function monitorCommerce(sql:Sql,row:any) {
  const allowed=(await sql.query(`SELECT 1 FROM commerce_monitor_policies p JOIN security_accounts a ON a.account_id=p.approved_by
  WHERE p.entity_id=$1 AND p.enabled AND a.enabled AND a.role='registry_admin'`,[row.entity_id])).rowCount;
  if(!allowed)return;
+ // Withdrawal is loss of current observation, not proof of resolution or a new alert episode.
+ if(canonicalBusinessPayload(row).approved!==true)return;
  const parsed=commerceProjectionSchema.safeParse(canonicalBusinessPayload(row));
  const p=parsed.success?parsed.data:null;
  const condition=row.stream_id==='commerce_exceptions'?commerceExceptionSchema.safeParse(canonicalBusinessPayload(row)):null;
