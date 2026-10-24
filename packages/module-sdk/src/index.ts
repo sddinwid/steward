@@ -30,6 +30,7 @@ export interface ModulePackageManifest {
   analyticalCapabilities: { name: string; version: number }[];
   integration?:IntegrationContract;
   smart?: SmartModuleManifest;
+  connector?: { version:1; provider:'shopify'|'printify'; webhookTopics:string[] };
   mcpTools?: { name: string; description: string; operationId: string }[];
   replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
@@ -78,7 +79,9 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector'])) reject('Unsupported module manifest fields');
+  if(m.connector&&(!onlyKeys(m.connector,['version','provider','webhookTopics'])||m.connector.version!==1||!['shopify','printify'].includes(m.connector.provider)||!atLeast(m.minimumPlatformVersion,'0.8.0')||!Array.isArray(m.connector.webhookTopics)||m.connector.webhookTopics.length>20||m.connector.webhookTopics.some(t=>typeof t!=='string'||! /^[a-z][a-z0-9_-]*(?:[/:][a-z][a-z0-9_-]*)+$/.test(t))))reject('Invalid connector declaration');
+  if(m.api?.some(a=>a.path==='/connector-webhook'))reject('Connector ingress must not be a public module API');
   validateIntegration(m);
   if(m.api?.some(a=>['/integration-inbox','/integration-outbox','/integration-ack'].includes(a.path)))reject('Private integration endpoints must not be public APIs');
   if (m.replication && (m.replication.contractVersion !== 1 || !Array.isArray(m.replication.streams) || !m.replication.streams.length || m.replication.streams.length > 10 || new Set(m.replication.streams.map(s => s.streamId)).size !== m.replication.streams.length || m.replication.streams.some(s =>

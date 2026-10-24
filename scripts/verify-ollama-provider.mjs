@@ -6,10 +6,11 @@ import { readFile, writeFile, mkdir, unlink, rmdir } from 'node:fs/promises';
 import path from 'node:path';
 import { directory } from './lib.mjs';
 import { api, logins, waitFor } from './phase4-client.mjs';
+import {calculateCommerce} from '../packages/platform/dist/commerce-analysis.js';
 import { resourceSharing } from '../packages/platform/dist/analytical-capabilities.js';
 import {calculateProcurement,calculateWorkforce,canonicalBusinessPayload} from '../packages/platform/dist/business-analysis.js';
 const capability=process.env.STEWARD_ANALYST_CAPABILITY??'resource-sharing';
-assert.ok(['resource-sharing','shared-procurement','workforce-opportunity'].includes(capability));
+assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance'].includes(capability));
 
 const baseModel=process.env.STEWARD_OLLAMA_MODEL??'qwen2.5:7b';
 const context=Number(process.env.STEWARD_OLLAMA_CONTEXT??16384);
@@ -69,7 +70,7 @@ try{
   assert.equal(run.investigation.test_model,false);
   assert.equal(run.investigation.status,'completed',run.investigation.error_code??'Model did not complete');
   const tools=run.activity.filter(a=>a.kind==='tool'&&a.status==='success').map(a=>a.tool);
-  for(const name of capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
+  for(const name of capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
   report.checks.push('real model selected and invoked live MCP tools');
   for(const analysis of report.result.analyses){
     if(capability==='resource-sharing'){
@@ -82,8 +83,8 @@ try{
     assert.ok(analysis.observed.supplyWorker&&analysis.observed.demandWorker&&analysis.supportingReferences.length===2);
     }else{
       const sources=analysis.observed.sources.map(s=>canonicalBusinessPayload({payload:s.payload}));
-      const recomputed=capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);
-      assert.deepEqual(analysis.calculation,recomputed);assert.equal(analysis.supportingReferences.length,3);assert(analysis.observed.sources.every(s=>s.sourceWorker&&s.observedAt));
+      const recomputed=capability==='commerce-performance'?calculateCommerce(sources):capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);
+      assert.deepEqual(analysis.calculation,recomputed);if(capability==='commerce-performance')assert.ok(analysis.supportingReferences.length>=2);else assert.equal(analysis.supportingReferences.length,3);assert(analysis.observed.sources.every(s=>s.sourceWorker&&s.observedAt));
     }
     for(const ref of analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
   }

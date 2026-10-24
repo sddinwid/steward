@@ -33,6 +33,19 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
   }
   const broker = await createModuleBroker(configFile, installation, key);
   await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust);
+  // Encapsulation retains raw bytes only for this bounded webhook ingress.
+  await app.register(async ingress=>{
+    ingress.addContentTypeParser('application/json',{parseAs:'buffer',bodyLimit:131072},(_req,body,done)=>done(null,body));
+    ingress.post<{Params:{moduleId:string};Body:Buffer}>('/api/v8/webhooks/:moduleId',async(req,reply)=>{
+      const row=(await pool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[req.params.moduleId])).rows[0];
+      if(!row)fail(404,'Connector is not active');
+      const p=verifyPackage(row.descriptor,(await catalog()).trust);if(!p.manifest.connector)fail(404,'Module has no signed connector ingress');
+      await auth.rateLimit('webhook:'+installation.installationId+':'+row.module_id+':'+req.ip,120);
+      const headers=Object.fromEntries(['x-shopify-hmac-sha256','x-shopify-webhook-id','x-shopify-topic','x-shopify-shop-domain','x-shopify-api-version','x-pfy-signature','x-printify-event-id'].flatMap(k=>typeof req.headers[k]==='string'?[[k,req.headers[k]]]:[]));
+      const result=await broker('webhook',row.descriptor,row.configuration,{body:{bodyBase64:req.body.toString('base64'),headers}});
+      return reply.code(result.status).send(result.value);
+    });
+  });
   app.get('/api/v3/modules', async req => {
     await admin(req);
     const { catalog: c, trust } = await catalog();

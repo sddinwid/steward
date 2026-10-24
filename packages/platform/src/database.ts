@@ -1,5 +1,6 @@
 import { analystMigration } from './analyst-migration.js';
 import { smartMigration } from './smart-migration.js';
+import { commerceMigration,commerceGovernanceMigration } from './commerce-migration.js';
 import pg from 'pg';
 import type { InstallationConfig } from '@steward/contracts';
 import type { RuntimeConfig } from './config.js';
@@ -16,7 +17,7 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }];
+` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }, { version:8,sql:commerceMigration }, { version:9,sql:commerceGovernanceMigration }];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;

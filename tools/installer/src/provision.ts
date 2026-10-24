@@ -13,6 +13,7 @@ export interface ProvisionOptions {
   workers: number;
   project: string;
   label: string;
+  portOffset?: number;
 }
 export interface Instance {
   key: string;
@@ -133,8 +134,11 @@ export async function provision(o: ProvisionOptions): Promise<{ created: boolean
   let staging: string | undefined;
   try {
     const keys: { key: string; role: StewardRole; apiPort: number; webPort: number }[] = [];
-    if (o.mode !== 'worker') keys.push({ key: 'master', role: 'master', apiPort: 4100, webPort: 5100 });
-    if (o.mode !== 'master') for (let n = 1; n <= o.workers; n++) keys.push({ key: `worker-${n}`, role: 'worker', apiPort: 4200 + n, webPort: 5200 + n });
+    let inferredOffset=0;
+    if(o.portOffset===undefined&&await exists(path.join(directory,'manifest.json'))){const prior:Manifest=JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8'));const first=prior.instances[0];if(first)inferredOffset=first.apiPort-(first.role==='master'?4100:4200+Number(first.key.split('-')[1]));}
+    const offset=o.portOffset??inferredOffset;if(!Number.isInteger(offset)||offset<0||offset>50000)throw new Error('Invalid port offset');
+    if (o.mode !== 'worker') keys.push({ key: 'master', role: 'master', apiPort: 4100+offset, webPort: 5100+offset });
+    if (o.mode !== 'master') for (let n = 1; n <= o.workers; n++) keys.push({ key: `worker-${n}`, role: 'worker', apiPort: 4200 + n+offset, webPort: 5200 + n+offset });
     if (await exists(directory)) {
       const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8')) as Manifest;
       if (manifest.provisionerVersion !== PROVISIONER_VERSION || !['0.1.0', '0.2.0', '0.3.0', RELEASE].includes(manifest.release) || manifest.mode !== o.mode ||

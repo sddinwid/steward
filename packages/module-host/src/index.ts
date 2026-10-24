@@ -12,6 +12,7 @@ interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
   project: string; workerKey: string; databaseHost: string; databasePasswordFile: string;
   databaseNetwork: string; moduleNetwork: string; stateVolume: string;
+  connectorSecretsRoot?:string;
 }
 const config: HostConfig = JSON.parse(await readFile(process.env.MODULE_HOST_CONFIG!, 'utf8'));
 const stateRoot = '/var/lib/steward/modules';
@@ -29,7 +30,7 @@ async function moduleDatabase<T>(id: string, work: (client: pg.Client) => Promis
 }
 await pool.query('CREATE TABLE IF NOT EXISTS module_host_nonces(nonce uuid PRIMARY KEY, expires_at timestamptz NOT NULL)');
 await mkdir(stateRoot, { recursive: true });
-const app = Fastify({ https: { key: await readFile('/run/secrets/tls_key'), cert: await readFile('/run/secrets/tls_cert'), minVersion: 'TLSv1.3' }, logger: false, bodyLimit: 65536, requestTimeout: 60000 });
+const app = Fastify({ https: { key: await readFile('/run/secrets/tls_key'), cert: await readFile('/run/secrets/tls_cert'), minVersion: 'TLSv1.3' }, logger: false, bodyLimit: 262144, requestTimeout: 60000 });
 function failure(code: string): never { throw Object.assign(new Error(code), { code }); }
 function http(options: RequestOptions, body?: unknown): Promise<{ status: number; value: any }> {
   return new Promise((resolve, reject) => {
@@ -68,6 +69,10 @@ async function atomicJson(file: string, value: unknown, mode: number) {
   try { await parent.sync(); } finally { await parent.close(); }
 }
 async function save(id: string, value: unknown) { await atomicJson(`${stateRoot}/${slug(id)}/state.json`, value, 0o600); }
+async function connectorSecret(id:string){
+ if(!config.connectorSecretsRoot)return;
+ try{const data=await readFile(`${config.connectorSecretsRoot}/${slug(id)}.json`,'utf8');if(Buffer.byteLength(data)>131072)failure('CONNECTOR_SECRET_INVALID');await atomicJson(`${stateRoot}/${slug(id)}/connector.json`,JSON.parse(data),0o444);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')failure('CONNECTOR_SECRET_INVALID');}
+}
 async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
   return http({ host: containerName(id), port: 8080, method, path,timeout,headers: { ...context,authorization: 'Bearer ' + token } }, body);
@@ -99,6 +104,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
     existing = { moduleId: id, phase: 'preparing' }; await save(id, existing);
   }
   const password = (await readFile(base + '/db-password', 'utf8')).trim();
+  if(m.connector)await connectorSecret(id);
   const db = slug(id);
   // Identifiers and password are generated, never supplied by a package.
   if (!(await resourcePool.query('SELECT 1 FROM pg_roles WHERE rolname=$1', [db])).rowCount) await resourcePool.query(`CREATE ROLE ${db} LOGIN PASSWORD '${password}' NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION`);
@@ -175,6 +181,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     const current = await state(p.moduleId);
     if (!current || current.version !== p.version) failure('MODULE_NOT_INSTALLED');
     if(p.operation==='configure'){
+      if(payload.manifest.connector)await connectorSecret(p.moduleId);
       const file=`${stateRoot}/${slug(p.moduleId)}/runtime.json`,runtime=JSON.parse(await readFile(file,'utf8'));
       await atomicJson(file,{...runtime,configuration:p.configuration},0o644);
       if(current.phase==='active'){
@@ -182,7 +189,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
-    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'){
+    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'){
       const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
       if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
     }
@@ -190,6 +197,10 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       if(current.phase!=='active')return reply.code(409).send({error:'MODULE_DISABLED'});
       const health=await callModule(p.moduleId,'GET','/ready',undefined,{},2000);
       return reply.code(health.status===200?200:503).send({state:health.status===200?'active':'unavailable'});
+    }
+    if(p.operation==='webhook'){
+      if(current.phase!=='active'||!payload.manifest.connector)return reply.code(404).send({error:'CONNECTOR_NOT_ACTIVE'});
+      const result=await callModule(p.moduleId,'POST','/connector-webhook',p.body,{},4000);return reply.code(result.status).send(result.value);
     }
     if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
       if (!payload.manifest.replication) return { events: [] };
@@ -230,7 +241,7 @@ let integrating=false,integrationCursor=0;
 async function integrations(){
  if(integrating)return;integrating=true;const started=Date.now();let remaining=8;
  try{
-  const rows=(await metadataPool.query("SELECT module_id,version,descriptor,configuration FROM module_installations WHERE state='active' ORDER BY module_id")).rows;
+  const rows=(await metadataPool.query("SELECT module_id,version,descriptor,configuration,operation_id FROM module_installations WHERE state='active' ORDER BY module_id")).rows;
   const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
   const ordered=rows.length?[...rows.slice(integrationCursor%rows.length),...rows.slice(0,integrationCursor%rows.length)]:[];integrationCursor++;
   for(const source of ordered){try{
@@ -247,7 +258,7 @@ async function integrations(){
     let deliveryClient:pg.PoolClient|undefined;const deliveryLocks:string[]=[];
     try{
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
-     const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId):null;
+     const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId,()=>moduleDatabase(m.moduleId,async db=>(await db.query("SELECT (envelope->>'sequence')::bigint n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2 ORDER BY n DESC LIMIT 1000",[command.aggregateId,command.capability.capabilityId])).rows.map(r=>Number(r.n)))):null;
      if(!smart&&!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');
      const wire=smart?.command??command;
      const target=rows.find(r=>r.module_id===wire.targetModuleId);
@@ -272,7 +283,7 @@ async function integrations(){
       else{
        if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});
        const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{})},4000);
-       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);status='delivered';result=response.value;}
+       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor))}}:response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
       }
@@ -281,6 +292,7 @@ async function integrations(){
     finally{if(deliveryClient){let broken=false;try{for(const id of deliveryLocks)await deliveryClient.query('SELECT pg_advisory_unlock_shared(hashtext($1))',[id]);}catch{broken=true;}deliveryClient.release(broken);}}
     // A lost ACK is safe: the next delivery has the same identity and digest.
     await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error},{},4000);
+    if(command.capability)await metadataPool.query("UPDATE smart_routes SET state=$2,attempts=attempts+1,error_code=$3,updated_at=now() WHERE command_id=$1",[command.commandId,status==='retry'?'pending':status,error]);
    }
   }catch{continue;}}
  }catch{ /* Local module failures do not block the provider or other Workers. */ }

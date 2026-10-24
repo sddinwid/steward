@@ -11,6 +11,7 @@ import Fastify from 'fastify';
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
 import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {PostgresDatabase} from '../packages/platform/dist/database.js';
 import {syncMigration,syncReliabilityMigration} from '../packages/platform/dist/sync-migration.js';
 import {analystMigration} from '../packages/platform/dist/analyst-migration.js';
@@ -48,7 +49,7 @@ try{
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres',max:6});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);
+ await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);
  const adminId=await createAccount(db,'local-admin',randomBytes(24).toString('base64url'),'local_admin');
  const adminPassword=randomBytes(24).toString('base64url'),userPassword=randomBytes(24).toString('base64url');
@@ -115,7 +116,7 @@ try{
    const snapshot=async()=>canonical(await Promise.all(['platform_installation','security_accounts','module_installations'].map(async table=>(await baseline.query('SELECT * FROM '+table+' ORDER BY 1')).rows)));
    const before=await snapshot(),database=new PostgresDatabase({...connection,database:'upgrade_baseline',ssl:false},identity);pools.push(database.pool);
    await database.migrate();await database.check();assert.equal(await snapshot(),before);await database.migrate();await database.check();assert.equal(await snapshot(),before);
-   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,7);
+   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,9);
  });
  await test('SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers',async()=>{
    await api('','GET',undefined,user,403);await api('/resolve','POST',{consumerId:'example.checkout',capabilityId:requirement.capabilityId},user,403);
@@ -147,7 +148,7 @@ try{
    }
  });
  await test('capability outbox routing pins real inbox effects and never moves an existing obligation to a substitute',async()=>{
-   await bind('example.stock-a');const aggregateId=randomUUID(),command={protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:'example.checkout',targetModuleId:'steward.capability',command:'reserve',version:1,aggregateId,sequence:1,occurredAt:new Date().toISOString(),payload:{sku:'SYN-1',quantity:2,orderId:aggregateId},capability:{capabilityId:requirement.capabilityId,operation:'reserve'}};
+   const binding=await bind('example.stock-a');await workflow(binding);const aggregateId=randomUUID(),command={protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:'example.checkout',targetModuleId:'steward.capability',command:'reserve',version:1,aggregateId,sequence:1,occurredAt:new Date().toISOString(),payload:{sku:'SYN-1',quantity:2,orderId:aggregateId},capability:{capabilityId:requirement.capabilityId,operation:'reserve'}};
    const source=descriptors['example.checkout'].payload.manifest;
    await assert.rejects(routeSmartCommand(db,{...command,sequence:2},source,trust,installationId),/SEQUENCE_GAP/);
    const route=await routeSmartCommand(db,command,source,trust,installationId),before=await value('example.stock-a');
@@ -156,7 +157,7 @@ try{
    assert.equal((await call(route.command.targetModuleId,'POST','/integration-inbox',route.command,headers)).status,200);assert.equal(await value('example.stock-a'),before-2);
    const replay=await routeSmartCommand(db,command,source,trust,installationId);assert.deepEqual(replay.command,route.command);assert.equal((await call(replay.command.targetModuleId,'POST','/integration-inbox',replay.command,headers)).status,200);assert.equal(await value('example.stock-a'),before-2);
    await assert.rejects(routeSmartCommand(db,{...command,payload:{...command.payload,quantity:1}},source,trust,installationId),/IDENTITY_MISMATCH/);
-   await bind('example.stock-b');await assert.rejects(routeSmartCommand(db,{...command,commandId:randomUUID(),sequence:2},source,trust,installationId),/APPROVAL_REQUIRED/);
+   const second=await bind('example.stock-b');await workflow(second);await assert.rejects(routeSmartCommand(db,{...command,commandId:randomUUID(),sequence:2},source,trust,installationId),/APPROVAL_REQUIRED/);
    const fresh={...command,commandId:randomUUID(),aggregateId:randomUUID()},next=await routeSmartCommand(db,fresh,source,trust,installationId);assert.equal(next.command.targetModuleId,'example.stock-b');
    assert.equal((await db.query('SELECT provider_id FROM smart_obligations WHERE aggregate_id=$1',[aggregateId])).rows[0].provider_id,'example.stock-a');
  });

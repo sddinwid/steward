@@ -53,6 +53,7 @@ export interface Definition {
         run: (ctx: Context, query?: Record<string,string>) => Promise<Data>;
     }[];
     tick?: (ctx: Context) => Promise<void>;
+    webhook?: (body: Data, ctx: Context) => Promise<Data>;
 }
 export const businessSql = `
 CREATE TABLE IF NOT EXISTS business_records(id uuid PRIMARY KEY,kind text NOT NULL,key text NOT NULL,data jsonb NOT NULL,revision integer NOT NULL DEFAULT 1,created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),UNIQUE(kind,key));
@@ -144,7 +145,7 @@ const uuidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB]
 const idParams = { type: 'object', additionalProperties: false, required: ['id'], properties: { id: { type: 'string', pattern: uuidPattern } } };
 const ajv = new Ajv({ strict: true, allErrors: false });
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
-    const app = Fastify({ logger: false, bodyLimit: 49152, requestTimeout: 10000 });
+    const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
     const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), permissions: request ? permissions(request) : [] });
     app.addHook('onRequest', async (request, reply) => {
         if (request.url === '/health')
@@ -153,7 +154,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
         if (a.length !== b.length || !timingSafeEqual(a, b))
             return reply.code(401).send({ error: 'Module gateway authentication required' });
         const op = operationFor(definition.manifest, request.method, request.url);
-        const privatePaths = ['/ready', '/internal/migrate', '/integration-outbox', '/integration-inbox', '/integration-ack'];
+        const privatePaths = ['/ready', '/internal/migrate', '/integration-outbox', '/integration-inbox', '/integration-ack', ...(definition.manifest.connector?['/connector-webhook']:[])];
         if (!op && !privatePaths.includes(request.url))
             return reply.code(403).send({ error: 'Undeclared module operation' });
         if (op && !permissions(request).includes(op.permission))
@@ -168,6 +169,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
         return reply.code(503).send({ error: 'Module schema not ready' });
     } });
     app.post('/internal/migrate', async () => ({ schemaVersion: await migrate() }));
+    if(definition.webhook)app.post<{Body:Data}>('/connector-webhook',async req=>transaction(pool,db=>definition.webhook!(req.body,ctx(db))));
     for (const resource of definition.resources) {
         const validate = ajv.compile(resource.schema);
         app.get<{
@@ -297,7 +299,7 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
         return { status: b.status };
     }));
 }
-export async function startBusinessModule(definition: Definition) {
+export async function startBusinessModule(definition: Definition, background?: (pool:pg.Pool,runtime:Data)=>Promise<void>) {
     const runtime = JSON.parse(await readFile(process.env.MODULE_RUNTIME_FILE!, 'utf8'));
     const pool = new pg.Pool({ host: runtime.databaseHost, database: runtime.databaseName, user: runtime.databaseUser, password: (await readFile('/run/module-secrets/db-password', 'utf8')).trim(), max: 5, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
     pool.on('error', () => { });
@@ -325,8 +327,10 @@ export async function startBusinessModule(definition: Definition) {
     let ticking = false;
     const timer = definition.tick ? setInterval(() => { if (ticking)
         return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [] })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
+    let working=false;
+    const backgroundTimer=background?setInterval(()=>{if(working)return;working=true;void background(pool,runtime).catch(()=>{}).finally(()=>{working=false;});},2000).unref():undefined;
     app.addHook('onClose', async () => { if (timer)
-        clearInterval(timer); await pool.end(); });
+        clearInterval(timer); if(backgroundTimer)clearInterval(backgroundTimer); await pool.end(); });
     for (const signal of ['SIGTERM', 'SIGINT'])
         process.once(signal, () => void app.close().then(() => process.exit(0)));
     await app.listen({ host: '0.0.0.0', port: 8080 });

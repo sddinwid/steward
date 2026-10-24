@@ -19,7 +19,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       if(Date.now()-new Date(e.created_at).getTime()>600000)throw new Error('WORKFLOW_TIME_BUDGET');
       if(!(await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[e.actor_id])).rowCount)throw new Error('AUTHORIZATION_REVOKED');
       const step=w.definition.steps[e.step];if(!step)throw new Error('INVALID_WORKFLOW_STEP');
-      const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state='approved'",[step.bindingId,w.consumer_id])).rows[0];
+      const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state IN ('approved','retained')",[step.bindingId,w.consumer_id])).rows[0];
       if(!binding)throw new Error('BINDING_REQUIRES_RECONCILIATION');
       const local=(await db.query('SELECT entity_id FROM platform_installation WHERE singleton AND installation_id=$1',[installationId])).rows[0];
       if(!local||binding.entity_id!==local.entity_id)throw new Error('ENTITY_SCOPE_MISMATCH');

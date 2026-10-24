@@ -1,0 +1,625 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.printify",
+  "version": "1.0.0",
+  "name": "Printify",
+  "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
+  "minimumPlatformVersion": "0.8.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listmapping",
+      "method": "GET",
+      "path": "/mappings",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createmapping",
+      "method": "POST",
+      "path": "/mappings",
+      "permission": "cee.printify.write"
+    },
+    {
+      "operationId": "updatemapping",
+      "method": "PUT",
+      "path": "/mappings/:id",
+      "permission": "cee.printify.write"
+    },
+    {
+      "operationId": "listconnection",
+      "method": "GET",
+      "path": "/connections",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "synchronize",
+      "method": "POST",
+      "path": "/synchronize/:id",
+      "permission": "cee.printify.write"
+    },
+    {
+      "operationId": "listproduct",
+      "method": "GET",
+      "path": "/catalog",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "listjob",
+      "method": "GET",
+      "path": "/jobs",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "authorize",
+      "method": "POST",
+      "path": "/authorize/:id",
+      "permission": "cee.printify.production.authorize"
+    },
+    {
+      "operationId": "reconcile",
+      "method": "POST",
+      "path": "/reconcile/:id",
+      "permission": "cee.printify.write"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "mapping",
+      "title": "printify — mapping",
+      "navigationLabel": "printify mapping",
+      "listOperation": "listmapping",
+      "createOperation": "createmapping",
+      "updateOperation": "updatemapping",
+      "fields": [
+        {
+          "name": "sku",
+          "label": "sku",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "productId",
+          "label": "productId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "variantId",
+          "label": "variantId",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "columns": [
+        "sku",
+        "productId",
+        "variantId"
+      ]
+    },
+    {
+      "screenId": "connection",
+      "title": "printify — connection",
+      "navigationLabel": "printify connection",
+      "listOperation": "listconnection",
+      "fields": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "mode",
+          "label": "mode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "mode",
+        "status",
+        "error"
+      ],
+      "actions": [
+        {
+          "label": "Reconcile Printify API",
+          "operationId": "synchronize"
+        }
+      ]
+    },
+    {
+      "screenId": "product",
+      "title": "printify — product",
+      "navigationLabel": "printify product",
+      "listOperation": "listproduct",
+      "fields": [
+        {
+          "name": "sourceId",
+          "label": "sourceId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "title",
+          "label": "title",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "printProviderId",
+          "label": "printProviderId",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "variants",
+          "label": "variants",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceId",
+        "title",
+        "printProviderId",
+        "variants"
+      ]
+    },
+    {
+      "screenId": "job",
+      "title": "printify — job",
+      "navigationLabel": "printify job",
+      "listOperation": "listjob",
+      "fields": [
+        {
+          "name": "orderId",
+          "label": "orderId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "remoteId",
+          "label": "remoteId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "productionCostCents",
+          "label": "productionCostCents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shippingCostCents",
+          "label": "shippingCostCents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "tracking",
+          "label": "tracking",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "orderId",
+        "remoteId",
+        "status",
+        "productionCostCents",
+        "shippingCostCents",
+        "tracking",
+        "error"
+      ],
+      "actions": [
+        {
+          "label": "Authorize production",
+          "operationId": "authorize"
+        },
+        {
+          "label": "Reconcile production",
+          "operationId": "reconcile"
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "currency": {
+        "type": "string",
+        "enum": [
+          "EUR",
+          "USD",
+          "GBP",
+          "CAD",
+          "AUD",
+          "NZD"
+        ],
+        "default": "EUR"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "simulator",
+          "live"
+        ],
+        "default": "simulator"
+      },
+      "productionEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "maximumOrderCostCents": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100000000,
+        "default": 10000
+      }
+    },
+    "required": [
+      "currency",
+      "integrationsEnabled",
+      "mode",
+      "productionEnabled",
+      "maximumOrderCostCents"
+    ]
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "fulfillment.orders.submit",
+        "contract": "steward.production-intent",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "fulfillment.submit",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "orderId",
+                "currency",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "jobId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "const": "awaiting_authorization"
+                }
+              },
+              "required": [
+                "jobId",
+                "status"
+              ]
+            },
+            "command": "fulfillment.submit",
+            "permission": "cee.printify.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "fulfillment.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "canceled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "canceled"
+              ]
+            },
+            "command": "fulfillment.cancel",
+            "permission": "cee.printify.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "commerce.orders.fulfillment",
+        "contract": "steward.production-progress",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "fulfillment.progress",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "sourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_production",
+                    "shipped",
+                    "failed"
+                  ]
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "productionCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shippingCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "costBasis": {
+                  "type": "string",
+                  "enum": [
+                    "estimated",
+                    "known",
+                    "incomplete"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "tracking": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "orderId",
+                "sourceId",
+                "status",
+                "updatedAt",
+                "productionCostCents",
+                "shippingCostCents",
+                "costBasis",
+                "currency",
+                "tracking"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "recorded": {
+                  "const": true
+                }
+              },
+              "required": [
+                "recorded"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  },
+  "mcpTools": [
+    {
+      "name": "printify_connection",
+      "description": "Read paginated authorized printify connection evidence; credentials and personal information excluded.",
+      "operationId": "listconnection"
+    },
+    {
+      "name": "printify_product",
+      "description": "Read paginated authorized printify product evidence; credentials and personal information excluded.",
+      "operationId": "listproduct"
+    },
+    {
+      "name": "printify_job",
+      "description": "Read paginated authorized printify job evidence; credentials and personal information excluded.",
+      "operationId": "listjob"
+    }
+  ],
+  "connector": {
+    "version": 1,
+    "provider": "printify",
+    "webhookTopics": [
+      "order:created",
+      "order:updated",
+      "order:sent-to-production",
+      "order:shipment:created"
+    ]
+  }
+}

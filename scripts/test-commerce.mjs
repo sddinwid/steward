@@ -1,0 +1,136 @@
+import {execFileSync,spawn} from 'node:child_process';
+import {mkdir,readFile,writeFile,readdir,rm,rmdir} from 'node:fs/promises';
+import path from 'node:path';
+import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
+import {request} from 'node:https';
+import {setTimeout as delay} from 'node:timers/promises';
+import {test as nodeTest} from 'node:test';
+import assert from 'node:assert/strict';
+import Fastify from 'fastify';
+import pg from 'pg';
+import {securityMigration} from '../packages/platform/dist/security/migration.js';
+import {moduleMigration} from '../packages/platform/dist/module-migration.js';
+import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
+import {authentication,createAccount} from '../packages/platform/dist/security/auth.js';
+import {smartModuleRoutes} from '../packages/platform/dist/smart-modules.js';
+import {routeSmartCommand} from '../packages/module-host/dist/smart-routing.js';
+import {canonical,digest,signPackage,validateManifest,validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
+import {createBusinessServer} from '../packages/business-kit/dist/index.js';
+import {createInventoryServer} from '../modules/inventory/dist/server.js';
+import {privateDirectory} from '../tools/installer/dist/security.js';
+import {shopify,shopifyBackground} from '../modules/shopify/dist/definition.js';
+import {printify,printifyBackground} from '../modules/printify/dist/definition.js';
+import {sales} from '../modules/sales/dist/definition.js';
+import {stockLedger} from '../modules/stock-ledger/dist/definition.js';
+const base=path.resolve('.steward/commerce-tests');await mkdir(base,{recursive:true});privateDirectory(base);const lock=base+'/run.lock';await mkdir(lock);
+const runDir=path.join(base,randomUUID()),container='steward-commerce-tests-'+randomUUID();await mkdir(runDir);privateDirectory(runDir);
+const report={startedAt:new Date().toISOString(),scope:'Real module APIs/databases, SSMA governance/routing and separate TLS simulator processes. No commercial account or paid production.',checks:[]};
+async function test(name,fn){await nodeTest(name,async()=>{const at=performance.now();try{await fn();report.checks.push({name,status:'passed',elapsedMs:Math.round(performance.now()-at)});}catch(e){report.checks.push({name,status:'failed',error:e.message});throw e;}});}
+const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']});const pools=[],apps=[],processes=[];
+const installationId=randomUUID(),entityId=randomUUID(),identity={configVersion:1,role:'worker',installationId,entity:{entityId,displayName:'Synthetic commerce test'}};
+const key=generateKeyPairSync('ed25519'),privateKey=key.privateKey.export({type:'pkcs8',format:'pem'}).toString(),trust={publishers:[{publisherId:'test',publicKey:key.publicKey.export({type:'spki',format:'pem'}).toString()}]};
+const password=randomBytes(32).toString('hex');await writeFile(runDir+'/pg.env','POSTGRES_PASSWORD='+password+'\n',{mode:0o600});
+let db;const modules=new Map(),simulators={},secretFiles={};const adminPassword=randomBytes(32).toString('base64url');
+const money=amount=>({shopMoney:{amount,currencyCode:'EUR'}});
+function sourceOrder(n=1){const id='gid://shopify/Order/'+n,lineId='gid://shopify/LineItem/'+n,variant='gid://shopify/ProductVariant/1';return{id,name:'SYN-8-ORDER-'+n,createdAt:'2026-10-20T12:00:00.000Z',updatedAt:new Date().toISOString(),currencyCode:'EUR',displayFinancialStatus:'PAID',displayFulfillmentStatus:'UNFULFILLED',cancelledAt:null,totalRefundedSet:money('0.00'),lineItems:{nodes:[{id:lineId,sku:'SYN-TEE',quantity:2,originalUnitPriceSet:money('25.00'),discountedTotalSet:money('50.00'),variant:{id:variant}}],pageInfo:{hasNextPage:false}},fulfillmentOrders:{nodes:[{id:'gid://shopify/FulfillmentOrder/'+n,status:'OPEN',lineItems:{nodes:[{id:'gid://shopify/FulfillmentOrderLineItem/'+n,remainingQuantity:2,lineItem:{id:lineId,sku:'SYN-TEE'}}]}}]},fulfillments:[]};}
+async function simRequest(provider,url,method='GET',body,operator=false){const s=simulators[provider],payload=body===undefined?undefined:JSON.stringify(body);return new Promise((resolve,reject)=>{const req=request(`https://127.0.0.1:${s.port}`+url,{method,ca:s.cert,servername:provider+'-simulator',rejectUnauthorized:true,timeout:10000,headers:{...(operator?{authorization:'Bearer '+s.adminToken}:provider==='shopify'?{'X-Shopify-Access-Token':s.token}:{authorization:'Bearer '+s.token}),...(payload?{'content-type':'application/json','content-length':Buffer.byteLength(payload)}:{})}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{if(res.statusCode!==200)return reject(new Error(provider+' simulator '+res.statusCode));try{resolve(JSON.parse(data));}catch{reject(new Error('Malformed simulator response'));}});});req.on('error',reject);req.on('timeout',()=>req.destroy());req.end(payload);});}
+const control=(provider,action,data={})=>simRequest(provider,'/__sim/control','POST',{shopId:'1001',action,...data},true);
+try{
+ docker(['run','--rm','-d','--name',container,'--env-file',runDir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
+ const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};db=new pg.Pool({...connection,database:'postgres'});pools.push(db);
+ for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration])await db.query(sql);
+ await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);await createAccount(db,'commerce-admin',adminPassword,'local_admin');
+ const openssl=process.env.STEWARD_OPENSSL??(process.platform==='win32'?'C:/Program Files/Git/usr/bin/openssl.exe':'openssl');await writeFile(runDir+'/openssl.cnf','[req]\ndistinguished_name=dn\n[dn]\n');
+ for(const [provider,simPort]of [['shopify',19481],['printify',19482]]){
+  const keyFile=runDir+'/'+provider+'-key.pem',certFile=runDir+'/'+provider+'-cert.pem';execFileSync(openssl,['req','-x509','-newkey','ec','-pkeyopt','ec_paramgen_curve:P-256','-nodes','-days','1','-subj','/CN='+provider+'-simulator','-addext','subjectAltName=DNS:'+provider+'-simulator','-config',runDir+'/openssl.cnf','-keyout',keyFile,'-out',certFile],{stdio:'ignore'});
+  const cert=await readFile(certFile,'utf8'),token=randomBytes(32).toString('hex'),webhookSecret=randomBytes(32).toString('hex'),adminToken=randomBytes(32).toString('hex');simulators[provider]={port:simPort,cert,token,adminToken};
+  const config={provider,adminToken,tlsKeyFile:keyFile,tlsCertFile:certFile,accounts:[{shopId:'1001',shopDomain:'synthetic-test.myshopify.com',token,webhookSecret,currency:'EUR',scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']}]};await writeFile(runDir+'/'+provider+'-sim.json',JSON.stringify(config),{mode:0o600});
+  const child=spawn(process.execPath,['tools/commerce-simulator/dist/index.js'],{windowsHide:true,env:{...process.env,SIMULATOR_CONFIG_FILE:runDir+'/'+provider+'-sim.json',SIMULATOR_STATE_DIRECTORY:runDir+'/'+provider+'-state',PORT:String(simPort)},stdio:['ignore','pipe','pipe']});processes.push(child);child.stderr.on('data',()=>{});
+  for(let n=0;;n++){try{await simRequest(provider,'/health');break;}catch(e){if(n===40||child.exitCode!==null)throw new Error('Simulator failed to start: '+provider);await delay(200);}}
+  secretFiles[provider]=runDir+'/'+provider+'-connector.json';await writeFile(secretFiles[provider],JSON.stringify({provider,mode:'simulator',baseUrl:`https://127.0.0.1:${simPort}/`,caPem:cert,serverName:provider+'-simulator',token,webhookSecret,shopId:'1001',shopDomain:'synthetic-test.myshopify.com',productionEnabled:true,syntheticAddress:{first_name:'Synthetic',last_name:'Fixture',email:'fixture@example.invalid',country:'US',region:'CA',address1:'Synthetic address',city:'Synthetic',zip:'00000'}}),{mode:0o600});
+ }
+ const defs={sales,shopify,printify,'stock-ledger':stockLedger};
+ for(const name of ['inventory','stock-ledger','sales','shopify','printify']){
+  const m=JSON.parse(await readFile('modules/'+name+'/manifest.json','utf8')),database='m_'+digest(name).slice(0,20);await db.query('CREATE DATABASE '+database);const pool=new pg.Pool({...connection,database});pools.push(pool);m.persistence.migrations=[];
+  const files=(await readdir('modules/'+name+'/migrations')).filter(f=>f.endsWith('.sql')).sort();m.persistence.schemaVersion=files.length;for(let n=0;n<files.length;n++){const sql=await readFile('modules/'+name+'/migrations/'+files[n],'utf8');await pool.query(sql);m.persistence.migrations.push({version:n+1,sha256:digest(sql)});}validateManifest(m);
+  const configuration=Object.fromEntries(Object.entries(m.configurationSchema.properties).filter(([,v])=>Object.hasOwn(v,'default')).map(([k,v])=>[k,v.default]));configuration.integrationsEnabled=true;if(name==='sales')configuration.smartInventory=true;if(name==='printify')configuration.productionEnabled=true;
+  const runtime={moduleId:m.moduleId,installationId,configuration},token=randomBytes(32).toString('hex');const definition=name==='inventory'?null:defs[name](m,secretFiles[name]);
+  const app=name==='inventory'?createInventoryServer(pool,token,async()=>m.persistence.schemaVersion,async()=>{},'units',runtime,m):createBusinessServer(pool,token,runtime,definition,async()=>m.persistence.schemaVersion,async()=>{});apps.push(app);const descriptor=signPackage({formatVersion:1,publisherId:'test',imageId:'sha256:'+digest(name),manifest:m},privateKey);await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'active',$5)",[m.moduleId,m.version,descriptor,configuration,randomUUID()]);
+  const f={name,manifest:m,pool,app,descriptor,runtime,token,permissions:[...new Set(m.api.map(a=>a.permission))]};modules.set(m.moduleId,f);
+  f.api=async(method,url,body,status=200,permissions=f.permissions)=>{const r=await app.inject({method,url,headers:{authorization:'Bearer '+token,'x-steward-actor':'commerce-test-admin','x-steward-permissions':JSON.stringify(permissions)},...(body===undefined?{}:{payload:body})});assert.equal(r.statusCode,status,name+' '+method+' '+url+': '+r.body);return r.json();};
+ }
+ const governance=Fastify({logger:false});apps.push(governance);const origin='https://worker.test',auth=authentication(governance,db,origin);await smartModuleRoutes(governance,db,auth,identity,async()=>({status:200,value:{}}),async()=>trust);governance.setErrorHandler((e,_req,reply)=>reply.code(e.statusCode??500).send({error:e.message}));
+ const login=await governance.inject({method:'POST',url:'/api/v2/auth/login',headers:{origin},payload:{username:'commerce-admin',password:adminPassword}});assert.equal(login.statusCode,200);const cookie=login.headers['set-cookie'].split(';')[0],csrf=login.json().csrfToken;
+ async function core(url,body,status=200){const r=await governance.inject({method:body?'POST':'GET',url:'/api/v8/smart-modules'+url,headers:{cookie,origin,'x-csrf-token':csrf},...(body?{payload:body}:{})});assert.equal(r.statusCode,status,r.body);return r.json();}
+ const reason='Reviewed synthetic commerce contract and original provider obligations.';
+ async function bind(consumerId,capabilityId,providerId){const resolved=await core('/resolve',{consumerId,capabilityId,preferredProvider:providerId});assert.equal(resolved.state,'resolved');return(await core('/bindings',{bindingId:randomUUID(),consumerId,capabilityId,providerId,packageDigest:resolved.selected.packageDigest,reason})).binding;}
+ async function policy(consumerId,bindings){const workflowId=randomUUID(),steps=bindings.flatMap(b=>modules.get(consumerId).manifest.smart.consumes.find(c=>c.capabilityId===b.capability_id).operations.map(o=>({bindingId:b.binding_id,operation:o.name})));await core('/workflows',{workflowId,name:'SYN-'+workflowId,version:1,consumerId,steps,reason});for(const action of ['approve','activate'])await core('/workflows/'+workflowId+'/lifecycle',{action,reason});return workflowId;}
+ async function delivery(){let delivered=0;for(const source of modules.values()){const out=await source.api('GET','/integration-outbox');for(const c of out.commands){if(!c.capability)continue;const routed=await routeSmartCommand(db,c,source.manifest,trust,installationId,async()=>(await source.pool.query("SELECT (envelope->>'sequence')::int n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2",[c.aggregateId,c.capability.capabilityId])).rows.map(r=>r.n)),target=modules.get(routed.command.targetModuleId),reply=await target.app.inject({method:'POST',url:'/integration-inbox',headers:{authorization:'Bearer '+target.token,'x-steward-integration-source':source.manifest.moduleId,'x-steward-installation':installationId,'x-steward-capability':c.capability.capabilityId},payload:routed.command});assert.equal(reply.statusCode,200,reply.body);validateCapabilityValue(reply.json(),routed.operation.output);await source.api('POST','/integration-ack',{commandId:c.commandId,digest:digest(canonical(c)),status:'delivered',result:{...reply.json(),_steward:{providerModuleId:target.manifest.moduleId}}});delivered++;}}return delivered;}
+ const worker=(id)=>modules.get(id),read=async(id,kind,key)=>(await worker(id).pool.query('SELECT * FROM business_records WHERE kind=$1'+(key?' AND key=$2':''),key?[kind,key]:[kind])).rows;
+ const action=async(id,kind,name,record)=>{const r=await worker(id).api('POST','/'+name+'/'+record.id,{revision:record.revision,requestId:randomUUID()});return r.record;};
+ const backgrounds=async()=>{await shopifyBackground(worker('cee.shopify').pool,worker('cee.shopify').runtime,secretFiles.shopify);await printifyBackground(worker('cee.printify').pool,worker('cee.printify').runtime,secretFiles.printify);};
+ const wait=async(fn,label)=>{for(let n=0;n<50;n++){const value=await fn();if(value)return value;await delay(200);}throw new Error('Timeout: '+label);};
+ const product={id:'gid://shopify/Product/1',title:'Synthetic shirt',status:'ACTIVE',updatedAt:new Date().toISOString(),variants:{nodes:[{id:'gid://shopify/ProductVariant/1',sku:'SYN-TEE',inventoryQuantity:99,inventoryItem:{inventoryLevels:{nodes:[{location:{id:'gid://shopify/Location/1'},quantities:[{name:'available',quantity:99}]}]}}}],pageInfo:{hasNextPage:false}}};
+ await control('shopify','seed',{products:[product,...[2,3].map(n=>({...product,id:'gid://shopify/Product/'+n,variants:{nodes:[],pageInfo:{hasNextPage:false}}}))],orders:[sourceOrder()]});
+ await control('printify','seed',{products:[1,2,3].map(n=>({id:'syn-product-'+n,title:'Synthetic production shirt',blueprint_id:1,print_provider_id:9,variants:[{id:101,is_enabled:true,is_available:true,cost:800,shipping_cost:200,sku:'POD-TEE'}]})),orders:[]});
+ const sourceHash=digest(await readFile('modules/sales/src/definition.ts','utf8'));
+ await test('real TLS simulators paginate authenticated source APIs; adapters preserve authoritative IDs and explicit mappings',async()=>{
+  await backgrounds();assert.equal((await read('cee.shopify','product')).length,3);assert.equal((await read('cee.printify','product')).length,3);assert.equal((await read('cee.shopify','order')).length,1);
+  await worker('cee.shopify').api('POST','/mappings',{sourceVariantId:'gid://shopify/ProductVariant/1',sku:'SYN-TEE'},201);await worker('cee.printify').api('POST','/mappings',{sku:'SYN-TEE',productId:'syn-product-1',variantId:101},201);
+  await worker('cee.inventory').api('POST','/items',{sku:'SYN-TEE',name:'Synthetic shirt',quantity:10},201);await worker('cee.stock-ledger').api('POST','/items',{sku:'SYN-TEE',name:'Independent stock ledger shirt',quantity:20},201);
+  assert.equal(Number((await worker('cee.inventory').pool.query('SELECT quantity FROM inventory_items')).rows[0].quantity),10);
+ });
+ let order,job;
+ await test('approved SSMA workflows import Shopify orders, reserve real stock and queue production without manufacturing',async()=>{
+  const a=await bind('cee.shopify','commerce.orders.manage','cee.sales');await policy('cee.shopify',[a]);
+  const b=await bind('cee.sales','inventory.stock.reserve','cee.inventory'),c=await bind('cee.sales','fulfillment.orders.submit','cee.printify'),d=await bind('cee.sales','commerce.channel.fulfillment','cee.shopify');await policy('cee.sales',[b,c,d]);const e=await bind('cee.printify','commerce.orders.fulfillment','cee.sales');await policy('cee.printify',[e]);
+  const channel=(await read('cee.shopify','order'))[0];await action('cee.shopify','order','dispatch',channel);await delivery();order=(await read('cee.sales','order'))[0];order=await action('cee.sales','order','confirm',order);await delivery();order=(await read('cee.sales','order'))[0];assert.equal(order.data.reserved['SYN-TEE'],2);
+  await action('cee.sales','order','production',order);await delivery();job=(await read('cee.printify','job'))[0];assert.equal(job.data.status,'awaiting_authorization');await backgrounds();assert.equal((await control('printify','snapshot')).productionSubmissions,0);
+ });
+ await test('local permission and explicit production approval precede external creation; genuine simulated production and shipment complete the order',async()=>{
+  await worker('cee.printify').api('POST','/authorize/'+job.id,{revision:job.revision,requestId:randomUUID()},403,['cee.printify.write']);job=await action('cee.printify','job','authorize',job);
+  await wait(async()=>{await backgrounds();return(await control('printify','snapshot')).productionSubmissions===1;},'authorized production');await delivery();const remote=(await control('printify','snapshot')).orders[0];assert.equal((await control('printify','snapshot')).creates,1);
+  await control('printify','update',{kind:'orders',id:remote.id,patch:{status:'fulfilled',shipments:[{number:'SYN-TRACK-1'}]}});await wait(async()=>{await backgrounds();return(await read('cee.printify','job'))[0].data.status==='shipped';},'production shipment');
+  for(let n=0;n<4;n++)await delivery();order=(await read('cee.sales','order'))[0];assert.equal(order.data.status,'fulfilled');assert.equal(Number((await worker('cee.inventory').pool.query('SELECT quantity FROM inventory_items')).rows[0].quantity),8);assert.equal(Number((await worker('cee.inventory').pool.query('SELECT reserved_quantity FROM inventory_items')).rows[0].reserved_quantity),0);
+  await wait(async()=>{await backgrounds();return(await control('shopify','snapshot')).fulfillments===1;},'channel fulfillment');for(let n=0;n<3;n++)await delivery();assert.equal((await control('shopify','snapshot')).orders[0].displayFulfillmentStatus,'FULFILLED');
+ });
+ await test('signed webhooks accept exact retries and reject forged or altered identities without duplicate effects',async()=>{
+  const event=(await control('shopify','event',{kind:'orders',id:'gid://shopify/Order/1',topic:'orders/updated',duplicate:true})).event;
+  const payload={bodyBase64:Buffer.from(event.body).toString('base64'),headers:event.headers};const q=worker('cee.shopify');assert.equal((await q.api('POST','/connector-webhook',payload)).replay,false);assert.equal((await q.api('POST','/connector-webhook',payload)).replay,true);
+  await q.api('POST','/connector-webhook',{...payload,headers:{...event.headers,'x-shopify-hmac-sha256':'invalid'}},403);await backgrounds();for(let n=0;n<3;n++)await delivery();assert.equal((await control('printify','snapshot')).creates,1);assert.equal((await control('printify','snapshot')).productionSubmissions,1);assert.equal((await control('shopify','snapshot')).fulfillments,1);
+ });
+ await test('governed commerce projection carries exact revenue, estimated costs, source provenance and no personal data',async()=>{
+  order=(await read('cee.sales','order'))[0];await action('cee.sales','order','publish-commerce',order);const p=(await worker('cee.sales').pool.query('SELECT projection FROM commerce_orders')).rows[0].projection;
+  assert.equal(p.approved,true);assert.equal(p.recognizedRevenueCents,5000);assert.equal(p.productionCostCents,1600);assert.equal(p.shippingCostCents,400);assert.equal(p.costBasis,'estimated');assert.equal(p.sourceId,'gid://shopify/Order/1');assert.ok(!JSON.stringify(p).includes('address'));report.commerce={recognizedRevenueCents:p.recognizedRevenueCents,productionCostCents:p.productionCostCents,shippingCostCents:p.shippingCostCents,costBasis:p.costBasis,sourceId:p.sourceId};
+ });
+ await test('substitution selects an independently implemented provider without changing Sales source or another provider inventory',async()=>{
+  const b=await bind('cee.sales','inventory.stock.reserve','cee.stock-ledger'),active=(await core('')).bindings.filter(b=>b.consumer_id==='cee.sales'&&b.state==='approved');await policy('cee.sales',active);
+  await control('shopify','seed',{products:[],orders:[sourceOrder(2)]});await wait(async()=>{await backgrounds();return(await read('cee.shopify','order')).length===2;},'second order');const channel=(await read('cee.shopify','order')).find(o=>o.data.sourceId.endsWith('/2'));await action('cee.shopify','order','dispatch',channel);await delivery();let next=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/2'));next=await action('cee.sales','order','confirm',next);await delivery();next=(await read('cee.sales','order')).find(o=>o.id===next.id);assert.equal(next.data.reserved['SYN-TEE'],2);
+  assert.equal((await read('cee.stock-ledger','reservation'))[0].data.lines[0].quantity,2);assert.equal(Number((await worker('cee.inventory').pool.query('SELECT quantity FROM inventory_items')).rows[0].quantity),8);assert.equal(digest(await readFile('modules/sales/src/definition.ts','utf8')),sourceHash);
+  await action('cee.sales','order','cancel',next);await delivery();assert.equal((await read('cee.stock-ledger','reservation'))[0].data.lines.length,0);
+ });
+ await test('lost external create, production and fulfillment responses reconcile without repeating non-repeatable effects',async()=>{
+  for(const [n,dropAction]of [[3,'create'],[4,'produce']]){
+   await control('shopify','seed',{products:[],orders:[sourceOrder(n)]});await wait(async()=>{await backgrounds();return(await read('cee.shopify','order')).some(o=>o.data.sourceId.endsWith('/'+n));},'new recovery order');
+   const channel=(await read('cee.shopify','order')).find(o=>o.data.sourceId.endsWith('/'+n));await action('cee.shopify','order','dispatch',channel);await delivery();let sale=(await read('cee.sales','order')).find(o=>o.data.sourceId.endsWith('/'+n));await action('cee.sales','order','confirm',sale);await delivery();sale=(await read('cee.sales','order')).find(o=>o.id===sale.id);await action('cee.sales','order','production',sale);await delivery();
+   let j=(await read('cee.printify','job')).find(o=>o.data.orderId===sale.id);await control('printify','fault',{fault:{count:0,dropAction,dropCount:1}});await action('cee.printify','job','authorize',j);
+   await wait(async()=>{await backgrounds();j=(await read('cee.printify','job')).find(o=>o.id===j.id);return j.data.status==='in_production';},'uncertain production reconciles');await delivery();
+   const external=(await control('printify','snapshot')).orders.find(o=>o.external_id.endsWith(sale.id));await control('shopify','fault',{fault:{count:0,dropAction:'fulfillment',dropCount:1}});await control('printify','update',{kind:'orders',id:external.id,patch:{status:'fulfilled',shipments:[{number:'SYN-RECOVERY-'+n}]}});
+   await wait(async()=>{await backgrounds();await delivery();return(await control('shopify','snapshot')).orders.find(o=>o.id.endsWith('/'+n)).displayFulfillmentStatus==='FULFILLED';},'lost channel ACK reconciles');
+   await backgrounds();await delivery();
+   const snap=await control('printify','snapshot');assert.equal(snap.creates,n-1);assert.equal(snap.productionSubmissions,n-1);assert.equal((await control('shopify','snapshot')).fulfillments,n-1);
+  }
+ });
+ await test('Printify signed replay, wrong shop identity and unavailable credentials preserve records and recover',async()=>{
+  const snap=await control('printify','snapshot'),event=(await control('printify','event',{kind:'orders',id:snap.orders[0].id,topic:'order:updated',duplicate:true})).event,q=worker('cee.printify'),payload={bodyBase64:Buffer.from(event.body).toString('base64'),headers:event.headers};
+  assert.equal((await q.api('POST','/connector-webhook',payload)).replay,false);assert.equal((await q.api('POST','/connector-webhook',payload)).replay,true);await q.api('POST','/connector-webhook',{...payload,headers:{...event.headers,'x-pfy-signature':'sha256=forged'}},403);
+  const before=(await read('cee.printify','job')).length,secret=await readFile(secretFiles.printify,'utf8');await writeFile(secretFiles.printify,JSON.stringify({...JSON.parse(secret),expiresAt:'2020-01-01T00:00:00.000Z'}));await delay(2100);await backgrounds();assert.equal((await read('cee.printify','connector'))[0].data.status,'connection_unavailable');assert.equal((await read('cee.printify','job')).length,before);await writeFile(secretFiles.printify,secret);
+ });
+
+}finally{
+ for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
+ report.finishedAt=new Date().toISOString();report.status=report.checks.length===8&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
+ const resolved=path.resolve(runDir);if(!resolved.startsWith(base+path.sep))throw new Error('Unsafe fixture cleanup path');await rm(resolved,{recursive:true,force:true});await rmdir(lock);
+}

@@ -7,10 +7,12 @@ export async function manifest() { return JSON.parse(await readFile(path.join(di
 export function docker(args) { return execFileSync('docker', args, { encoding: 'utf8', timeout: 240000, stdio: ['ignore', 'pipe', 'pipe'] }).trim(); }
 export function compose(...args) {
   const files = ['-f', path.join(directory, 'compose.yaml')];
+  if (existsSync(path.join(directory,'network/compose.yaml'))) files.push('-f',path.join(directory,'network/compose.yaml'));
   if (existsSync(path.join(directory, 'security', 'compose.yaml'))) files.push('-f', path.join(directory, 'security', 'compose.yaml'));
   if (existsSync(path.join(directory, 'modules', 'compose.yaml'))) files.push('-f', path.join(directory, 'modules', 'compose.yaml'));
   if (existsSync(path.join(directory, 'data/compose.yaml'))) files.push('-f', path.join(directory, 'data/compose.yaml'));
 if (existsSync(path.join(directory, 'analyst/compose.yaml'))) files.push('-f', path.join(directory, 'analyst/compose.yaml'));
+  if (existsSync(path.join(directory, 'commerce/compose.yaml'))) files.push('-f', path.join(directory, 'commerce/compose.yaml'));
   if (existsSync(path.join(directory, 'release/compose.yaml'))) files.push('-f', path.join(directory, 'release/compose.yaml'));
   return docker(['compose', ...files, ...args]);
 }

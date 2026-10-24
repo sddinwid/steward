@@ -1,6 +1,6 @@
 {
   "name": "@steward/inventory",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "@steward/business-kit": "file:../../packages/business-kit",
+    "@steward/commerce-kit": "file:../../packages/commerce-kit",
     "@steward/module-sdk": "file:../../packages/module-sdk",
     "fastify": "5.12.7",
-    "pg": "8.23.1"
+    "pg": "8.23.1",
+    "steward-platform": "file:../.."
   },
   "devDependencies": {
     "@types/node": "24.10.1",

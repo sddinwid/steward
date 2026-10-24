@@ -1,0 +1,596 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.shopify",
+  "version": "1.0.0",
+  "name": "Shopify",
+  "description": "Independent SSMA shopify module; simulator/live mode and authority remain explicit.",
+  "minimumPlatformVersion": "0.8.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listmapping",
+      "method": "GET",
+      "path": "/mappings",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createmapping",
+      "method": "POST",
+      "path": "/mappings",
+      "permission": "cee.shopify.write"
+    },
+    {
+      "operationId": "updatemapping",
+      "method": "PUT",
+      "path": "/mappings/:id",
+      "permission": "cee.shopify.write"
+    },
+    {
+      "operationId": "listconnection",
+      "method": "GET",
+      "path": "/connections",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "synchronize",
+      "method": "POST",
+      "path": "/synchronize/:id",
+      "permission": "cee.shopify.write"
+    },
+    {
+      "operationId": "listproduct",
+      "method": "GET",
+      "path": "/catalog",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "listorder",
+      "method": "GET",
+      "path": "/orders",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "dispatch",
+      "method": "POST",
+      "path": "/dispatch/:id",
+      "permission": "cee.shopify.write"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "mapping",
+      "title": "shopify — mapping",
+      "navigationLabel": "shopify mapping",
+      "listOperation": "listmapping",
+      "createOperation": "createmapping",
+      "updateOperation": "updatemapping",
+      "fields": [
+        {
+          "name": "sourceVariantId",
+          "label": "sourceVariantId",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sku",
+          "label": "sku",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "columns": [
+        "sourceVariantId",
+        "sku"
+      ]
+    },
+    {
+      "screenId": "connection",
+      "title": "shopify — connection",
+      "navigationLabel": "shopify connection",
+      "listOperation": "listconnection",
+      "fields": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "mode",
+          "label": "mode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "mode",
+        "status",
+        "error"
+      ],
+      "actions": [
+        {
+          "label": "Reconcile Shopify API",
+          "operationId": "synchronize"
+        }
+      ]
+    },
+    {
+      "screenId": "product",
+      "title": "shopify — product",
+      "navigationLabel": "shopify product",
+      "listOperation": "listproduct",
+      "fields": [
+        {
+          "name": "sourceId",
+          "label": "sourceId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "title",
+          "label": "title",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "variants",
+          "label": "variants",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceId",
+        "title",
+        "status",
+        "variants"
+      ]
+    },
+    {
+      "screenId": "order",
+      "title": "shopify — order",
+      "navigationLabel": "shopify order",
+      "listOperation": "listorder",
+      "fields": [
+        {
+          "name": "sourceId",
+          "label": "sourceId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lines",
+          "label": "lines",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "financialStatus",
+          "label": "financialStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "dispatchStatus",
+          "label": "dispatchStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceId",
+        "currency",
+        "lines",
+        "financialStatus",
+        "dispatchStatus"
+      ],
+      "actions": [
+        {
+          "label": "Dispatch authorized order",
+          "operationId": "dispatch"
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "currency": {
+        "type": "string",
+        "enum": [
+          "EUR",
+          "USD",
+          "GBP",
+          "CAD",
+          "AUD",
+          "NZD"
+        ],
+        "default": "EUR"
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "mode": {
+        "type": "string",
+        "enum": [
+          "simulator",
+          "live"
+        ],
+        "default": "simulator"
+      }
+    },
+    "required": [
+      "currency",
+      "integrationsEnabled",
+      "mode"
+    ]
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "commerce.channel.fulfillment",
+        "contract": "steward.channel-fulfillment",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "channel.fulfillment",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "tracking": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160,
+                  "pattern": "\\S"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "sourceId",
+                "orderId",
+                "tracking",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "queued": {
+                  "const": true
+                }
+              },
+              "required": [
+                "queued"
+              ]
+            },
+            "command": "channel.fulfillment",
+            "permission": "cee.shopify.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "commerce.orders.manage",
+        "contract": "steward.channel-order",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "commerce.order.import",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "sourceCreatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "sourceUpdatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "channel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "financialStatus": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "paid",
+                    "refunded",
+                    "partially_refunded",
+                    "authorized",
+                    "partially_paid",
+                    "voided",
+                    "expired"
+                  ]
+                },
+                "fulfillmentStatus": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "canceled": {
+                  "type": "boolean"
+                },
+                "refundCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sourceVariantId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "unitPriceCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "lineRevenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sourceVariantId",
+                      "sku",
+                      "quantity",
+                      "unitPriceCents",
+                      "lineRevenueCents"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "sourceId",
+                "sourceCreatedAt",
+                "sourceUpdatedAt",
+                "channel",
+                "currency",
+                "financialStatus",
+                "fulfillmentStatus",
+                "canceled",
+                "refundCents",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "orderId",
+                "status"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  },
+  "mcpTools": [
+    {
+      "name": "shopify_connection",
+      "description": "Read paginated authorized shopify connection evidence; credentials and personal information excluded.",
+      "operationId": "listconnection"
+    },
+    {
+      "name": "shopify_product",
+      "description": "Read paginated authorized shopify product evidence; credentials and personal information excluded.",
+      "operationId": "listproduct"
+    },
+    {
+      "name": "shopify_order",
+      "description": "Read paginated authorized shopify order evidence; credentials and personal information excluded.",
+      "operationId": "listorder"
+    }
+  ],
+  "connector": {
+    "version": 1,
+    "provider": "shopify",
+    "webhookTopics": [
+      "products/update",
+      "products/delete",
+      "orders/create",
+      "orders/updated",
+      "refunds/create",
+      "inventory_levels/update",
+      "fulfillments/update"
+    ]
+  }
+}

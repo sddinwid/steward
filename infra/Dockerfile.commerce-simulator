@@ -1,0 +1,15 @@
+FROM node:24.13.0-alpine AS build
+WORKDIR /app
+COPY package*.json tsconfig.base.json ./
+COPY packages ./packages
+COPY apps ./apps
+COPY tools ./tools
+RUN npm ci && npm run build -w @steward/commerce-simulator && npm prune --omit=dev
+FROM node:24.13.0-alpine
+WORKDIR /app
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/tools/commerce-simulator ./tools/commerce-simulator
+RUN mkdir -p /var/lib/simulator && chown -R node:node /var/lib/simulator
+USER 1000:1000
+EXPOSE 8443
+CMD ["node","tools/commerce-simulator/dist/index.js"]

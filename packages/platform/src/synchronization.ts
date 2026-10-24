@@ -8,11 +8,15 @@ import { fail, signAssertion, verifyAssertion, validUuid } from './security/cryp
 import { transaction, audit, type Sql } from './security/store.js';
 import { masterRequest } from './security/worker.js';
 import { createModuleBroker } from './module-broker.js';
+import {commerceWireSchema} from './commerce-analysis.js';
 
 export function validateEvent(e: DataEvent) {
   if (!e || e.envelopeVersion !== 1 || e.payloadVersion !== 1 || !validUuid(e.eventId) || !validUuid(e.recordId) || !validUuid(e.source?.installationId) || !validUuid(e.source?.entity?.entityId) || !validUuid(e.destinationInstallationId) ||
       !['record.upsert','finding.issued','finding.status'].includes(e.eventType) || !Number.isSafeInteger(e.recordRevision) || e.recordRevision < 1 || e.sequence !== String(e.recordRevision) || !Number.isFinite(Date.parse(e.occurredAt)) ||
       typeof e.moduleId !== 'string' || !/^[a-z][a-z0-9.-]{0,79}$/.test(e.moduleId) || typeof e.streamId !== 'string' || !/^[a-z][a-z0-9_]{0,49}$/.test(e.streamId) || !e.payload || Array.isArray(e.payload) || typeof e.payload !== 'object' || Buffer.byteLength(JSON.stringify(e)) > 12000) fail(400, 'Invalid synchronization event');
+  if(e.eventType==='record.upsert'&&e.streamId==='commerce_orders'){
+    if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceWireSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce projection');
+  }
 }
 export async function inbox(sql: Sql, e: DataEvent): Promise<boolean> {
   const fingerprint = digest(canonical(e));

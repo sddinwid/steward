@@ -3,10 +3,12 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 const directory = path.resolve(process.env.STEWARD_DEPLOYMENT ?? '.steward/dev');
 const args = ['compose', '-f', path.join(directory, 'compose.yaml')];
+if (existsSync(path.join(directory, 'network/compose.yaml'))) args.push('-f', path.join(directory, 'network/compose.yaml'));
 if (existsSync(path.join(directory, 'security', 'compose.yaml'))) args.push('-f', path.join(directory, 'security', 'compose.yaml'));
 if (existsSync(path.join(directory, 'modules', 'compose.yaml'))) args.push('-f', path.join(directory, 'modules', 'compose.yaml'));
 if (existsSync(path.join(directory, 'data/compose.yaml'))) args.push('-f', path.join(directory, 'data/compose.yaml'));
 if (existsSync(path.join(directory, 'analyst/compose.yaml'))) args.push('-f', path.join(directory, 'analyst/compose.yaml'));
+if (existsSync(path.join(directory, 'commerce/compose.yaml'))) args.push('-f', path.join(directory, 'commerce/compose.yaml'));
 if (existsSync(path.join(directory, 'release/compose.yaml'))) args.push('-f', path.join(directory, 'release/compose.yaml'));
 try {
   const action = process.argv[2];
