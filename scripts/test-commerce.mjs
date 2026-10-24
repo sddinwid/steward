@@ -1,4 +1,4 @@
-import {connectionSource} from '../packages/commerce-kit/dist/index.js';
+import {connectionSource,context} from '../packages/commerce-kit/dist/index.js';
 import {syncMigration} from '../packages/platform/dist/sync-migration.js';
 import {commerceMonitorMigration,monitorCommerce} from '../packages/platform/dist/commerce-monitor.js';
 import {execFileSync,spawn} from 'node:child_process';
@@ -19,7 +19,7 @@ import {authentication,createAccount} from '../packages/platform/dist/security/a
 import {smartModuleRoutes} from '../packages/platform/dist/smart-modules.js';
 import {routeSmartCommand} from '../packages/module-host/dist/smart-routing.js';
 import {canonical,digest,captureSql,signPackage,validateManifest,validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
-import {createBusinessServer} from '../packages/business-kit/dist/index.js';
+import {createBusinessServer,transaction} from '../packages/business-kit/dist/index.js';
 import {createInventoryServer} from '../modules/inventory/dist/server.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
 import {shopify,shopifyBackground} from '../modules/shopify/dist/definition.js';
@@ -189,11 +189,23 @@ try{
   await worker('cee.shopify').api('POST','/connector-webhook',{bodyBase64:Buffer.from(event.body).toString('base64'),headers:{...event.headers,'x-shopify-shop-domain':'synthetic-test.myshopify.com'}},403);
   // Connection identity substitution is rejected before touching the other store's catalog or jobs.
   const bundle=JSON.parse(await readFile(secretFiles.shopify,'utf8'));bundle.connections[1].shopId='9999';await writeFile(secretFiles.shopify,JSON.stringify(bundle));await delay(2100);await backgrounds();assert.equal((await read('cee.shopify','connector')).find(c=>c.key==='second').data.status,'connection_unavailable');
-  for(const provider of ['shopify','printify'])await writeFile(secretFiles[provider],originals[provider]);
+  for(const provider of ['shopify','printify'])await writeFile(secretFiles[provider],originals[provider]);await delay(2100);await backgrounds();for(const provider of ['shopify','printify']){const removed=(await read('cee.'+provider,'connector')).find(c=>c.key==='second');assert.equal(removed.data.status,'connection_unavailable');assert.equal(removed.data.error,'CONNECTOR_CONNECTION_REMOVED');}
+ });
+
+ await test('default-off operational publication stays local and explicit withdrawal retains only previously approved copies',async()=>{
+  await control('shopify','seed',{products:[],orders:[sourceOrder(9991)]});await delay(2100);await backgrounds();
+  const pf=worker('cee.printify');await pf.pool.query("INSERT INTO business_records(id,kind,key,data) VALUES($1,'job',$2,$3)",[randomUUID(),'synthetic-unapproved-monitor-only',{orderId:randomUUID(),status:'awaiting_authorization',lines:[{sku:'SYN-TEE',quantity:1}],productionCostCents:null,shippingCostCents:null}]);
+  for(const [provider,definition]of [['shopify',shopify],['printify',printify]]){
+   const f=worker('cee.'+provider),tick=()=>transaction(f.pool,db=>definition(f.manifest,secretFiles[provider]).tick(context(db,f.runtime)));
+   f.runtime.configuration.publishOperationalAlerts=false;await tick();assert(Number((await f.pool.query("SELECT count(*) FROM business_records WHERE kind='commerce-condition'")).rows[0].count)>0);assert.equal((await f.pool.query('SELECT count(*) FROM commerce_exceptions')).rows[0].count,'0');assert.equal((await f.pool.query("SELECT count(*) FROM sync_outbox WHERE envelope->>'streamId'='commerce_exceptions'")).rows[0].count,'0');
+   f.runtime.configuration.publishOperationalAlerts=true;await tick();const published=(await f.pool.query('SELECT * FROM commerce_exceptions ORDER BY id')).rows;assert(published.length>0);assert(published.every(p=>p.projection.approved));await tick();assert.deepEqual((await f.pool.query('SELECT * FROM commerce_exceptions ORDER BY id')).rows,published);
+   f.runtime.configuration.publishOperationalAlerts=false;await tick();const withdrawn=(await f.pool.query('SELECT * FROM commerce_exceptions ORDER BY id')).rows;assert.equal(withdrawn.length,published.length);assert(withdrawn.every(p=>p.projection.approved===false&&p.projection.active===false));
+   const id=randomUUID();await f.pool.query("INSERT INTO business_records(id,kind,key,data) VALUES($1,'commerce-condition',$2,$3)",[id,'new-unpublished-condition',{contractVersion:1,approved:false,active:true,sourceId:randomUUID(),order:'synthetic-private',code:'mapping_missing',explanation:'Synthetic unpublished condition',severity:'warning'}]);assert.equal((await f.pool.query('SELECT 1 FROM commerce_exceptions WHERE id=$1',[id])).rowCount,0);
+  }
  });
 
 }finally{
  for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
- report.finishedAt=new Date().toISOString();report.status=report.checks.length===12&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
+ report.finishedAt=new Date().toISOString();report.status=report.checks.length===13&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
  const resolved=path.resolve(runDir);if(!resolved.startsWith(base+path.sep))throw new Error('Unsafe fixture cleanup path');await rm(resolved,{recursive:true,force:true});await rmdir(lock);
 }

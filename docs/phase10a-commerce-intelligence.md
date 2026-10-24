@@ -91,7 +91,7 @@ Remove-Item Env:STEWARD_DEPLOYMENT
 
 The foundation was provisioned using the existing installer/security/module/data/analyst commands and `scripts/provision-commerce.mjs ... --simulators`, with `STEWARD_SIMULATOR_CURRENCY=USD`. Its explicit `10.226` network overlay avoids the host's exhausted Docker default pool. Repeated provisioning has been verified without file/data changes. New hosts should select an unused private prefix with `scripts/configure-network-pool.mjs`; never prune retained networks/volumes to make room.
 
-Build/test commands remain `npm run build`, `npm test`, and `npm run test:smart:browser`. Signed new packages are Sales 1.2.2, Shopify 1.1.0 and Printify 1.1.0; Inventory 1.4.2 and Stock Ledger 1.0.0 are retained release images. Do not republish an existing package version from modified source. Phase 10A core acceptance images are separately named/pinned development artifacts, not a promoted commercial release.
+Build/test commands remain `npm run build`, `npm test`, and `npm run test:smart:browser`. Signed new packages are Sales 1.2.3, Shopify 1.1.1 and Printify 1.1.1; Inventory 1.4.2 and Stock Ledger 1.0.0 are retained release images. Do not republish an existing package version from modified source. Phase 10A core acceptance images are separately named/pinned development artifacts, not a promoted commercial release.
 
 The commerce investigation can also be exercised with the labelled reproducible protocol fixture:
 
@@ -123,3 +123,5 @@ All Shopify/Printify results here are simulator results. Commercial scopes, live
 ## Data-only report contribution
 
 The generic Worker renderer does not know commerce metric names. An authorized module list response can supply `report: {version: 2, groups: [...]}`. Each group declares `title`, optional `currency`, `description`, `metrics: [{label, value, format, currency?}]` and optional `sections: [{title, value}]`. `format: "money"` uses an integer minor-unit value; null renders Unknown. Other values use the shared readable-data renderer. Groups/metrics/sections are bounded in the renderer; text is escaped and no HTML, scripts or asset URLs are executed. The module retains control of labels, values, navigation, API permissions and forms. Legacy report data remains inspectable, and existing manifest-driven CRUD screens remain supported.
+
+The connector 1.1.1 patch appends migration 4: brand-new unapproved conditions never create a replicated projection; disabling publication withdraws only previously approved copies. Local monitoring remains available while publication is off. Removed connections are marked unavailable without deleting their identities, records or jobs. Changing store identity under an existing connection remains rejected. Cross-Worker global store ownership/locking and automated job migration are not implemented; configure each store's consequential fulfillment authority explicitly and reconcile outstanding work before upgrades.

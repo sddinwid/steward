@@ -1,4 +1,4 @@
-import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity} from '@steward/commerce-kit';
+import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity,unavailableConnections} from '@steward/commerce-kit';
 import {connectorConditions,publishConnectorConditions} from '@steward/commerce-kit';
 import {createHash} from 'node:crypto';
 import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,transaction,type Definition,type Data,type Context} from '@steward/business-kit';
@@ -33,7 +33,8 @@ export const orderQuery=`query StewardOrder($id:ID!){order(id:$id){${orderFields
 const fulfillmentQuery=`mutation StewardFulfillment($fulfillment:FulfillmentInput!){fulfillmentCreate(fulfillment:$fulfillment){fulfillment{id status} userErrors{field message}}}`;
 
 export async function shopifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
- let connections:Data[];try{connections=await connectorConnections('shopify',runtime.configuration.mode,secretFile);}catch(e){await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');return;}
+ let connections:Data[];try{connections=await connectorConnections('shopify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
+ await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
  for(const secret of connections)await pollConnection(pool,{...runtime,connectionId:secret.connectionId},secretFile,secret);
 }
 async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefined,s:Data){

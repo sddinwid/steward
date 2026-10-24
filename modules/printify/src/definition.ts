@@ -1,4 +1,4 @@
-import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity} from '@steward/commerce-kit';
+import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity,unavailableConnections} from '@steward/commerce-kit';
 import {connectorConditions,publishConnectorConditions} from '@steward/commerce-kit';
 import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,transaction,type Definition,type Data,type Context} from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
@@ -27,7 +27,8 @@ export function validatePrintifyCurrency(secret:Data,currency:string){if(secret.
 
 async function pages(s:Data,kind:string){const all=[];for(let p=1;p<=50;p++){const r=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/${kind}.json?page=${p}&limit=2`);ensure(Array.isArray(r.data),'Invalid Printify page');all.push(...r.data);if(p>=r.last_page)return all;}throw new ConnectorError('CONNECTOR_PAGE_BUDGET_REACHED');}
 export async function printifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
- let connections:Data[];try{connections=await connectorConnections('printify',runtime.configuration.mode,secretFile);}catch(e){await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');return;}
+ let connections:Data[];try{connections=await connectorConnections('printify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
+ await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
  for(const secret of connections)await pollConnection(pool,{...runtime,connectionId:secret.connectionId},secretFile,secret);
 }
 async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefined,s:Data){

@@ -28,3 +28,7 @@ export function cents(value:string){ensure(/^\d+(?:\.\d{1,2})?$/.test(value),'Un
 export async function bindConnectionIdentity(pool:pg.Pool,runtime:Data,secret:Data){
  await transaction(pool,async db=>{const ctx=context(db,runtime),key=secret.connectionId??'default';const identity={provider:secret.provider,mode:secret.mode,baseUrl:secret.baseUrl,shopId:secret.shopId??null,shopDomain:secret.shopDomain??null};const old=await find(ctx,'connector-identity',key);ensure(!old||canonical(old.data)===canonical(identity),'Store identity changed for an existing connection; retain the old connection for reconciliation and configure a new identity',409);if(!old)await save(ctx,'connector-identity',key,identity);});
 }
+export async function unavailableConnections(pool:pg.Pool,runtime:Data,configured:string[],error='CONNECTOR_CONNECTION_REMOVED'){
+ const identities=(await pool.query("SELECT key FROM business_records WHERE kind='connector-identity'")).rows;
+ for(const row of identities)if(!configured.includes(row.key))await connectorState(pool,{...runtime,connectionId:row.key},'connection_unavailable',error);
+}
