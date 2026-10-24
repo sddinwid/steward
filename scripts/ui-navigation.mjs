@@ -11,3 +11,17 @@ export function moduleNavigation(page){
  }};
 }
 export async function fillAdvancedJson(container,label,value){const field=container.getByLabel(label,{exact:true});for(const details of await field.locator('xpath=ancestor::details').all()){if(await details.getAttribute('open')===null)await details.locator(':scope > summary').click();}await field.fill(value);}
+// Exercise the same ordinary controls used by business users, without JSON editors.
+export async function fillBusinessFields(view,body){
+ for(const field of view.contribution.fields.filter(f=>!f.readOnly)){
+  const value=body[field.name];if(value===undefined)throw new Error('Missing browser form value '+field.name);
+  if(field.type==='json'){
+   const editor=view.section.locator('.module-field').filter({has:view.page.getByText(field.label,{exact:true})});
+   if(field.name==='lines'){
+    while(await editor.getByRole('button',{name:/^Remove line /}).count())await editor.getByRole('button',{name:/^Remove line /}).first().click();
+    for(let i=0;i<value.length;i++){await editor.getByRole('button',{name:'Add line item',exact:true}).click();for(const [key,v]of Object.entries(value[i])){const label=key.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/\b\w/g,c=>c.toUpperCase()).replace(/ Cents$/,'');await editor.getByLabel(field.label+' '+label+' '+(i+1),{exact:true}).fill(String(key.endsWith('Cents')?Number(v)/100:v));}}
+    if(value.length&&value.every(r=>r.unitPriceCents===undefined))await editor.getByRole('button',{name:'Use quantity only',exact:true}).first().click();
+   }else await editor.getByLabel('Values, separated by commas',{exact:true}).fill(value.join(', '));
+  }else{const input=view.section.getByLabel(field.label,{exact:true});if(field.enum)await input.selectOption(String(value));else await input.fill(String(value));}
+ }
+}

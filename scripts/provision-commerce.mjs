@@ -6,6 +6,7 @@ import {randomBytes,createHash} from 'node:crypto';
 import path from 'node:path';
 import {privateDirectory} from '../tools/installer/dist/security.js';
 const directory=path.resolve(process.argv[2]??'.steward/dev'),simulators=process.argv.includes('--simulators'),target=path.join(directory,'commerce');
+const simulatorCurrency=process.env.STEWARD_SIMULATOR_CURRENCY??'EUR';if(!/^(EUR|USD|GBP|CAD|AUD|NZD)$/.test(simulatorCurrency))throw new Error('Invalid simulator currency');
 const deployment=JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8')),workers=deployment.instances.filter(i=>i.role==='worker');
 const q=v=>JSON.stringify(v.replaceAll('\\','/')),slug=id=>'m_'+createHash('sha256').update(id).digest('hex').slice(0,20);
 const lock=path.join(directory,'.commerce-provision-lock');await mkdir(lock);
@@ -40,7 +41,7 @@ try{
     const accounts=[];
     for(const [n,i]of workers.entries()){
      const token=randomBytes(32).toString('hex'),webhookSecret=randomBytes(32).toString('hex'),shopId=String(1001+n),shopDomain='synthetic-'+i.installationId.slice(0,8)+'.myshopify.com';
-     accounts.push({shopId,shopDomain,token,webhookSecret,currency:'EUR',scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']});
+     accounts.push({shopId,shopDomain,token,webhookSecret,currency:simulatorCurrency,scopes:provider==='shopify'?['read_products','read_orders','write_merchant_managed_fulfillment_orders']:['orders.write']});
      await put('private/'+i.key+'/'+slug('cee.'+provider)+'.json',JSON.stringify({provider,mode:'simulator',baseUrl:`https://${provider}-simulator:8443/`,caPem,serverName:provider+'-simulator',token,webhookSecret,shopId,shopDomain,productionEnabled:true,syntheticAddress:{first_name:'Synthetic',last_name:'Demonstration',email:'demonstration@example.invalid',country:'US',region:'CA',address1:'Synthetic address',city:'Synthetic',zip:'00000'}},null,2)+'\n',true);
     }
     const config={provider,adminToken:randomBytes(32).toString('hex'),accounts,caPem,tlsKeyFile:'/run/simulator/tls-key.pem',tlsCertFile:'/run/simulator/tls-cert.pem'};await put('private/'+provider+'/config.json',JSON.stringify(config,null,2)+'\n',true);

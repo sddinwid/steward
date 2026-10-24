@@ -22,6 +22,7 @@ const prefix=()=>`SYN-P7-G${String(state.generation).padStart(4,'0')}-`;
 const route=(module,path)=>'/api/v3/modules/'+module+'/api'+path;
 async function rows(worker,module,path){const discovery=(await api(worker,'/api/v3/modules/discovery')).value.modules.find(m=>m.moduleId===module);const paginated=discovery?.api.find(a=>a.method==='GET'&&a.path===path)?.query?.includes('offset');const result=[];let offset=0;for(;;){const value=(await api(worker,route(module,path)+(paginated?`?limit=20&offset=${offset}`:''))).value;result.push(...value.records);if(value.nextOffset==null)break;offset=value.nextOffset;assert(offset<=10000,'Scenario lookup exceeds its safe limit');}return result;}
 async function create(worker,module,path,keyField,body){
+ if(module==='cee.sales'&&body.currency){const installed=(await api(worker,'/api/v3/modules')).value.installed.find(m=>m.moduleId===module);body={...body,currency:installed.configuration.currency};}
  const key=[worker,module,path,body[keyField]].join('|');let entry=state.records[key];
  if(!entry){assert(!(await rows(worker,module,path)).some(r=>r[keyField]===body[keyField]),'Synthetic key already exists without ownership evidence; refusing to adopt it');entry=state.records[key]={worker,module,path,keyField,key:body[keyField],body,creationDigest:digest(canonical(body)),id:null};await persist();}
  if(!entry.id){const value=(await api(worker,route(module,path),'POST',entry.body,201)).value.record;entry.id=value.id;await persist();}

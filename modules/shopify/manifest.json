@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Shopify",
   "description": "Independent SSMA shopify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.8.0",
@@ -245,6 +245,20 @@
           "type": "string",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "fulfillmentOwner",
+          "label": "Fulfillment owner",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "fulfillmentStatus",
+          "label": "Fulfillment status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
         }
       ],
       "columns": [
@@ -252,7 +266,9 @@
         "currency",
         "lines",
         "financialStatus",
-        "dispatchStatus"
+        "dispatchStatus",
+        "fulfillmentOwner",
+        "fulfillmentStatus"
       ],
       "actions": [
         {

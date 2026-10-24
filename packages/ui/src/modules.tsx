@@ -85,7 +85,7 @@ export function ModuleScreen({ api, module, screen, currency }: { api: Api; modu
     e.preventDefault(); setBusy(true); setError('');
     try {
       const operation = editing ? update! : create!;
-      const body = Object.fromEntries(screen.fields.filter(f => !f.readOnly).map(f => [f.name, f.type === 'number' ? Number(values[f.name]) : f.type==='json'?JSON.parse(typeof values[f.name]==='string'?values[f.name]:JSON.stringify(values[f.name]??null)):values[f.name] ?? '']));
+      const body = Object.fromEntries(screen.fields.filter(f => !f.readOnly).map(f => [f.name, f.type === 'number' ? Number(values[f.name]) : f.type==='json'?JSON.parse(typeof values[f.name]==='string'?values[f.name]:JSON.stringify(values[f.name]??[])):values[f.name] ?? '']));
       if (editing && editing.revision !== undefined) body.revision = editing.revision;
       await api(base + operation.path.replace(':id', encodeURIComponent(editing?.id ?? '')), operation.method, body);
       setValues({currency}); setEditing(undefined); await refresh();

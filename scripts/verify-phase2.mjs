@@ -1,3 +1,4 @@
+import {openWorkspace} from './ui-navigation.mjs';
 import assert from 'node:assert/strict';
 import { request as httpsRequest } from 'node:https';
 import { randomBytes, randomUUID, generateKeyPairSync } from 'node:crypto';
@@ -102,6 +103,7 @@ async function pageFor(origin, credentials) {
 const transientCandidates = [];
 try {
   const adminPage = await pageFor(masterOrigin, fixture.accounts.registry);
+  if(await adminPage.getByRole('navigation',{name:'Workspaces',exact:true}).count())await openWorkspace(adminPage,'/administration/companies');
   for (const [entityId, name] of [[fixture.entityA, fixture.nameA], [fixture.entityB, fixture.nameB]]) {
     await adminPage.getByLabel('Entity ID', { exact: true }).fill(entityId);
     await adminPage.getByLabel('Legal name', { exact: true }).fill(name);
@@ -120,6 +122,7 @@ try {
   }
   console.log('PASS browser registration of legal entities and explicit entity authorization');
   const workerPage = await pageFor(workerOrigin(workers[0]), fixture.accounts[workers[0].key]);
+  if(await workerPage.getByRole('navigation',{name:'Workspaces',exact:true}).count())await openWorkspace(workerPage,'/administration/enrollment');
   let state = await api(workerOrigin(workers[0]), '/worker/status');
   if (state.enrollmentState !== 'enrolled') {
     if (state.enrollmentState !== 'pending') {

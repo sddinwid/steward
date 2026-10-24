@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.8.0",
@@ -103,12 +103,25 @@
         "offset",
         "fields"
       ]
+    },
+    {
+      "operationId": "listExternalOrders",
+      "method": "GET",
+      "path": "/external-orders",
+      "permission": "cee.printify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
     }
   ],
   "ui": [
     {
       "screenId": "mapping",
-      "title": "printify \u2014 mapping",
+      "title": "printify — mapping",
       "navigationLabel": "printify mapping",
       "listOperation": "listmapping",
       "createOperation": "createmapping",
@@ -141,7 +154,7 @@
     },
     {
       "screenId": "connection",
-      "title": "printify \u2014 connection",
+      "title": "printify — connection",
       "navigationLabel": "printify connection",
       "listOperation": "listconnection",
       "fields": [
@@ -189,7 +202,7 @@
     },
     {
       "screenId": "product",
-      "title": "printify \u2014 product",
+      "title": "printify — product",
       "navigationLabel": "printify product",
       "listOperation": "listproduct",
       "fields": [
@@ -231,7 +244,7 @@
     },
     {
       "screenId": "job",
-      "title": "printify \u2014 job",
+      "title": "printify — job",
       "navigationLabel": "printify job",
       "listOperation": "listjob",
       "fields": [
@@ -337,6 +350,63 @@
         "sourceId",
         "title",
         "salesChannel"
+      ]
+    },
+    {
+      "screenId": "external-order",
+      "title": "Native and external fulfillment monitoring",
+      "navigationLabel": "Native Printify Fulfillment",
+      "listOperation": "listExternalOrders",
+      "fields": [
+        {
+          "name": "sourceId",
+          "label": "source Id",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "externalId",
+          "label": "external Id",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "ownership",
+          "label": "ownership",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "tracking",
+          "label": "tracking",
+          "type": "json",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "sourceId",
+        "ownership",
+        "status",
+        "tracking",
+        "currency"
       ]
     }
   ],

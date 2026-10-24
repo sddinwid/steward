@@ -22,12 +22,15 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
   const csrf = useRef('');
   const api: Api = async (path, method = 'GET', body) => {
     const versioned = /^\/v(?:3|4|5|8)\//.test(path);
+    for(let attempt=0;;attempt++){
     const response = await fetch(versioned ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(versioned ? 90000 : 15000) });
     const value = await response.json();
-    if (!response.ok) throw new Error(value.error ?? 'Request failed');
+    if(!response.ok&&response.status===409&&value.error==='OPERATION_IN_PROGRESS'&&method==='GET'&&attempt<3){await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));continue;}
+    if (!response.ok) throw new Error(value.error==='OPERATION_IN_PROGRESS'?'This application is processing another operation. Wait briefly and refresh before retrying.':value.error ?? 'Request failed');
     return value;
+    }
   };
   useEffect(() => { void api('/auth/session').then(v => { csrf.current = v.csrfToken; setAccount(v.account); }).catch(() => {}).finally(()=>setChecking(false)); }, []);
   async function login(e: FormEvent) {
