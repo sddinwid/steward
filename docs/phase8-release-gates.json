@@ -1,0 +1,80 @@
+{
+  "formatVersion": 1,
+  "status": "passed",
+  "verifiedAt": "2026-10-24T02:46:00.083Z",
+  "sourceCommit": "84034aab73645111e03a9fc1d18dbf5e0f17a7d2",
+  "verifiedCandidateManifestSha256": "30b13916544f3066e1f386b6062e6bc6ac28a78774f710d73d36b4f119b08e8f",
+  "gates": [
+    {
+      "id": "A",
+      "name": "Existing behavior and regressions",
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase8-final-tests.log",
+        "artifacts/phase8-regressions.json",
+        "artifacts/phase8-legacy-phase3.log",
+        "artifacts/phase8-legacy-phase5.log",
+        "artifacts/phase8-phase7-browser.log",
+        "artifacts/phase8-phase7-mcp.log",
+        "artifacts/phase8-phase7-recovery.log",
+        "artifacts/phase8-phase7-test-model.log"
+      ]
+    },
+    {
+      "id": "B",
+      "name": "Signed SSMA, legal scope, provider substitution and durable recovery",
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase8-smart-browser-verification.json",
+        "artifacts/phase8-provider-browser.json",
+        "artifacts/phase8-commerce-backend.json"
+      ]
+    },
+    {
+      "id": "C",
+      "name": "Operational simulated commerce and duplicate-safe outage recovery",
+      "status": "passed",
+      "evidence": [
+        "artifacts/final-phase8-deployed-commerce.json",
+        "artifacts/final-phase8-deployed-recovery.json",
+        "artifacts/phase8-connector-failures.json"
+      ]
+    },
+    {
+      "id": "D",
+      "name": "Actual browser administration and operations",
+      "status": "passed",
+      "evidence": [
+        "artifacts/final-phase8-deployed-modules.json",
+        "artifacts/phase8-provider-browser.json",
+        "artifacts/phase8-commerce-upgrades.json"
+      ]
+    },
+    {
+      "id": "E",
+      "name": "Governed deterministic MCP, genuine model, reviewed affected-only findings",
+      "status": "passed",
+      "evidence": [
+        "artifacts/final-phase8-commerce-mcp.json",
+        "artifacts/phase8-ollama-commerce.json",
+        "artifacts/phase7-reviewed-fd26030c-ccf0-4114-b2b4-75fe32c7dd5e.json",
+        "artifacts/phase8-published-finding-final-recheck.json"
+      ]
+    },
+    {
+      "id": "F",
+      "name": "Clean archive installation, direct v0.7 upgrade, hashes and redeployment",
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase8-final-clean-install.log",
+        "artifacts/final-phase8-deployed-commerce.json",
+        "artifacts/final-phase8-provision.json",
+        "artifacts/phase8-upgrade.json",
+        "artifacts/phase8-redeployment.json",
+        "artifacts/phase8-retained-phase7-preservation.json"
+      ]
+    }
+  ],
+  "commercialConnectivity": "Not verified; simulated Shopify/Printify only",
+  "productionReadiness": "MVP acceptance; commercial production readiness is not claimed"
+}

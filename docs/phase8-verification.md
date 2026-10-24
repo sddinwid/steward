@@ -2,7 +2,7 @@
 
 Date: 2026-10-23 local / 2026-10-24 UTC. Branch: phase8/smart-modules-commerce. Continuation began at fa79ac7; no Phase 8 components were restarted or discarded. The retained Phase 7 deployment was preserved.
 
-Runtime acceptance below has passed. The exact final archive is being validated before promotion/tagging. An accepted distribution must have acceptanceStatus=accepted and acceptanceEvidenceCommit in release.json; that commit identifies the completed repository verification report. Historical checkpoint evidence is retained in phase8-checkpoint-verification.md.
+All mandatory Phase 8 gates passed, including the exact final archive. An accepted distribution must have acceptanceStatus=accepted and acceptanceEvidenceCommit in release.json; that commit identifies the completed repository verification report. Historical checkpoint evidence is retained in phase8-checkpoint-verification.md.
 
 ## Implemented release
 
@@ -70,3 +70,11 @@ The exact application images completed a fresh installation with three enrolled 
 Direct final-image upgrade from a newly populated actual v0.7 installation passed, including real operator accounts, trusted enrollment, custom module configuration, stock and synchronized capacity records. Retained-data redeployment also passed after correcting the snapshot boundary: connection health/revision observations may change during restart; connector identity and all authoritative business rows, receipts, accounts, identities and files remain compared. The first failed snapshot is retained as artifacts/phase8-redeployment-first-attempt.json.
 
 On the corrected final core, the original published real-model finding and every original calculation/source revision were independently recomputed again. Only Workers 1 and 3 still have it, both acknowledged; Worker 2 has none. A further 35,336 ms model repeat mislabeled the high-cost entity and net revenue, so review rejected it and no finding was published. These are documented model-quality limitations, not silently accepted recommendations.
+
+## Final acceptance
+
+All gates A-F passed for clean source commit 84034aab73645111e03a9fc1d18dbf5e0f17a7d2. The final archive is artifacts/releases/steward-0.8.0, with separate Master/Worker distribution manifests, seven pinned core/database/simulator images and 15 separately versioned module payloads. The copied final toolkit completed npm ci/build, fresh installation, three trusted enrollments, ten actual browser module additions, both initial commerce workflows, an additional outage/restart workflow, source-backed MCP calculations and byte-preserving repeat provisioning. The final three-order analytical sample is revenue EUR 150.00, estimated production EUR 64.00, shipping EUR 12.00 and estimated margin EUR 74.00. The model-backed two-order finding remains a separately attributed EUR 100/56/44 sample, rechecked on final core.
+
+The accepted Phase 7 baseline comparison passed: 23 authoritative module table hashes, 79 private configuration/secret file hashes, all enrollment certificates, every core image ID and 27 running containers match its accepted snapshot. Temporary verification deployments are stopped without deleting their database volumes/configuration. The primary Phase 8 deployment remains at API 14100/web 15100/HTTPS 16100; Workers at APIs 14201-14203, webs 15201-15203 and HTTPS 16201-16203. Its 37 containers include both TLS simulators. Final test-time observation: 1,528.04 MiB aggregate container memory and 54.92% Docker CPU; not a capacity benchmark. Ollama has zero loaded models.
+
+The accepted archive is promoted only after this evidence commit; promotion preserves all payload checksums/image IDs and binds acceptanceEvidenceCommit. Candidate manifest SHA-256: 30b13916544f3066e1f386b6062e6bc6ac28a78774f710d73d36b4f119b08e8f. Image archive SHA-256: 4eb52251095a16902e9b0f1110cdd92f8eb3f93e62e9c90114b3996eb4bd8c58. The final accepted manifest hash and release tag are recorded in the completion commit and verification sidecar outside the archive. The original failed candidate is retained under artifacts/candidates/steward-0.8.0-final-attempt1 and is not an accepted release.

@@ -1,6 +1,6 @@
 {
-  "recordedAt": "2026-10-24T02:28:13.130Z",
-  "status": "runtime_passed_final_archive_pending",
+  "recordedAt": "2026-10-24T02:46:00.085Z",
+  "status": "passed",
   "checkpoint": "fa79ac7",
   "backendTests": {
     "total": 80,
@@ -726,6 +726,192 @@
   "liveCommercialValidation": false,
   "retainedPhase7": "27 containers preserved; no volume reset, identity/configuration replacement or business-record writes",
   "finalArchive": {
-    "status": "pending final script refresh and exact archive redeployment"
+    "status": "passed",
+    "sourceCommit": "84034aab73645111e03a9fc1d18dbf5e0f17a7d2",
+    "includesWorkingTreeChanges": false,
+    "verifiedCandidateManifestSha256": "30b13916544f3066e1f386b6062e6bc6ac28a78774f710d73d36b4f119b08e8f",
+    "imageArchiveSha256": "4eb52251095a16902e9b0f1110cdd92f8eb3f93e62e9c90114b3996eb4bd8c58",
+    "imageArchiveBytes": 1134149632,
+    "images": {
+      "master-api": {
+        "tag": "steward-master-api:0.8.0",
+        "id": "sha256:cd9f9cf7b1d0fcaf11b5bde44f1ec42bc702fdce902fb4814ad00ee91717c35b",
+        "platform": "linux/amd64"
+      },
+      "master-web": {
+        "tag": "steward-master-web:0.8.0",
+        "id": "sha256:5ab06b2acd3ae425fecbd419382adda59aff13c4f6934756bea9b8f37993b379",
+        "platform": "linux/amd64"
+      },
+      "worker-api": {
+        "tag": "steward-worker-api:0.8.0",
+        "id": "sha256:6a96c93e9bcc87d7dd90583cd9a16ea892b1c653b1ff94070ef3520f29de79e1",
+        "platform": "linux/amd64"
+      },
+      "worker-web": {
+        "tag": "steward-worker-web:0.8.0",
+        "id": "sha256:3718895a1c2d3febac543f133b4ef592019b63f4a82cd1d671418d9d6f8eff2a",
+        "platform": "linux/amd64"
+      },
+      "module-host": {
+        "tag": "steward-module-host:0.8.0",
+        "id": "sha256:d3fb3f84cf4c05daa365c48263b6d4c37c47bac89c031bdca04880a68d05a93c",
+        "platform": "linux/amd64"
+      },
+      "postgres": {
+        "tag": "postgres:17.9-alpine",
+        "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+      },
+      "commerce-simulator": {
+        "tag": "steward-commerce-simulator:1.0.0",
+        "id": "sha256:b172f0c79ef6cb1b4240782282be822a5e39e39e65a6c902f5bfe21cfdb20ca2"
+      }
+    },
+    "cleanProject": "steward-phase8-final-clean",
+    "initialCommerce": {
+      "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\phase8-final-clean",
+      "startedAt": "2026-10-24T02:36:25.567Z",
+      "simulation": true,
+      "checks": [
+        {
+          "name": "worker-1 deterministic approved SSMA commerce workflows"
+        },
+        {
+          "name": "worker-1 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+          "sourceId": "gid://shopify/Order/1",
+          "creates": 1,
+          "productionSubmissions": 1,
+          "channelFulfillments": 1,
+          "inventoryQuantity": 18
+        },
+        {
+          "name": "worker-3 deterministic approved SSMA commerce workflows"
+        },
+        {
+          "name": "worker-3 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+          "sourceId": "gid://shopify/Order/3",
+          "creates": 1,
+          "productionSubmissions": 1,
+          "channelFulfillments": 1,
+          "inventoryQuantity": 18
+        }
+      ],
+      "browserErrors": [],
+      "status": "passed",
+      "finishedAt": "2026-10-24T02:36:59.252Z"
+    },
+    "recovery": {
+      "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\phase8-final-clean",
+      "startedAt": "2026-10-24T02:42:12.696Z",
+      "simulation": true,
+      "checks": [
+        {
+          "name": "Master/simulator outages, Worker/coordinator/module restarts recover exactly once",
+          "creates": 2,
+          "productionSubmissions": 2,
+          "channelFulfillments": 2,
+          "inventoryQuantity": 16,
+          "recordId": "25c8733e-3bdc-41e0-89cf-3a6ef2a8ef6e"
+        }
+      ],
+      "browserErrors": [],
+      "status": "passed",
+      "finishedAt": "2026-10-24T02:42:47.709Z"
+    },
+    "analyticalSample": {
+      "recognizedRevenue": "EUR 150.00",
+      "refunds": "EUR 0.00",
+      "netRevenue": "EUR 150.00",
+      "production": "EUR 64.00",
+      "shipping": "EUR 12.00",
+      "grossMargin": "EUR 74.00"
+    },
+    "retainedPhase7": {
+      "verifiedAt": "2026-10-24T02:39:51.825Z",
+      "status": "passed",
+      "reference": "accepted Phase 7 redeployment snapshot",
+      "moduleBusinessTablesMatched": 23,
+      "privateConfigurationFileHashesMatched": 79,
+      "enrollmentCertificatesMatched": true,
+      "coreImageIdsMatched": true,
+      "runningContainers": 27
+    },
+    "moduleVersions": [
+      {
+        "moduleId": "cee.inventory",
+        "version": "1.2.1",
+        "imageId": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd"
+      },
+      {
+        "moduleId": "cee.inventory",
+        "version": "1.3.2",
+        "imageId": "sha256:add7f621757966331f405bd6da028f29d2764c934c4f2e9b06678ecc716fdec3"
+      },
+      {
+        "moduleId": "cee.operations",
+        "version": "1.0.0",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+      },
+      {
+        "moduleId": "cee.procurement",
+        "version": "1.0.2",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7"
+      },
+      {
+        "moduleId": "cee.sales",
+        "version": "1.0.2",
+        "imageId": "sha256:085ed85e98cb81fdfc4e811ced95e1e412927fb23acc7024abe4dc3134fd1aac"
+      },
+      {
+        "moduleId": "cee.assets",
+        "version": "1.0.3",
+        "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58"
+      },
+      {
+        "moduleId": "cee.workforce",
+        "version": "1.0.2",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0"
+      },
+      {
+        "moduleId": "cee.inventory",
+        "version": "1.4.0",
+        "imageId": "sha256:7a6ced10b15914aaaa15f587401d0a5597b4e0d3b3540440a28ff9163eb5730e"
+      },
+      {
+        "moduleId": "cee.sales",
+        "version": "1.1.0",
+        "imageId": "sha256:59535bc9873cdc20fc779427a0e13e4d111225e6ef5650b1bc0e45b19f868d8a"
+      },
+      {
+        "moduleId": "cee.shopify",
+        "version": "1.0.0",
+        "imageId": "sha256:cdabe578659145d3ce992ae259e76a56b09e5539d5496013c79e2a075e202fdb"
+      },
+      {
+        "moduleId": "cee.printify",
+        "version": "1.0.0",
+        "imageId": "sha256:ab7753c30347803b817fff72cfc4a48dfe6b1e66faedacd9494143b655276aac"
+      },
+      {
+        "moduleId": "cee.stock-ledger",
+        "version": "1.0.0",
+        "imageId": "sha256:89317f4eba068b4500de0b06ed04929b579449232bb75253ca4717eee7c5c25f"
+      },
+      {
+        "moduleId": "cee.sales",
+        "version": "1.1.1",
+        "imageId": "sha256:87c2b9cf2de1dce25f7087ded83622028d4b36df238aaf45eea373f694d552dd"
+      },
+      {
+        "moduleId": "cee.printify",
+        "version": "1.0.1",
+        "imageId": "sha256:5c98a20212d1849681c90980bbb744bd1f0d2dd16517eec98e96f5004331a94d"
+      },
+      {
+        "moduleId": "cee.printify",
+        "version": "1.0.2",
+        "imageId": "sha256:2e498328485c63b9b28357058075374ace00544c0538111069cc7b619e0ac1fe"
+      }
+    ]
   }
 }
