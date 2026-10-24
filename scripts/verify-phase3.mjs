@@ -268,7 +268,7 @@ try {
   assert.equal(Object.keys(runtime.NetworkSettings.Ports).length, 1); assert.equal(runtime.NetworkSettings.Ports['8080/tcp'], null);
   const direct = compose('exec', '-T', 'worker-1-module-host', 'node', '-e', `require('http').get('http://${container('worker-1')}:8080/items',r=>{console.log(r.statusCode);r.resume()})`);
   assert.equal(direct, '401');
-  assert.equal((await fetch('http://127.0.0.1:4201/api/v3/modules')).status, 404);
+  assert.equal((await fetch('http://127.0.0.1:'+deployment.instances.find(i=>i.key==='worker-1').apiPort+'/api/v3/modules')).status, 404);
   // Exercise the real provider's independent cryptographic boundary/replay store.
   const identityKey = await readFile(path.join(directory, 'security/worker-1/identity-key.pem'), 'utf8');
   const control = { protocol: 'steward-module-control-v1', installationId: deployment.instances.find(i => i.key === 'worker-1').installationId,

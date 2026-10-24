@@ -1,3 +1,4 @@
+import {atLeast} from '../packages/module-sdk/dist/index.js';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {writeFile} from 'node:fs/promises';
@@ -8,7 +9,7 @@ await logins();const before=snapshot();
 for(const w of ['worker-1','worker-2','worker-3']){
  const installed=(await api(w,'/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.inventory');
  const records=(await api(w,'/api/v3/modules/cee.inventory/api/items')).value.records;
- if(installed.version!=='1.2.1'){
+ if(!atLeast(installed.version,'1.2.1')){
   await api(w,'/api/v3/modules/install','POST',{packageId:'cee.inventory@1.2.1',operationId:randomUUID(),configuration:installed.configuration,upgrade:true});
   await api(w,'/api/v3/modules/cee.inventory/lifecycle','POST',{action:'activate'});
  }
@@ -19,7 +20,7 @@ for(const w of ['worker-1','worker-2','worker-3']){
   const c=JSON.parse(docker(['inspect',id]))[0];if(c.Config.Labels['steward.module.id']!=='cee.inventory'&&c.Config.Labels['steward.module']!=='cee.inventory')continue;
   docker(['exec',id,'node','-e',"const fs=require('fs'),p=JSON.parse(fs.readFileSync('package.json'));if(p.dependencies['steward-platform']||fs.existsSync('/app/packages/platform')||fs.existsSync('node_modules/steward-platform'))process.exit(1)"]);
  }
- console.log('PASS '+w+': signed Inventory 1.2.1 upgrade preserves all item records');
+ console.log('PASS '+w+': signed compatible Inventory package preserves all item records');
 }
 const after=snapshot();assert.deepEqual(after,before);
 await writeFile('artifacts/phase5-inventory-upgrade.json',JSON.stringify({verifiedAt:new Date().toISOString(),before,after,assertions:'all passed'},null,2)+'\n');

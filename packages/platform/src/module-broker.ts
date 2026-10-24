@@ -12,13 +12,14 @@ export async function createModuleBroker(configFile:string,installation:Installa
       moduleId: descriptor.payload.manifest.moduleId, version: descriptor.payload.manifest.version, configuration, ...extra };
     const body = JSON.stringify(signAssertion(payload, key));
     const ca = await readFile(runtime.caFile);
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
+      const unavailable=()=>resolve({status:503,value:{error:'MODULE_RUNTIME_UNAVAILABLE',recovery:'Module runtime is unavailable. Retained operations will reconcile after recovery.'}});
       const req = request(new URL('/control', runtime.brokerUrl), { method: 'POST', ca, servername: runtime.tlsServerName, rejectUnauthorized: true, timeout: ['proxy','inspect','webhook'].includes(operation)?4000:60000, signal: AbortSignal.timeout(['proxy','inspect','webhook'].includes(operation)?4000:60000), lookup: boundedLookup,
         headers: { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body) } }, res => {
         let value = ''; res.setEncoding('utf8'); res.on('data', chunk => { value += chunk; if (value.length > 1048576) req.destroy(new Error('Module response too large')); });
-        res.on('end', () => { try { resolve({ status: res.statusCode ?? 503, value: JSON.parse(value) }); } catch { reject(new Error('Module runtime response invalid')); } });
+        res.on('end', () => { try { resolve({ status: res.statusCode ?? 503, value: JSON.parse(value) }); } catch { unavailable(); } });
       });
-      req.on('timeout', () => req.destroy(new Error('Module runtime timeout'))); req.on('error', reject); req.end(body);
+      req.on('timeout', () => req.destroy(new Error('Module runtime timeout'))); req.on('error', unavailable); req.end(body);
     });
   }
 

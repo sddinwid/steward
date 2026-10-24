@@ -15,6 +15,16 @@ async function snapshot(dir: string): Promise<Record<string, string>> {
   }
   return result;
 }
+
+test('parallel deployments use explicit ports and infer them on a safe repeat; changing ports preserves existing state',async()=>{
+  const base=await mkdtemp(path.join(tmpdir(),'steward-offset-'));
+  const o:ProvisionOptions={directory:path.join(base,'deployment'),sourceRoot:process.cwd(),mode:'all',workers:3,project:'offset-test',label:'Independent fixture',portOffset:10000};
+  try{
+    const result=await provision(o);assert.deepEqual(result.manifest.instances.map(i=>i.apiPort),[14100,14201,14202,14203]);
+    const before=await snapshot(o.directory),{portOffset:_,...repeat}=o;assert.equal((await provision(repeat)).created,false);assert.deepEqual(await snapshot(o.directory),before);
+    await assert.rejects(provision({...o,portOffset:20000}),/Existing deployment differs/);assert.deepEqual(await snapshot(o.directory),before);
+  }finally{await rm(base,{recursive:true,force:true});}
+});
 test('provisioning creates distinct identities/secrets and reruns preserve all bytes, including edited config', async () => {
   const base = await mkdtemp(path.join(tmpdir(), 'steward-provision-'));
   const o: ProvisionOptions = { directory: path.join(base, 'deployment'), sourceRoot: process.cwd(), mode: 'all', workers: 3, project: 'test-project', label: 'Test' };

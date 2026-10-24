@@ -7,7 +7,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.7.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false}}});
+const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.7.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false},'port-offset':{type:'string'},simulators:{type:'boolean',default:false},candidate:{type:'boolean',default:false}}});
 const action=positionals[0],directory=path.resolve(values.directory),bundle=path.resolve(values.bundle??'artifacts/releases/steward-'+values.version);
 const run=(cmd,args,options={})=>execFileSync(cmd,args,{cwd:root,encoding:'utf8',timeout:600000,stdio:'inherit',...options});
 const node=(script,args=[])=>run(process.execPath,[path.join(root,script),...args]);
@@ -25,21 +25,22 @@ async function verifyBundle(){
  }
  const actual=(await files(bundle)).map(f=>path.relative(bundle,f).replaceAll('\\','/')).filter(f=>f!=='release.json').sort();
  if(JSON.stringify(actual)!==JSON.stringify(Object.keys(m.files).sort()))throw new Error('Unexpected or missing release files');
- const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres'];
- if(!['0.5.0','0.7.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
+ const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres',...(m.platformCompatibility==='0.8.0'?['commerce-simulator']:[])];
+ if(!['0.5.0','0.7.0','0.8.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
  return m;
 }
 async function pack(){
  if(values.version!==JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).version)throw new Error('Pack from source matching the target release version; use the preserved tagged source for historical releases.');
- if(!['0.6.0','0.7.0'].includes(values.version))throw new Error('Phase 8 commerce and packaged deployment acceptance are pending. Do not package an unverified release using Phase 7 image selection.');
+ if(!['0.6.0','0.7.0','0.8.0'].includes(values.version))throw new Error('Unsupported release version');
+ if(values.version==='0.8.0'){if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Phase 8 packaging requires clean committed source');if(!values.candidate){const gates=JSON.parse(await readFile(path.join(root,'docs/phase8-release-gates.json'),'utf8'));if(gates.status!=='passed'||gates.gates.some(g=>g.status!=='passed'))throw new Error('Mandatory Phase 8 gates remain open; package only an explicitly marked candidate');}}
  if(!/^\d+\.\d+\.\d+$/.test(values.version))throw new Error('Version must be semver');
  if(path.resolve(run('git',['rev-parse','--show-toplevel'],{stdio:['ignore','pipe','pipe']}).trim())!==root)throw new Error('Pack from the verified repository root, not an installed toolkit');
  await mkdir(path.dirname(bundle),{recursive:true});await mkdir(bundle,{recursive:false});
  const source=JSON.parse(await readFile(path.join(directory,'modules/public/catalog.json'),'utf8'));
  const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
  const {verifyPackage}=await import('../packages/module-sdk/dist/index.js');
- const compatibility=values.version==='0.6.0'?'0.5.0':'0.7.0';
- const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2'];
+ const compatibility=values.version==='0.8.0'?'0.8.0':values.version==='0.6.0'?'0.5.0':'0.7.0';
+ const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(compatibility==='0.8.0'?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0']:[])];
  const packages=selected.map(id=>{
   const signed=source.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===id);
   if(!signed)throw new Error('Publish required package '+id+' before packaging');return verifyPackage(signed,trust);
@@ -53,6 +54,7 @@ async function pack(){
   docker('tag',id,tag);images[kind]={tag,id,platform:metadata.Os+'/'+metadata.Architecture};
  }
  images.postgres={tag:'postgres:17.9-alpine',id:JSON.parse(docker('image','inspect','postgres:17.9-alpine'))[0].Id};
+ if(compatibility==='0.8.0')images['commerce-simulator']={tag:'steward-commerce-simulator:1.0.0',id:JSON.parse(docker('image','inspect','steward-commerce-simulator:1.0.0'))[0].Id};
  const names=run('git',['ls-files','--cached','--others','--exclude-standard','-z'],{stdio:['ignore','pipe','pipe']}).split('\0').filter(Boolean);
  const toolkit=path.join(bundle,'toolkit');
  for(const name of names){
@@ -70,7 +72,7 @@ async function pack(){
  console.log('Saving versioned core, PostgreSQL and separate module images…');
  docker('image','save','-o',path.join(bundle,'images.tar'),...Object.values(images).map(i=>i.tag),...packages.map(p=>p.imageId));
  const hashes={};for(const f of await files(bundle))hashes[path.relative(bundle,f).replaceAll('\\','/')]=await digest(f);
- await writeFile(path.join(bundle,'release.json'),JSON.stringify({formatVersion:1,version:values.version,createdAt:new Date().toISOString(),sourceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim(),includesWorkingTreeChanges:!!run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim(),platformCompatibility:compatibility,images,files:hashes},null,2)+'\n');
+ await writeFile(path.join(bundle,'release.json'),JSON.stringify({formatVersion:1,version:values.version,createdAt:new Date().toISOString(),acceptanceStatus:values.candidate?'candidate':'accepted',sourceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim(),includesWorkingTreeChanges:!!run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim(),platformCompatibility:compatibility,images,files:hashes},null,2)+'\n');
  console.log('Release '+values.version+' packaged at '+bundle+'; distribute the whole directory.');
 }
 async function install(upgrade=false){
@@ -82,8 +84,9 @@ async function install(upgrade=false){
   for(const image of Object.values(m.images))if(JSON.parse(docker('image','inspect',image.id))[0].Id!==image.id)throw new Error('Pinned core image missing from the loaded release');
   const previous=existsSync(path.join(directory,'manifest.json'))?JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8')):null;
   if(upgrade&&!previous)throw new Error('Upgrade requires an existing deployment');
-  node('tools/installer/dist/cli.js',['provision','--directory',directory,'--mode',previous?.mode??values.mode,'--workers',String(previous?Math.max(1,previous.instances.filter(i=>i.role==='worker').length):values.workers),'--project',previous?.project??values.project,'--label',previous?.label??'Steward MVP']);
+  node('tools/installer/dist/cli.js',['provision','--directory',directory,'--mode',previous?.mode??values.mode,'--workers',String(previous?Math.max(1,previous.instances.filter(i=>i.role==='worker').length):values.workers),'--project',previous?.project??values.project,'--label',previous?.label??'Steward MVP',...(values['port-offset']?['--port-offset',values['port-offset']]:[])]);
   for(const cli of ['security','modules','data','analyst'])node('tools/installer/dist/'+cli+'-cli.js',[directory,...(cli==='security'&&values.trust?[path.resolve(values.trust)]:[])]);
+  if(m.platformCompatibility==='0.8.0')node('scripts/provision-commerce.mjs',[directory,...(values.simulators?['--simulators']:[])]);
   const {signPackage,canonical}=await import('../packages/module-sdk/dist/index.js');
   const key=await readFile(path.join(directory,'security/module-publisher-key.pem'),'utf8');
   const catalogPath=path.join(directory,'modules/public/catalog.json'),catalog=JSON.parse(await readFile(catalogPath,'utf8'));
@@ -101,9 +104,10 @@ async function install(upgrade=false){
    services.push('  '+i.key+'-db:\n    image: '+m.images.postgres.id+'\n    pull_policy: never');
    if(i.role==='worker')services.push('  '+i.key+'-module-host:\n    image: '+m.images['module-host'].id+'\n    build: !reset null\n    pull_policy: never');
   }
+  if(m.images['commerce-simulator']&&values.simulators)for(const provider of ['shopify','printify'])services.push('  '+provider+'-simulator:\n    image: '+m.images['commerce-simulator'].id+'\n    pull_policy: never');
   const releaseDir=path.join(directory,'release');await mkdir(releaseDir,{recursive:true});
   const overlay='services:\n'+services.join('\n')+'\n',candidate=path.join(releaseDir,'candidate.yaml');await writeFile(candidate,overlay);
-  const overlays=['compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml'].flatMap(f=>['-f',path.join(directory,f)]);
+  const overlays=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','commerce/compose.yaml'].filter(f=>existsSync(path.join(directory,f))).flatMap(f=>['-f',path.join(directory,f)]);
   docker('compose',...overlays,'-f',candidate,'config','--quiet');
   const selected=path.join(releaseDir,'compose.yaml');
   if(existsSync(selected)&&await readFile(selected,'utf8')!==overlay)await copyFile(selected,path.join(releaseDir,'previous-compose.yaml'));
