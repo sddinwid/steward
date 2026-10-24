@@ -25,8 +25,9 @@ export function StewardApp({ role }: { role: StewardRole }) {
     const interval = setInterval(() => void refresh(), 10000);
     return () => { mounted = false; clearInterval(interval); current?.abort(); };
   }, [role]);
+  if(location.protocol==='https:')return <SecurityConsole role={role}/>;
   return <div className="shell">
-    <aside><a className="brand" href="/">S<span>ST E W A R D</span></a><div className="nav-label">PLATFORM</div><div className="selected">◈ &nbsp; Overview</div><div className="aside-bottom">CEE Steward ecosystem<br />Phase 1 · Foundation</div></aside>
+    <aside><a className="brand" href="/">S<span>ST E W A R D</span></a><div className="nav-label">PLATFORM</div><div className="selected">◈ &nbsp; Overview</div><div className="aside-bottom">CEE Steward ecosystem<br />Independent business platform</div></aside>
     <main><header><span>{role === 'master' ? 'Master' : 'Worker'} Steward</span><span className="release">Core {overview?.release ?? '—'}</span></header>
       <div className="content"><p className="eyebrow">INSTALLATION OVERVIEW</p><h1>{overview?.installation.entity.displayName ?? `${role === 'master' ? 'Master' : 'Worker'} Steward`}</h1>
       <p className="intro">{role === 'worker' ? 'An independent local runtime, with dedicated configuration and persistence.' : 'The foundation for coordinating the Steward ecosystem.'}</p>

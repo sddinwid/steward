@@ -1,3 +1,4 @@
+import { workspaceRoutes } from '../workspace.js';
 import { mcpRoutes } from '../mcp.js';
 import { analystRoutes } from '../analyst.js';
 import Fastify from 'fastify';
@@ -34,6 +35,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
     await workerRoutes(app, database.pool, auth, installation, key, security);
     if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE);
   }
+  workspaceRoutes(app,database.pool,auth,installation);
   await synchronizationRoutes(app,database.pool,auth,installation,key,security);
   await mcpRoutes(app,database.pool,auth,installation,security.publicOrigin);
   if(installation.role==='master') await analystRoutes(app,database.pool,auth,security);

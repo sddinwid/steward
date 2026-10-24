@@ -116,7 +116,7 @@ try{
    const snapshot=async()=>canonical(await Promise.all(['platform_installation','security_accounts','module_installations'].map(async table=>(await baseline.query('SELECT * FROM '+table+' ORDER BY 1')).rows)));
    const before=await snapshot(),database=new PostgresDatabase({...connection,database:'upgrade_baseline',ssl:false},identity);pools.push(database.pool);
    await database.migrate();await database.check();assert.equal(await snapshot(),before);await database.migrate();await database.check();assert.equal(await snapshot(),before);
-   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,9);
+   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,10);
  });
  await test('SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers',async()=>{
    await api('','GET',undefined,user,403);await api('/resolve','POST',{consumerId:'example.checkout',capabilityId:requirement.capabilityId},user,403);
@@ -186,7 +186,7 @@ try{
    try{
      const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
      await page.goto(origin);await page.getByLabel('Username',{exact:true}).fill('local-admin');await page.getByLabel('Password',{exact:true}).fill(adminPassword);await page.getByRole('button',{name:'Sign in',exact:true}).click();
-     await page.getByRole('heading',{name:'Smart Modules',exact:true}).waitFor();await page.getByText('example.stock-a 1.0.0',{exact:false}).waitFor();
+     await page.goto(origin+'/#/developer/diagnostics');await page.getByRole('heading',{name:'Smart Modules',exact:true}).waitFor();await page.getByText('example.stock-a 1.0.0',{exact:false}).waitFor();
      await page.getByLabel('Consumer module',{exact:true}).selectOption('example.checkout');await page.getByLabel('Required capability',{exact:true}).selectOption(requirement.capabilityId);
      await page.getByLabel('Smart Module approval reason').fill(reason);await page.getByRole('button',{name:'Inspect compatibility',exact:true}).click();await page.getByText('Resolution: ambiguous.',{exact:false}).waitFor();
      const [approval]=await Promise.all([page.waitForResponse(r=>r.url().endsWith('/api/v8/smart-modules/bindings')&&r.request().method()==='POST'),page.getByRole('button',{name:'Approve example.stock-b',exact:true}).click()]);assert.equal(approval.status(),200);await page.getByRole('button',{name:'Approve example.stock-b',exact:true}).waitFor();

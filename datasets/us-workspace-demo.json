@@ -1,0 +1,32 @@
+{
+  "datasetVersion": 1,
+  "scenarioId": "SYN-US-WORKSPACE-01",
+  "description": "Newly authored synthetic US transactions in USD. Values are not conversions of historical EUR fixtures. No purchases or external production.",
+  "worker": "worker-1",
+  "country": "US",
+  "currency": "USD",
+  "locale": "en-US",
+  "timezone": "America/New_York",
+  "customer": {
+    "code": "SYN-US-CUSTOMER-01",
+    "name": "Synthetic US Demonstration Customer",
+    "reference": "SYN-US-WORKSPACE-01"
+  },
+  "item": {
+    "sku": "SYN-US-ITEM-01",
+    "name": "Synthetic US Demonstration Item",
+    "quantity": 40
+  },
+  "order": {
+    "number": "SYN-US-ORDER-01",
+    "customerCode": "SYN-US-CUSTOMER-01",
+    "currency": "USD",
+    "lines": [
+      {
+        "sku": "SYN-US-ITEM-01",
+        "quantity": 2,
+        "unitPriceCents": 1250
+      }
+    ]
+  }
+}
