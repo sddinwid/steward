@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,rename,rmdir} from 'node:fs/promises';
@@ -37,8 +38,8 @@ async function browserInstall(worker,module,version,configuration,proof){
  const manager=(await api(worker,'/api/v3/modules')).value,existing=manager.installed.find(m=>m.moduleId===module);if(existing?.version===version&&existing.state==='active')return;
  const otherWorkers=deployment.instances.filter(i=>i.role==='worker'&&i.key!==worker).map(i=>i.key),before={};for(const w of otherWorkers)before[w]=(await api(w,'/api/v3/modules')).value.installed;
  const browser=await chromium.launch({headless:true});try{
-  const context=await browser.newContext({ignoreHTTPSErrors:true});await context.addCookies([{name:'__Host-steward',value:sessions[worker].cookie.split('=')[1],url:origin(worker),secure:true,httpOnly:true,sameSite:'Strict'}]);const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin(worker));
-  const packageId=module+'@'+version,card=page.getByTestId('package-'+packageId);await card.waitFor();await card.getByLabel('Configuration for '+packageId).fill(JSON.stringify(configuration));const name=manager.available.find(p=>p.packageId===packageId)?.manifest.name;assert(name,'Trusted package is missing');
+  const context=await browser.newContext({ignoreHTTPSErrors:true});await context.addCookies([{name:'__Host-steward',value:sessions[worker].cookie.split('=')[1],url:origin(worker),secure:true,httpOnly:true,sameSite:'Strict'}]);const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin(worker)+'/#/administration/modules');
+  const packageId=module+'@'+version,card=page.getByTestId('package-'+packageId);await card.waitFor();await fillAdvancedJson(card,'Configuration for '+packageId,JSON.stringify(configuration));const name=manager.available.find(p=>p.packageId===packageId)?.manifest.name;assert(name,'Trusted package is missing');
   const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST',{timeout:100000});await card.getByRole('button',{name:(existing&&['failed','installing'].includes(existing.state)?'Recover ':existing&&existing.version!==version?'Upgrade to ':'Install ')+name,exact:true}).click();const installed=await response;assert.equal(installed.status(),200,await installed.text());const request=installed.request().postDataJSON();
   // Repeat the actual browser request identity through the same authenticated API.
   await api(worker,'/api/v3/modules/install','POST',request);

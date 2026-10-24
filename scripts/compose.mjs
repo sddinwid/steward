@@ -10,6 +10,7 @@ if (existsSync(path.join(directory, 'data/compose.yaml'))) args.push('-f', path.
 if (existsSync(path.join(directory, 'analyst/compose.yaml'))) args.push('-f', path.join(directory, 'analyst/compose.yaml'));
 if (existsSync(path.join(directory, 'commerce/compose.yaml'))) args.push('-f', path.join(directory, 'commerce/compose.yaml'));
 if (existsSync(path.join(directory, 'release/compose.yaml'))) args.push('-f', path.join(directory, 'release/compose.yaml'));
+if(process.env.STEWARD_COMPOSE_OVERRIDE_FILE){const override=path.resolve(directory,process.env.STEWARD_COMPOSE_OVERRIDE_FILE);const relative=path.relative(directory,override);if(relative.startsWith('..')||path.isAbsolute(relative)||!existsSync(override))throw new Error('Compose override must be an existing file inside the selected deployment');args.push('-f',override);}
 try {
   const action = process.argv[2];
   if (existsSync(path.join(directory, 'modules/compose.yaml')) && (action === 'down' || action === 'stop' && process.argv.length === 3)) {

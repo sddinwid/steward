@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir,rmdir} from 'node:fs/promises';
 import path from 'node:path';
@@ -14,9 +15,9 @@ try{
  await logins();
  async function screen(worker,module,screenId){
   const context=await browser.newContext({ignoreHTTPSErrors:true});await context.addCookies([{name:'__Host-steward',value:sessions[worker].cookie.split('=')[1],url:origin(worker),secure:true,httpOnly:true,sameSite:'Strict'}]);const page=await context.newPage();page.on('pageerror',e=>report.browserErrors.push(e.message));await page.goto(origin(worker));
-  const contribution=(await api(worker,'/api/v3/modules/discovery')).value.modules.find(m=>m.moduleId===module).ui.find(s=>s.screenId===screenId);await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:contribution.navigationLabel,exact:true}).click();const section=page.getByTestId('module-screen-'+module);await section.waitFor();return{page,section,contribution};
+  const contribution=(await api(worker,'/api/v3/modules/discovery')).value.modules.find(m=>m.moduleId===module).ui.find(s=>s.screenId===screenId);await moduleNavigation(page).getByRole('button',{name:contribution.navigationLabel,exact:true}).click();const section=page.getByTestId('module-screen-'+module);await section.waitFor();return{page,section,contribution};
  }
- async function fill(view,body){for(const field of view.contribution.fields.filter(f=>!f.readOnly)){const input=view.section.getByLabel(field.label,{exact:true});const value=body[field.name];assert.notEqual(value,undefined,'Missing browser form value '+field.name);if(field.enum)await input.selectOption(String(value));else await input.fill(field.type==='json'?JSON.stringify(value):String(value));}}
+ async function fill(view,body){for(const field of view.contribution.fields.filter(f=>!f.readOnly)){const input=view.section.getByLabel(field.label,{exact:true});const value=body[field.name];assert.notEqual(value,undefined,'Missing browser form value '+field.name);if(field.type==='json'){await fillAdvancedJson(view.section,field.label,JSON.stringify(value));continue;}if(field.enum)await input.selectOption(String(value));else await input.fill(field.type==='json'?JSON.stringify(value):String(value));}}
  async function create(worker,module,screenId,path,keyField,body){const view=await screen(worker,module,screenId),key=[worker,module,path,body[keyField]].join('|');let entry=state.records[key];if(!entry){entry=state.records[key]={worker,module,path,keyField,key:body[keyField],body,creationDigest:digest(canonical(body)),id:null};await persist();}
   if(!entry.id){await fill(view,body);const response=view.page.waitForResponse(r=>r.url().endsWith(route(module,path))&&r.request().method()==='POST');await view.section.getByRole('button',{name:'Create record',exact:true}).click();const created=await response;assert.equal(created.status(),201,await created.text());entry.id=(await created.json()).record.id;await persist();}
   const row=view.section.locator('tbody tr').filter({hasText:String(body[keyField])});await row.waitFor();return{...view,entry,row};

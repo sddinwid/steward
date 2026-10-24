@@ -19,7 +19,7 @@ try {
   await context.addCookies([{ name: '__Host-steward', value: sessions.master.cookie.split('=')[1], url: origin('master'), secure: true, httpOnly: true, sameSite: 'Strict' }]);
   const page = await context.newPage(), errors = [];
   page.on('pageerror', e => errors.push(e.message));
-  await page.goto(origin('master'));
+  await page.goto(origin('master')+'/#/business/analyst');
   await page.getByText('AI setup deferred.', { exact: false }).waitFor();
   await page.getByLabel('Investigation question').fill('Verify deferred AI setup without a provider or API key.');
   const started = page.waitForResponse(r => r.url().endsWith('/api/v5/analyst/investigations') && r.request().method() === 'POST');

@@ -4,7 +4,7 @@ import { screenLabel, screenGroup, Money, ReadableValue, StructuredValue, Config
 import type { ApiContribution, ModulePackageManifest, ScreenContribution } from '@steward/module-sdk';
 const safeObject=(text:string)=>{try{return JSON.parse(text);}catch{return {};}};
 type Api = <T = any>(path: string, method?: string, body?: unknown) => Promise<T>;
-export interface DiscoveredModule { moduleId: string; version: string; name: string; api: ApiContribution[]; ui: ScreenContribution[] }
+export interface DiscoveredModule { moduleId: string; version: string; name: string; currency?:string; api: ApiContribution[]; ui: ScreenContribution[] }
 export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onNavigate, currency = 'USD' }: { api: Api; administrator: boolean; mode?: 'all' | 'business' | 'administration' | 'developer'; screenKey?: string; onNavigate?: (key:string)=>void; currency?:string }) {
   const [manager, setManager] = useState<any>();
   const [modules, setModules] = useState<DiscoveredModule[]>([]);
@@ -23,7 +23,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
       const [m, a] = await Promise.all([api('/v3/modules'), api('/v3/modules/accounts')]); setManager(m); setAccounts(a.accounts);
     }
   }
-  useEffect(() => { void refresh().catch(e => { if (!String(e.message).includes('Route ')) setError(e.message); }); }, []);
+  useEffect(() => { void refresh().catch(e => { setError(String(e.message).includes('Route ')?'The module runtime is not configured. Ask an operator to provision the trusted module host.':e.message); }); }, []);
   async function act(work: () => Promise<unknown>) { setBusy(true); setError(''); try { await work(); } catch (e) { setError((e as Error).message); } finally { await refresh().catch(e => setError(e.message)); setBusy(false); } }
   function configuration(p: any): string {
     if (configurations[p.packageId] !== undefined) return configurations[p.packageId]!;
@@ -34,6 +34,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
   }
   const installedScope = manager?.installed.find((m: any) => m.moduleId === scopeModule);
   return <div className="module-console">
+    {administrator&&mode==='administration'&&!manager&&!error?<section role="status">Loading Module Manager…</section>:null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     {administrator && manager && ['all','administration'].includes(mode) ? <section><div className="section-heading"><h2>Module Manager</h2><button onClick={() => void refresh().catch(e => setError(e.message))}>Refresh modules</button></div>
       <p>Only signed packages from configured publishers can be installed. Modules run outside this Worker core.</p>
@@ -62,7 +63,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
     </section> : null}
     {administrator&&['all','developer'].includes(mode)?<><SmartModules api={api}/><section><h2>Module manifests and schemas</h2>{manager?.installed.map((m:any)=><details key={m.moduleId}><summary>{m.manifest.name} {m.version}</summary><pre>{JSON.stringify(m.manifest,null,2)}</pre></details>)}</section></>:null}
     {['all','business'].includes(mode) && !screenKey ? <section><h2>Business applications</h2><p>Open an installed application. Your permissions determine available screens and actions.</p>{Array.from(new Set(modules.flatMap(m=>m.ui.filter(s=>!['Connections','Integration diagnostics'].includes(screenGroup(m,s))).map(s=>screenGroup(m,s))))).map(group=><div key={group}><h3>{group}</h3><nav className="app-links" aria-label={group}>{modules.flatMap(m=>m.ui.filter(s=>screenGroup(m,s)===group).map(s=><a key={m.moduleId+'/'+s.screenId} href={'#/business/module/'+m.moduleId+'/'+s.screenId} onClick={()=>{setSelected(m.moduleId+'/'+s.screenId);onNavigate?.(m.moduleId+'/'+s.screenId);}}>{screenLabel(m,s)}</a>))}</nav></div>)}{!modules.length?<p>No business applications are available for your account. Ask a local administrator to install modules or grant permissions.</p>:null}</section>:null}
-    {['all','business','administration','developer'].includes(mode) ? modules.flatMap(m => m.ui.filter(s => selected === m.moduleId + '/' + s.screenId && (mode==='all'||mode==='business'&&!['Connections','Integration diagnostics'].includes(screenGroup(m,s))||administrator&&mode==='administration'&&screenGroup(m,s)==='Connections'||administrator&&mode==='developer'&&screenGroup(m,s)==='Integration diagnostics')).map(s => <ModuleScreen key={selected} api={api} module={m} screen={s} currency={currency} />)) : null}
+    {['all','business','administration','developer'].includes(mode) ? modules.flatMap(m => m.ui.filter(s => selected === m.moduleId + '/' + s.screenId && (mode==='all'||mode==='business'&&!['Connections','Integration diagnostics'].includes(screenGroup(m,s))||administrator&&mode==='administration'&&screenGroup(m,s)==='Connections'||administrator&&mode==='developer'&&screenGroup(m,s)==='Integration diagnostics')).map(s => <ModuleScreen key={selected} api={api} module={m} screen={s} currency={m.currency??currency} />)) : null}
   </div>;
 }
 export function ModuleScreen({ api, module, screen, currency }: { api: Api; module: DiscoveredModule; screen: ScreenContribution; currency:string }) {

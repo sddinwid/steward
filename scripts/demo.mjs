@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 // Presenter automation uses the same TLS, authentication and enrollment APIs as the UI.
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
@@ -81,15 +82,15 @@ async function moduleDemo(){
   }
   const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(30000);
   await page.goto(origin('worker-1'));await page.getByLabel('Username',{exact:true}).fill(credentials.accounts['worker-1'].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts['worker-1'].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();
-  await page.getByRole('heading',{name:'Module Manager',exact:true}).waitFor();
+  await openWorkspace(page,'/administration/modules');await page.getByRole('heading',{name:'Module Manager',exact:true,level:2}).waitFor();
   if(!initial){
-   const card=page.getByTestId('package-cee.inventory@1.2.1');await card.getByLabel('Configuration for cee.inventory@1.2.1').fill('{"quantityUnit":"units"}');
+   const card=page.getByTestId('package-cee.inventory@1.2.1');await fillAdvancedJson(card,'Configuration for cee.inventory@1.2.1','{"quantityUnit":"units"}');
    const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST',{timeout:100000});await card.getByRole('button',{name:'Install Inventory',exact:true}).click();assert.equal((await response).status(),200);
   }
   if((await api('worker-1','/api/v3/modules')).value.installed.find(m=>m.moduleId==='cee.inventory').state!=='active'){
    const r=page.waitForResponse(r=>r.url().endsWith('/cee.inventory/lifecycle'));await page.getByRole('button',{name:'Activate Inventory',exact:true}).click();assert.equal((await r).status(),200);
   }
-  await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:'Inventory',exact:true}).click();const screen=page.getByTestId('module-screen-cee.inventory');
+  await moduleNavigation(page).getByRole('button',{name:'Inventory',exact:true}).click();const screen=page.getByTestId('module-screen-cee.inventory');
   const rows=(await api('worker-1','/api/v3/modules/cee.inventory/api/items')).value.records;
   if(!rows.some(r=>r.sku==='DEMO-MODULE-001')){
    await screen.getByLabel('SKU',{exact:true}).fill('DEMO-MODULE-001');await screen.getByLabel('Item name',{exact:true}).fill('Synthetic module demonstration');await screen.getByLabel('Quantity',{exact:true}).fill('12');await screen.getByLabel('Reserved quantity',{exact:true}).fill('0');

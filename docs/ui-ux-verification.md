@@ -28,7 +28,11 @@ The preflight working tree was clean on phase8/smart-modules-commerce at 7d3a70d
 | node scripts/verify-workspaces.mjs .steward/phase8-upgrade-regressions | 7 checks passed: exact protected-row preservation, installed-screen deep links, separated workspaces, persisted USD preference, actual Master history/findings and desktop/mobile rendering |
 | node scripts/verify-workspace-operations.mjs .steward/phase8-upgrade-regressions | Passed module management/core-image checks, actual customer/USD order creation with line-item controls, and ordinary-user visibility plus backend installation denial |
 | node scripts/seed-us-workspace.mjs .steward/phase8-upgrade-regressions (twice) | First run created 3 new USD records; repeat created 0 and preserved all 3 |
-| Earlier operational regression rerun | In progress; final results must be recorded before phase acceptance |
+| Earlier operational regression rerun | 12 suites passed: smoke, idempotent seeding, Inventory MCP upgrade, MCP smoke, compact MCP/Analyst, concurrency, isolation, Master-outage independence, module restart/provisioning/secrets |
+| node scripts/verify-workspace-installation.mjs .steward/phase8-upgrade-regressions | 6 checks passed for fresh Workforce 1.0.2 installation, generated USD configuration, dynamic navigation/refresh, unchanged Worker images and other-Worker configuration hashes |
+| node scripts/verify-workspace-currency.mjs .steward/phase8-upgrade-regressions | 6 checks passed; all 12 existing EUR table snapshots unchanged through explicit EUR/USD preference updates and repeated USD seeding; foreign-entity mutation rejected |
+| node scripts/verify-workspace-investigations.mjs .steward/phase8-upgrade-regressions | 6 read-only Chromium checks passed for a persisted test-model finding, its originating investigation, question, deterministic result, source Workers and refresh; no fresh live-model claim |
+| Historical verify-phase4.mjs with the explicit candidate override | 13 checks passed through Chromium: operational edits, durable events, conflicts/replays, outages/SIGKILL, affected-only findings and offline acknowledgment, with zero page errors |
 
 Raw evidence: artifacts/ux-build.log, ux-tests.log, ux-smart-browser.log, ux-workspaces.json, ux-operations.json, ux-regressions.json and ux-*.png. Evidence contains no passwords, session cookies, private keys or connector credentials. Initial schema-9 to schema-10 redeployment compared 18 protected table hashes, preserving installation/account/enrollment/module/finding/investigation rows exactly before deliberate synthetic tests.
 
@@ -42,4 +46,26 @@ Retained Phase 7 remains on HTTPS 6100/6201-6203; accepted Phase 8 remains on 16
 
 ## Outstanding acceptance
 
-Finish browser commerce/module-installation demonstrations across the expanded module catalog; complete all earlier deployment regressions against the new navigation; validate analytical finding links/calculation screens with accepted live-model evidence; finish currency-integrity and outage/recovery checks; improve remaining advanced-only business/configuration fields where their signed schema is insufficient. A fresh three-Worker installation and final source/artifact verification remain required. Account creation/password recovery still uses the operator CLI; this checkpoint adds no password-changing shortcuts. No new live Shopify/Printify connectivity, paid order or fresh live-model acceptance is claimed.
+Finish browser Shopify/Printify commerce and remaining module demonstrations across the expanded catalog; complete all earlier deployment regressions against the new navigation; validate analytical finding links/calculation screens with accepted live-model evidence; extend currency/locale and failure-state browser coverage; improve remaining advanced-only business/configuration fields where their signed schema is insufficient. A fresh three-Worker installation and final source/artifact verification remain required. Account creation/password recovery still uses the operator CLI; this checkpoint adds no password-changing shortcuts. No new live Shopify/Printify connectivity, paid order or fresh live-model acceptance is claimed.
+
+## Recovery and regression invocation
+
+Tests on a source candidate must consistently select its image overlay. Both scripts/lib.mjs and scripts/compose.mjs now accept STEWARD_COMPOSE_OVERRIDE_FILE, restricted to an existing file inside the selected deployment. Omitting that override during a regression recovery initially reapplied pinned 0.8 images to the isolated schema-10 fixture; the old images correctly refused the newer schema. The fixture was restored with the explicit override, its disposable phase1_probe tables were removed, and all 12 suites were rerun successfully. No business records or schema migrations were rolled back.
+
+For the already provisioned isolated candidate in this workspace:
+
+```powershell
+$env:STEWARD_DEPLOYMENT = '.steward/phase8-upgrade-regressions'
+$env:STEWARD_COMPOSE_OVERRIDE_FILE = 'ux-compose.yaml'
+$env:STEWARD_SEED_CREDENTIALS_FILE = Join-Path (Resolve-Path $env:STEWARD_DEPLOYMENT) 'demo/presenter.json'
+$env:STEWARD_DEMO_RETRY_LOGIN = '1'
+node scripts/compose.mjs up -d --no-build --wait
+node scripts/verify-workspace-currency.mjs $env:STEWARD_DEPLOYMENT
+node scripts/seed-us-workspace.mjs $env:STEWARD_DEPLOYMENT
+```
+
+The fresh-install check deliberately requires an absent eligible signed package; it must not delete an existing module to manufacture an absence result. Historical browser verifiers now navigate by signed discovery through actual workspace links; advanced JSON configuration is explicitly opened when testing an older operator workflow. These adapters also retain the legacy navigation path, but the entire historical browser matrix is not yet reaccepted.
+
+One failed browser-test diagnostic included its ephemeral fixture session cookie. That session was revoked and the captured diagnostic was sanitized. The test helper now discovers modules using the authenticated browser fetch rather than Node's API request context, which cannot resolve these local-development hostnames on this system. No operator password, connector credential, private key or retained-deployment session was changed.
+
+Final checkpoint health: retained Phase 7 has 27 running containers, accepted Phase 8 has 37, and the isolated candidate has 24. Master and all three Worker health/readiness endpoints returned HTTP 200 in each environment. Existing module form defaults now preserve the approved module currency even when it differs from the company base currency. The final currency check asserts that discovery provides only this non-secret default, without full configuration.

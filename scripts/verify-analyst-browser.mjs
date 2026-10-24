@@ -11,7 +11,7 @@ try{
  const context=await browser.newContext({ignoreHTTPSErrors:true});
  await context.addCookies([{name:'__Host-steward',value:sessions.master.cookie.split('=')[1],url:origin('master'),secure:true,httpOnly:true,sameSite:'Strict'}]);
  const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(origin('master'));await page.getByLabel('Investigation history').selectOption(id);await page.getByTestId('analyst-evidence').waitFor();
+ await page.goto(origin('master')+'/#/business/analyst');await page.getByLabel('Investigation history').selectOption(id);await page.getByTestId('analyst-evidence').waitFor();
  await page.getByText('TEST MODEL: validation result, not a live AI provider.',{exact:true}).waitFor();
  const current=(await api('master','/api/v5/analyst/investigations/'+id)).value.investigation;
  if(!current.finding_id){const response=page.waitForResponse(r=>r.url().endsWith('/'+id+'/finding')&&r.request().method()==='POST');await page.getByRole('button',{name:'Publish finding for human review',exact:true}).click();assert.equal((await response).status(),200);}

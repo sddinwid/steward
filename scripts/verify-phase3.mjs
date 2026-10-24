@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 import assert from 'node:assert/strict';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -73,7 +74,7 @@ try {
     await page.getByLabel('Username', { exact: true }).fill(fixture.accounts[worker].username);
     await page.getByLabel('Password', { exact: true }).fill(fixture.accounts[worker].password);
     await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-    await page.getByRole('heading', { name: 'Module Manager', exact: true }).waitFor();
+    await openWorkspace(page,'/administration/modules');await page.getByRole('heading',{name:'Module Manager',exact:true,level:2}).waitFor();
     const auth = await page.evaluate(() => fetch('/api/v2/auth/session').then(r => r.json()));
     const cookie = (await context.cookies()).find(c => c.name === '__Host-steward');
     assert.ok(cookie); sessions[worker] = { cookie: cookie.name + '=' + cookie.value, csrf: auth.csrfToken };
@@ -85,7 +86,7 @@ try {
   if (installedBefore.every(m => m.installed.length === 0)) {
     for (const worker of ['worker-1', 'worker-2', 'worker-3']) {
       await expect(worker, items, 'GET', undefined, sessions[worker], 404);
-      assert.equal(await pages[worker].getByRole('navigation', { name: 'Module navigation' }).count(), 0);
+      assert.equal(await moduleNavigation(pages[worker]).count(), 0);
       await pages[worker].screenshot({ path: `artifacts/phase3-${worker}-before.png`, fullPage: true });
     }
     const before = { capturedAt: new Date().toISOString(), core: results.coreBefore, allThreeModulesAbsent: true,
@@ -116,19 +117,19 @@ try {
     await card.getByText('Publisher verified', { exact: false }).waitFor();
     const current = (await manager(worker)).installed.find(m => m.moduleId === moduleId);
     if (!current) {
-      await card.getByLabel('Configuration for cee.inventory@1.0.0').fill(JSON.stringify({ quantityUnit: worker === 'worker-1' ? 'pieces' : 'boxes' }));
+      await fillAdvancedJson(card,'Configuration for cee.inventory@1.0.0',JSON.stringify({ quantityUnit: worker === 'worker-1' ? 'pieces' : 'boxes' }));
       const response = page.waitForResponse(r => r.url().endsWith('/api/v3/modules/install') && r.request().method() === 'POST', { timeout: 90000 });
       await card.getByRole('button', { name: 'Install Inventory', exact: true }).click();
       assert.equal((await response).status(), 200, 'Browser module installation succeeds');
       await page.getByTestId('installed-cee.inventory').getByText('installed', { exact: true }).waitFor();
-      assert.equal(await page.getByRole('navigation', { name: 'Module navigation' }).count(), 0);
+      assert.equal(await moduleNavigation(page).count(), 0);
     }
     if ((await manager(worker)).installed.find(m => m.moduleId === moduleId).state !== 'active') {
       const response = page.waitForResponse(r => r.url().endsWith('/cee.inventory/lifecycle') && r.request().method() === 'POST', { timeout: 90000 });
       await page.getByRole('button', { name: 'Activate Inventory', exact: true }).click(); assert.equal((await response).status(), 200);
     }
-    await page.getByRole('navigation', { name: 'Module navigation' }).getByRole('button', { name: 'Inventory', exact: true }).click();
-    const screen = page.getByTestId('module-screen-cee.inventory'); await screen.getByRole('heading', { name: 'Inventory items' }).waitFor();
+    await moduleNavigation(page).getByRole('button', { name: 'Inventory', exact: true }).click();
+    const screen = page.getByTestId('module-screen-cee.inventory'); await screen.getByRole('heading').waitFor();
     const sku = worker === 'worker-1' ? 'PHASE3-W1' : 'PHASE3-W3';
     if (!(await expect(worker, items, 'GET', undefined, sessions[worker])).records.some(r => r.sku === sku)) {
       await screen.getByLabel('SKU', { exact: true }).fill(sku);
@@ -210,8 +211,8 @@ try {
   const readContext = await browser.newContext({ ignoreHTTPSErrors: true });
   await readContext.addCookies([{ name: '__Host-steward', value: reader.cookie.split('=')[1], url: base('worker-1'), httpOnly: true, secure: true, sameSite: 'Strict' }]);
   const readPage = await readContext.newPage(); await readPage.goto(base('worker-1'), { waitUntil: 'networkidle' });
-  await readPage.getByRole('navigation', { name: 'Module navigation' }).getByRole('button', { name: 'Inventory', exact: true }).click();
-  await readPage.getByRole('heading', { name: 'Inventory items', exact: true }).waitFor();
+  await moduleNavigation(readPage).getByRole('button', { name: 'Inventory', exact: true }).click();
+  await readPage.getByTestId('module-screen-cee.inventory').waitFor();
   assert.equal(await readPage.getByRole('button', { name: 'Create record' }).count(), 0);
   assert.equal(await readPage.getByRole('heading', { name: 'Module Manager' }).count(), 0);
   await readContext.close();
@@ -303,7 +304,7 @@ try {
   const outage = await expect('worker-1', items, 'POST', { sku: 'OUTAGE-' + randomUUID().slice(0, 8), name: 'Created during Master outage', quantity: 2.5 }, sessions['worker-1'], 201);
   assert.equal(outage.record.quantity, 2.5);
   await pages['worker-1'].reload({ waitUntil: 'networkidle' });
-  await pages['worker-1'].getByRole('navigation', { name: 'Module navigation' }).getByRole('button', { name: 'Inventory', exact: true }).click();
+  await moduleNavigation(pages['worker-1']).getByRole('button', { name: 'Inventory', exact: true }).click();
   await pages['worker-1'].getByTestId('module-screen-cee.inventory').getByText(outage.record.sku, { exact: true }).waitFor();
   await pages['worker-1'].screenshot({ path: 'artifacts/phase3-master-outage.png', fullPage: true });
   pass('All Workers remain healthy/ready with the entire Master stack stopped; Inventory API writes and browser reads continue');

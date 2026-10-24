@@ -7,7 +7,7 @@ assert.equal(live.investigationStatus,'completed');assert.equal(live.testModel,f
 await login('master',credentials.accounts.registry);const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext({ignoreHTTPSErrors:true});await context.addCookies([{name:'__Host-steward',value:sessions.master.cookie.split('=')[1],url:origin('master'),secure:true,httpOnly:true,sameSite:'Strict'}]);
- const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin('master'));
+ const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto(origin('master')+'/#/business/analyst');
  await page.getByLabel('Investigation history').selectOption(live.investigationId);await page.getByTestId('analyst-evidence').waitFor();
  const workspace=page.locator('section[aria-label="AI Analyst"]'),text=await workspace.innerText();assert.ok(text.includes(live.result.narrative));assert.ok(text.includes('ollama:'));assert.ok(text.includes(live.findingId));
  for(const analysis of live.result.analyses){assert.ok(text.includes(String(analysis.calculation.proposal.ecosystemMonthlyBenefit)));assert.ok(text.includes(analysis.observed.supplyWorker));assert.ok(text.includes(analysis.observed.demandWorker));}

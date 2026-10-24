@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 import assert from 'node:assert/strict';
 import { readFile,writeFile,mkdir } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
@@ -24,7 +25,7 @@ try{
   ['worker-1','Capacity','capacities',{'Total capacity (m³)':'1000','Utilized capacity (m³)':'300','Monthly operating cost':'2000'}],
   ['worker-2','Storage requirements','storage_requirements',{'Required storage (m³)':'500','Utilized storage (m³)':'420','Monthly external storage cost':'10000'}],
   ['worker-3','Warehouse assets','warehouse_assets',{'Total capacity (m³)':'1500','Utilized capacity (m³)':'300','Monthly operating cost':'4500'}]]){
-  const page=pages[worker];await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:label,exact:true}).click();const screen=page.getByTestId('module-screen-cee.operations');
+  const page=pages[worker];await moduleNavigation(page).getByRole('button',{name:label,exact:true}).click();const screen=page.getByTestId('module-screen-cee.operations');
   const name='Browser phase4 '+worker+' '+randomUUID().slice(0,8);await screen.getByLabel('Record name',{exact:true}).fill(name);await screen.getByLabel('Location',{exact:true}).fill('Synthetic site');for(const [label,value]of Object.entries(fields))await screen.getByLabel(label,{exact:true}).fill(value);await screen.getByLabel('Currency (ISO code)',{exact:true}).fill('EUR');
   let response=page.waitForResponse(r=>r.url().includes('/cee.operations/api/')&&r.request().method()==='POST');await screen.getByRole('button',{name:'Create record',exact:true}).click();assert.equal((await response).status(),201);
   const row=screen.getByRole('row').filter({hasText:name});await row.getByRole('button',{name:'Edit record'}).click();await screen.getByLabel('Location',{exact:true}).fill('Verified edited site');response=page.waitForResponse(r=>r.url().includes('/cee.operations/api/')&&r.request().method()==='PUT');await screen.getByRole('button',{name:'Save changes'}).click();assert.equal((await response).status(),200);await row.getByText('Verified edited site',{exact:true}).waitFor();
@@ -34,11 +35,11 @@ try{
  pass('All three companies create and edit persistent operational records independently through Chromium');
  await waitFor(async()=>{const rows=await records();return Object.entries(created).every(([w,v])=>rows.some(r=>r.entity_id===entities[w]&&r.record_id===v.record.id&&Number(r.revision)===2&&r.payload.site==='Verified edited site'));},'all browser records attributed and replicated');
  const analytic=(await api('master','/api/v4/analytics')).value;assert.equal(analytic.authoritative,false);assert.ok(analytic.entities.some(e=>e.entity_id===analytic.operatingEntityId));assert.ok(analytic.relationships.length>=2);assert.ok(analytic.records.every(r=>r.event_id&&r.source_at&&r.ingested_at));
- await pages.master.getByRole('button',{name:'Refresh business data',exact:true}).click();await pages.master.getByRole('heading',{name:'Entity analytical records'}).waitFor();await pages.master.screenshot({path:'artifacts/phase4-master-analytics.png',fullPage:true});
+ await openWorkspace(pages.master,'/developer/synchronization');await pages.master.getByRole('button',{name:'Refresh business data',exact:true}).click();await pages.master.getByRole('heading',{name:'Entity analytical records'}).waitFor();await pages.master.screenshot({path:'artifacts/phase4-master-analytics.png',fullPage:true});
  pass('Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness');
  const stock=(await api('worker-1','/api/v3/modules/cee.inventory/api/items')).value.records.find(r=>r.sku==='SYNTHETIC-FG-001');
  assert.equal(stock.quantity,800);assert.equal(stock.reservedQuantity,200);assert.equal(stock.availableQuantity,600);
- await pages['worker-1'].getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:'Inventory',exact:true}).click();
+ await moduleNavigation(pages['worker-1']).getByRole('button',{name:'Inventory',exact:true}).click();
  await pages['worker-1'].getByTestId('module-screen-cee.inventory').getByRole('row').filter({hasText:'SYNTHETIC-FG-001'}).getByText('600',{exact:true}).waitFor();
  await pages['worker-1'].getByTestId('module-screen-cee.inventory').screenshot({path:'artifacts/phase4-inventory-availability.png'});
  await waitFor(async()=>(await records()).some(r=>r.entity_id===entities['worker-1']&&r.payload.sku==='SYNTHETIC-FG-001'&&Number(r.payload.reserved_quantity)===200),'inventory quantity/availability projection');
@@ -96,7 +97,7 @@ try{
  for(const w of ['worker-2','worker-3'])assert.equal(sql(w,`SELECT count(*) FROM local_findings WHERE finding_id='${finding.finding_id}'`),'1');
  pass('Controlled redelivery of actual finding events creates no duplicate local findings and is durably acknowledged');
  compose('stop','master-web','master-api','master-db');stopped=true;
- const page=pages['worker-2'];await page.getByRole('button',{name:'Refresh business data',exact:true}).click();const card=page.getByTestId('finding-'+finding.finding_id);await card.getByRole('button',{name:'Acknowledge finding'}).click();await card.getByText('Master status: open · Local status: acknowledged',{exact:true}).waitFor();
+ const page=pages['worker-2'];await openWorkspace(page,'/developer/synchronization');await page.getByRole('button',{name:'Refresh business data',exact:true}).click();const card=page.getByTestId('finding-'+finding.finding_id);await card.getByRole('button',{name:'Acknowledge finding'}).click();await card.getByText('Master status: open · Local status: acknowledged',{exact:true}).waitFor();
  assert.ok(Number(sql('worker-2',"SELECT count(*) FROM sync_outbox WHERE acknowledged_at IS NULL"))>0);
  docker(['kill','--signal=KILL',compose('ps','-q','worker-2-api')]);compose('up','-d','--wait','--wait-timeout','120','worker-2-api');assert.equal(sql('worker-2',`SELECT status FROM local_findings WHERE finding_id='${finding.finding_id}'`),'acknowledged');
  await api('worker-2','/api/v4/findings/'+finding.finding_id,'PUT',{revision:0,status:'resolved'},409);

@@ -14,6 +14,7 @@ export function compose(...args) {
 if (existsSync(path.join(directory, 'analyst/compose.yaml'))) files.push('-f', path.join(directory, 'analyst/compose.yaml'));
   if (existsSync(path.join(directory, 'commerce/compose.yaml'))) files.push('-f', path.join(directory, 'commerce/compose.yaml'));
   if (existsSync(path.join(directory, 'release/compose.yaml'))) files.push('-f', path.join(directory, 'release/compose.yaml'));
+  if(process.env.STEWARD_COMPOSE_OVERRIDE_FILE){const override=path.resolve(directory,process.env.STEWARD_COMPOSE_OVERRIDE_FILE);const relative=path.relative(directory,override);if(relative.startsWith('..')||path.isAbsolute(relative)||!existsSync(override))throw new Error('Compose override must be an existing file inside the selected deployment');files.push('-f',override);}
   return docker(['compose', ...files, ...args]);
 }
 export function sql(key, query) { return compose('exec', '-T', `${key}-db`, 'psql', '-U', 'postgres', '-d', 'steward', '-At', '-v', 'ON_ERROR_STOP=1', '-c', query); }

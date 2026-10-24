@@ -73,7 +73,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
       const api = p.manifest.api.filter(a => allowed.includes(a.permission));
       const ui = p.manifest.ui.filter(s => api.some(a => a.operationId === s.listOperation));
       const mcpTools=(p.manifest.mcpTools??[]).filter(t=>api.some(a=>a.operationId===t.operationId));
-      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: row.version, name: p.manifest.name, api, ui, mcpTools });
+      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: row.version, name: p.manifest.name, api, ui, mcpTools, ...(typeof row.configuration?.currency==='string'&&/^[A-Z]{3}$/.test(row.configuration.currency)?{currency:row.configuration.currency}:{}) });
     }
     return { modules };
   });

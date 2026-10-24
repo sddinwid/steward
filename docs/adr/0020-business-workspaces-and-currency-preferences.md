@@ -11,3 +11,5 @@ Append migration 10 for entity preferences in the installation database. Prefere
 Allow authenticated local module users to read the already affected-only local findings projection. Acknowledgment/resolution remains local_admin-only. Master records, investigations and findings keep their existing entity/account authorization rules.
 
 Raw diagnostic contracts remain available in the technical workspace and advanced disclosure controls. No remote scripts, arbitrary HTML, unsigned assets, alternate module installation path or additional frontend framework is introduced.
+
+Discovery exposes only a validated, non-secret module currency default from approved local configuration. Operational forms prefer this module default to the company base currency. This keeps a retained EUR module usable when the company chooses USD for new modules; original transaction currency still controls displayed amounts. Full module configuration is never exposed through normal-user discovery.

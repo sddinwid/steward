@@ -1,0 +1,174 @@
+{
+  "status": "verified-checkpoint-not-final-acceptance",
+  "acceptedBaseline": "7d3a70d6349ca684111b7e2b879650c2be4c54d6",
+  "firstImplementationCheckpoint": "d8a1994",
+  "candidateVersion": "0.9.0",
+  "schema": 10,
+  "automatedBackendTests": 82,
+  "ssmaIncludingBrowserChecks": 9,
+  "reports": {
+    "ux-workspaces": {
+      "status": "passed",
+      "checks": [
+        "redeployment preserves exact account, identity, enrollment, module, finding and investigation rows",
+        "all authorized installed Worker module screens open through persistent deep links",
+        "Worker administration and developer governance are separate navigable destinations",
+        "explicit USD company preference survives browser refresh and authenticated retrieval",
+        "Master executive overview and persisted investigations are accessible",
+        "Master renders actual persisted findings and source references",
+        "Chromium desktop/mobile renders without page errors or horizontal overflow"
+      ],
+      "errors": [],
+      "startedAt": "2026-10-24T04:19:44.591Z",
+      "finishedAt": "2026-10-24T04:19:59.075Z"
+    },
+    "ux-operations": {
+      "status": "passed",
+      "checks": [
+        "Module Manager installs signed Sales through generated configuration form with USD; Worker API and frontend images unchanged",
+        "browser creates customer and USD sales order using line-item controls without JSON",
+        "normal user sees only authorized Sales reads and local findings; protected workspaces and write controls are inaccessible"
+      ],
+      "errors": [],
+      "startedAt": "2026-10-24T03:58:16.358Z",
+      "finishedAt": "2026-10-24T03:58:22.203Z"
+    },
+    "ux-dynamic-installation": {
+      "status": "passed",
+      "checks": [
+        "Signed module absent from business navigation before installation",
+        "trusted package installed with generated USD configuration controls",
+        "activation contributes business navigation without Worker rebuild",
+        "new screen supports direct URL and refresh",
+        "other Worker module configuration hashes unchanged",
+        "core API and frontend image IDs unchanged"
+      ],
+      "errors": [],
+      "moduleId": "cee.workforce",
+      "version": "1.0.2"
+    },
+    "ux-currency-integrity": {
+      "status": "passed",
+      "checks": [
+        "original EUR record count/hash unchanged through explicit EUR/USD preference changes",
+        "USD preference restored and persisted",
+        "repeat USD seed creates no duplicates and preserves existing records",
+        "cross-entity configuration mutation rejected",
+        "no implicit FX conversion or relabeling",
+        "discovery exposes the approved module currency default without full configuration"
+      ],
+      "eurTablesCompared": 12,
+      "verifiedAt": "2026-10-24T04:20:24.077Z"
+    },
+    "ux-regressions": {
+      "checks": [
+        {
+          "suite": "smoke",
+          "status": "passed",
+          "elapsedMs": 17487
+        },
+        {
+          "suite": "verify-phase4-seed",
+          "status": "passed",
+          "elapsedMs": 65842
+        },
+        {
+          "suite": "verify-inventory-mcp-upgrade",
+          "status": "passed",
+          "elapsedMs": 13708
+        },
+        {
+          "suite": "mcp-smoke",
+          "status": "passed",
+          "elapsedMs": 2833
+        },
+        {
+          "suite": "verify-compact-mcp",
+          "status": "passed",
+          "elapsedMs": 1546
+        },
+        {
+          "suite": "verify-compact-analyst",
+          "status": "passed",
+          "elapsedMs": 66602
+        },
+        {
+          "suite": "verify-analyst-concurrency",
+          "status": "passed",
+          "elapsedMs": 28369
+        },
+        {
+          "suite": "verify-isolation",
+          "status": "passed",
+          "elapsedMs": 36311
+        },
+        {
+          "suite": "verify-outage-independence",
+          "status": "passed",
+          "elapsedMs": 43751
+        },
+        {
+          "suite": "verify-module-restart",
+          "status": "passed",
+          "elapsedMs": 54046
+        },
+        {
+          "suite": "verify-module-provision",
+          "status": "passed",
+          "elapsedMs": 8670
+        },
+        {
+          "suite": "verify-module-secrets",
+          "status": "passed",
+          "elapsedMs": 10181
+        }
+      ],
+      "startedAt": "2026-10-24T03:58:23.626Z"
+    },
+    "phase4-results": {
+      "checks": [
+        "All three companies create and edit persistent operational records independently through Chromium",
+        "Master exposes entity-scoped analytical copies, organization relationships, operating entity, record/event provenance and freshness",
+        "Inventory retains old records, displays 800 stock / 200 reserved / 600 available and synchronizes its declared stock projection",
+        "Repeated real events deduplicate; older revisions never overwrite newer data; same-revision conflicts are rejected",
+        "Signed cross-entity claims, unauthorized analytical access, cross-Worker sessions, stale and replayed transport proofs are rejected",
+        "Master outage does not block operational writes; durable module outboxes and committed records survive Worker SIGKILL/restart",
+        "Killing a PostgreSQL transaction rolls back both its operational write and triggered outbox event atomically",
+        "SIGKILL during an in-flight exchange resumes safely; outage changes catch up incrementally with one inbox entry per event",
+        "Master issues a finding through Chromium; only affected Workers receive it, with entity-filtered supporting references",
+        "Controlled redelivery of actual finding events creates no duplicate local findings and is durably acknowledged",
+        "Offline finding acknowledgment survives process restart, synchronizes back to Master, rejects stale edits and survives later Master lifecycle updates",
+        "Original installation configuration, enrolled Worker 1 certificate and every pre-existing Inventory record remain intact",
+        "All installations remain healthy with their original identities; Chromium has zero uncaught errors"
+      ],
+      "browserPageErrors": 0,
+      "startedAt": "2026-10-24T04:08:34.821Z",
+      "finishedAt": "2026-10-24T04:10:42.525Z"
+    },
+    "ux-investigation-evidence": {
+      "status": "passed",
+      "checks": [
+        "persisted finding links to its actual originating investigation",
+        "original analytical question is displayed",
+        "server-calculated benefit and source Workers are visible",
+        "published finding delivery/review link is present",
+        "investigation deep link survives refresh",
+        "no browser page errors"
+      ],
+      "testModel": true,
+      "liveModelValidation": "not performed by this read-only UI check"
+    }
+  },
+  "notYetAccepted": [
+    "complete historical browser matrix",
+    "Shopify/Printify simulator workflow through new workspaces",
+    "fresh live-model UI acceptance",
+    "clean three-Worker installation and final packaging"
+  ],
+  "runningContainers": {
+    "retainedPhase7": 27,
+    "acceptedPhase8": 37,
+    "isolatedCandidate": 24
+  },
+  "healthAndReadiness": "HTTP 200 for all four installations in all three environments"
+}

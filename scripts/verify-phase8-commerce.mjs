@@ -1,3 +1,4 @@
+import {moduleNavigation,openWorkspace,fillAdvancedJson} from './ui-navigation.mjs';
 // Dedicated, explicitly synthetic acceptance. Uses real TLS/session/module/governance APIs.
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
@@ -28,7 +29,7 @@ async function enroll(){
  }check('three independent trusted enrollments');
 }
 async function withBrowser(fn){const {chromium}=await import('playwright'),browser=await chromium.launch({headless:true});try{await fn(browser);}finally{await browser.close();}}
-async function pageFor(browser,key){const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.on('pageerror',e=>report.browserErrors.push(e.message));page.setDefaultTimeout(60000);await page.goto(origin(key));await page.getByLabel('Username',{exact:true}).fill(credentials.accounts[key].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts[key].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.getByRole('heading',{name:'Module Manager',exact:true}).waitFor();return page;}
+async function pageFor(browser,key){const context=await browser.newContext({ignoreHTTPSErrors:true}),page=await context.newPage();page.on('pageerror',e=>report.browserErrors.push(e.message));page.setDefaultTimeout(60000);await page.goto(origin(key));await page.getByLabel('Username',{exact:true}).fill(credentials.accounts[key].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts[key].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await openWorkspace(page,'/administration/modules');await page.getByRole('heading',{name:'Module Manager',exact:true,level:2}).waitFor();return page;}
 const versions={inventory:'1.4.0',sales:'1.1.1',shopify:'1.0.0',printify:'1.0.2','stock-ledger':'1.0.0'};
 async function modules(){await logins();const before=await coreImages();await withBrowser(async browser=>{
  for(const key of ['worker-1','worker-2','worker-3']){
@@ -36,7 +37,7 @@ async function modules(){await logins();const before=await coreImages();await wi
   for(const name of names){let manager=(await api(key,'/api/v3/modules')).value,installed=manager.installed.find(m=>m.moduleId==='cee.'+name);if(!installed){
    const pkg=manager.available.find(p=>p.packageId==='cee.'+name+'@'+versions[name]);assert.ok(pkg?.trusted&&pkg?.compatible,'Trusted compatible '+name);
    const config=Object.fromEntries(Object.entries(pkg.manifest.configurationSchema.properties).filter(([,v])=>Object.hasOwn(v,'default')).map(([k,v])=>[k,v.default]));config.integrationsEnabled=true;if(name==='sales')config.smartInventory=true;if(name==='printify')config.productionEnabled=true;
-   const card=page.getByTestId('package-'+pkg.packageId);await card.getByLabel('Configuration for '+pkg.packageId,{exact:true}).fill(JSON.stringify(config));
+   const card=page.getByTestId('package-'+pkg.packageId);await fillAdvancedJson(card,'Configuration for '+pkg.packageId,JSON.stringify(config));
    const response=page.waitForResponse(r=>r.url().endsWith('/api/v3/modules/install')&&r.request().method()==='POST',{timeout:180000});await card.getByRole('button',{name:'Install '+pkg.manifest.name,exact:true}).click();const result=await response;assert.equal(result.status(),200,(await result.text()).slice(0,500));
   }
   manager=(await api(key,'/api/v3/modules')).value;installed=manager.installed.find(m=>m.moduleId==='cee.'+name);if(installed.state!=='active'){const response=page.waitForResponse(r=>r.url().endsWith('/cee.'+name+'/lifecycle'));await page.getByRole('button',{name:'Activate '+installed.manifest.name,exact:true}).click();assert.equal((await response).status(),200);}
@@ -58,7 +59,7 @@ async function seed(key){const index=Number(key.split('-')[1]);await control('sh
  for(const [id,url,body]of [['shopify','/mappings',{sourceVariantId:'gid://shopify/ProductVariant/1',sku:'SYN-P8-TEE'}],['printify','/mappings',{sku:'SYN-P8-TEE',productId:'syn-p8-product',variantId:101}],['inventory','/items',{sku:'SYN-P8-TEE',name:'Synthetic Phase 8 shirt',quantity:20}]])if(!(await moduleApi(key,id,url)).records.length)await moduleApi(key,id,url,'POST',body,201);
 }
 async function uiAction(page,key,moduleId,label,operation,match){
- await page.getByRole('navigation',{name:'Module navigation'}).getByRole('button',{name:moduleId==='sales'?'sales order':moduleId+' '+(moduleId==='shopify'?'order':'job'),exact:true}).click();const screen=page.getByTestId('module-screen-cee.'+moduleId),list=moduleId==='printify'?'jobs':'orders';
+ await moduleNavigation(page).getByRole('button',{name:moduleId==='sales'?'sales order':moduleId+' '+(moduleId==='shopify'?'order':'job'),exact:true}).click();const screen=page.getByTestId('module-screen-cee.'+moduleId),list=moduleId==='printify'?'jobs':'orders';
  for(let attempt=0;attempt<4;attempt++){
   const refreshed=page.waitForResponse(r=>r.request().method()==='GET'&&new URL(r.url()).pathname.endsWith('/api/'+list));await screen.getByRole('button',{name:'Refresh records',exact:true}).click();assert.equal((await refreshed).status(),200);
   const row=screen.getByRole('row').filter({hasText:match});await row.waitFor({state:'visible'});assert.equal(await row.count(),1);const response=page.waitForResponse(r=>r.url().includes('/api/'+operation+'/')&&r.request().method()==='POST');await row.getByRole('button',{name:label,exact:true}).click();const result=await response;
