@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {directory,manifest,compose,docker,sql} from './lib.mjs';
 import {canonical,digest} from '../packages/module-sdk/dist/index.js';
-const deployment=await manifest();
+const deployment=await manifest(),candidate=process.env.STEWARD_PHASE10A_IMAGE_CANDIDATE??'candidate3';assert(/^candidate[0-9]+$/.test(candidate),'Select a numbered local acceptance image candidate');
 assert.equal(JSON.parse(await readFile(path.join(directory,'commerce/manifest.json'),'utf8')).simulators,true);
 assert(deployment.project.startsWith('steward-phase10a-'),'Use only an explicitly isolated Phase 10A fixture');
 const report={startedAt:new Date().toISOString(),sourceCommit:docker(['version','--format','{{.Server.Version}}']),checks:[]};
@@ -16,7 +16,7 @@ async function privateFiles(){const result={};async function walk(relative){for(
 function snapshot(){const rows={};for(const i of deployment.instances){rows[i.key]={};for(const table of ['platform_installation','security_accounts','legal_entities','entity_authorizations','local_enrollment','enrolled_workers','worker_candidates','module_installations'])rows[i.key][table]=digest(sql(i.key,`SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]') FROM ${table} t`));if(i.role==='worker')for(const id of sql(i.key,'SELECT module_id FROM module_installations ORDER BY module_id').split('\n').filter(Boolean)){const database='m_'+digest(id).slice(0,20),table=id==='cee.inventory'?'inventory_items':'business_records';rows[i.key][id]=digest(compose('exec','-T',i.key+'-db','psql','-U','postgres','-d',database,'-At','-c',`SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY to_jsonb(t)::text),'[]') FROM ${table} t`));}}return rows;}
 try{
  const files=await privateFiles(),data=snapshot(),images={};const lines=['services:'];
- for(const i of deployment.instances)for(const kind of ['api','web',...(i.role==='worker'?['module-host']:[])]){const name=kind==='module-host'?'module-host':i.role+'-'+kind,id=JSON.parse(docker(['image','inspect','steward-phase10a-'+name+':candidate3']))[0].Id;images[i.key+'-'+kind]=id;lines.push('  '+i.key+'-'+kind+':','    image: '+id,'    build: !reset null','    pull_policy: never');}
+ for(const i of deployment.instances)for(const kind of ['api','web',...(i.role==='worker'?['module-host']:[])]){const name=kind==='module-host'?'module-host':i.role+'-'+kind,id=JSON.parse(docker(['image','inspect','steward-phase10a-'+name+':'+candidate]))[0].Id;images[i.key+'-'+kind]=id;lines.push('  '+i.key+'-'+kind+':','    image: '+id,'    build: !reset null','    pull_policy: never');}
  await writeFile(path.join(directory,'release/compose.yaml'),lines.join('\n')+'\n');
  compose('up','-d','--wait','--wait-timeout','180');
  assert.deepEqual(await privateFiles(),files,'Redeployment must preserve credentials, identities and operator configuration');assert.deepEqual(snapshot(),data,'Redeployment must preserve protected and module-owned business data');

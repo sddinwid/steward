@@ -16,6 +16,12 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   if(b.instructions?.includes('query_commerce_evidence')){
+    if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);
+    const analysis=results.find(v=>v.structuredContent?.data?.calculation)?.structuredContent.data;
+    if(!analysis){const pages=results.filter(v=>v.structuredContent?.data?.records?.some(r=>r.reference?.streamId==='commerce_orders')).map(v=>v.structuredContent.data),rows=pages.flatMap(p=>p.records),byEntity=new Map();for(const row of rows)if(!byEntity.has(row.entityId))byEntity.set(row.entityId,row);if(byEntity.size<2){const offset=pages.length?pages.at(-1).nextOffset:0;if(offset===null)throw Error('Insufficient cross-entity commerce evidence');return calls([{name:'query_commerce_evidence',arguments:{status:'fulfilled',limit:4,offset}}]);}return calls([{name:'analyze_commerce_by_id',arguments:{sources:[...byEntity.values()].slice(0,2).map(r=>({recordId:r.reference.recordId,revision:r.reference.revision}))}}]);}
+    const c=analysis.calculation;return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({narrative:'TEST MODEL: observed commerce source evidence and deterministic service output: '+JSON.stringify({displayAmounts:c.displayAmounts,costBasis:c.costBasis,contributionAnalysis:c.contributionAnalysis})+'. Estimates and missing fees are not verified profit. Review supplier and variant differences before any shared purchasing recommendation. No business action was executed.',assumptions:c.assumptions,humanDecisions:['Review source freshness, missing fees, invoices, supplier identity, product equivalence, taxes and both companies consent before pricing, purchasing or production.']})}]}]);
+   }
    const business=b.instructions?.includes('query_procurement_matches')?'procurement':b.instructions?.includes('query_workforce_matches')?'workforce':null;
    if(business){
     if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);

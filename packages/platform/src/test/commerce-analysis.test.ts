@@ -39,3 +39,8 @@ test('commerce demand windows keep cohort refunds/cancellations separate and sup
  assert.equal(commerceDemandTrends([a,{...b,entity_id:a.entity_id}],{from:'2026-10-01T00:00:00Z',split:'2026-10-20T00:00:00Z',to:'2026-11-01T00:00:00Z'}).supplierCostComparisons.length,0);
  assert.throws(()=>commerceDemandTrends([a],{from:'2026-10-21T00:00:00Z',split:'2026-10-20T00:00:00Z',to:'2026-11-01T00:00:00Z'}));
 });
+
+test('model-facing contribution totals are exact formatted service amounts and remain unknown without fees',()=>{
+ const known=projection({currency:'USD',financials:{productionCostCents:1000,shippingCostCents:300,transactionFeeCents:100,channelFeeCents:50,basis:'estimated',reference:'Synthetic fee schedule'}});
+ const c=calculateCommerce([known]);assert.equal(c.contributionSummary.contributionMarginCents,3350);assert.equal(c.contributionSummary.displayAmounts.contributionMargin,'USD 33.50');assert.equal(c.contributionAnalysis[0]!.displayAmounts.transactionFees,'USD 1.00');assert.equal(c.contributionSummary.marginBasis,'estimated');assert.equal(calculateCommerce([projection()]).contributionSummary.displayAmounts.contributionMargin,'UNKNOWN');
+});

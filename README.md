@@ -11,3 +11,7 @@ The existing preview uses **https://master.localhost:26100** and **https://worke
 Prior tagged releases remain preserved: [v0.9.0 UI release](docs/ui-ux-release.md) and [verification](docs/ui-ux-verification.md); [v0.8.0 release/upgrade](docs/phase8-release.md), [architecture](docs/phase8-architecture.md), [commerce configuration/recovery](docs/phase8-commerce.md), [SSMA contracts](docs/phase8-ssma.md) and [verification](docs/phase8-verification.md).
 
 Commerce validation uses local TLS simulators; it does not establish live commercial connectivity. Real local Ollama validation passed with conditional, source-backed calculations and human review. Passing the MVP demonstration does not establish commercial production readiness.
+# Phase 10A development
+
+Commerce contribution reporting, governed operational alerts, compact MCP investigations and the controlled USD demonstration are documented in [Phase 10A commerce intelligence](docs/phase10a-commerce-intelligence.md). Actual acceptance results are in [the Phase 10A verification report](docs/phase10a-verification.md). The accepted v0.9.1 release and existing operator-selected deployment remain preserved; Phase 10A uses a separate synthetic acceptance fixture.
+
