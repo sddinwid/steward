@@ -70,7 +70,7 @@ async function seed(){
  pass('repeatable USD scenario seeded through authenticated simulators and approved module workflows',{orders:report.scenarios});
 }
 async function verify(){
- const evidence=await waitFor(async()=>{const rows=(await api('master','/api/v4/analytics')).value.records.filter(r=>r.stream_id==='commerce_orders'&&scenarios.some(s=>r.payload.projection.sourceId==='gid://shopify/Order/'+s.id));return rows.length===scenarios.length?rows:false;},'governed synchronization');
+ let evidence=await waitFor(async()=>{const rows=(await api('master','/api/v4/analytics')).value.records.filter(r=>r.stream_id==='commerce_orders'&&scenarios.some(s=>r.payload.projection.sourceId==='gid://shopify/Order/'+s.id));return rows.length===scenarios.length?rows:false;},'governed synchronization');
  for(const s of scenarios){const result=await endpoint(s.key,'sales','/commerce-intelligence'),order=result.records.find(o=>o.sourceId.endsWith('/'+s.id));assert.ok(order);const expected=(s.canceled||s.awaiting)?null:s.price*s.quantity-s.discount-s.refund-s.cost*s.quantity-s.shipping*s.quantity-s.fee;assert.equal(order.contributionMarginCents,expected);assert.equal(order.marginBasis,(s.canceled||s.awaiting)?'incomplete':'estimated');}
  const rows=(await api('master','/api/v4/analytics')).value.entities;
  for(const key of ['worker-1','worker-3']){const entityId=(await api(key,'/api/v2/worker/status')).value.entityId;await api('master','/api/v4/commerce-monitor','PUT',{entityId,enabled:true});}
@@ -78,12 +78,16 @@ async function verify(){
  const count=(await api('master','/api/v4/findings')).value.findings.length;
  for(const key of ['worker-1','worker-3']){const entityId=(await api(key,'/api/v2/worker/status')).value.entityId;await api('master','/api/v4/commerce-monitor','PUT',{entityId,enabled:true});}
  assert.equal((await api('master','/api/v4/findings')).value.findings.length,count,'Unchanged policy replay must not duplicate alerts');
- const low=conditions.conditions.find(c=>c.code==='low_contribution_margin');const originalEvidence=(await api('master','/api/v4/findings/'+low.finding_id+'/evidence')).value;assert(originalEvidence.evidence.every(e=>e.available&&e.observedAt&&e.payload));
+ const low=conditions.conditions.find(c=>c.code==='low_contribution_margin');
+ const lowOrder=(await list('worker-1','sales','orders')).find(o=>o.id===low.record_id),assessment=(await list('worker-1','sales','financial-assessments')).find(a=>a.orderNumber===lowOrder.number);assert(assessment);const body={...assessment};delete body.id;await endpoint('worker-1','sales','/financial-assessments/'+assessment.id,'PUT',body);
+ await waitFor(async()=>(await api('master','/api/v4/analytics')).value.records.some(r=>r.record_id===low.record_id&&r.stream_id==='commerce_orders'&&Number(r.revision)>Number(low.source_revision)),'newer source revision without a new alert');
+ const originalEvidence=(await api('master','/api/v4/findings/'+low.finding_id+'/evidence')).value;assert(originalEvidence.evidence.every(e=>e.available&&e.observedAt&&e.payload));const currentLow=(await api('master','/api/v4/analytics')).value.records.find(r=>r.record_id===low.record_id&&r.stream_id==='commerce_orders');assert(originalEvidence.evidence.every(e=>Number(e.reference.revision)<Number(currentLow.revision)));assert.equal((await api('master','/api/v4/findings')).value.findings.length,count);
  const delivered=await waitFor(async()=>(await api('worker-1','/api/v4/findings')).value.findings.find(f=>f.finding_id===low.finding_id),'affected Worker delivery');
  assert(!(await api('worker-2','/api/v4/findings')).value.findings.some(f=>f.finding_id===low.finding_id));assert(!(await api('worker-3','/api/v4/findings')).value.findings.some(f=>f.finding_id===low.finding_id));
  if(delivered.status!=='acknowledged'&&delivered.status!=='resolved')await api('worker-1','/api/v4/findings/'+low.finding_id,'PUT',{revision:delivered.revision,status:'acknowledged'});
  await waitFor(async()=>(await api('master','/api/v4/findings')).value.receipts.some(r=>r.finding_id===low.finding_id&&['acknowledged','resolved'].includes(r.status)),'durable acknowledgment');
- pass('exact USD contribution, estimates, cancel/refund evidence, deduplicated affected-only alert and acknowledgment',{sources:evidence.map(r=>({recordId:r.record_id,revision:r.revision})),conditions:conditions.conditions});
+ evidence=(await api('master','/api/v4/analytics')).value.records.filter(r=>r.stream_id==='commerce_orders'&&scenarios.some(s=>r.payload.projection.sourceId==='gid://shopify/Order/'+s.id));
+ pass('exact USD contribution, estimates, cancel/refund evidence, deduplicated affected-only alert and acknowledgment',{sources:evidence.map(r=>({recordId:r.record_id,revision:r.revision})),historicalEvidence:originalEvidence,conditions:conditions.conditions});
  const clients=[];
  try{
   const c=await mcp('master');clients.push(c);const call=(name,args={})=>c.callTool({name,arguments:args},{timeout:15000});const tools=(await c.listTools()).tools.map(t=>t.name);for(const tool of ['query_commerce_exceptions','query_commerce_demand_trends','analyze_commerce_by_id'])assert(tools.includes(tool));
