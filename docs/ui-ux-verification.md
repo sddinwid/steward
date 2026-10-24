@@ -1,6 +1,6 @@
 # UI/UX 0.9.0 acceptance verification
 
-Status: functional acceptance passed; final archive verification, preservation redeployment and release promotion are being completed. This file must not be read as acceptance of an unverified distribution. The exact accepted manifest and final runtime evidence are recorded in ui-ux-release-gates.json and the final section below.
+Status: COMPLETE. All mandatory functional and final-distribution acceptance gates passed. Release 0.9.0 is verified; promotion/tagging follows the committed gates in ui-ux-release-gates.json.
 
 ## Baseline and preservation
 
@@ -69,4 +69,8 @@ Simulated Shopify/Printify results do not establish live commercial API compatib
 
 ## Final distribution gate
 
-Pending final archive checksums/image selection, preservation redeployment and accepted-manifest promotion. No v0.9.0 tag is authorized until these mandatory release checks pass.
+The final distribution is artifacts/releases/steward-0.9.0-release, built from clean committed source 647937d2bd74cd3d63d797b79b545cc98480881f. Every payload checksum passed. The fresh copied-toolkit installation, enrollments, smoke/Chromium and running Inventory installation passed with private state outside the distribution. Repeated upgrade/full stop/start preserved all 103 configuration-file byte hashes, accounts/enrollment, module state and protected business tables. Every selected core image matched the distribution; all three Workers use identical Worker API/frontend images. The post-redeployment catalog repeated all 98 checks successfully. Existing preview Master and all three Worker logins passed with unchanged account/password hashes.
+
+Final runtime: retained Phase 7 27 containers; accepted Phase 8 37; existing preview 24; full UI commerce demo 37; clean final installation 18. All 20 APIs returned HTTP 200 for health/readiness. Ollama reported zero loaded models. Development candidate directories are retained for diagnostics and are not the distributable release.
+
+See the adjacent steward-0.9.0-acceptance.json artifact for the final accepted manifest checksum and acceptance commit. Source documentation in the immutable archive records the pre-promotion checkpoint; this committed report, the gates and the sidecar record its completed acceptance. Commercial production readiness is not claimed.

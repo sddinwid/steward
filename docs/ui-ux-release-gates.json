@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "status": "passed",
+  "verifiedAt": "2026-10-24T06:38:36.676Z",
+  "sourceCommit": "647937d2bd74cd3d63d797b79b545cc98480881f",
+  "verifiedCandidateManifestSha256": "b98c5a3c5fdf276a0ac8d91eedc1154a5e103e5766eecb8b34b42d7d66d93bc1",
+  "gates": [
+    {
+      "id": "browser",
+      "evidence": [
+        "docs/ui-ux-acceptance-evidence.json",
+        "artifacts/ux-post-release-browser.log",
+        "artifacts/ux-user-journeys.json"
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "commerce",
+      "evidence": [
+        "artifacts/phase8-deployed-commerce.json",
+        "artifacts/ux-commerce-gate-mcp.json",
+        "artifacts/ux-native-commerce.json",
+        "artifacts/phase8-deployed-recovery.json"
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "ollama",
+      "evidence": [
+        "artifacts/ux-live-ollama-final.json",
+        "artifacts/ux-demo-live-ai.json",
+        "docs/ui-ux-acceptance-evidence.json"
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "currency",
+      "evidence": [
+        "artifacts/ux-currency-integrity.json",
+        "artifacts/ux-user-journeys.json"
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "installation",
+      "evidence": [
+        "artifacts/ux-release-final-install.log",
+        "artifacts/ux-release-final-enroll.log",
+        "artifacts/ux-release-final-smoke.log",
+        "artifacts/ux-release-final-module.log",
+        "artifacts/phase7-redeployment-steward-ux-release-accept.json"
+      ],
+      "status": "passed"
+    },
+    {
+      "id": "regressions",
+      "evidence": [
+        "artifacts/ux-final-84-tests.log",
+        "artifacts/ux-release-smart-browser.log",
+        "artifacts/phase8-regressions.json",
+        "artifacts/ux-final-runtime.json"
+      ],
+      "status": "passed"
+    }
+  ]
+}

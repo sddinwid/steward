@@ -69,3 +69,24 @@ For uncertain commerce outcomes, inspect the retained source order, connector co
 ## Production limits
 
 This is an MVP release, not commercial production certification. Shopify/Printify acceptance uses authenticated TLS simulators, not live commercial connectivity. Costs remain estimated. Human approval, operational ownership and provider-specific reconciliation are necessary. Enterprise SSO/MFA, self-service account recovery, production secrets operations, backups/restore drills, external penetration/load testing, and full regional localization require further deployment work. Account provisioning/recovery uses the secured operator CLI; this phase does not invent password-reset shortcuts. Dates are not comprehensively localized to the saved time-zone preference.
+
+## Reproduce the controlled full demo
+
+After the fresh setup/enroll commands above, use the selected deployment's private presenter accounts and run these tested scripts. They operate only on the chosen synthetic deployment, use actual application UI for normal installation/commerce controls, and preserve owned records on repeated seeding.
+
+```powershell
+$env:STEWARD_SEED_CREDENTIALS_FILE = Join-Path (Resolve-Path $env:STEWARD_DEPLOYMENT) 'demo/presenter.json'
+$env:STEWARD_DEMO_RETRY_LOGIN = '1'
+node scripts/verify-workspace-catalog.mjs $env:STEWARD_DEPLOYMENT --settings
+$env:STEWARD_COMMERCE_CURRENCY = 'USD'
+node scripts/verify-phase8-commerce.mjs $env:STEWARD_DEPLOYMENT modules
+node scripts/verify-phase8-commerce.mjs $env:STEWARD_DEPLOYMENT commerce
+node scripts/verify-workspace-commerce-monitor.mjs $env:STEWARD_DEPLOYMENT
+node scripts/verify-phase8-commerce.mjs $env:STEWARD_DEPLOYMENT governance
+node scripts/verify-phase8-commerce.mjs $env:STEWARD_DEPLOYMENT legacy-modules
+node scripts/seed-phase4.mjs $env:STEWARD_DEPLOYMENT
+node scripts/demo-phase7.mjs $env:STEWARD_DEPLOYMENT seed
+node scripts/seed-us-workspace.mjs $env:STEWARD_DEPLOYMENT
+```
+
+The historical commerce installer deliberately exercises initial packages followed by signed patch upgrades. Normal presenters can select Shopify 1.0.1/Printify 1.0.4 directly in Module Manager. Save US/USD localization before installing new currency-aware modules. The retained Phase 7 comparative dataset explicitly uses EUR; it is separate from the newly authored USD scenario. Run the live UI investigation command above only when Ollama is available, then review the persisted result before presenting its recommendation. See the committed acceptance report/sidecar for final gate evidence and known wording limitations.
