@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/test/provision.test.js dist/test/security.test.js dist/test/modules.test.js"
+    "test": "node --test dist/test/provision.test.js dist/test/security.test.js dist/test/modules.test.js dist/test/atomic.test.js"
   },
   "dependencies": {
     "@steward/contracts": "0.1.0",
