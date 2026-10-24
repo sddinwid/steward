@@ -912,6 +912,10 @@
         "version": "1.0.2",
         "imageId": "sha256:2e498328485c63b9b28357058075374ace00544c0538111069cc7b619e0ac1fe"
       }
-    ]
+    ],
+    "acceptanceStatus": "accepted",
+    "acceptedManifestSha256": "a20876ccaac94fa817ec84e887cf7f9916fc841b5f598e0fd98a4b6a4b312141",
+    "acceptanceEvidenceCommit": "3a7453429719a817b07967738c813c1d1828675d",
+    "verificationSidecar": "artifacts/releases/steward-0.8.0-verification.json"
   }
 }
