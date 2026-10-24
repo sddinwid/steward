@@ -1,0 +1,66 @@
+{
+  "formatVersion": 1,
+  "status": "passed",
+  "verifiedAt": "2026-10-24T08:45:02.159975+00:00",
+  "sourceCommit": "e8d4d5eaecf980146a53e6139cf559442f25480f",
+  "verifiedCandidateManifestSha256": "00d14f0323290279f1c9b80c1fdf18f5aae305261343b8132ec4976f42fd6572",
+  "gates": [
+    {
+      "id": "browser",
+      "status": "passed",
+      "evidence": [
+        "docs/v0.9.1-acceptance-evidence.json",
+        "artifacts/bi-browser-final.log",
+        "artifacts/bi-catalog-final.log",
+        "artifacts/bi-preview-browser-final.log"
+      ]
+    },
+    {
+      "id": "commerce",
+      "status": "passed",
+      "evidence": [
+        "artifacts/bi-commerce-mcp.json",
+        "artifacts/phase8-deployed-commerce.json",
+        "artifacts/phase8-deployed-recovery.json"
+      ]
+    },
+    {
+      "id": "ollama",
+      "status": "passed",
+      "evidence": [
+        "docs/v0.9.1-acceptance-evidence.json",
+        "artifacts/bi-live-ollama-accepted.json",
+        "artifacts/bi-live-ollama.json"
+      ]
+    },
+    {
+      "id": "currency",
+      "status": "passed",
+      "evidence": [
+        "artifacts/ux-currency-integrity.json"
+      ]
+    },
+    {
+      "id": "installation",
+      "status": "passed",
+      "evidence": [
+        "artifacts/bi-portable-preservation.json",
+        "artifacts/bi-mvp-portable-build.log",
+        "artifacts/bi-mvp-portable-smoke.log",
+        "artifacts/bi-security-phase2.log",
+        "artifacts/bi-clean-module.log"
+      ]
+    },
+    {
+      "id": "regressions",
+      "status": "passed",
+      "evidence": [
+        "artifacts/bi-tag-tests.log",
+        "artifacts/bi-smart-browser-final.log",
+        "artifacts/phase8-regressions.json",
+        "artifacts/bi-additional-regressions.json",
+        "artifacts/bi-runtime-final.json"
+      ]
+    }
+  ]
+}

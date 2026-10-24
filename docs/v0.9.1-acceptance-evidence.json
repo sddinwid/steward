@@ -1,0 +1,2296 @@
+{
+  "formatVersion": 1,
+  "version": "0.9.1",
+  "status": "passed",
+  "verifiedAt": "2026-10-24T08:45:02.159975+00:00",
+  "baseline": "66481a9fedf5047c38972fc481dbdad358b16916",
+  "sourceCommit": "e8d4d5eaecf980146a53e6139cf559442f25480f",
+  "candidateManifestSha256": "00d14f0323290279f1c9b80c1fdf18f5aae305261343b8132ec4976f42fd6572",
+  "modularRendererPreserved": true,
+  "unitTests": {
+    "total": 89,
+    "counts": [
+      14,
+      2,
+      32,
+      9,
+      2,
+      2,
+      7,
+      8,
+      10,
+      3
+    ],
+    "log": "artifacts/bi-tag-tests.log"
+  },
+  "smartBrowserChecks": 9,
+  "deploymentRegressions": [
+    {
+      "suite": "smoke",
+      "status": "passed",
+      "elapsedMs": 19507
+    },
+    {
+      "suite": "browser-smoke",
+      "status": "passed",
+      "elapsedMs": 4525
+    },
+    {
+      "suite": "verify-phase4-seed",
+      "status": "passed",
+      "elapsedMs": 7504
+    },
+    {
+      "suite": "verify-phase4",
+      "status": "passed",
+      "elapsedMs": 141299
+    },
+    {
+      "suite": "verify-inventory-mcp-upgrade",
+      "status": "passed",
+      "elapsedMs": 15814
+    },
+    {
+      "suite": "mcp-smoke",
+      "status": "passed",
+      "elapsedMs": 4106
+    },
+    {
+      "suite": "verify-phase5",
+      "status": "passed",
+      "elapsedMs": 142959
+    },
+    {
+      "suite": "verify-analyst-browser",
+      "status": "passed",
+      "elapsedMs": 4673
+    },
+    {
+      "suite": "verify-compact-mcp",
+      "status": "passed",
+      "elapsedMs": 2027
+    },
+    {
+      "suite": "verify-compact-analyst",
+      "status": "passed",
+      "elapsedMs": 66586
+    },
+    {
+      "suite": "verify-analyst-concurrency",
+      "status": "passed",
+      "elapsedMs": 29200
+    },
+    {
+      "suite": "verify-isolation",
+      "status": "passed",
+      "elapsedMs": 48619
+    },
+    {
+      "suite": "verify-outage-independence",
+      "status": "passed",
+      "elapsedMs": 44719
+    },
+    {
+      "suite": "verify-module-restart",
+      "status": "passed",
+      "elapsedMs": 84310
+    },
+    {
+      "suite": "verify-module-provision",
+      "status": "passed",
+      "elapsedMs": 10201
+    },
+    {
+      "suite": "verify-module-secrets",
+      "status": "passed",
+      "elapsedMs": 25159
+    },
+    {
+      "suite": "verify-analyst-unconfigured",
+      "status": "passed",
+      "elapsedMs": 3670
+    }
+  ],
+  "additionalRegressions": [
+    {
+      "suite": "verify-workspace-catalog",
+      "exitCode": 0,
+      "elapsedMs": 45392,
+      "status": "passed"
+    },
+    {
+      "status": "passed",
+      "suite": "verify-workspace-operations",
+      "elapsedMs": 8861,
+      "exitCode": 0
+    },
+    {
+      "status": "passed",
+      "suite": "verify-workspace-investigations",
+      "elapsedMs": 2620,
+      "exitCode": 0
+    },
+    {
+      "status": "passed",
+      "suite": "verify-workspace-currency",
+      "elapsedMs": 56092,
+      "exitCode": 0
+    },
+    {
+      "status": "passed",
+      "suite": "verify-workspace-journeys",
+      "elapsedMs": 12440,
+      "exitCode": 0
+    },
+    {
+      "status": "passed",
+      "suite": "verify-workspace-commerce-monitor",
+      "elapsedMs": 10114,
+      "exitCode": 0
+    },
+    {
+      "suite": "verify-phase7-browser",
+      "exitCode": 0,
+      "status": "passed",
+      "elapsedMs": 10499
+    },
+    {
+      "suite": "verify-phase7-mcp",
+      "exitCode": 0,
+      "status": "passed",
+      "elapsedMs": 7402
+    },
+    {
+      "suite": "verify-phase7-test-model",
+      "exitCode": 0,
+      "status": "passed",
+      "elapsedMs": 69011
+    },
+    {
+      "suite": "verify-phase7-configuration",
+      "exitCode": 0,
+      "status": "passed",
+      "elapsedMs": 5305
+    },
+    {
+      "exitCode": 0,
+      "elapsedMs": 63280,
+      "suite": "verify-phase7-recovery",
+      "status": "passed"
+    },
+    {
+      "exitCode": 0,
+      "elapsedMs": 14409,
+      "suite": "verify-phase8-provider-browser",
+      "status": "passed"
+    },
+    {
+      "exitCode": 0,
+      "elapsedMs": 87400,
+      "suite": "verify-phase8-connector-failures",
+      "status": "passed"
+    }
+  ],
+  "businessIntelligenceBrowser": {
+    "startedAt": "2026-10-24T08:33:47.346Z",
+    "checks": [
+      "Executive opportunity shows persisted affected companies, correct financial impact/currency and human review",
+      "Finding detail preserves actual explanation, complete references, decisions and receipt display",
+      "Related investigation opens retained question, narrative, calculations, assumptions and tool activity",
+      "Catalog search uses server filtering; concise titles replace long prompts",
+      "Investigation execution filtering",
+      "Investigation sorting and bounded pagination controls",
+      "Provider status explicit; historical evidence remains accessible independently of provider",
+      "Company performance uses scoped entities and distinguishes Master from enrolled Workers",
+      "All displayed financial reports recompute exactly from authorized source revisions; currencies never combined",
+      "Dynamic category collapse persists across reload",
+      "Module/page search and active route use discovered contributions",
+      "Consequential operation cancellation sends no production request",
+      "Generated commerce screen labels simulator mode, statuses and formatted currency without raw cents",
+      "Responsive dynamic navigation remains usable on small viewport",
+      "Scoped administrator reports and company pages omit unauthorized entities; foreign-owner investigation detail rejected"
+    ],
+    "errors": [],
+    "financial": [
+      {
+        "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+        "currency": "USD",
+        "orders": 6,
+        "revenueCents": 30000,
+        "costBasis": "estimated",
+        "grossMarginCents": 18000
+      },
+      {
+        "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+        "currency": "USD",
+        "orders": 4,
+        "revenueCents": 20000,
+        "costBasis": "estimated",
+        "grossMarginCents": 5600
+      }
+    ],
+    "status": "passed",
+    "finishedAt": "2026-10-24T08:33:54.687Z"
+  },
+  "catalogChecks": {
+    "acceptance": 99,
+    "existingPreview": 37,
+    "cleanInstall": 7
+  },
+  "currencyIntegrity": {
+    "status": "passed",
+    "verifiedAt": "2026-10-24T07:58:41.768Z",
+    "eurTablesCompared": 26,
+    "checks": [
+      "original EUR record count/hash unchanged through explicit EUR/USD preference changes",
+      "USD preference restored and persisted",
+      "repeat USD seed creates no duplicates and preserves existing records",
+      "cross-entity configuration mutation rejected",
+      "no implicit FX conversion or relabeling",
+      "discovery exposes the approved module currency default without full configuration"
+    ]
+  },
+  "modulePackaging": {
+    "checks": [
+      "worker-1 cee.inventory@1.4.2 browser upgrade preserves business rows and has no core dependency",
+      "worker-1 cee.sales@1.1.3 browser upgrade preserves business rows and has no core dependency",
+      "worker-1 cee.printify@1.0.6 browser upgrade preserves business rows and has no core dependency",
+      "worker-2 cee.inventory remains absent",
+      "worker-2 cee.sales@1.1.3 browser upgrade preserves business rows and has no core dependency",
+      "worker-2 cee.printify remains absent",
+      "worker-3 cee.inventory@1.4.2 browser upgrade preserves business rows and has no core dependency",
+      "worker-3 cee.sales@1.1.3 browser upgrade preserves business rows and has no core dependency",
+      "worker-3 cee.printify@1.0.6 browser upgrade preserves business rows and has no core dependency"
+    ],
+    "versions": {
+      "inventory": "1.4.2",
+      "sales": "1.1.3",
+      "printify": "1.0.6"
+    },
+    "before": {
+      "master-api": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+      "master-web": "sha256:2a6cb2fd826fff2a64d24f22b1bf1ae940ec9f1291693379222f212cd66f23bb",
+      "worker-1-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-1-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4",
+      "worker-2-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-2-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4",
+      "worker-3-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-3-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4"
+    },
+    "after": {
+      "master-api": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+      "master-web": "sha256:2a6cb2fd826fff2a64d24f22b1bf1ae940ec9f1291693379222f212cd66f23bb",
+      "worker-1-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-1-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4",
+      "worker-2-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-2-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4",
+      "worker-3-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+      "worker-3-web": "sha256:19f8148249735e37515fff2a0fbece5461ee2328d902b6f766624f264b6c75a4"
+    },
+    "status": "passed"
+  },
+  "preservation": [
+    {
+      "report": "artifacts/phase7-redeployment-steward-ux-release-accept.json",
+      "project": "steward-ux-release-accept",
+      "privateFilesUnchanged": 105,
+      "protectedRecordsUnchanged": true,
+      "allImagesMatchRelease": true
+    },
+    {
+      "report": "artifacts/phase7-redeployment-steward-phase8-upgrade-reg.json",
+      "project": "steward-phase8-upgrade-reg",
+      "privateFilesUnchanged": 88,
+      "protectedRecordsUnchanged": true,
+      "allImagesMatchRelease": true
+    },
+    {
+      "report": "artifacts/bi-portable-preservation.json",
+      "project": "steward-bi-release-v091",
+      "privateFilesUnchanged": 98,
+      "protectedRecordsUnchanged": true,
+      "allImagesMatchRelease": true
+    }
+  ],
+  "commerce": {
+    "workflow": {
+      "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\ux-release-acceptance",
+      "startedAt": "2026-10-24T08:11:52.731Z",
+      "simulation": true,
+      "checks": [
+        {
+          "name": "worker-1 deterministic approved SSMA commerce workflows"
+        },
+        {
+          "name": "worker-1 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+          "sourceId": "gid://shopify/Order/401",
+          "creates": 6,
+          "productionSubmissions": 5,
+          "channelFulfillments": 5,
+          "inventoryQuantity": 10
+        },
+        {
+          "name": "worker-3 deterministic approved SSMA commerce workflows"
+        },
+        {
+          "name": "worker-3 browser import/reservation/production/fulfillment/publication and signed webhook retries",
+          "sourceId": "gid://shopify/Order/403",
+          "creates": 4,
+          "productionSubmissions": 4,
+          "channelFulfillments": 4,
+          "inventoryQuantity": 12
+        }
+      ],
+      "browserErrors": [],
+      "status": "passed",
+      "finishedAt": "2026-10-24T08:12:32.496Z"
+    },
+    "recovery": {
+      "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\ux-release-acceptance",
+      "startedAt": "2026-10-24T08:12:32.604Z",
+      "simulation": true,
+      "checks": [
+        {
+          "name": "Master/simulator outages, Worker/coordinator/module restarts recover exactly once",
+          "creates": 7,
+          "productionSubmissions": 6,
+          "channelFulfillments": 6,
+          "inventoryQuantity": 8,
+          "recordId": "39e8db36-d6a6-4bfb-bde6-b5ae0dd171fa"
+        }
+      ],
+      "browserErrors": [],
+      "status": "passed",
+      "finishedAt": "2026-10-24T08:13:24.005Z"
+    },
+    "mcp": {
+      "directory": "C:\\Users\\sddin\\code\\Steward\\.steward\\ux-release-acceptance",
+      "verifiedAt": "2026-10-24T08:13:25.704Z",
+      "simulation": true,
+      "checks": [
+        "live MCP discovery, deterministic exact-cent recomputation, exact stream identity and stale/duplicate-source rejection",
+        "entity-scoped MCP evidence/calculation authorization and attributed high-cost anomaly"
+      ],
+      "evidence": {
+        "schemaVersion": 1,
+        "sourceInstallationId": "dd91f2bf-d242-45d5-8c55-23b112e6f966",
+        "data": {
+          "records": [
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+                "revision": 11
+              },
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T05:36:41.747Z",
+              "ingestedAt": "2026-10-24T05:36:42.348Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/103",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 3200,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T05:36:36.844Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "39e8db36-d6a6-4bfb-bde6-b5ae0dd171fa",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T08:13:10.029Z",
+              "ingestedAt": "2026-10-24T08:13:23.508Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/7",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T08:13:05.179Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+                "revision": 11
+              },
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T06:07:16.410Z",
+              "ingestedAt": "2026-10-24T06:07:18.389Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/303",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 3200,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T06:07:11.860Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "5a90ae52-44b5-4ccb-9e1c-2431bf4e3064",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T06:06:56.025Z",
+              "ingestedAt": "2026-10-24T06:06:57.889Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/301",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T06:06:50.668Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+                "revision": 11
+              },
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T08:12:31.946Z",
+              "ingestedAt": "2026-10-24T08:12:32.014Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/403",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 3200,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T08:12:27.290Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "76fd8ea3-1bc0-4ad7-be1f-4e784614b75e",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T08:12:14.034Z",
+              "ingestedAt": "2026-10-24T08:12:15.926Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/401",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T08:12:09.605Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "ab264dbb-e565-4618-91fc-ea78fa537334",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T06:04:25.553Z",
+              "ingestedAt": "2026-10-24T06:04:26.033Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/201",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T06:04:20.602Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "bd3b0c7b-95ce-4d65-9679-c8810f7ce092",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T05:36:18.083Z",
+              "ingestedAt": "2026-10-24T05:36:19.754Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/101",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T05:36:14.107Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "ece28861-c9ef-4202-9d45-22deddf2670d",
+                "revision": 11
+              },
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T06:04:41.771Z",
+              "ingestedAt": "2026-10-24T06:04:42.522Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/203",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 3200,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T06:04:36.803Z",
+              "stockout": false
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "f6a2d82d-db9b-4c09-9cb4-5bb6131731fe",
+                "revision": 11
+              },
+              "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T05:39:42.212Z",
+              "ingestedAt": "2026-10-24T05:39:44.835Z",
+              "channel": "shopify",
+              "sourceId": "gid://shopify/Order/3",
+              "status": "fulfilled",
+              "currency": "USD",
+              "quantity": 2,
+              "recognizedRevenueCents": 5000,
+              "refundCents": 0,
+              "productionCostCents": 1600,
+              "shippingCostCents": 400,
+              "costBasis": "estimated",
+              "products": [
+                {
+                  "sku": "SYN-P8-TEE",
+                  "quantity": 2
+                }
+              ],
+              "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+              "fulfilledAt": "2026-10-24T05:39:37.263Z",
+              "stockout": false
+            }
+          ],
+          "total": 10,
+          "nextOffset": null,
+          "period": {
+            "from": null,
+            "to": null,
+            "fromInclusive": true,
+            "toExclusive": true,
+            "basis": "Source order creation time"
+          },
+          "authoritative": false
+        }
+      },
+      "analysis": {
+        "calculation": {
+          "capabilityId": "steward.commerce-performance",
+          "schemaVersion": 1,
+          "currency": "USD",
+          "units": "items",
+          "orderVolume": 10,
+          "fulfilledOrders": 10,
+          "fulfilledQuantity": 20,
+          "recognizedRevenueCents": 50000,
+          "refundCents": 0,
+          "netRevenueCents": 50000,
+          "estimatedCOGSCents": 22400,
+          "shippingCostCents": 4000,
+          "totalCostCents": 26400,
+          "grossMarginCents": 23600,
+          "costBasis": "estimated",
+          "costCoverage": {
+            "completeOrders": 10,
+            "totalOrders": 10
+          },
+          "grossMarginBasisPoints": 4720,
+          "costRatioBasisPoints": 5280,
+          "fulfillmentTimeSeconds": {
+            "completedOrders": 10,
+            "total": 3261191,
+            "average": 326119
+          },
+          "failedOrders": 0,
+          "stockoutOrders": 0,
+          "byChannel": [
+            {
+              "channel": "shopify",
+              "orderVolume": 10,
+              "revenueCents": 50000
+            }
+          ],
+          "products": [
+            {
+              "sku": "SYN-P8-TEE",
+              "orderedQuantity": 20,
+              "fulfilledQuantity": 20,
+              "recognizedRevenueCents": 50000,
+              "orderVolume": 10,
+              "totalCostCents": 26400,
+              "grossMarginCents": 23600,
+              "costAllocation": "Single-product orders; all source order costs/refunds attributed explicitly.",
+              "byChannel": [
+                {
+                  "channel": "shopify",
+                  "recognizedRevenueCents": 50000
+                }
+              ]
+            }
+          ],
+          "orders": [
+            {
+              "sourceId": "gid://shopify/Order/103",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 2800,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 36.00",
+                "grossMargin": "USD 14.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/7",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/303",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 2800,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 36.00",
+                "grossMargin": "USD 14.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/301",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/403",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 2800,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 36.00",
+                "grossMargin": "USD 14.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/401",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/201",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/101",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/203",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 2800,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 36.00",
+                "grossMargin": "USD 14.00"
+              }
+            },
+            {
+              "sourceId": "gid://shopify/Order/3",
+              "channel": "shopify",
+              "status": "fulfilled",
+              "costBasis": "estimated",
+              "grossMarginBasisPoints": 6000,
+              "displayAmounts": {
+                "netRevenue": "USD 50.00",
+                "totalCost": "USD 20.00",
+                "grossMargin": "USD 30.00"
+              }
+            }
+          ],
+          "displayAmounts": {
+            "recognizedRevenue": "USD 500.00",
+            "refunds": "USD 0.00",
+            "netRevenue": "USD 500.00",
+            "production": "USD 224.00",
+            "shipping": "USD 40.00",
+            "grossMargin": "USD 236.00"
+          },
+          "period": {
+            "from": "2026-10-20T12:00:00.000Z",
+            "to": "2026-10-20T12:00:00.000Z",
+            "basis": "Explicit selected source orders; endpoints describe observed range, not a complete-period census"
+          },
+          "assumptions": [
+            "Revenue recognizes completed merchandise quantities after source line discounts; excludes tax and shipping income.",
+            "Source total refunds may include tax/shipping and are not allocated to products.",
+            "Catalog production and shipping quotes remain estimates; unknown costs are never treated as zero.",
+            "No currency conversion, supplier substitution, production authorization or business action is performed."
+          ],
+          "decisionExecuted": false
+        },
+        "supportingReferences": [
+          {
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "39e8db36-d6a6-4bfb-bde6-b5ae0dd171fa",
+            "revision": 11
+          },
+          {
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "5a90ae52-44b5-4ccb-9e1c-2431bf4e3064",
+            "revision": 11
+          },
+          {
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "76fd8ea3-1bc0-4ad7-be1f-4e784614b75e",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "ab264dbb-e565-4618-91fc-ea78fa537334",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "bd3b0c7b-95ce-4d65-9679-c8810f7ce092",
+            "revision": 11
+          },
+          {
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "ece28861-c9ef-4202-9d45-22deddf2670d",
+            "revision": 11
+          },
+          {
+            "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+            "moduleId": "cee.sales",
+            "streamId": "commerce_orders",
+            "recordId": "f6a2d82d-db9b-4c09-9cb4-5bb6131731fe",
+            "revision": 11
+          }
+        ],
+        "affectedEntities": [
+          "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+          "3adf0560-6551-4d83-99f1-9db0ba978a15"
+        ],
+        "observed": {
+          "sources": [
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+                "revision": 11
+              },
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T05:36:41.747Z",
+              "ingestedAt": "2026-10-24T05:36:42.348Z",
+              "payload": {
+                "id": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/103",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T05:36:36.844Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T05:36:39.664Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 3200,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "39e8db36-d6a6-4bfb-bde6-b5ae0dd171fa",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T08:13:10.029Z",
+              "ingestedAt": "2026-10-24T08:13:23.508Z",
+              "payload": {
+                "id": "39e8db36-d6a6-4bfb-bde6-b5ae0dd171fa",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/7",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T08:13:05.179Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T08:13:07.291Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+                "revision": 11
+              },
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T06:07:16.410Z",
+              "ingestedAt": "2026-10-24T06:07:18.389Z",
+              "payload": {
+                "id": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/303",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T06:07:11.860Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T06:07:13.745Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 3200,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "5a90ae52-44b5-4ccb-9e1c-2431bf4e3064",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T06:06:56.025Z",
+              "ingestedAt": "2026-10-24T06:06:57.889Z",
+              "payload": {
+                "id": "5a90ae52-44b5-4ccb-9e1c-2431bf4e3064",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/301",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T06:06:50.668Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T06:06:53.021Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+                "revision": 11
+              },
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T08:12:31.946Z",
+              "ingestedAt": "2026-10-24T08:12:32.014Z",
+              "payload": {
+                "id": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/403",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T08:12:27.290Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T08:12:28.860Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 3200,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "76fd8ea3-1bc0-4ad7-be1f-4e784614b75e",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T08:12:14.034Z",
+              "ingestedAt": "2026-10-24T08:12:15.926Z",
+              "payload": {
+                "id": "76fd8ea3-1bc0-4ad7-be1f-4e784614b75e",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/401",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T08:12:09.605Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T08:12:11.313Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "ab264dbb-e565-4618-91fc-ea78fa537334",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T06:04:25.553Z",
+              "ingestedAt": "2026-10-24T06:04:26.033Z",
+              "payload": {
+                "id": "ab264dbb-e565-4618-91fc-ea78fa537334",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/201",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T06:04:20.602Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T06:04:23.065Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "bd3b0c7b-95ce-4d65-9679-c8810f7ce092",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T05:36:18.083Z",
+              "ingestedAt": "2026-10-24T05:36:19.754Z",
+              "payload": {
+                "id": "bd3b0c7b-95ce-4d65-9679-c8810f7ce092",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/101",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T05:36:14.107Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T05:36:15.474Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "ece28861-c9ef-4202-9d45-22deddf2670d",
+                "revision": 11
+              },
+              "sourceWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+              "observedAt": "2026-10-24T06:04:41.771Z",
+              "ingestedAt": "2026-10-24T06:04:42.522Z",
+              "payload": {
+                "id": "ece28861-c9ef-4202-9d45-22deddf2670d",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/203",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T06:04:36.803Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T06:04:39.713Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 3200,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            },
+            {
+              "reference": {
+                "entityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "f6a2d82d-db9b-4c09-9cb4-5bb6131731fe",
+                "revision": 11
+              },
+              "sourceWorker": "fbd54a1e-cc46-4691-8424-da0c83f3a06b",
+              "observedAt": "2026-10-24T05:39:42.212Z",
+              "ingestedAt": "2026-10-24T05:39:44.835Z",
+              "payload": {
+                "id": "f6a2d82d-db9b-4c09-9cb4-5bb6131731fe",
+                "revision": 11,
+                "projection": {
+                  "units": "items",
+                  "status": "fulfilled",
+                  "channel": "shopify",
+                  "approved": true,
+                  "currency": "USD",
+                  "products": [
+                    {
+                      "sku": "SYN-P8-TEE",
+                      "quantity": 2,
+                      "unitPriceCents": 2500,
+                      "sourceVariantId": "gid://shopify/ProductVariant/1",
+                      "lineRevenueCents": 5000,
+                      "fulfilledQuantity": 2,
+                      "recognizedRevenueCents": 5000
+                    }
+                  ],
+                  "quantity": 2,
+                  "sourceId": "gid://shopify/Order/3",
+                  "stockout": false,
+                  "costBasis": "estimated",
+                  "costSource": "Production catalog and shipping quote; estimates unless explicitly known",
+                  "fulfilledAt": "2026-10-24T05:39:37.263Z",
+                  "refundBasis": "Source total refunds; tax/shipping refunds are not allocated to products",
+                  "refundCents": 0,
+                  "revenueBasis": "Completed merchandise quantities after line discounts; excludes shipping and tax",
+                  "orderCreatedAt": "2026-10-20T12:00:00.000Z",
+                  "contractVersion": 1,
+                  "sourceUpdatedAt": "2026-10-24T05:39:39.518Z",
+                  "productionStatus": "shipped",
+                  "shippingCostCents": 400,
+                  "productionCostCents": 1600,
+                  "recognizedRevenueCents": 5000
+                }
+              }
+            }
+          ]
+        },
+        "authoritative": false,
+        "decisionExecuted": false
+      },
+      "anomalies": {
+        "matches": [
+          {
+            "reference": {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+              "revision": 11
+            },
+            "supportingReferences": [
+              {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "206cb900-427a-4bbd-a4cc-bbefa1c4edb4",
+                "revision": 11
+              }
+            ],
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "issues": [
+              "high_estimated_cost"
+            ],
+            "currency": "USD",
+            "costRatioBasisPoints": 7200,
+            "displayAmounts": {
+              "recognizedRevenue": "USD 50.00",
+              "refunds": "USD 0.00",
+              "netRevenue": "USD 50.00",
+              "production": "USD 32.00",
+              "shipping": "USD 4.00",
+              "grossMargin": "USD 14.00"
+            },
+            "costBasis": "estimated",
+            "marginComparison": null
+          },
+          {
+            "reference": {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+              "revision": 11
+            },
+            "supportingReferences": [
+              {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "48e468a6-37ce-4a82-b42f-c37cb8693c73",
+                "revision": 11
+              }
+            ],
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "issues": [
+              "high_estimated_cost"
+            ],
+            "currency": "USD",
+            "costRatioBasisPoints": 7200,
+            "displayAmounts": {
+              "recognizedRevenue": "USD 50.00",
+              "refunds": "USD 0.00",
+              "netRevenue": "USD 50.00",
+              "production": "USD 32.00",
+              "shipping": "USD 4.00",
+              "grossMargin": "USD 14.00"
+            },
+            "costBasis": "estimated",
+            "marginComparison": null
+          },
+          {
+            "reference": {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+              "revision": 11
+            },
+            "supportingReferences": [
+              {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "69d95fad-ca38-45ee-9037-455ed3f799f8",
+                "revision": 11
+              }
+            ],
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "issues": [
+              "high_estimated_cost"
+            ],
+            "currency": "USD",
+            "costRatioBasisPoints": 7200,
+            "displayAmounts": {
+              "recognizedRevenue": "USD 50.00",
+              "refunds": "USD 0.00",
+              "netRevenue": "USD 50.00",
+              "production": "USD 32.00",
+              "shipping": "USD 4.00",
+              "grossMargin": "USD 14.00"
+            },
+            "costBasis": "estimated",
+            "marginComparison": null
+          },
+          {
+            "reference": {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.sales",
+              "streamId": "commerce_orders",
+              "recordId": "ece28861-c9ef-4202-9d45-22deddf2670d",
+              "revision": 11
+            },
+            "supportingReferences": [
+              {
+                "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "moduleId": "cee.sales",
+                "streamId": "commerce_orders",
+                "recordId": "ece28861-c9ef-4202-9d45-22deddf2670d",
+                "revision": 11
+              }
+            ],
+            "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "issues": [
+              "high_estimated_cost"
+            ],
+            "currency": "USD",
+            "costRatioBasisPoints": 7200,
+            "displayAmounts": {
+              "recognizedRevenue": "USD 50.00",
+              "refunds": "USD 0.00",
+              "netRevenue": "USD 50.00",
+              "production": "USD 32.00",
+              "shipping": "USD 4.00",
+              "grossMargin": "USD 14.00"
+            },
+            "costBasis": "estimated",
+            "marginComparison": null
+          }
+        ],
+        "total": 4,
+        "nextOffset": null,
+        "thresholds": {
+          "maximumCostRatioBasisPoints": 6000,
+          "minimumMarginDeclineBasisPoints": 500,
+          "delayHours": 48
+        },
+        "authoritative": false
+      },
+      "status": "passed"
+    }
+  },
+  "liveModel": {
+    "provider": "ollama",
+    "baseModel": "qwen2.5:7b",
+    "baseModelDigest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "testModel": false,
+    "investigationId": "29969c3e-256f-40ea-abe5-f7fd2aec6188",
+    "findingId": "29969c3e-256f-40ea-abe5-f7fd2aec6188",
+    "elapsedMs": 51051,
+    "modelTurns": [
+      {
+        "elapsedMs": 2130,
+        "calls": [
+          {
+            "name": "list_entities",
+            "arguments": "{}"
+          }
+        ],
+        "usage": {
+          "promptTokens": 1226,
+          "outputTokens": 16,
+          "totalDurationNs": 2125176800
+        }
+      },
+      {
+        "elapsedMs": 1822,
+        "calls": [
+          {
+            "name": "query_resource_matches",
+            "arguments": "{\"limit\":1,\"offset\":0}"
+          }
+        ],
+        "usage": {
+          "promptTokens": 1518,
+          "outputTokens": 27,
+          "totalDurationNs": 1818735300
+        }
+      },
+      {
+        "elapsedMs": 4450,
+        "calls": [
+          {
+            "name": "query_business_relationships",
+            "arguments": "{\"offset\":0,\"entityId\":\"c172abc0-9d4b-4d15-a66e-a92246bd1b77\",\"limit\":4}"
+          }
+        ],
+        "usage": {
+          "promptTokens": 2034,
+          "outputTokens": 65,
+          "totalDurationNs": 4446065500
+        }
+      },
+      {
+        "elapsedMs": 12909,
+        "calls": [
+          {
+            "name": "analyze_resource_sharing_by_id",
+            "arguments": "{\"demandRecordId\":\"e6b02166-5e23-460d-a7ba-8cbbabe7bd97\",\"supplyRevision\":1,\"demandRevision\":1,\"transitionExpense\":6000,\"locationCompatible\":true,\"supplyRecordId\":\"2d1888b2-a151-4df8-9888-4feda62dc236\",\"internalMonthlyPayment\":3000,\"incrementalMonthlyCost\":1000,\"horizonMonths\":12,\"avoidableExternalFraction\":1,\"sensitivity\":[{\"incrementalMonthlyCost\":2000,\"label\":\"Higher incremental cost and transition expense\",\"transitionExpense\":12000}]}"
+          }
+        ],
+        "usage": {
+          "promptTokens": 2284,
+          "outputTokens": 203,
+          "totalDurationNs": 12905811300
+        }
+      },
+      {
+        "elapsedMs": 28606,
+        "calls": [],
+        "usage": {
+          "promptTokens": 2968,
+          "outputTokens": 402,
+          "totalDurationNs": 28604150800
+        }
+      }
+    ],
+    "toolExecutions": [
+      {
+        "tool": "list_entities",
+        "status": "running",
+        "arguments": {},
+        "elapsedMs": null
+      },
+      {
+        "tool": "list_entities",
+        "status": "success",
+        "arguments": null,
+        "elapsedMs": 29
+      },
+      {
+        "tool": "query_resource_matches",
+        "status": "running",
+        "arguments": {
+          "limit": 1,
+          "offset": 0
+        },
+        "elapsedMs": null
+      },
+      {
+        "tool": "query_resource_matches",
+        "status": "success",
+        "arguments": null,
+        "elapsedMs": 43
+      },
+      {
+        "tool": "query_business_relationships",
+        "status": "running",
+        "arguments": {
+          "limit": 4,
+          "offset": 0,
+          "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77"
+        },
+        "elapsedMs": null
+      },
+      {
+        "tool": "query_business_relationships",
+        "status": "success",
+        "arguments": null,
+        "elapsedMs": 40
+      },
+      {
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "running",
+        "arguments": {
+          "sensitivity": [
+            {
+              "label": "Higher incremental cost and transition expense",
+              "transitionExpense": 12000,
+              "incrementalMonthlyCost": 2000
+            }
+          ],
+          "horizonMonths": 12,
+          "demandRecordId": "e6b02166-5e23-460d-a7ba-8cbbabe7bd97",
+          "demandRevision": 1,
+          "supplyRecordId": "2d1888b2-a151-4df8-9888-4feda62dc236",
+          "supplyRevision": 1,
+          "transitionExpense": 6000,
+          "locationCompatible": true,
+          "incrementalMonthlyCost": 1000,
+          "internalMonthlyPayment": 3000,
+          "avoidableExternalFraction": 1
+        },
+        "elapsedMs": null
+      },
+      {
+        "tool": "analyze_resource_sharing_by_id",
+        "status": "success",
+        "arguments": null,
+        "elapsedMs": 61
+      }
+    ],
+    "result": {
+      "analyses": [
+        {
+          "observed": {
+            "demand": {
+              "id": "e6b02166-5e23-460d-a7ba-8cbbabe7bd97",
+              "name": "SYN-P7-G0001-external storage",
+              "site": "Synthetic Phase 7 hub",
+              "currency": "EUR",
+              "revision": 1,
+              "required_m3": 500,
+              "utilized_m3": 400,
+              "monthly_external_cost": 12000
+            },
+            "supply": {
+              "id": "2d1888b2-a151-4df8-9888-4feda62dc236",
+              "name": "Synthetic Phase 7 shared warehouse",
+              "site": "Synthetic Phase 7 hub",
+              "currency": "EUR",
+              "revision": 1,
+              "ownership": {
+                "accessBasis": "leased",
+                "userEntityId": "3adf0560-6551-4d83-99f1-9db0ba978a15",
+                "ownerEntityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+                "custodianEntityId": "3adf0560-6551-4d83-99f1-9db0ba978a15"
+              },
+              "capacity_m3": 1000,
+              "utilized_m3": 200,
+              "valid_until": null,
+              "available_m3": 800,
+              "monthly_operating_cost": 3000
+            },
+            "demandAt": "2026-10-24T05:42:58.627Z",
+            "supplyAt": "2026-10-24T05:42:58.410Z",
+            "demandWorker": "a20b47ec-e6a7-47bb-bf4a-b2b7fdb773d4",
+            "supplyWorker": "7b7ef1d0-bf9a-40fd-9e2b-e30eecbf7405",
+            "demandIngestedAt": "2026-10-24T05:43:01.583Z",
+            "supplyIngestedAt": "2026-10-24T05:43:00.543Z"
+          },
+          "calculation": {
+            "baseline": {
+              "label": "Keep external storage",
+              "consumerHorizonBenefit": 0,
+              "providerHorizonBenefit": 0,
+              "ecosystemHorizonBenefit": 0
+            },
+            "currency": "EUR",
+            "proposal": {
+              "label": "Share internal capacity",
+              "breakEvenMonths": 0.55,
+              "transitionExpense": 6000,
+              "consumerHorizonBenefit": 102000,
+              "consumerMonthlyBenefit": 9000,
+              "providerHorizonBenefit": 24000,
+              "providerMonthlyBenefit": 2000,
+              "ecosystemHorizonBenefit": 126000,
+              "ecosystemMonthlyBenefit": 11000
+            },
+            "assumptions": {
+              "currency": "EUR",
+              "sensitivity": [
+                {
+                  "label": "Higher incremental cost and transition expense",
+                  "transitionExpense": 12000,
+                  "incrementalMonthlyCost": 2000
+                }
+              ],
+              "horizonMonths": 12,
+              "requiredCapacity": 500,
+              "availableCapacity": 800,
+              "transitionExpense": 6000,
+              "locationCompatible": true,
+              "externalMonthlyCost": 12000,
+              "incrementalMonthlyCost": 1000,
+              "internalMonthlyPayment": 3000,
+              "avoidableExternalFraction": 1
+            },
+            "alternatives": [
+              {
+                "label": "Higher incremental cost and transition expense",
+                "breakEvenMonths": 1.2,
+                "transitionExpense": 12000,
+                "consumerHorizonBenefit": 96000,
+                "consumerMonthlyBenefit": 9000,
+                "providerHorizonBenefit": 12000,
+                "providerMonthlyBenefit": 1000,
+                "ecosystemHorizonBenefit": 108000,
+                "ecosystemMonthlyBenefit": 10000
+              }
+            ],
+            "capabilityId": "steward.resource-sharing",
+            "horizonMonths": 12,
+            "schemaVersion": 1,
+            "uncertainties": [
+              "External cost avoidance assumes proportional volume pricing and the specified avoidable fraction.",
+              "Incremental operating cost is an assumption, separate from observed total warehouse operating cost.",
+              "Internal payments cancel at ecosystem level; transition expense is allocated to the consumer once.",
+              "Humans must confirm location, transport, service levels, taxes, contracts, safety, and investment approval. No business decision has been executed."
+            ],
+            "unmetCapacity": 0,
+            "sharedCapacity": 500,
+            "avoidedExternalMonthlyCost": 12000
+          },
+          "authoritative": false,
+          "relationships": [
+            {
+              "kind": "potential_storage_partner",
+              "to_entity": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "description": "Unused warehouse capacity may substitute external storage, subject to feasibility and incremental operating costs.",
+              "from_entity": "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d",
+              "relationship_id": "5c4bd370-96f8-4d13-ae32-5a5404580c55"
+            }
+          ],
+          "affectedEntities": [
+            "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+            "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d"
+          ],
+          "decisionExecuted": false,
+          "supportingReferences": [
+            {
+              "entityId": "c172abc0-9d4b-4d15-a66e-a92246bd1b77",
+              "moduleId": "cee.assets",
+              "recordId": "2d1888b2-a151-4df8-9888-4feda62dc236",
+              "revision": 1,
+              "streamId": "capacities"
+            },
+            {
+              "entityId": "51f4b1a7-164b-4d89-bd6b-58b1cc8df61d",
+              "moduleId": "cee.operations",
+              "recordId": "e6b02166-5e23-460d-a7ba-8cbbabe7bd97",
+              "revision": 1,
+              "streamId": "storage_requirements"
+            }
+          ]
+        }
+      ],
+      "narrative": "The analysis of shared capacity between 'Synthetic Phase 7 shared warehouse' and 'SYN-P7-G0001-external storage' reveals that 500 units of capacity can be shared. The tool-computed consumerMonthlyBenefit is 9,000 EUR, providerMonthlyBenefit is 2,000 EUR, and the ecosystemMonthlyBenefit is 11,000 EUR. Over the horizon of 12 months, the ecosystemHorizonBenefit is 126,000 EUR. The zero-change baseline, keeping external storage, results in no net benefit. The sensitivity analysis with higher incremental cost and transition expense shows a consumerMonthlyBenefit of 9,000 EUR, providerMonthlyBenefit of 1,000 EUR, and an ecosystemMonthlyBenefit of 10,000 EUR, with a horizon benefit of 108,000 EUR.",
+      "testModel": false,
+      "assumptions": [
+        "availableCapacity: 800",
+        "requiredCapacity: 500",
+        "externalMonthlyCost: 12,000 EUR",
+        "internalMonthlyPayment: 3,000 EUR",
+        "incrementalMonthlyCost: 1,000 EUR",
+        "transitionExpense: 6,000 EUR",
+        "horizonMonths: 12",
+        "avoidableExternalFraction: 1",
+        "locationCompatible: true"
+      ],
+      "schemaVersion": 1,
+      "humanDecisions": [
+        "Confirm the suitability of the shared warehouse for the synthetic commerce worker's needs.",
+        "Review the transition expense and incremental operating cost assumptions.",
+        "Obtain human confirmation for the location, transport, service levels, taxes, contracts, safety, and investment approval.",
+        "Monitor the financial impact and operational suitability over the 12-month horizon."
+      ],
+      "decisionExecuted": false
+    },
+    "deliveries": [
+      {
+        "worker": "worker-1",
+        "affected": false,
+        "received": false
+      },
+      {
+        "worker": "worker-2",
+        "affected": true,
+        "received": true
+      },
+      {
+        "worker": "worker-3",
+        "affected": true,
+        "received": true
+      }
+    ],
+    "browser": {
+      "launchedThroughUI": true,
+      "publishedThroughUI": true,
+      "historyRefresh": true,
+      "workerAcknowledgments": true,
+      "errors": []
+    },
+    "providerStatus": {
+      "configured": true,
+      "provider": "ollama",
+      "model": "steward-analyst-qwen2.5-ctx16384:7b",
+      "testModel": false,
+      "state": "reachable",
+      "checkedAt": "2026-10-24T08:23:14.137Z",
+      "modelReadiness": "Confirmed only by a successful investigation"
+    },
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "narrativeReview": {
+      "acceptedForConditionalOpportunityReview": true,
+      "businessDecisionApprovedOrExecuted": false,
+      "assessment": "Every quoted benefit, currency and horizon matches the deterministic calculation, including the zero-change baseline and higher-cost sensitivity. The model uses generic units and mixes some observed facts into its assumptions list. Source data establish cubic metres; both detail views identify model assumptions wording as non-authoritative and preserve separate source records, deterministic inputs and limitations."
+    }
+  },
+  "initialRealModelFailure": {
+    "investigationId": "b0fac73f-cdbe-4f96-99c6-8a191291ca9c",
+    "error": "REPEATED_TOOL_CALL",
+    "elapsedMs": 66512,
+    "modelCalls": 5,
+    "result": null,
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "retainedInHistory": true
+  },
+  "runtime": {
+    "checkedAt": "2026-10-24T08:40:55.195Z",
+    "environments": [
+      {
+        "directory": ".steward/phase7-release-verified",
+        "project": "steward-phase7-release-acceptance2",
+        "containerCount": 27,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.7.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.7.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.7.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.7.0",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {}
+      },
+      {
+        "directory": ".steward/phase8-acceptance",
+        "project": "steward-phase8-accept",
+        "containerCount": 37,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.8.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.8.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.8.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.8.0",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {}
+      },
+      {
+        "directory": ".steward/phase8-upgrade-regressions",
+        "project": "steward-phase8-upgrade-reg",
+        "containerCount": 24,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {
+          "master-api": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+          "master-web": "sha256:1fa728f9723c864e5eb9831b6e767ff9bc83bbbc59006cff6d678fa85e75faaf",
+          "worker-1-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-1-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-1-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-2-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-2-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-2-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-3-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-3-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-3-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4"
+        }
+      },
+      {
+        "directory": ".steward/ux-release-acceptance",
+        "project": "steward-ux-release-accept",
+        "containerCount": 38,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {
+          "master-api": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+          "master-web": "sha256:1fa728f9723c864e5eb9831b6e767ff9bc83bbbc59006cff6d678fa85e75faaf",
+          "worker-1-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-1-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-1-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-2-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-2-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-2-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-3-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-3-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-3-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4"
+        }
+      },
+      {
+        "directory": ".steward/ux-release-final",
+        "project": "steward-ux-release-final",
+        "containerCount": 18,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.9.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.9.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.9.0",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.9.0",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {}
+      },
+      {
+        "directory": ".steward/bi-release-verified",
+        "project": "steward-bi-release-v091",
+        "containerCount": 19,
+        "apis": [
+          {
+            "key": "master",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-1",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-2",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          },
+          {
+            "key": "worker-3",
+            "release": "0.9.1",
+            "health": 200,
+            "ready": 200
+          }
+        ],
+        "pinnedImages": {
+          "master-api": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+          "master-web": "sha256:1fa728f9723c864e5eb9831b6e767ff9bc83bbbc59006cff6d678fa85e75faaf",
+          "worker-1-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-1-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-1-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-2-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-2-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-2-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+          "worker-3-api": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+          "worker-3-web": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+          "worker-3-module-host": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4"
+        }
+      }
+    ],
+    "ollamaLoaded": [],
+    "status": "passed"
+  },
+  "release": {
+    "directory": "artifacts/releases/steward-0.9.1-mvp",
+    "sourceCommit": "e8d4d5eaecf980146a53e6139cf559442f25480f",
+    "images": {
+      "master-api": {
+        "tag": "steward-master-api:0.9.1",
+        "id": "sha256:b92bbec05931f04282819056fd97957b12cff1e5acd8ba151da2bb13d471ff1b",
+        "platform": "linux/amd64"
+      },
+      "master-web": {
+        "tag": "steward-master-web:0.9.1",
+        "id": "sha256:1fa728f9723c864e5eb9831b6e767ff9bc83bbbc59006cff6d678fa85e75faaf",
+        "platform": "linux/amd64"
+      },
+      "worker-api": {
+        "tag": "steward-worker-api:0.9.1",
+        "id": "sha256:0997751e869054f2d03049ab5f19a52b0c6a2278ecd73d0e7b7db86bb6349406",
+        "platform": "linux/amd64"
+      },
+      "worker-web": {
+        "tag": "steward-worker-web:0.9.1",
+        "id": "sha256:75d096575fad90bb3a5d12a243526669c1822226bb621c563892a74e020b6238",
+        "platform": "linux/amd64"
+      },
+      "module-host": {
+        "tag": "steward-module-host:0.9.1",
+        "id": "sha256:6a4f5fc00b70868f13be4c5ddc303f15d39643ae5727d1d33a824a931469e1c4",
+        "platform": "linux/amd64"
+      },
+      "postgres": {
+        "tag": "postgres:17.9-alpine",
+        "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+      },
+      "commerce-simulator": {
+        "tag": "steward-commerce-simulator:1.0.0",
+        "id": "sha256:b172f0c79ef6cb1b4240782282be822a5e39e39e65a6c902f5bfe21cfdb20ca2"
+      }
+    },
+    "candidateManifestSha256": "00d14f0323290279f1c9b80c1fdf18f5aae305261343b8132ec4976f42fd6572",
+    "acceptanceReceipt": "artifacts/releases/steward-0.9.1-acceptance.json"
+  },
+  "screenshots": [
+    "artifacts/bi-executive.png",
+    "artifacts/bi-history.png",
+    "artifacts/bi-finding.png",
+    "artifacts/bi-financial.png",
+    "artifacts/bi-worker-commerce.png",
+    "artifacts/bi-worker-mobile.png"
+  ],
+  "limitations": [
+    "Commerce uses authenticated TLS simulators; no live commercial connectivity or paid production is certified.",
+    "Financial comparisons select the latest 20 approved observations per company/currency, not a complete-period financial statement.",
+    "Production and shipping quotes remain estimates; no FX conversion or net-profit claim.",
+    "Local models can fail or misclassify wording; human review and explicit assumptions remain mandatory.",
+    "Provider configuration and credentials remain deployment-managed.",
+    "Legacy reference fields without module-provided local lookup data retain explicit reference inputs.",
+    "This MVP is not certified commercially production-ready."
+  ]
+}
