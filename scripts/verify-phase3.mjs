@@ -20,7 +20,7 @@ const moduleId = 'cee.inventory';
 const slug = id => 'm_' + digest(id).slice(0, 20);
 const {moduleContainerName}=await import('../packages/module-host/dist/naming.js');
 const container = (worker, id = moduleId) => moduleContainerName(deployment.project,worker,id);
-const base = worker => `https://${worker}.localhost:${6200 + Number(worker.slice(-1))}`;
+const base = worker => `https://${worker}.localhost:${deployment.instances.find(i=>i.key===worker).webPort+1000}`;
 const results = { verifiedAt: new Date().toISOString(), checks: [], coreBefore: {}, coreAfterInstallation: {} };
 await mkdir('artifacts', { recursive: true });
 function pass(message) { results.checks.push(message); console.log('PASS ' + message); }

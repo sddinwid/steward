@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFile,writeFile,unlink} from 'node:fs/promises';
 import {randomUUID} from 'node:crypto';
 import path from 'node:path';
-import {api,logins,sessions,waitFor} from './phase4-client.mjs';
+import {deployment,api,logins,sessions,waitFor} from './phase4-client.mjs';
 import {directory,compose,docker,sql,json} from './lib.mjs';
 import {hash} from '../packages/platform/dist/security/crypto.js';
 await logins();
@@ -22,7 +22,7 @@ try{
  const record=(await api('worker-1','/api/v3/modules/cee.operations/api/capacities','POST',{name:'Concurrency verification '+randomUUID().slice(0,8),site:'Verification only',capacity_m3:5,utilized_m3:0,monthly_operating_cost:0,currency:'EUR'},201)).value.record;
  await waitFor(async()=>(await api('master','/api/v4/analytics')).value.records.some(r=>r.record_id===record.id),'ordinary synchronization while both models are stalled');
  for(const r of accepted)assert.equal((await api('master','/api/v5/analyst/investigations/'+r.id)).value.investigation.status,'running');
- for(let n=1;n<=3;n++){assert.equal((await json('http://127.0.0.1:'+(4200+n)+'/health')).status,'ok');assert.equal((await json('http://127.0.0.1:'+(4200+n)+'/ready')).status,'ready');}
+ for(let n=1;n<=3;n++){assert.equal((await json('http://127.0.0.1:'+deployment.instances.find(i=>i.key==='worker-'+n).apiPort+'/health')).status,'ok');assert.equal((await json('http://127.0.0.1:'+deployment.instances.find(i=>i.key==='worker-'+n).apiPort+'/ready')).status,'ready');}
  for(const r of accepted){const end=await waitFor(async()=>{const v=(await api('master','/api/v5/analyst/investigations/'+r.id)).value.investigation;return v.status!=='running'?v:false;},'bounded stalled model request');assert.equal(end.error_code,'TRANSPORT_TIMEOUT');}
  await writeFile('artifacts/phase5-concurrency.json',JSON.stringify({verifiedAt:new Date().toISOString(),admitted:2,rejected:1,investigations:accepted.map(r=>r.id),ordinaryRecordSynchronizedDuringStalledModels:record.id,modelValidation:'Explicit HTTPS timeout fixture, not a live provider',assertions:'all passed'},null,2)+'\n');
  console.log('PASS simultaneous investigations admit exactly two and reject the third; ordinary Worker CRUD/synchronization/health continue while both models stall, then bounded timeouts persist');

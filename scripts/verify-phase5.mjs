@@ -4,7 +4,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { chromium } from 'playwright';
 import { directory,compose,docker,sql,json } from './lib.mjs';
-import { api,logins,login,credentials,sessions,waitFor,origin } from './phase4-client.mjs';
+import { api,logins,login,credentials,sessions,waitFor,origin,deployment } from './phase4-client.mjs';
 import { mcp } from './mcp-client.mjs';
 const report={verifiedAt:new Date().toISOString(),modelValidation:'Explicit Responses protocol test fixture, NOT a live provider',checks:[],coreImages:{}};
 const pass=s=>{report.checks.push(s);console.log('PASS '+s);};
@@ -69,7 +69,7 @@ try{
  // Kill only the explicitly launched fixture; restore the operator's exact config.
  docker(['exec',masterContainer,'node','-e',"const fs=require('fs');for(const p of fs.readdirSync('/proc').filter(p=>/^\\d+$/.test(p))){try{if(fs.readFileSync('/proc/'+p+'/cmdline','utf8').includes('/etc/steward/analyst/verification-fixture.mjs')&&+p!==process.pid)process.kill(+p,'SIGTERM')}catch{}}"]);fixtureStarted=false;
  const offline=await run('Investigate during the test model outage');assert.equal(offline.investigation.error_code,'TRANSPORT_UNAVAILABLE');
- for(const w of ['worker-1','worker-2','worker-3']){const port=4200+Number(w.slice(-1));assert.equal((await json('http://localhost:'+port+'/health')).status,'ok');await api(w,'/api/v3/modules/cee.operations/api/assets');}
+ for(const w of ['worker-1','worker-2','worker-3']){const port=deployment.instances.find(i=>i.key===w).apiPort;assert.equal((await json('http://localhost:'+port+'/health')).status,'ok');await api(w,'/api/v3/modules/cee.operations/api/assets');}
  pass('Actual model process outage reports failure while ordinary Worker services remain available');
  compose('restart','master-api');await waitFor(async()=>{try{return(await api('master','/api/v5/analyst/investigations/'+report.investigationId)).value.investigation.status==='completed';}catch{return false;}},'persistent investigation after restart');
  assert.ok(Number(sql('master',"SELECT count(*) FROM security_audit WHERE action='mcp.allowed'"))>0);assert.ok(Number(sql('master',"SELECT count(*) FROM security_audit WHERE action='mcp.denied_or_failed'"))>0);
