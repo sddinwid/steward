@@ -84,3 +84,8 @@ test('commerce planning offers calculation only after entity and source discover
  assert.deepEqual(commerceStageTools(tools,true,true).map(t=>t.name),['query_commerce_evidence','query_commerce_exceptions','analyze_commerce_by_id']);
  assert.deepEqual(commerceStageTools([],true,true),[]);
 });
+
+test('complete estimated commerce context states actual coverage and exact selected source amounts',()=>{
+ const raw={structuredContent:{data:{calculation:{capabilityId:'steward.commerce-performance',contributionSummary:{marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 83.50'}},contributionAnalysis:[{sourceId:'order-a',marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 30.50'},missingCosts:[],recognitionComplete:true},{sourceId:'order-b',marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 53.00'},missingCosts:[],recognitionComplete:true}]}}}};
+ const view=modelToolResult('analyze_commerce_by_id',raw,false).structuredContent.data.calculation;assert(view.financialRule.includes('USD 83.50 (estimated)'));assert(view.financialRule.includes('No selected cost component is missing'));assert(view.financialRule.includes('order-a = USD 30.50'));assert(view.financialRule.includes('order-b = USD 53.00'));
+});
