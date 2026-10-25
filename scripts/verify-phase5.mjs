@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { directory,compose,docker,sql,json } from './lib.mjs';
 import { api,logins,login,credentials,sessions,waitFor,origin,deployment } from './phase4-client.mjs';
 import { mcp } from './mcp-client.mjs';
+import {atLeast} from '../packages/module-sdk/dist/index.js';
 const report={verifiedAt:new Date().toISOString(),modelValidation:'Explicit Responses protocol test fixture, NOT a live provider',checks:[],coreImages:{}};
 const pass=s=>{report.checks.push(s);console.log('PASS '+s);};
 await mkdir('artifacts',{recursive:true});await logins();
