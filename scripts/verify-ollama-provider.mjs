@@ -95,7 +95,7 @@ try{
       const recomputed=capability==='commerce-performance'?calculateCommerce(sources):capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);
       assert.deepEqual(analysis.calculation,recomputed);if(capability==='commerce-performance')assert.ok(analysis.supportingReferences.length>=2);else assert.equal(analysis.supportingReferences.length,3);assert(analysis.observed.sources.every(s=>s.sourceWorker&&s.observedAt));
     }
-    for(const ref of analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
+    for(const ref of analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.entity_id===ref.entityId&&r.module_id===ref.moduleId&&r.stream_id===ref.streamId&&r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
   }
   report.checks.push('deterministic calculations independently recomputed and source revisions rechecked');
   if((capability==='resource-sharing'&&process.env.STEWARD_OLLAMA_DEFER_PUBLICATION!=='1')||process.env.STEWARD_OLLAMA_PUBLISH_REVIEWED==='1'){

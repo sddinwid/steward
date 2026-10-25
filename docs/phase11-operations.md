@@ -4,7 +4,7 @@ Phase 11 acceptance is tracked in [the verification report](phase11-verification
 
 ## Architecture and safety
 
-Commerce Simulation (`steward.simulation.commerce` 1.0.1) is a separately signed, independently installed service with its own database. Simulated Fulfillment (`steward.simulation.fulfillment` 1.0.1) is a separate local SSMA provider. Neither declares a commerce connector, possesses Shopify/Printify credentials, implements commercial HTTP transport, or receives approved external egress. Worker core installation precedes installation of either package.
+Commerce Simulation (`steward.simulation.commerce` 1.0.2) is a separately signed, independently installed service with its own database. Simulated Fulfillment (`steward.simulation.fulfillment` 1.0.1) is a separate local SSMA provider. Neither declares a commerce connector, possesses Shopify/Printify credentials, implements commercial HTTP transport, or receives approved external egress. Worker core installation precedes installation of either package.
 
 Sales 1.3.0 and Stock Ledger 1.1.0 expose signed simulation service capabilities alongside their ordinary contracts. The generator sends approved durable commands to those owner services; it never connects to their operational databases. Sales creates orders/customers, reserves/consumes actual stock through Stock Ledger and records actual fulfillment progress from the isolated provider. The engine stores coordination state and service receipts, not a parallel business ledger.
 
@@ -102,3 +102,24 @@ node scripts/configure-phase11-demo.mjs .steward/phase8-upgrade-regressions
 The installation verifier uses real Chromium authentication, Module Manager installation/activation and core-image comparisons. The configuration helper uses ordinary form controls for module configuration, then the authenticated governed binding/proposal/approval APIs. It preserves existing ordinary Sales configuration and original commercial workflow steps. It does not start generation or authorize an external provider. Original deterministic monitor calculations are frozen when a finding is created (append-only platform migration 14); current condition updates do not replace the historical financial evidence shown in that finding.
 
 Simulation configuration uses a separate logical revision from background progress counters. Safe Start/Pause/Resume/Stop/Reset controls lock and validate the latest owner state, while concurrent configuration edits still conflict. Financial/business actions retain their existing strict record revision checks. Phase 11 intelligence and finding snapshots extend the existing secure `/api/v4/` synchronization/analytics domain; no new Nginx route or trust exception is required.
+
+
+## Controlled demonstration automation
+
+The runner records only its own dataset IDs in the deployment-private `demo/phase11.json`. It rejects untracked name collisions and uses ordinary browser forms and authenticated operational APIs. It does not adopt or reset unrelated datasets. Choose the explicit retained deployment directory (or a separately installed release).
+
+```powershell
+$env:STEWARD_DEMO_RETRY_LOGIN='1'
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions seed
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions start
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions pause
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions resume
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions stop
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions inspect
+# Explicitly delete only this runner's selected synthetic datasets, via each owner:
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions reset
+```
+
+`verify` is a destructive acceptance operation for those controlled datasets only: it injects a rejected reset, restores the prerequisite, runs normal/seasonal/low-margin activity, restarts the generator, disconnects a peer and Master, reconciles source financials and checks governed finding delivery. `purchasing` resets only the controlled datasets and runs a bounded purchasing scenario. These commands retain ordinary records. Reports are emitted under `artifacts/phase11-demo-*.json`; failed attempts must be retained separately before retry. `finish-mixed` resumes the specifically retained synchronization-latency failure checkpoint, without generating another run.
+
+Synchronization keeps its existing two-second idle poll and bounded event/envelope sizes. Successful exchanges may drain up to four consecutive batches per burst, using the same oldest-polled-module selection and signed receipt/idempotency rules. Failure stops the burst and retains normal bounded backoff. No intermediate source revisions are discarded or falsely acknowledged. A long retained backlog can still delay a current projection; inspect module-owned outboxes and source freshness rather than assuming the core outbox contains module events.

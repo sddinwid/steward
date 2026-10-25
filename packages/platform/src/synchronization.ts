@@ -170,8 +170,10 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
       return transaction(pool,async sql=>{const row=(await sql.query("SELECT * FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];if(!row)fail(409,'Enrollment required');const changed=(await sql.query('UPDATE local_findings SET status=$1,revision=revision+1 WHERE finding_id=$2 AND revision=$3 RETURNING revision',[b.status,req.params.id,b.revision])).rows[0];if(!changed)fail(409,'Finding changed; refresh');const source={...installation,entity:{entityId:row.entity_id,displayName:row.entity_name}};await queue(sql,dataEvent(source,row.certificate.payload.issuer,'finding.status',req.params.id,changed.revision,{status:b.status}));await audit(sql,actor.account_id,'finding.local_status',req.params.id,{status:b.status});return{saved:true};});
     });
     const broker=process.env.STEWARD_MODULES_FILE?await createModuleBroker(process.env.STEWARD_MODULES_FILE,installation,key):undefined;
-    let busy=false;
-    async function pump(){if(busy)return;busy=true;let client:pg.PoolClient|undefined;let locked=false;let selected:any[]=[];let module:any;let moduleEvents:DataEvent[]=[];
+    let busy=false,closed=false;let followup:ReturnType<typeof setTimeout>|undefined;
+    // Keep idle polling unchanged, but drain at most four acknowledged batches per
+    // burst. Round-robin module selection and all existing delivery bounds remain.
+    async function pump(remaining=3){if(busy||closed)return;busy=true;let delivered=false;let client:pg.PoolClient|undefined;let locked=false;let selected:any[]=[];let module:any;let moduleEvents:DataEvent[]=[];
       try{
         client=await pool.connect();locked=(await client.query("SELECT pg_try_advisory_lock(14444001) acquired")).rows[0].acquired;if(!locked)return;
         const status=(await client.query('SELECT * FROM sync_status WHERE singleton')).rows[0];if(new Date(status.next_attempt_at).getTime()>Date.now())return;
@@ -198,13 +200,14 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
           await client.query('UPDATE sync_status SET last_success_at=now(),attempts=0,next_attempt_at=now(),error_code=NULL WHERE singleton');await client.query('COMMIT');
         }catch(e){await client.query('ROLLBACK');throw e;}
         if(module&&moduleEvents.length)await broker?.('outbox.complete',module.descriptor,module.configuration,{acknowledged:moduleEvents.filter(e=>receipt.acknowledged.includes(e.eventId)).map(e=>e.eventId),failed:[]});
+        delivered=outgoing.length>0||receipt.events.length>0;
       }catch{
         if(client)await client.query("UPDATE sync_status SET attempts=attempts+1,error_code='DELIVERY_UNAVAILABLE',next_attempt_at=now()+least(30,power(2,least(attempts,5)))*interval '1 second' WHERE singleton").catch(()=>{});
         if(client&&selected.length)await client.query("UPDATE sync_outbox SET attempts=attempts+1,error_code='DELIVERY_UNAVAILABLE',next_attempt_at=now()+interval '2 seconds' WHERE event_id=ANY($1::uuid[]) AND acknowledged_at IS NULL",[selected.map(r=>r.envelope.eventId)]).catch(()=>{});
         if(module&&moduleEvents.length)await broker?.('outbox.complete',module.descriptor,module.configuration,{acknowledged:[],failed:moduleEvents.map(e=>e.eventId)}).catch(()=>{});
-      }finally{if(client){if(locked)await client.query('SELECT pg_advisory_unlock(14444001)').catch(()=>{});client.release();}busy=false;}
+      }finally{if(client){if(locked)await client.query('SELECT pg_advisory_unlock(14444001)').catch(()=>{});client.release();}busy=false;if(delivered&&remaining>0&&!closed)followup=setTimeout(()=>void pump(remaining-1),50).unref();}
     }
-    const timer=setInterval(()=>void pump(),2000).unref();void pump();app.addHook('onClose',async()=>{clearInterval(timer);});
+    const timer=setInterval(()=>void pump(),2000).unref();void pump();app.addHook('onClose',async()=>{closed=true;clearInterval(timer);if(followup)clearTimeout(followup);});
   }
 }
 export interface SyncTransport { exchange(value: SyncExchange): Promise<SyncReceipt> }
