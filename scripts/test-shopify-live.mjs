@@ -47,3 +47,9 @@ test('credential setup reads named sources, preserves existing values and does n
 test('new screens and live permission declarations validate under the existing signed module SDK without replacing its renderer',async()=>{
  const {validateManifest,digest}=await import('../packages/module-sdk/dist/index.js'),manifest=JSON.parse(await readFile('modules/shopify/manifest.json','utf8'));manifest.persistence.migrations=await Promise.all(['001-foundation.sql','002-connector.sql','003-operational-conditions.sql','004-publication-gate.sql'].map(async(name,i)=>({version:i+1,sha256:digest(await readFile('modules/shopify/migrations/'+name,'utf8'))})));validateManifest(manifest);const screen=manifest.ui.find(s=>s.screenId==='live-connection');assert.deepEqual(screen.fields.filter(f=>!f.readOnly).map(f=>f.name),['connectionId','shopDomain']);assert.equal(manifest.smart.prerequisites.configuration.mode,'simulator');for(const name of ['createLiveConnection','updateLiveConnection','testLiveConnection','syncLiveCatalog'])assert.equal(manifest.api.find(a=>a.operationId===name).permission,'cee.shopify.configure');
 });
+
+test('connector authentication headers follow provider protocols without crossing token boundaries',async()=>{
+ const {connectorHeaders}=await import('../packages/commerce-kit/dist/index.js');const token=privateKey();
+ const printify=connectorHeaders({provider:'printify',token});assert.equal(printify.authorization,'Bearer '+token);assert.equal(printify['User-Agent'],'Steward');assert.equal(printify.Accept,'application/json');assert.equal(printify['X-Shopify-Access-Token'],undefined);
+ const shopify=connectorHeaders({provider:'shopify',token});assert.equal(shopify['X-Shopify-Access-Token'],token);assert.equal(shopify.authorization,undefined);
+});

@@ -5,7 +5,7 @@ process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.
 const report={checks:[],errors:[]},browser=await chromium.launch({headless:true});
 const authority=(key,id)=>compose('exec','-T',key+'-db','psql','-U','postgres','-d','m_'+createHash('sha256').update(id).digest('hex').slice(0,20),'-At','-c',"SELECT md5(coalesce(jsonb_agg(to_jsonb(b)-'revision'-'updated_at' ORDER BY id)::text,'')) FROM business_records b");
 try{for(const key of ['worker-1','worker-3']){
- for(const [id,version]of [['cee.sales','1.2.3'],['cee.shopify','1.2.0'],['cee.printify','1.1.1']]){
+ for(const [id,version]of [['cee.sales','1.2.3'],['cee.shopify','1.2.0'],['cee.printify','1.1.2']]){
   const manager=(await api(key,'/api/v3/modules')).value,p=manager.available.find(p=>p.packageId===id+'@'+version),old=manager.installed.find(m=>m.moduleId===id);assert(p?.trusted&&p.compatible);const before=old?authority(key,id):undefined;
   const configuration=old?.configuration??Object.fromEntries(Object.entries(p.manifest.configurationSchema.properties).filter(([,v])=>Object.hasOwn(v,'default')).map(([k,v])=>[k,v.default]));if(!old){configuration.currency='USD';configuration.integrationsEnabled=false;if(Object.hasOwn(configuration,'productionEnabled'))configuration.productionEnabled=false;}
   if(old?.version!==version)await api(key,'/api/v3/modules/install','POST',{packageId:p.packageId,operationId:randomUUID(),configuration,...(old?{upgrade:true}:{})});const installed=(await api(key,'/api/v3/modules')).value.installed.find(m=>m.moduleId===id);if(installed.state!=='active')await api(key,'/api/v3/modules/'+id+'/lifecycle','POST',{action:'activate'});

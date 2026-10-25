@@ -25,11 +25,12 @@ function validateSecret(provider:'shopify'|'printify',mode:string,s:Data):Data{
 export function hmac(body:Buffer|string,key:string){return createHmac('sha256',key).update(body).digest('base64');}
 export function verifyHmac(body:Buffer,key:string,signature:unknown){if(typeof signature!=='string')return false;const a=Buffer.from(signature,'base64'),b=Buffer.from(hmac(body,key),'base64');return a.length===b.length&&timingSafeEqual(a,b);}
 export function verifyPrintify(body:Buffer,key:string,signature:unknown){if(typeof signature!=='string'||!/^sha256=[a-f0-9]{64}$/.test(signature))return false;const a=Buffer.from(signature.slice(7),'hex'),b=createHmac('sha256',key).update(body).digest();return timingSafeEqual(a,b);}
+export function connectorHeaders(secret:Data):Record<string,string>{return secret.provider==='shopify'?{'X-Shopify-Access-Token':secret.token}:{authorization:'Bearer '+secret.token,'User-Agent':'Steward','Accept':'application/json'};}
 export async function remote(secret:Data,path:string,method='GET',body?:unknown):Promise<any>{
  ensure(path.startsWith('/')&&!path.startsWith('//'),'Invalid connector path');
  const base=new URL(secret.baseUrl),data=body===undefined?undefined:JSON.stringify(body);
  return new Promise((resolve,reject)=>{
-  const req=request(new URL(path,base),{method,lookup:boundedLookup,servername:secret.serverName??base.hostname,ca:secret.mode==='simulator'?secret.caPem:undefined,rejectUnauthorized:true,timeout:3000,signal:AbortSignal.timeout(3500),headers:{...(secret.provider==='shopify'?{'X-Shopify-Access-Token':secret.token}:{authorization:'Bearer '+secret.token}),...(data?{'content-type':'application/json','content-length':Buffer.byteLength(data)}:{})}},res=>{
+  const req=request(new URL(path,base),{method,lookup:boundedLookup,servername:secret.serverName??base.hostname,ca:secret.mode==='simulator'?secret.caPem:undefined,rejectUnauthorized:true,timeout:3000,signal:AbortSignal.timeout(3500),headers:{...connectorHeaders(secret),...(data?{'content-type':'application/json','content-length':Buffer.byteLength(data)}:{})}},res=>{
    let text='';res.setEncoding('utf8');res.on('data',chunk=>{text+=chunk;if(Buffer.byteLength(text)>524288)req.destroy();});res.on('end',()=>{
     if(res.statusCode===401||res.statusCode===403)return reject(new ConnectorError('CONNECTOR_CREDENTIAL_OR_SCOPE_REJECTED'));
     if(res.statusCode===429)return reject(new ConnectorError('CONNECTOR_RATE_LIMITED',true));
