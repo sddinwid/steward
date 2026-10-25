@@ -4,3 +4,8 @@ Dockerfile* text eol=lf
 *.yaml text eol=lf
 *.mjs text eol=lf
 *.sql text eol=lf
+
+# Preserve exact bytes already published/applied by Shopify 1.1.1.
+# These overrides change checkout policy, not migration SQL or recorded checksums.
+modules/shopify/migrations/003-operational-conditions.sql text eol=crlf
+modules/shopify/migrations/004-publication-gate.sql text eol=crlf

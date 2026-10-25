@@ -1,3 +1,4 @@
+import {verifyShopifyLive} from './shopify-live-acceptance.mjs';
 import {connectionSource,context} from '../packages/commerce-kit/dist/index.js';
 import {syncMigration} from '../packages/platform/dist/sync-migration.js';
 import {commerceMonitorMigration,monitorCommerce} from '../packages/platform/dist/commerce-monitor.js';
@@ -37,7 +38,7 @@ const password=randomBytes(32).toString('hex');await writeFile(runDir+'/pg.env',
 let db;const modules=new Map(),simulators={},secretFiles={};const adminPassword=randomBytes(32).toString('base64url');
 const money=amount=>({shopMoney:{amount,currencyCode:'EUR'}});
 function sourceOrder(n=1){const id='gid://shopify/Order/'+n,lineId='gid://shopify/LineItem/'+n,variant='gid://shopify/ProductVariant/1';return{id,name:'SYN-8-ORDER-'+n,createdAt:'2026-10-20T12:00:00.000Z',updatedAt:new Date().toISOString(),currencyCode:'EUR',displayFinancialStatus:'PAID',displayFulfillmentStatus:'UNFULFILLED',cancelledAt:null,totalRefundedSet:money('0.00'),lineItems:{nodes:[{id:lineId,sku:'SYN-TEE',quantity:2,originalUnitPriceSet:money('25.00'),discountedTotalSet:money('50.00'),variant:{id:variant}}],pageInfo:{hasNextPage:false}},fulfillmentOrders:{nodes:[{id:'gid://shopify/FulfillmentOrder/'+n,status:'OPEN',lineItems:{nodes:[{id:'gid://shopify/FulfillmentOrderLineItem/'+n,remainingQuantity:2,lineItem:{id:lineId,sku:'SYN-TEE'}}]}}]},fulfillments:[]};}
-async function simRequest(provider,url,method='GET',body,operator=false){const s=simulators[provider],payload=body===undefined?undefined:JSON.stringify(body);return new Promise((resolve,reject)=>{const req=request(`https://127.0.0.1:${s.port}`+url,{method,ca:s.cert,servername:provider+'-simulator',rejectUnauthorized:true,timeout:10000,headers:{...(operator?{authorization:'Bearer '+s.adminToken}:provider==='shopify'?{'X-Shopify-Access-Token':s.token}:{authorization:'Bearer '+s.token}),...(payload?{'content-type':'application/json','content-length':Buffer.byteLength(payload)}:{})}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{if(res.statusCode!==200)return reject(new Error(provider+' simulator '+res.statusCode));try{resolve(JSON.parse(data));}catch{reject(new Error('Malformed simulator response'));}});});req.on('error',reject);req.on('timeout',()=>req.destroy());req.end(payload);});}
+async function simRequest(provider,url,method='GET',body,operator=false){const s=simulators[provider],payload=body===undefined?undefined:JSON.stringify(body);return new Promise((resolve,reject)=>{const req=request(`https://127.0.0.1:${s.port}`+url,{method,ca:s.cert,servername:provider+'-simulator',rejectUnauthorized:true,timeout:10000,headers:{...(operator?{authorization:'Bearer '+s.adminToken}:provider==='shopify'?{'X-Shopify-Access-Token':s.token}:{authorization:'Bearer '+s.token}),...(payload?{'content-type':'application/json','content-length':Buffer.byteLength(payload)}:{})}},res=>{let data='';res.on('data',c=>data+=c);res.on('end',()=>{if(res.statusCode!==200){let code='';try{const value=JSON.parse(data);if(typeof value.code==='string'&&/^[A-Z0-9_]{1,50}$/.test(value.code))code=' '+value.code;}catch{}return reject(new Error(provider+' simulator '+res.statusCode+code));}try{resolve(JSON.parse(data));}catch{reject(new Error('Malformed simulator response'));}});});req.on('error',reject);req.on('timeout',()=>req.destroy());req.end(payload);});}
 const control=(provider,action,data={})=>simRequest(provider,'/__sim/control','POST',{shopId:'1001',action,...data},true);
 try{
  docker(['run','--rm','-d','--name',container,'--env-file',runDir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
@@ -204,8 +205,9 @@ try{
   }
  });
 
+ await verifyShopifyLive({test,worker,core,read,secretFiles,db});
 }finally{
  for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
- report.finishedAt=new Date().toISOString();report.status=report.checks.length===13&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
+ report.finishedAt=new Date().toISOString();report.status=report.checks.length===15&&report.checks.every(c=>c.status==='passed')?'passed':'failed';await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase8-commerce-backend.json',JSON.stringify(report,null,2)+'\n');
  const resolved=path.resolve(runDir);if(!resolved.startsWith(base+path.sep))throw new Error('Unsafe fixture cleanup path');await rm(resolved,{recursive:true,force:true});await rmdir(lock);
 }

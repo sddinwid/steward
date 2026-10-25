@@ -15,3 +15,7 @@ Commerce validation uses local TLS simulators; it does not establish live commer
 
 Commerce contribution reporting, governed operational alerts, compact MCP investigations and the controlled USD demonstration are documented in [Phase 10A commerce intelligence](docs/phase10a-commerce-intelligence.md). Actual acceptance results are in [the Phase 10A verification report](docs/phase10a-verification.md). The accepted v0.9.1 tag remains preserved. The operator-selected deployment now runs verified Phase 10A images in place, with its original accounts, ports, identities and databases. See [single-stack operations](docs/single-stack-operations.md). Temporary acceptance containers have been removed; their archived configuration and data volumes are retained.
 
+
+## Shopify development stores
+
+The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.

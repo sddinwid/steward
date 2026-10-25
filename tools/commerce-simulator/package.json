@@ -1,10 +1,11 @@
 {
   "name": "@steward/commerce-simulator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json"
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/persistence.test.js"
   },
   "dependencies": {
     "fastify": "5.12.7"

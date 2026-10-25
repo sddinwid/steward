@@ -2,9 +2,9 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "name": "Shopify",
-  "description": "Independent SSMA shopify module; simulator/live mode and authority remain explicit.",
+  "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.10.0",
   "dependencies": [],
   "requiredPermissions": [
@@ -92,9 +92,155 @@
       "method": "GET",
       "path": "/commerce-exceptions",
       "permission": "cee.shopify.read"
+    },
+    {
+      "operationId": "listLiveConnection",
+      "method": "GET",
+      "path": "/live-connections",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createLiveConnection",
+      "method": "POST",
+      "path": "/live-connections",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "updateLiveConnection",
+      "method": "PUT",
+      "path": "/live-connections/:id",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "testLiveConnection",
+      "method": "POST",
+      "path": "/live-test/:id",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "syncLiveCatalog",
+      "method": "POST",
+      "path": "/live-catalog/:id",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listCatalogVariants",
+      "method": "GET",
+      "path": "/catalog-variants",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "q"
+      ]
     }
   ],
   "ui": [
+    {
+      "screenId": "live-connection",
+      "title": "Live Shopify connection",
+      "navigationLabel": "Live Shopify connection (read-only)",
+      "listOperation": "listLiveConnection",
+      "createOperation": "createLiveConnection",
+      "updateOperation": "updateLiveConnection",
+      "fields": [
+        {
+          "name": "connectionId",
+          "label": "Connection identifier",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "shopDomain",
+          "label": "Shopify store domain",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Connection status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Connection problem",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shopId",
+          "label": "Verified store identity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "verifiedAt",
+          "label": "Last identity check",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "syncedAt",
+          "label": "Last product synchronization",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "statusMessage",
+          "label": "Connection guidance",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "credentialExpiresAt",
+          "label": "Token expiry",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "grantedScopes",
+          "label": "Granted Shopify permissions",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "connectionId",
+        "shopDomain",
+        "status",
+        "statusMessage",
+        "error",
+        "verifiedAt",
+        "syncedAt"
+      ],
+      "actions": [
+        {
+          "label": "Test read-only connection",
+          "operationId": "testLiveConnection"
+        },
+        {
+          "label": "Synchronize products only",
+          "operationId": "syncLiveCatalog"
+        }
+      ]
+    },
     {
       "screenId": "mapping",
       "title": "shopify \u00e2\u20ac\u201d mapping",
@@ -202,12 +348,27 @@
           "type": "json",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "variantCount",
+          "label": "Total variants",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "variantsTruncated",
+          "label": "Variant preview truncated",
+          "type": "json",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
         "sourceId",
         "title",
         "status",
+        "variantCount",
         "variants"
       ]
     },
@@ -323,6 +484,55 @@
         "code",
         "severity",
         "explanation"
+      ]
+    },
+    {
+      "screenId": "catalog-variant",
+      "title": "Product variants",
+      "navigationLabel": "Shopify variants",
+      "listOperation": "listCatalogVariants",
+      "fields": [
+        {
+          "name": "sourceProductId",
+          "label": "Source product",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "product",
+          "label": "Product",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sourceVariantId",
+          "label": "Source variant",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sku",
+          "label": "SKU",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedQuantity",
+          "label": "Observed quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "product",
+        "sku",
+        "sourceVariantId",
+        "observedQuantity"
       ]
     }
   ],
@@ -625,7 +835,8 @@
     ],
     "prerequisites": {
       "configuration": {
-        "integrationsEnabled": true
+        "integrationsEnabled": true,
+        "mode": "simulator"
       },
       "requiresActive": true,
       "requiresHealthy": true
@@ -657,6 +868,7 @@
     "version": 1,
     "provider": "shopify",
     "webhookTopics": [
+      "products/create",
       "products/update",
       "products/delete",
       "orders/create",

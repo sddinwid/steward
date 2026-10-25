@@ -1,11 +1,11 @@
 {
   "name": "@steward/module-host",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/naming.test.js"
+    "test": "node --test dist/naming.test.js dist/connector-egress.test.js"
   },
   "dependencies": {
     "@steward/module-sdk": "1.4.0",

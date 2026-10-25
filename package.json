@@ -13,7 +13,7 @@
   },
   "scripts": {
     "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/business-kit && npm run build -w @steward/commerce-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build -w @steward/commerce-simulator && npm run build:business",
-    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business && npm run test:smart && npm run test:commerce && npm run test:presentation && npm run test:compose",
+    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business && npm run test:smart && npm run test:commerce && npm run test:shopify-live && npm run test:presentation && npm run test:compose",
     "test:smart": "node scripts/test-smart-modules.mjs",
     "test:smart:browser": "node scripts/test-smart-modules.mjs --browser",
     "provision": "node tools/installer/dist/cli.js provision",
@@ -41,9 +41,10 @@
     "verify:phase6": "node scripts/verify-phase6.mjs",
     "build:business": "npm run build --prefix modules/procurement && npm run build --prefix modules/sales && npm run build --prefix modules/assets && npm run build --prefix modules/workforce && npm run build --prefix modules/shopify && npm run build --prefix modules/printify && npm run build --prefix modules/stock-ledger",
     "test:business": "node scripts/test-business-modules.mjs",
-    "test:commerce": "node scripts/test-commerce.mjs",
+    "test:commerce": "npm run test -w @steward/commerce-simulator && node scripts/test-commerce.mjs",
     "test:presentation": "node --test scripts/test-intelligence-presentation.mjs",
-    "test:compose": "node --test scripts/test-compose-operator.mjs"
+    "test:compose": "node --test scripts/test-compose-operator.mjs",
+    "test:shopify-live": "node --test scripts/test-shopify-live.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

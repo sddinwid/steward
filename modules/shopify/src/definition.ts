@@ -1,3 +1,5 @@
+import {liveActions,liveProfileResource,liveBackground,productCatalog,productVariants} from './live.js';
+import {loadShopifyConnections} from './live-auth.js';
 import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity,unavailableConnections} from '@steward/commerce-kit';
 import {connectorConditions,publishConnectorConditions} from '@steward/commerce-kit';
 import {createHash} from 'node:crypto';
@@ -5,23 +7,24 @@ import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,tran
 import {canonical,digest,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyHmac,graphql,ConnectorError,context,connectorState,issued,reconciled,page,cents,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return{manifest,resources:[{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
+export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return{manifest,resources:[liveProfileResource,{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
  ensure((await records(ctx,'product')).some(p=>p.data.variants.some((v:Data)=>v.sourceVariantId===b.sourceVariantId)),'Unknown Shopify variant');
  ensure(!old||old.data.sku===b.sku||!(await records(ctx,'order')).some(o=>o.data.lines.some((l:Data)=>l.sourceVariantId===b.sourceVariantId)&&o.data.dispatchStatus!=='not_dispatched'),'A used mapping requires explicit order reconciliation',409);return b;
-}}],actions:[{path:'/dispatch/:id',kind:'order',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{
- ensure(ctx.config.integrationsEnabled===true,'Integrations disabled',403);ensure(r.data.dispatchEnabled||!r.data.nativeFulfillment,'This order has native or external fulfillment; monitoring only. Reconcile ownership before Steward routing.',409);const normalized=await normalize(ctx,r.data);await enqueueCapability(ctx,contracts.orders!.id,'commerce.order.import',r.id,normalized);
+}}],actions:[...liveActions,{path:'/dispatch/:id',kind:'order',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{
+ ensure(ctx.config.mode!=='live','SHOPIFY_LIVE_READ_ONLY',403);ensure(ctx.config.integrationsEnabled===true,'Integrations disabled',403);ensure(r.data.dispatchEnabled||!r.data.nativeFulfillment,'This order has native or external fulfillment; monitoring only. Reconcile ownership before Steward routing.',409);const normalized=await normalize(ctx,r.data);await enqueueCapability(ctx,contracts.orders!.id,'commerce.order.import',r.id,normalized);
  return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,dispatchEnabled:true,dispatchDigest:digest(canonical(normalized)),dispatchStatus:'pending'},r))};
-}},{path:'/synchronize/:id',kind:'connector',permission:manifest.moduleId+'.write',run:async(r,ctx)=>({record:publicRecord(await save(ctx,'connector',r.key,{...r.data,requestedAt:new Date().toISOString()},r))})}],
- tick:ctx=>publishConnectorConditions(ctx,'shopify'),queries:[{path:'/commerce-exceptions',run:async ctx=>({records:(await connectorConditions(ctx,'shopify')).map(i=>({id:i.sourceId+':'+i.code,...i})),summary:'Read-only operational conditions. No uncertain production is automatically retried.'})},{path:'/connections',run:(ctx,q)=>page(ctx,'connector',q,['name','mode','status','error'])},{path:'/catalog',run:(ctx,q)=>page(ctx,'product',q,['sourceId','title','status','variants'])},{path:'/orders',run:(ctx,q)=>page(ctx,'order',q,['sourceId','currency','lines','financialStatus','dispatchStatus'])}],
- receive:async(command,ctx)=>{ensure(command.command==='channel.fulfillment','Unsupported channel operation',403);const order=(await records(ctx,'order')).find(r=>r.data.sourceId===command.payload.sourceId);ensure(order,'Unknown Shopify order');
+}},{path:'/synchronize/:id',kind:'connector',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{ensure(ctx.config.mode!=='live','SHOPIFY_USE_LIVE_CONNECTION_ACTIONS',409);return{record:publicRecord(await save(ctx,'connector',r.key,{...r.data,requestedAt:new Date().toISOString()},r))};}}],
+ tick:ctx=>publishConnectorConditions(ctx,'shopify'),queries:[{path:'/commerce-exceptions',run:async ctx=>({records:(await connectorConditions(ctx,'shopify')).map(i=>({id:i.sourceId+':'+i.code,...i})),summary:'Read-only operational conditions. No uncertain production is automatically retried.'})},{path:'/connections',run:(ctx,q)=>page(ctx,'connector',q,['name','mode','status','error'])},{path:'/catalog',run:productCatalog},{path:'/catalog-variants',run:productVariants},{path:'/orders',run:(ctx,q)=>page(ctx,'order',q,['sourceId','currency','lines','financialStatus','dispatchStatus'])}],
+ receive:async(command,ctx)=>{ensure(ctx.config.mode!=='live','SHOPIFY_LIVE_READ_ONLY',403);ensure(command.command==='channel.fulfillment','Unsupported channel operation',403);const order=(await records(ctx,'order')).find(r=>r.data.sourceId===command.payload.sourceId);ensure(order,'Unknown Shopify order');
  const b=command.payload as Data;ensure(order.data.salesProviderId,'Sales provider receipt has not arrived',503);ensure(order.data.salesOrderId===b.orderId&&order.data.salesProviderId===command.sourceModuleId&&b.orderId===command.aggregateId,'Sales order does not match imported Shopify order',403);
  const existing=await find(ctx,'channel-job',b.orderId);if(existing){ensure(canonical(existing.data.input)===canonical(b),'Channel fulfillment identity conflict',409);return{queued:true};}
  await save(ctx,'channel-job',b.orderId,{connectionId:order.data.connectionId??'default',input:b,status:'queued',error:null});return{queued:true};
  },acknowledge:async(command,status,result,ctx)=>{if(command.command!=='commerce.order.import')return;const order=await (async()=>{const r=(await ctx.db.query("SELECT * FROM business_records WHERE kind='order' AND id=$1 FOR UPDATE",[command.aggregateId])).rows[0];ensure(r,'Original channel order unavailable');return r;})();await save(ctx,'order',order.key,{...order.data,dispatchStatus:status==='delivered'?'imported':'rejected',salesOrderId:status==='delivered'?result.orderId:order.data.salesOrderId,salesProviderId:status==='delivered'?result._steward?.providerModuleId:order.data.salesProviderId},order);},
  webhook:async(b,ctx)=>{
  const raw=Buffer.from(String(b.bodyBase64??''),'base64'),h=b.headers??{};ensure(raw.length<=131072&&raw.toString('base64')===b.bodyBase64,'Invalid raw webhook',400);
- const s=(await connectorConnections('shopify',ctx.config.mode,secretFile)).find(s=>s.shopDomain===h['x-shopify-shop-domain']);ensure(s,'Unknown Shopify store',403);
+ const s=(await loadShopifyConnections(ctx.config.mode,secretFile)).find(s=>s.shopDomain===h['x-shopify-shop-domain']);ensure(s,'Unknown Shopify store',403);
  ensure(verifyHmac(raw,s.webhookSecret,h['x-shopify-hmac-sha256'])&&h['x-shopify-shop-domain']===s.shopDomain&&h['x-shopify-api-version']==='2026-10'&&manifest.connector!.webhookTopics.includes(h['x-shopify-topic']),'Invalid Shopify webhook identity or signature',403);
+ if(ctx.config.mode==='live')ensure(['products/create','products/update','products/delete'].includes(h['x-shopify-topic']),'SHOPIFY_LIVE_WEBHOOK_TOPIC_NOT_ENABLED',403);
  const id=h['x-shopify-webhook-id'];ensure(typeof id==='string'&&/^[a-f0-9-]{36}$/.test(id),'Invalid event identity',400);return remember(ctx,connectionSource(s.connectionId,id),raw);
  }};}
 async function remember(ctx:Context,id:string,raw:Buffer){const hash=createHash('sha256').update(raw).digest('hex'),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}JSON.parse(raw.toString());await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[id,hash]);return{accepted:true,replay:false};}
@@ -33,6 +36,7 @@ export const orderQuery=`query StewardOrder($id:ID!){order(id:$id){${orderFields
 const fulfillmentQuery=`mutation StewardFulfillment($fulfillment:FulfillmentInput!){fulfillmentCreate(fulfillment:$fulfillment){fulfillment{id status} userErrors{field message}}}`;
 
 export async function shopifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
+ if(runtime.configuration.mode==='live'){await liveBackground(pool,runtime,secretFile);return;}
  let connections:Data[];try{connections=await connectorConnections('shopify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
  await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
  for(const secret of connections)await pollConnection(pool,{...runtime,connectionId:secret.connectionId},secretFile,secret);

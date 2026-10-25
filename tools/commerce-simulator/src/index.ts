@@ -1,3 +1,4 @@
+import {lockedFileOperation} from './persistence.js';
 import Fastify from 'fastify';
 import {readFile,writeFile,rename,mkdir} from 'node:fs/promises';
 import {createHmac,randomUUID,timingSafeEqual} from 'node:crypto';
@@ -8,7 +9,7 @@ const directory=process.env.SIMULATOR_STATE_DIRECTORY??'/var/lib/simulator';awai
 let state:Data;try{state=JSON.parse(await readFile(directory+'/state.json','utf8'));}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')throw e;state={simulation:true,tenants:{}};}
 for(const account of config.accounts)state.tenants[account.shopId]??={products:[],orders:[],events:[],creates:0,productionSubmissions:0,fulfillments:0};
 let serial=Promise.resolve();
-async function mutate<T>(fn:()=>T|Promise<T>):Promise<T>{let release!:()=>void;const prior=serial;serial=new Promise<void>(r=>{release=r;});await prior;try{const result=await fn();await writeFile(directory+'/state.tmp',JSON.stringify(state));await rename(directory+'/state.tmp',directory+'/state.json');return result;}finally{release();}}
+async function mutate<T>(fn:()=>T|Promise<T>):Promise<T>{let release!:()=>void;const prior=serial;serial=new Promise<void>(r=>{release=r;});await prior;try{const result=await fn();const snapshot=JSON.stringify(state);await lockedFileOperation(()=>writeFile(directory+'/state.tmp',snapshot));await lockedFileOperation(()=>rename(directory+'/state.tmp',directory+'/state.json'));return result;}finally{release();}}
 const app=Fastify({https:{key:await readFile(config.tlsKeyFile),cert:await readFile(config.tlsCertFile),minVersion:'TLSv1.3'},logger:false,bodyLimit:131072});
 const same=(a:unknown,b:string)=>{const x=Buffer.from(String(a??'')),y=Buffer.from(b);return x.length===y.length&&timingSafeEqual(x,y);};
 const actors=new WeakMap<object,Data>(),faults=new Map<string,Data>(),rates=new Map<string,{at:number;hits:number}>();

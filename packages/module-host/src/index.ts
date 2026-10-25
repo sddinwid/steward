@@ -1,3 +1,4 @@
+import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork} from './connector-egress.js';
 import Fastify from 'fastify';
 import { moduleContainerName } from './naming.js';
 import { executeSmartStep } from './smart-executor.js';
@@ -85,6 +86,13 @@ async function ready(id: string) {
   }
   failure('MODULE_START_FAILED');
 }
+async function connectorEgress(descriptor:SignedModulePackage,configuration:unknown,container?:any){
+ const latest=JSON.parse(await readFile(process.env.MODULE_HOST_CONFIG!,'utf8'));if(latest.installationId!==config.installationId||latest.project!==config.project||latest.workerKey!==config.workerKey)failure('CONNECTOR_EGRESS_IDENTITY_CHANGED');
+ const network=plannedConnectorEgress(config,descriptor,configuration,latest.connectorEgress??{}),id=descriptor.payload.manifest.moduleId,expected=connectorNetworkName(config,id);
+ if(network){const result=await docker('GET','/networks/'+encodeURIComponent(network),undefined,[200,404]);if(result.status!==200)failure('CONNECTOR_EGRESS_NETWORK_REQUIRED');validateEgressNetwork(config,id,result.value);}
+ if(container){const connected=Object.hasOwn(container.NetworkSettings?.Networks??{},expected);if(connected&&!network)await docker('POST','/networks/'+encodeURIComponent(expected)+'/disconnect',{Container:containerName(id),Force:false});if(network&&!connected)await docker('POST','/networks/'+encodeURIComponent(network)+'/connect',{Container:containerName(id)});}
+ return network;
+}
 async function install(descriptor: SignedModulePackage, configuration: unknown, upgrade = false) {
   const payload = descriptor.payload; const m = payload.manifest; const id = m.moduleId;
   const inspected = await docker('GET', '/images/' + payload.imageId + '/json', undefined, [200, 404]);
@@ -120,13 +128,14 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
     await docker('DELETE', '/containers/' + containerName(id), undefined, [204]);
     container = undefined;
   }
+  const egress=await connectorEgress(descriptor,configuration,container);
   if (!container) await docker('POST', '/containers/create?name=' + containerName(id), {
     Image: payload.imageId, User: '1000:1000', Env: ['NODE_ENV=production', 'MODULE_RUNTIME_FILE=/run/module-secrets/runtime.json'],
     Labels: { 'steward.managed-by': 'module-host-v1', 'steward.installation': config.installationId, 'steward.module': id },
     HostConfig: { ReadonlyRootfs: true, CapDrop: ['ALL'], SecurityOpt: ['no-new-privileges:true'], PidsLimit: 100, Memory: 268435456,
       RestartPolicy: { Name: 'unless-stopped' }, NetworkMode: config.moduleNetwork,
       Mounts: [{ Type: 'volume', Source: config.stateVolume, Target: '/run/module-secrets', ReadOnly: true, VolumeOptions: { Subpath: slug(id) } }] },
-    NetworkingConfig: { EndpointsConfig: { [config.moduleNetwork]: { Aliases: [containerName(id)] }, [config.databaseNetwork]: {} } }
+    NetworkingConfig: { EndpointsConfig: { [config.moduleNetwork]: { Aliases: [containerName(id)] }, [config.databaseNetwork]: {}, ...(egress?{[egress]:{}}:{}) } }
   });
   await save(id, { moduleId: id, phase: 'installing', descriptorDigest: digest(canonical(descriptor)), version: m.version });
   await docker('POST', '/containers/' + containerName(id) + '/start');
@@ -181,6 +190,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     const current = await state(p.moduleId);
     if (!current || current.version !== p.version) failure('MODULE_NOT_INSTALLED');
     if(p.operation==='configure'){
+      await connectorEgress(descriptor,p.configuration,await ownedContainer(p.moduleId));
       if(payload.manifest.connector)await connectorSecret(p.moduleId);
       const file=`${stateRoot}/${slug(p.moduleId)}/runtime.json`,runtime=JSON.parse(await readFile(file,'utf8'));
       await atomicJson(file,{...runtime,configuration:p.configuration},0o644);
@@ -214,6 +224,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     }
     if (p.operation === 'activate') {
       const c = await ownedContainer(p.moduleId); if (!c || c.Image !== payload.imageId) failure('RESOURCE_OWNERSHIP_MISMATCH');
+      await connectorEgress(descriptor,p.configuration,c);
       await docker('POST', '/containers/' + containerName(p.moduleId) + '/start'); await ready(p.moduleId);
       const r = await callModule(p.moduleId, 'GET', '/ready'); if (r.status !== 200) failure('MODULE_NOT_READY');
       await save(p.moduleId, { ...current, phase: 'active' }); return { state: 'active' };
@@ -328,6 +339,7 @@ for (const entry of await readdir(stateRoot, { withFileTypes: true })) {
     const container = await ownedContainer(saved.moduleId);
     if (!container) await install(descriptor, runtime.configuration);
     else if (container.Image !== saved.imageId) failure('RESOURCE_OWNERSHIP_MISMATCH');
+    else await connectorEgress(descriptor,runtime.configuration,container);
     if (saved.phase === 'active') {
       await docker('POST', '/containers/' + containerName(saved.moduleId) + '/start'); await ready(saved.moduleId);
       if ((await callModule(saved.moduleId, 'GET', '/ready')).status !== 200) failure('MODULE_NOT_READY');
