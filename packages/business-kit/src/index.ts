@@ -314,8 +314,9 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             return { status: row.status };
         }
         const acknowledgmentContext=ctx(db);if(row.envelope.simulation)setSimulationContext(acknowledgmentContext,row.envelope.simulation);
+        const domainReceipt={...(b.result??{}),...(b.status==='rejected'&&b.result?.error===undefined&&typeof b.error==='string'?{error:b.error.slice(0,160)}:{})};
         if (b.status !== 'retry'&&(!acknowledgmentContext.simulation||await simulationEpoch(acknowledgmentContext)))
-            await definition.acknowledge?.(row.envelope, b.status, b.result ?? {}, acknowledgmentContext);
+            await definition.acknowledge?.(row.envelope, b.status, domainReceipt, acknowledgmentContext);
         await db.query("UPDATE integration_outbox SET attempts=attempts+1,status=$2,last_error=$3,result=$4,next_attempt_at=now()+make_interval(secs=>LEAST(60,power(2,LEAST(attempts,6))::integer)),completed_at=CASE WHEN $2='pending' THEN NULL ELSE now() END WHERE command_id=$1", [b.commandId, b.status === 'retry' ? 'pending' : b.status, String(b.error ?? '').slice(0, 160) || null, b.result ?? null]);
         return { status: b.status };
     }));

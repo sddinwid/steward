@@ -11,7 +11,7 @@ process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.
 const {api,logins,credentials,origin,waitFor}=await load('phase4-client.mjs');
 const clean=value=>Object.values(credentials.accounts).reduce((text,account)=>typeof account?.password==='string'?text.replaceAll(account.password,'[REDACTED]'):text,String(value));await logins();await mkdir('artifacts/phase11-screenshots',{recursive:true});
 const report={startedAt:new Date().toISOString(),checks:[],browserErrors:[],installations:[]};
-const expected=[['cee.sales','1.3.0'],['cee.stock-ledger','1.1.0'],['steward.simulation.fulfillment','1.0.1'],['steward.simulation.commerce','1.0.1']];
+const expected=[['cee.sales','1.3.0'],['cee.stock-ledger','1.1.0'],['steward.simulation.fulfillment','1.0.1'],['steward.simulation.commerce','1.0.2']];
 const image=key=>JSON.parse(docker(['inspect',compose('ps','-q',key+'-api')]))[0].Image;
 const before=Object.fromEntries(['worker-1','worker-2','worker-3'].map(k=>[k,image(k)]));
 const worker3=(await api('worker-3','/api/v3/modules')).value.installed.map(m=>({id:m.moduleId,version:m.version,configuration:m.configuration,image:m.imageId,operationId:m.operationId}));

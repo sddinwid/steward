@@ -41,9 +41,9 @@ export function simulationCommerce(manifest:ModulePackageManifest):Definition {
   ensure(ctx.config.integrationsEnabled===true,'Approve simulation module integration configuration and SSMA bindings before starting',409);
   ensure(['stopped','paused','error'].includes(r.data.state),'Simulation is already active or resetting',409);ensure(!r.data.resetFailed,'Complete reset recovery before starting this dataset',409);
   let current=r;
-  if(!r.data.runId){current=await updateRun(ctx,r,{runId:randomUUID(),simulatedBaseAt:new Date().toISOString(),elapsedSimulatedMs:0,eventIndex:0});current=await updateRun(ctx,current,{catalog:catalog(current.id,current.data.runId)});const s=origin(current);current=await updateRun(ctx,current,{initialOrigin:s});await simulationEpoch(scoped(ctx,s),true);const pending=await setup(ctx,current);current=await updateRun(ctx,current,{setupPending:pending,state:'starting',nextAt:new Date().toISOString(),error:null,observationAttempts:0});}
+  if(!r.data.runId){current=await updateRun(ctx,r,{runId:randomUUID(),simulatedBaseAt:new Date().toISOString(),elapsedSimulatedMs:0,eventIndex:0});current=await updateRun(ctx,current,{catalog:catalog(current.id,current.data.runId)});const s=origin(current);current=await updateRun(ctx,current,{initialOrigin:s});await simulationEpoch(scoped(ctx,s),true);const pending=await setup(ctx,current);current=await updateRun(ctx,current,{setupPending:pending,state:'starting',nextAt:new Date().toISOString(),error:null,warning:null,observationAttempts:0});}
   else if(current.data.setupFailed){ensure(!current.data.setupPending?.length,'Await outstanding setup receipts before retrying',409);const pending=await setup(ctx,current);current=await updateRun(ctx,current,{setupPending:pending,setupFailed:false,setupError:null,state:'starting',error:null,observationAttempts:0});}
-  else current=await updateRun(ctx,current,{state:current.data.setupPending?.length?'starting':'running',nextAt:new Date().toISOString(),error:null,observationAttempts:0});
+  else current=await updateRun(ctx,current,{state:current.data.setupPending?.length?'starting':'running',nextAt:new Date().toISOString(),error:null,warning:null,observationAttempts:0});
   await history(ctx,current,'started',{seed:current.data.seed});return{record:controlRecord(current)};
  }},
  ...(['pause','resume','stop'] as const).map(action=>({path:'/'+action+'/:id',kind:'run',permission,concurrency:'current-state' as const,run:async(r:RecordValue,ctx:Context)=>{
@@ -51,9 +51,9 @@ export function simulationCommerce(manifest:ModulePackageManifest):Definition {
   const current=await updateRun(ctx,r,{state:action==='pause'?'paused':action==='stop'?'stopped':r.data.setupPending?.length?'starting':'running',observationAttempts:0});await history(ctx,current,action);return{record:controlRecord(current)};
  }})),
  {path:'/reset/:id',kind:'run',permission,concurrency:'current-state' as const,run:async(r,ctx)=>{
-  ensure(['paused','stopped','error'].includes(r.data.state),'Pause or stop before resetting this synthetic dataset',409);if(!r.data.runId)return{record:controlRecord(r)};
+  ensure(['paused','stopped','error'].includes(r.data.state),'Pause or stop before resetting this synthetic dataset',409);if(!r.data.runId)return{record:controlRecord(await updateRun(ctx,r,{state:'stopped',warning:null,error:null,resetFailed:false,setupFailed:false,setupError:null}))};
   const pending=[];for(const key of ['sales','stock','production'] as const)pending.push(await command(ctx,r,key,'simulation.dataset.reset',dataset(r)));
-  const current=await updateRun(ctx,r,{state:'resetting',resetPending:pending,resetFailed:false,error:null});await history(ctx,current,'reset_requested');return{record:controlRecord(current)};
+  const current=await updateRun(ctx,r,{state:'resetting',resetPending:pending,resetFailed:false,error:null,warning:'Awaiting module-owned reset receipts; ordinary records are preserved.'});await history(ctx,current,'reset_requested');return{record:controlRecord(current)};
  }}],
  queries:[{path:'/history',run:async ctx=>({records:await recent(ctx,'history')})},{path:'/activity',run:async ctx=>({records:await recent(ctx,'event')})},{path:'/dashboard',run:report}],report,
  receive:async(c,ctx)=>{
@@ -68,7 +68,7 @@ async function acknowledge(c:IntegrationCommand,status:'delivered'|'rejected',re
   const remaining=r.data.resetPending.filter((id:string)=>id!==c.commandId);r=await updateRun(base,r,{resetPending:remaining,resetFailed:r.data.resetFailed||status==='rejected',state:status==='rejected'?'error':r.data.state,error:status==='rejected'?String(result.error??'Dataset reset rejected'):r.data.error??null});
   if(!remaining.length&&!r.data.resetFailed&&status==='delivered'){
    await ctx.db.query("DELETE FROM business_records WHERE kind='event' AND data->'simulation'->>'datasetId'=$1 AND data->'simulation'->>'runId'=$2",[r.id,r.data.runId]);await ctx.db.query("UPDATE simulation_dataset_epochs SET state='closed',updated_at=now() WHERE dataset_id=$1 AND run_id=$2",[r.id,r.data.runId]);
-   r=await updateRun(base,r,{state:'stopped',lastRunId:r.data.runId,runId:null,eventIndex:0,lastSummary:null,lastStockSummary:null,stockObservationPending:null,observationPending:null,initialOrigin:null,resetFailed:false,setupFailed:false,setupError:null,error:null});await history(base,r,'reset_completed');
+   r=await updateRun(base,r,{state:'stopped',lastRunId:r.data.runId,runId:null,eventIndex:0,lastSummary:null,lastStockSummary:null,stockObservationPending:null,observationPending:null,initialOrigin:null,resetFailed:false,setupFailed:false,setupError:null,error:null,warning:null});await history(base,r,'reset_completed');
   }return;
  }
  if(r.data.publicationPending===c.commandId){await updateRun(base,r,{publicationPending:null,warning:status==='rejected'?'Publication change rejected by Sales; review its simulation publication permission.':null,error:status==='rejected'?String(result.error??'Publication change rejected'):null});await history(base,r,'publication_receipt',{status,approved:r.data.shareWithMaster==='yes'});return;}
