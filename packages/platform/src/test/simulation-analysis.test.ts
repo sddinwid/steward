@@ -37,6 +37,14 @@ test('authorization withdrawal, wrong run, supplier terms, mappings and historic
 test('Master financials derive from genuine owner publications and keep missing costs unknown',()=>{
  const{rows}=fixture();rows[0].payload.projection.generatedIntents=999;const d=simulationDashboard(rows,now);assert.equal(d.companies[0]!.orders,4);assert.equal(d.companies[0]!.revenueCents,144000);assert.equal(d.companies[0]!.contributionCents,96760);rows[1].payload.projection.productionCostCents=null;assert.equal(simulationDashboard(rows,now).companies[0]!.contributionCents,null);assert.equal(simulationDashboard(rows,now).companies[0]!.costBasis,'incomplete');
 });
+test('completed cohort reconciliation exposes fees, isolates all-order refunds and matches source-minute contribution',()=>{
+ const{rows}=fixture(),entity=rows[0].entity_id,order=rows.find(r=>r.entity_id===entity&&r.stream_id==='commerce_orders');order.payload.projection.refundCents=500;
+ const d=simulationDashboard(rows,now),company=d.companies.find(c=>c.entityId===entity)!;
+ assert.equal(company.feesCents,4440);assert.equal(company.completedRefundCents,500);
+ assert.equal(company.contributionCents,company.revenueCents-company.completedRefundCents-company.productionCostCents!-company.shippingCostCents!-company.feesCents!);
+ assert.equal(company.series.reduce((n,s)=>n+s.contributionCents!,0),company.contributionCents);
+ order.payload.projection.financials.channelFeeCents=null;const incomplete=simulationDashboard(rows,now).companies.find(c=>c.entityId===entity)!;assert.equal(incomplete.contributionCents,null);assert.equal(incomplete.feesCents,null);
+});
 test('source-evidenced monitors identify delayed, costly, shortage and repeated failure conditions; scenario names grant no findings',()=>{
  const{rows}=fixture();const order=rows[1].payload.projection;order.simulationState.productionRequestedAt=new Date(now-60000).toISOString();order.productionCostCents=35000;order.financials.productionCostCents=35000;order.stockout=true;
  for(const r of rows.filter(r=>r.entity_id===rows[0].entity_id&&r.stream_id==='commerce_orders'))r.payload.projection.simulationState.reservationFailure='Missing synthetic mapping';

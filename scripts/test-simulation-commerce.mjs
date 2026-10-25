@@ -4,6 +4,8 @@ import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
+import {observeSimulationSales} from '../modules/sales/dist/simulation.js';
+import {simulationFinancialSummary,simulationContracts} from '../packages/simulation-kit/dist/index.js';
 import pg from 'pg';
 import Fastify from 'fastify';
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
@@ -105,6 +107,17 @@ try{
   const jobs=await read(fakeId,'job');assert.equal(jobs.length,1);assert.equal(jobs[0].data.status,'shipped');assert.equal(o.data.productionCostCents,jobs[0].data.productionCostCents);assert.equal(o.data.shippingCostCents,jobs[0].data.shippingCostCents);
   const stock=(await read('cee.stock-ledger','item')).find(i=>i.data.sku===o.data.lines[0].sku);assert(stock);assert.equal(stock.data.quantity,500-o.data.lines[0].quantity);
   assert.equal(modules.get('cee.sales').runtime.configuration.currency,'EUR');assert.equal(modules.get('cee.sales').runtime.configuration.integrationsEnabled,false);
+ });
+ await check('versioned financial observation reconciles all fees while the legacy SSMA response remains unchanged',async()=>{
+  const sales=modules.get('cee.sales'),order=(await read('cee.sales','order'))[0],ctx={db:sales.pool,config:sales.runtime.configuration,simulation:order.data.simulation,installationId,moduleId:'cee.sales',actor:'fixture',permissions:[]};
+  const legacy=await observeSimulationSales(ctx);validateCapabilityValue(legacy,simulationContracts.sales.operations.find(o=>o.name==='simulation.sales.observe').output);assert(!Object.hasOwn(legacy,'feesCents'));
+  const complete=await observeSimulationSales(ctx,true);validateCapabilityValue(complete,simulationFinancialSummary);assert(complete.reconciliationComplete);assert.equal(complete.feesCents,order.data.financials.transactionFeeCents+order.data.financials.channelFeeCents);
+  assert.equal(complete.contributionCents,complete.revenueCents-complete.completedRefundCents-complete.productionCostCents-complete.shippingCostCents-complete.feesCents);assert.equal(complete.series.reduce((n,s)=>n+s.contributionCents,0),complete.contributionCents);
+  await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','500') WHERE id=$1",[order.id]);const changed=await observeSimulationSales(ctx,true);assert.equal(changed.contributionCents,complete.contributionCents-500);
+  await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','null') WHERE id=$1",[order.id]);const missing=await observeSimulationSales(ctx,true);assert.equal(missing.contributionCents,null);assert.equal(missing.reconciliationComplete,false);assert.equal(missing.series[0].feesCents,null);
+  await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','0') WHERE id=$1",[order.id]);
+  await until(async()=>(await read(engineId,'run'))[0].data.lastSummary?.reconciliationComplete===true,'financial receipt');
+  const report=await modules.get(engineId).api('GET','/dashboard');assert(report.groups[0].navigation.includes('control-center'));assert(report.groups[1].metrics.some(m=>m.label==='Transaction fees (completed)'&&m.value!==null));assert.equal(report.groups[1].series.length,6);
  });
  await check('actual owner projections pass private-field validation and Master financial reconciliation',async()=>{
   await db.query("INSERT INTO legal_entities(entity_id,name,classification,enrollment_eligible) VALUES($1,'Synthetic services fixture','demonstration',true)",[entityId]);

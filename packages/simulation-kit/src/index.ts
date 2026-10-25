@@ -25,6 +25,10 @@ const stockLine=object({sku:text(80),quantity:{type:'integer',minimum:1,maximum:
 const productSummary=object({sku:text(80),orderedQuantity:integer,fulfilledQuantity:integer,revenueCents:integer});
 const timeBucket=object({at:text(40),orders:integer,completedOrders:integer,revenueCents:integer});
 const summary=object({datasetId:uuid,runId:uuid,orderCount:integer,awaitingFulfillment:integer,completedOrders:integer,canceledOrders:integer,revenueCents:integer,refundCents:integer,productionCostCents:{anyOf:[integer,{type:'null'}]},shippingCostCents:{anyOf:[integer,{type:'null'}]},contributionCents:{anyOf:[{type:'integer',minimum:-1000000000000,maximum:1000000000000},{type:'null'}]},exceptions:integer,averageOrderValueCents:integer,sourceIds:{type:'array',maxItems:500,items:uuid},products:{type:'array',maxItems:24,items:productSummary},series:{type:'array',maxItems:120,items:timeBucket},observedAt:text(40)});
+const nullableMoney={anyOf:[integer,{type:'null'}]},signedMoney={anyOf:[{type:'integer',minimum:-1000000000000,maximum:1000000000000},{type:'null'}]};
+// Additive operation: legacy observe keeps its exact signed 1.0 response shape.
+export const simulationFinancialSummary=object({...summary.properties,completedRefundCents:integer,transactionFeeCents:nullableMoney,channelFeeCents:nullableMoney,feesCents:nullableMoney,reconciliationComplete:{type:'boolean'},
+ series:{type:'array',maxItems:120,items:object({...timeBucket.properties,refundCents:integer,productionCostCents:nullableMoney,shippingCostCents:nullableMoney,feesCents:nullableMoney,contributionCents:signedMoney})}});
 const begin={name:'simulation.dataset.begin',input:dataset,output:object({begun:{const:true}})},reset={name:'simulation.dataset.reset',input:dataset,output:resetResult};
 export const simulationContracts={
  orders:{id:'simulation.commerce.orders',contract:'steward.simulation-channel-orders',operations:commerceContracts.orders!.operations},
@@ -37,5 +41,6 @@ export const simulationContracts={
  channel:{id:'simulation.channel.fulfillment',contract:'steward.simulation-channel',operations:[{name:'channel.fulfillment',input:object({sourceId:text(),orderId:uuid,tracking:text(160),lines:{type:'array',minItems:1,maxItems:40,items:stockLine}}),output:object({queued:{const:true}})}]}
 };
 export type SimulationContractKey=keyof typeof simulationContracts;
-export function consumes(key:SimulationContractKey):CapabilityRequirement{const c=simulationContracts[key];return{capabilityId:c.id,contract:c.contract,minimumVersion:'1.0.0',maximumMajor:1,operations:c.operations,events:[],maximumSensitivity:'business',optional:false};}
-export function provides(key:SimulationContractKey,moduleId:string):CapabilityContract{const c=simulationContracts[key];return{capabilityId:c.id,contract:c.contract,version:'1.0.0',operations:c.operations.map(o=>({...o,command:o.name,permission:moduleId+'.simulate',mode:'durable',idempotency:'required',retry:'safe'})),events:[],sensitivity:'business',scope:'entity',ownership:'provider'};}
+const operations=(key:SimulationContractKey)=>key==='sales'?[...simulationContracts.sales.operations,{name:'simulation.sales.observe-financials',input:dataset,output:simulationFinancialSummary}]:simulationContracts[key].operations;
+export function consumes(key:SimulationContractKey):CapabilityRequirement{const c=simulationContracts[key];return{capabilityId:c.id,contract:c.contract,minimumVersion:key==='sales'?'1.1.0':'1.0.0',maximumMajor:1,operations:operations(key),events:[],maximumSensitivity:'business',optional:false};}
+export function provides(key:SimulationContractKey,moduleId:string):CapabilityContract{const c=simulationContracts[key];return{capabilityId:c.id,contract:c.contract,version:key==='sales'?'1.1.0':'1.0.0',operations:operations(key).map(o=>({...o,command:o.name,permission:moduleId+'.simulate',mode:'durable',idempotency:'required',retry:'safe'})),events:[],sensitivity:'business',scope:'entity',ownership:'provider'};}

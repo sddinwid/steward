@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.simulation.commerce",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Steward Commerce Simulation",
   "description": "Continuous synthetic commerce through authorized real Sales/stock services and an isolated local fulfillment provider. No live commerce mutations.",
-  "minimumPlatformVersion": "0.11.0",
+  "minimumPlatformVersion": "0.12.0",
   "simulation": {
     "version": 1,
     "role": "engine"
@@ -558,7 +558,7 @@
       {
         "capabilityId": "simulation.sales.manage",
         "contract": "steward.simulation-sales",
-        "minimumVersion": "1.0.0",
+        "minimumVersion": "1.1.0",
         "maximumMajor": 1,
         "operations": [
           {
@@ -1002,6 +1002,328 @@
                 "products",
                 "series",
                 "observedAt"
+              ]
+            }
+          },
+          {
+            "name": "simulation.sales.observe-financials",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "orderCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "awaitingFulfillment": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "completedOrders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "canceledOrders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "revenueCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "refundCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "productionCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shippingCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "contributionCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -1000000000000,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "exceptions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "averageOrderValueCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "sourceIds": {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "products": {
+                  "type": "array",
+                  "maxItems": 24,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "orderedQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "fulfilledQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "revenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "orderedQuantity",
+                      "fulfilledQuantity",
+                      "revenueCents"
+                    ]
+                  }
+                },
+                "series": {
+                  "type": "array",
+                  "maxItems": 120,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "at": {
+                        "type": "string",
+                        "maxLength": 40,
+                        "minLength": 1
+                      },
+                      "orders": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "completedOrders": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "revenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "refundCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "productionCostCents": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "shippingCostCents": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "feesCents": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "contributionCents": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": -1000000000000,
+                            "maximum": 1000000000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "at",
+                      "orders",
+                      "completedOrders",
+                      "revenueCents",
+                      "refundCents",
+                      "productionCostCents",
+                      "shippingCostCents",
+                      "feesCents",
+                      "contributionCents"
+                    ]
+                  }
+                },
+                "observedAt": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "minLength": 1
+                },
+                "completedRefundCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "transactionFeeCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "channelFeeCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "feesCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reconciliationComplete": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "orderCount",
+                "awaitingFulfillment",
+                "completedOrders",
+                "canceledOrders",
+                "revenueCents",
+                "refundCents",
+                "productionCostCents",
+                "shippingCostCents",
+                "contributionCents",
+                "exceptions",
+                "averageOrderValueCents",
+                "sourceIds",
+                "products",
+                "series",
+                "observedAt",
+                "completedRefundCents",
+                "transactionFeeCents",
+                "channelFeeCents",
+                "feesCents",
+                "reconciliationComplete"
               ]
             }
           }
