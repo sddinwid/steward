@@ -1,21 +1,22 @@
 // Full-stack acceptance is mutually exclusive with the retained operator stack.
 import assert from 'node:assert/strict';
+import {existsSync,readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {readFile,writeFile,mkdir,access} from 'node:fs/promises';
 import path from 'node:path';
 const target=path.resolve(process.argv[2]??'.steward/phase11-clean-acceptance'),bundle=path.resolve(process.env.STEWARD_RELEASE_BUNDLE??'artifacts/releases/steward-0.11.0');
-assert(target.startsWith(path.resolve('.steward')+path.sep));assert(path.basename(target).startsWith('phase11-clean-'));
+assert(target.startsWith(path.resolve('.steward')+path.sep));assert(/^phase11-clean-[a-z0-9-]+$/.test(path.basename(target)));
 try{await access(target);throw Error('Clean acceptance requires a new dedicated directory');}catch(e){if(e.code!=='ENOENT')throw e;}
 const selected=JSON.parse(await readFile('.steward/operator/selection.json','utf8'));assert.notEqual(target,path.resolve(selected.directory));
-const docker=args=>execFileSync('docker',args,{encoding:'utf8',maxBuffer:16*1024*1024}).trim(),running=project=>docker(['ps','-q','--filter','label=com.docker.compose.project='+project]).split('\n').filter(Boolean),operatorIds=running(selected.project);assert(operatorIds.length);
-const project='steward-phase11-clean-acceptance';assert.equal(running(project).length,0);
+const docker=args=>execFileSync('docker',args,{encoding:'utf8',maxBuffer:16*1024*1024}).trim(),running=project=>{const result=docker(['ps','-q','--filter','label=com.docker.compose.project='+project]).split('\n').filter(Boolean),manifestFile=path.join(project===selected.project?path.resolve(selected.directory):target,'manifest.json');if(existsSync(manifestFile))for(const i of JSON.parse(readFileSync(manifestFile,'utf8')).instances)result.push(...docker(['ps','-q','--filter','label=steward.installation='+i.installationId]).split('\n').filter(Boolean));return [...new Set(result)];},operatorIds=running(selected.project);assert(operatorIds.length);
+const project='steward-'+path.basename(target);assert.equal(running(project).length,0);
 const report={startedAt:new Date().toISOString(),project,checks:[],operatorProject:selected.project,operatorRestored:false};
 const toolkit=path.join(bundle,'toolkit');
 const env={...process.env,STEWARD_DEMO_RETRY_LOGIN:'1',STEWARD_SEED_CREDENTIALS_FILE:path.join(target,'security/verification.json')};
 const run=(script,args=[])=>execFileSync(process.execPath,[path.join(toolkit,script),...args],{cwd:toolkit,stdio:'inherit',env,timeout:1200000});
 try{
  execFileSync(process.env.ComSpec??'cmd.exe',['/d','/s','/c','npm ci && npm run build'],{cwd:toolkit,stdio:'inherit',timeout:1200000});report.checks.push('copied release toolkit npm ci and full build without developer checkout dependencies');
- docker(['stop',...operatorIds]);assert.equal(running(selected.project).length,0);
+ docker(['stop',...operatorIds]);report.stoppedOperatorContainers=operatorIds.length;console.log('Stopped all retained operator core and managed module containers:',operatorIds.length);assert.equal(running(selected.project).length,0);
  run('scripts/release.mjs',['install','--bundle',bundle,'--directory',target,'--project',project,'--port-offset','30000','--trust-bundled-modules','--simulators']);
  run('scripts/release.mjs',['start','--directory',target]);
  run('scripts/smoke.mjs',[target]);run('scripts/verify-isolation.mjs',[target]);report.checks.push('clean digest-pinned initialization, API/frontend smoke, repeated provisioning, isolated databases and outage/restart preservation');
