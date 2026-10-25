@@ -12,7 +12,7 @@ const docker=args=>execFileSync('docker',args,{encoding:'utf8',maxBuffer:16*1024
 const project='steward-'+path.basename(target);assert.equal(running(project).length,0);
 const report={startedAt:new Date().toISOString(),project,checks:[],operatorProject:selected.project,operatorRestored:false};
 const toolkit=path.join(bundle,'toolkit');
-const env={...process.env,STEWARD_DEMO_RETRY_LOGIN:'1',STEWARD_SEED_CREDENTIALS_FILE:path.join(target,'security/verification.json')};
+const env={...process.env,STEWARD_DEMO_RETRY_LOGIN:'1',STEWARD_SEED_CREDENTIALS_FILE:path.join(target,'security/verification.json'),STEWARD_PHASE4_BASELINE_FILE:path.join(target,'data/phase4-verification-baseline.json')};
 const run=(script,args=[])=>execFileSync(process.execPath,[path.join(toolkit,script),...args],{cwd:toolkit,stdio:'inherit',env,timeout:1200000});
 try{
  execFileSync(process.env.ComSpec??'cmd.exe',['/d','/s','/c','npm ci && npm run build'],{cwd:toolkit,stdio:'inherit',timeout:1200000});report.checks.push('copied release toolkit npm ci and full build without developer checkout dependencies');
@@ -21,7 +21,8 @@ try{
  run('scripts/release.mjs',['start','--directory',target]);
  run('scripts/smoke.mjs',[target]);run('scripts/verify-isolation.mjs',[target]);report.checks.push('clean digest-pinned initialization, API/frontend smoke, repeated provisioning, isolated databases and outage/restart preservation');
  run('scripts/verify-phase2.mjs',[target]);report.checks.push('real Chromium and authenticated enrollment, rejection, identity, trust, replay, outage/restart and secret non-disclosure regressions');
- run('scripts/seed-phase4.mjs',[target]);run('scripts/verify-phase4.mjs',[target]);report.checks.push('three independent enrolled Workers, genuine operational seeding and durable synchronization/finding regressions');
+ run('scripts/seed-phase4.mjs',[target]);run('scripts/capture-phase4-baseline.mjs',[target]);run('scripts/verify-phase4.mjs',[target]);report.checks.push('three independent enrolled Workers, genuine operational seeding and durable synchronization/finding regressions');
+ run('scripts/verify-phase5.mjs',[target]);report.checks.push('actual deployed MCP and reproducible test-model investigations, failures, evidence, permissions and outage regressions; not live model validation');
  run('scripts/verify-phase11-installation.mjs',[target]);run('scripts/configure-phase11-demo.mjs',[target]);report.checks.push('independent browser module installation without core image replacement; approved synthetic bindings and workflows');
  run('scripts/release.mjs',['upgrade','--bundle',bundle,'--directory',target,'--trust-bundled-modules']);run('scripts/release.mjs',['stop','--directory',target]);run('scripts/release.mjs',['start','--directory',target]);run('scripts/smoke.mjs',[target]);report.checks.push('repeat installation/upgrade and pinned image redeployment');report.status='passed';
 }catch(e){report.status='failed';report.error='Acceptance child failed; inspect the retained log for its exact assertion.';process.exitCode=1;console.log(report.error);}finally{
