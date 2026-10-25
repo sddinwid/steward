@@ -40,4 +40,7 @@ def calculate(capability, parameters):
     if capability == 'procurement-optimization':
         from .procurement import optimize
         return optimize(parameters)
+    if capability == 'scenario-comparison':
+        from .scenarios import compare
+        return compare(parameters)
     raise ValueError('CAPABILITY_UNAVAILABLE')

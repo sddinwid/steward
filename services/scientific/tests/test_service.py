@@ -64,6 +64,16 @@ def test_real_integer_solver_through_authenticated_bounded_subprocess(client):
     assert c.post('/v1/execute', content=raw, headers=signed(key, raw)).status_code == 422
 
 
+def test_real_scenario_comparison_through_bounded_process(client):
+    from test_scenarios import request
+    from test_procurement import A, B
+    c, key = client
+    raw = json.dumps(envelope(capability='scenario-comparison', entityIds=[A, B], parameters=request(), executionMillis=12000)).encode()
+    response = c.post('/v1/execute', content=raw, headers=signed(key, raw))
+    assert response.status_code == 200, response.text
+    assert response.json()['calculation']['scenarios'][0]['expectedCostCents'] == 50080
+
+
 def test_authentication_replay_and_bounds(client):
     c, key = client
     raw = json.dumps(envelope()).encode()
