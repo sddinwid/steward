@@ -103,3 +103,7 @@ node scripts/verify-single-stack.mjs
 ```
 
 Consult [actual verification results](shopify-live-verification.md) for tests, deployment/browser/egress evidence and precise live-verification blockers. Simulator and injected-protocol results never establish real Shopify connectivity.
+
+## A Live mode save that returns to Simulator
+
+Check the inline message beside **Save configuration for Shopify** and the separate **Saved mode** label. A draft selection does not change the runtime. Missing image-bound egress is rejected with HTTP 503; missing/unreadable or malformed private connector JSON is also rejected before runtime/network changes. Correct the named prerequisite, then save again. Success requires a fresh persisted-configuration confirmation, followed by a real read-only store identity test. See [Worker 3 diagnosis and exact recovery steps](shopify-configuration-diagnosis.md).

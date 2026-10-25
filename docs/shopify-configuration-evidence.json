@@ -1,0 +1,94 @@
+{
+  "verifiedAt": "2026-10-25T06:02:31.473Z",
+  "runtimeSourceCommit": "44d52af2ea133561a79a345875806e821966d734",
+  "shopifyVersion": "1.2.0",
+  "shopifyImage": "sha256:cafe7468c79cac02f7478d5635d74af394d6daeb3b6e672c404305923184bbbc",
+  "moduleReinstalled": false,
+  "rootCause": {
+    "saveHttpStatus": 503,
+    "errorCode": "CONNECTOR_EGRESS_GRANT_REQUIRED",
+    "oldAlertAboveViewport": true,
+    "privateConfigurationPresent": false,
+    "egressGrantPresent": false
+  },
+  "persistedWorker3Configuration": {
+    "mode": "simulator",
+    "currency": "USD",
+    "integrationsEnabled": true,
+    "publishOperationalAlerts": false
+  },
+  "runtimeConfigurationMatches": true,
+  "tests": {
+    "build": "passed",
+    "count": 128,
+    "failures": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "checks": [
+      "actual PUT rejected 503; actionable inline error visible beside Save; draft explicitly differs from saved simulator mode",
+      "reopen shows persisted simulator; active runtime unchanged",
+      "injected false HTTP 200 rejected by persisted-configuration confirmation",
+      "unchanged simulator configuration genuinely saves, confirms database value and applies to active runtime"
+    ],
+    "browserErrors": [],
+    "liveOperational": false,
+    "status": "passed",
+    "verifiedAt": "2026-10-25T05:59:01.894Z"
+  },
+  "prerequisites": {
+    "checks": [
+      {
+        "worker": "worker-1",
+        "moduleVersion": "1.2.0",
+        "browser": "manifest-only live connection form and paginated variant screen visible",
+        "configurationPreserved": true,
+        "migrationsUnchanged": true,
+        "authorityRecordsPreserved": true
+      },
+      {
+        "worker": "worker-3",
+        "moduleVersion": "1.2.0",
+        "browser": "manifest-only live connection form and paginated variant screen visible",
+        "configurationPreserved": true,
+        "migrationsUnchanged": true,
+        "authorityRecordsPreserved": true
+      }
+    ],
+    "egress": {
+      "status": "passed",
+      "scope": "Missing/mismatched grants and missing private configuration rejected; no public HTTPS or store API request made",
+      "missingAndMismatchedGrantsRejected": true,
+      "missingPrivateConfigurationRejectedBeforeNetworkAttachment": true
+    },
+    "grantRevoked": true,
+    "status": "passed"
+  },
+  "deployment": {
+    "images": {
+      "master-api": "sha256:71a2b60a638df76fd052d23b01937734bb60de64aa1d1e47942e7500e47edd43",
+      "master-web": "sha256:c5bef8dc91299d329930bded38a3a10aadede3f7307c6d4b38aa95aa74812139",
+      "worker-1-api": "sha256:10d7acfab372d059fb1acea1898cd2ddfbe3f5138b5f1b0591e88c24fc8201e5",
+      "worker-1-web": "sha256:343c68f94807b4c1661dbc47066bc9a399ffada8cb64207881891858557903e0",
+      "worker-1-module-host": "sha256:4b4e9a381ff0a8db1e752477fc477e0f2d0a5fce71765fed0df04a173f34cec9",
+      "worker-2-api": "sha256:10d7acfab372d059fb1acea1898cd2ddfbe3f5138b5f1b0591e88c24fc8201e5",
+      "worker-2-web": "sha256:343c68f94807b4c1661dbc47066bc9a399ffada8cb64207881891858557903e0",
+      "worker-2-module-host": "sha256:4b4e9a381ff0a8db1e752477fc477e0f2d0a5fce71765fed0df04a173f34cec9",
+      "worker-3-api": "sha256:10d7acfab372d059fb1acea1898cd2ddfbe3f5138b5f1b0591e88c24fc8201e5",
+      "worker-3-web": "sha256:343c68f94807b4c1661dbc47066bc9a399ffada8cb64207881891858557903e0",
+      "worker-3-module-host": "sha256:4b4e9a381ff0a8db1e752477fc477e0f2d0a5fce71765fed0df04a173f34cec9"
+    },
+    "protectedDataAndConfigurationPreserved": true,
+    "readiness": "all four APIs/frontends HTTP 200"
+  },
+  "stack": {
+    "verifiedAt": "2026-10-25T06:01:13.950Z",
+    "selectedProject": "steward-phase8-upgrade-reg",
+    "selectedRunningContainers": 29,
+    "unexpectedRunningContainers": [],
+    "status": "passed"
+  },
+  "liveOperational": false,
+  "liveAuthenticationVerified": false,
+  "liveOrdersAccessed": false
+}
