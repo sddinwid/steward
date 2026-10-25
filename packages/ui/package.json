@@ -14,7 +14,8 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@steward/contracts": "0.1.0"
+    "@steward/contracts": "0.1.0",
+    "echarts": "6.1.0"
   },
   "peerDependencies": {
     "react": "19.3.1",

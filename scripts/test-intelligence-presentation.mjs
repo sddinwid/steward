@@ -4,6 +4,19 @@ import assert from 'node:assert/strict';
 import {priorityOrder,FindingPreview} from '../packages/ui/dist/intelligence.js';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
+import {DataChart,ForecastChart,RelationshipChart} from '../packages/ui/dist/charts.js';
+
+test('shared charts expose sparse observations, missing amounts and source times without invented trends',()=>{
+ const one=renderToStaticMarkup(createElement(DataChart,{title:'Source activity',labels:['2026-01-01T00:00:00Z'],series:[{label:'Orders',values:[1]}],time:true}));
+ assert.match(one,/One observation only/);assert.match(one,/Accessible chart values/);assert.match(one,/2026-01-01T00:00:00Z/);
+ const missing=renderToStaticMarkup(createElement(DataChart,{title:'Unknown cost',labels:['A'],series:[{label:'Shipping',values:[null]}],money:true,currency:'EUR'}));assert.match(missing,/Unknown/);assert.match(missing,/EUR/);
+ assert.match(renderToStaticMarkup(createElement(ForecastChart,{series:{status:'insufficient_data',warnings:['No history']}})),/No history/);
+});
+
+test('relationship renderer retains authorized endpoints and distinguishes hypotheses without loading module code',()=>{
+ const html=renderToStaticMarkup(createElement(RelationshipChart,{entities:[{entity_id:'a',name:'Company A'},{entity_id:'b',name:'Company B'}],relationships:[{from_entity:'a',to_entity:'b',kind:'supplier'}],hypotheses:[{from_entity:'b',to_entity:'a',label:'shared supplier'},{from_entity:'hidden',to_entity:'a',label:'secret'}]}));
+ assert.match(html,/Established relationships: solid/);assert.match(html,/Hypothesis/);assert(!html.includes('secret'));assert(!html.includes('hidden'));
+});
 test('generated report renderer uses arbitrary module metadata and escapes contributed text',()=>{
  const report={version:2,groups:[{title:'Capacity planning <script>',currency:'USD',metrics:[{label:'Available cubic metres',value:75,format:'number'},{label:'Unconfirmed expense',value:null,format:'money'}],description:'Module-owned capacity evidence',sections:[{title:'Source observations',value:{source:'synthetic'}}]}]};
  const html=renderToStaticMarkup(createElement(ModuleReportView,{report,currency:'USD'}));assert(html.includes('Available cubic metres'));assert(html.includes('75'));assert(html.includes('Unknown'));assert(html.includes('&lt;script&gt;'));assert(!html.includes('<script>'));assert(!html.includes('Commerce overview'));assert.equal(renderToStaticMarkup(createElement(ModuleReportView,{report:{version:2,groups:null},currency:'USD'})),'');
