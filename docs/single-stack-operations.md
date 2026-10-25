@@ -60,3 +60,7 @@ The selected stack now includes the Worker-local module configuration feedback f
 ## Worker 3 real development-store connection
 
 Worker 3 now has a privately configured, verified real Shopify development-store connection in **live** mode, with automatic synchronization **off** and a manually synchronized catalog of **17 products / 26 variants**. Its image-bound egress grant remains intentionally approved for that connection. Worker 1 retains simulator mode; Worker 2 has no Shopify module. No core or module image changed during setup. See [actual live verification](shopify-live-store-verification.md); earlier missing-prerequisite statements above are historical.
+
+## Worker 3 Printify read-only connection
+
+Worker 3 now runs signed Printify **1.1.2** in **live** mode with an exact-image egress grant and private `costCurrency=USD` confirmation. Live polling reports **available** and imported **5 products / 625 variants**. Production and SSMA integration authority remain disabled. Webhooks are not registered; polling is operational. Worker 1 keeps Printify 1.1.1 simulator settings; Shopify and all core images remain unchanged. See [actual live verification and limits](printify-live-verification.md).

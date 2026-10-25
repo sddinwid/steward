@@ -1,0 +1,63 @@
+{
+  "implementationCommit": "955e0c2",
+  "verifiedAt": "2026-10-25T07:07:51.186Z",
+  "status": "passed",
+  "moduleVersion": "1.1.2",
+  "imageId": "sha256:2fb3344f47209d5b9e669762ee0b493c100de96afac2939acf134fd8d7962744",
+  "runtimeMatchesSavedConfiguration": true,
+  "configuration": {
+    "mode": "live",
+    "currency": "USD",
+    "productionEnabled": false,
+    "integrationsEnabled": false,
+    "maximumOrderCostCents": 10000,
+    "publishOperationalAlerts": false
+  },
+  "costCurrency": "USD",
+  "currencyEvidence": {
+    "status": 200,
+    "endpoint": "/v1/catalog/blueprints/4195/print_providers/217/shipping.json",
+    "currencies": [
+      "USD"
+    ],
+    "verifiedAt": "2026-10-25T07:00:03.364Z"
+  },
+  "catalog": {
+    "products": 5,
+    "variants": 625
+  },
+  "shops": [
+    {
+      "salesChannel": "disconnected",
+      "title": "My new store"
+    }
+  ],
+  "imageInstallationBoundEgress": true,
+  "oldRecordsIdentitiesPermissionsPreserved": true,
+  "otherWorkersAndShopifyPreserved": true,
+  "coreImagesUnchanged": true,
+  "externalSubmissionReceiptsUnchanged": true,
+  "webhooksRegistered": false,
+  "productionEnabled": false,
+  "browser": {
+    "verifiedAt": "2026-10-25T07:08:19.253Z",
+    "status": "passed",
+    "savedMode": "live",
+    "productionEnabled": false,
+    "catalogRows": 5,
+    "javascriptErrors": []
+  },
+  "stack": {
+    "verifiedAt": "2026-10-25T07:08:37.919Z",
+    "selectedProject": "steward-phase8-upgrade-reg",
+    "selectedRunningContainers": 29,
+    "unexpectedRunningContainers": [],
+    "status": "passed"
+  },
+  "tests": {
+    "build": "passed",
+    "passed": 129,
+    "failed": 0,
+    "skipped": 0
+  }
+}
