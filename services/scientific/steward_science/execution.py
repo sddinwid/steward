@@ -25,7 +25,7 @@ def child_main(connection, capability, parameters, seconds):
         json.dumps(result, allow_nan=False)
         connection.send(result)
     except Exception as error:
-        code = str(error) if str(error) in ['CAPABILITY_UNAVAILABLE'] else 'CALCULATION_FAILED'
+        code = str(error) if str(error) in ['CAPABILITY_UNAVAILABLE', 'SOLVER_RESULT_INVALID', 'SOLVER_FAILED'] else 'CALCULATION_FAILED'
         if error.__class__.__name__ == 'ValidationError':
             code = 'ANALYTICAL_INPUT_INVALID'
         connection.send({'error': code})

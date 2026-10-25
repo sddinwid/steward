@@ -52,6 +52,18 @@ def test_real_descriptive_calculation_and_provenance(client):
     assert result['decisionExecuted'] is False
 
 
+def test_real_integer_solver_through_authenticated_bounded_subprocess(client):
+    from test_procurement import problem, A, B
+    c, key = client
+    raw = json.dumps(envelope(capability='procurement-optimization', entityIds=[A, B], parameters=problem())).encode()
+    response = c.post('/v1/execute', content=raw, headers=signed(key, raw))
+    assert response.status_code == 200, response.text
+    assert response.json()['calculation']['ecosystemBenefitCents'] == 6120
+    invalid = envelope(capability='procurement-optimization', entityIds=[A], parameters=problem())
+    raw = json.dumps(invalid).encode()
+    assert c.post('/v1/execute', content=raw, headers=signed(key, raw)).status_code == 422
+
+
 def test_authentication_replay_and_bounds(client):
     c, key = client
     raw = json.dumps(envelope()).encode()

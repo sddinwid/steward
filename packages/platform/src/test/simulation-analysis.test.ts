@@ -1,13 +1,18 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {simulationDashboard,purchasingOpportunities,simulationRunSchema} from '../simulation-analysis.js';
+import {simulationDashboard,purchasingOpportunities,simulationRunSchema,purchasingBaseline} from '../simulation-analysis.js';
 import {simulationOriginSchema} from '../simulation-schema.js';
 import {simulationConditions,simulationPolicySchema} from '../simulation-monitor.js';
 import {commerceWireSchema} from '../commerce-analysis.js';
 import {validateEvent,dataEvent} from '../synchronization.js';
 import {parseConfig} from '../config.js';
 const now=Date.parse('2026-10-25T12:00:00.000Z'),iso=new Date(now).toISOString();
+test('scientific and existing purchasing share the exact external-cost reference baseline',()=>{
+ const entities=[{entityId:'a',baselineShippingCents:1500},{entityId:'b',baselineShippingCents:1500}],requirements=[{entityId:'a',quantity:39,baselineUnitCents:700},{entityId:'b',quantity:37,baselineUnitCents:700}];
+ assert.deepEqual(purchasingBaseline(entities,requirements),{baselineExternalCents:56200,internalTransferCents:0,impacts:[{entityId:'a',baselineExternalCents:28800},{entityId:'b',baselineExternalCents:27400}]});
+ assert.throws(()=>purchasingBaseline(entities,[{...requirements[0]!,quantity:1.5}]));assert.throws(()=>purchasingBaseline(entities,[{...requirements[0]!,entityId:'outside'}]));
+});
 function fixture(){
  const ecosystemId=randomUUID(),entities=[randomUUID(),randomUUID()];const rows:any[]=[];
  for(const entityId of entities){

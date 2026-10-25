@@ -57,6 +57,12 @@ class Request(Closed):
             rows = self.parameters.get('series', [])
             if not isinstance(rows, list) or len(rows) > 8 or any(not isinstance(row, dict) or str(row.get('entityId', '')).lower() not in {str(i) for i in self.entityIds} for row in rows):
                 raise ValueError('Demand series outside authorized scope')
+        if self.capability in ('procurement-optimization', 'scenario-comparison'):
+            problem = self.parameters.get('baseline', {}) if self.capability == 'scenario-comparison' else self.parameters
+            for collection in ('entities', 'requirements'):
+                rows = problem.get(collection, []) if isinstance(problem, dict) else None
+                if not isinstance(rows, list) or any(not isinstance(row, dict) or str(row.get('entityId', '')).lower() not in {str(i) for i in self.entityIds} for row in rows):
+                    raise ValueError('Purchasing input outside authorized scope')
         return self
 
 

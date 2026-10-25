@@ -37,4 +37,7 @@ def calculate(capability, parameters):
     if capability == 'demand-forecast':
         from .forecast import forecast
         return forecast(parameters)
+    if capability == 'procurement-optimization':
+        from .procurement import optimize
+        return optimize(parameters)
     raise ValueError('CAPABILITY_UNAVAILABLE')

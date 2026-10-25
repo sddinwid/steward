@@ -8,6 +8,14 @@ const quote=z.object({sku:z.string().min(1).max(80),logicalProduct:z.string().mi
 export const simulationRunSchema=z.object({contractVersion:z.literal(1),approved:z.boolean(),datasetId:z.string().uuid(),runId:z.string().uuid().nullable(),ecosystemId:z.string().uuid(),label:z.string().min(1).max(80),scenario:z.enum(SIMULATION_SCENARIOS),seed:z.number().int().min(0).max(0xffffffff),state:z.enum(['stopped','starting','running','paused','resetting','error']),speed:z.number().int().min(1).max(600),eventsPerMinute:z.number().int().min(1).max(120),generatedIntents:money,currency:z.literal('USD'),updatedAt:z.string().datetime({offset:true}),lastObservedAt:z.string().datetime().nullable(),catalog:z.array(quote).max(12)}).strict();
 const exact=(value:bigint)=>{const n=Number(value);if(!Number.isSafeInteger(n))throw Error('SIMULATION_CALCULATION_EXCEEDS_EXACT_BOUNDS');return n;};
 type Row=Record<string,any>;
+/** Shared external purchasing baseline; also used to authorize scientific inputs.
+ * One shipping charge per entity, exact integer cents, no internal revenue. */
+export function purchasingBaseline(entities:{entityId:string;baselineShippingCents:number}[],requirements:{entityId:string;quantity:number;baselineUnitCents:number}[]){
+ const amount=(value:number)=>{if(!Number.isSafeInteger(value)||value<0||value>1e12)throw Error('INVALID_PURCHASING_BASELINE');return BigInt(value);};
+ if(!entities.length||new Set(entities.map(e=>e.entityId)).size!==entities.length||requirements.some(r=>!entities.some(e=>e.entityId===r.entityId)))throw Error('INVALID_PURCHASING_BASELINE');
+ const impacts=entities.slice().sort((a,b)=>a.entityId.localeCompare(b.entityId)).map(e=>({entityId:e.entityId,baselineExternalCents:exact(requirements.filter(r=>r.entityId===e.entityId).reduce((n,r)=>n+amount(r.quantity)*amount(r.baselineUnitCents),amount(e.baselineShippingCents)))}));
+ return{baselineExternalCents:exact(impacts.reduce((n,e)=>n+BigInt(e.baselineExternalCents),0n)),impacts,internalTransferCents:0};
+}
 export function simulationEvidence(records:Row[]){
  const runs=records.filter(r=>r.stream_id==='simulation_runs').flatMap(row=>{const p=simulationRunSchema.safeParse(canonicalBusinessPayload(row));return p.success&&p.data.approved&&p.data.runId?[{row,p:p.data}]:[];});
  // Both owner publications must remain approved. Reset/withdrawal removes the
@@ -54,8 +62,9 @@ export function purchasingOpportunities(records:Row[]){
   const pooledUnit=BigInt(Math.max(...cohort.map(v=>v.quote.unitQuoteCents)))*BigInt(10000-q.pooledDiscountBasisPoints)/10000n;
   const shipping=BigInt(q.pooledShippingCents);let allocatedShipping=0n;
   const sorted=cohort.slice().sort((a,b)=>a.entityId.localeCompare(b.entityId));
+  const reference=purchasingBaseline(sorted.map(v=>({entityId:v.entityId,baselineShippingCents:v.quote.standaloneShippingCents})),sorted.map(v=>({entityId:v.entityId,quantity:exact(v.quantity),baselineUnitCents:v.quote.unitQuoteCents})));
   const impacts=sorted.map((v,i)=>{const share=i===sorted.length-1?shipping-allocatedShipping:shipping*v.quantity/total;allocatedShipping+=share;
-   const baseline=v.quantity*BigInt(v.quote.unitQuoteCents)+BigInt(v.quote.standaloneShippingCents),proposed=v.quantity*pooledUnit+share+BigInt(v.quote.transitionCostCents);
+   const baseline=BigInt(reference.impacts[i]!.baselineExternalCents),proposed=v.quantity*pooledUnit+share+BigInt(v.quote.transitionCostCents);
    return{entityId:v.entityId,quantity:exact(v.quantity),baselineExternalCents:exact(baseline),pooledMerchandiseCents:exact(v.quantity*pooledUnit),allocatedShippingCents:exact(share),transitionCostCents:v.quote.transitionCostCents,proposedCostCents:exact(proposed),benefitCents:exact(baseline-proposed)};
   });
   const baseline=impacts.reduce((n,v)=>n+BigInt(v.baselineExternalCents),0n),proposed=impacts.reduce((n,v)=>n+BigInt(v.proposedCostCents),0n),benefit=baseline-proposed;
