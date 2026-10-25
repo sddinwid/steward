@@ -33,7 +33,7 @@ class Series(Closed):
     entityId: UUID
     key: str = Field(min_length=1, max_length=120)
     measure: Literal['orders', 'units']
-    observations: list[Observation] = Field(min_length=1, max_length=2048)
+    observations: list[Observation] = Field(max_length=2048)
 
 
 class ForecastInput(Closed):
@@ -152,6 +152,13 @@ def seasonal_signal(x, y, period, scale):
 
 
 def one_series(series, settings):
+    if not series.observations:
+        return {'entityId': str(series.entityId), 'key': series.key, 'measure': series.measure,
+                'interval': settings.interval, 'horizon': settings.horizon, 'status': 'insufficient_data',
+                'observedRange': {'from': None, 'to': None}, 'observations': [], 'forecast': [],
+                'dataQuality': {'observed': 0, 'expectedSlots': 0, 'missing': 0, 'gridCompleteness': None,
+                                'disclosureCoverage': settings.coverage},
+                'warnings': ['No authorized historical observations; no forecast fabricated.'], 'limitations': LIMITATIONS.copy()}
     observed = pd.Series([o.value for o in series.observations],
                          index=pd.to_datetime([o.at for o in series.observations], utc=True), dtype='float64').sort_index()
     if observed.index.has_duplicates:

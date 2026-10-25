@@ -18,6 +18,7 @@ COPY --from=build --chown=node:node /app/packages/platform ./packages/platform
 COPY --from=build --chown=node:node /app/packages/module-sdk ./packages/module-sdk
 COPY --from=build --chown=node:node /app/packages/business-kit ./packages/business-kit
 COPY --from=build --chown=node:node /app/packages/commerce-kit ./packages/commerce-kit
+COPY --chown=node:node datasets/scientific-history-v1.json ./datasets/scientific-history-v1.json
 ARG APP
 COPY --from=build --chown=node:node /app/apps/${APP}-api ./apps/${APP}-api
 ENV APP_ENTRY=apps/${APP}-api/dist/index.js

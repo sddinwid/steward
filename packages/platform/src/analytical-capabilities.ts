@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type {AnalyticalCapabilityDescriptor} from '@steward/contracts';
+import {forecastInput,procurementSchema,scenarioOptions} from './scientific-schema.js';
 
 export interface AnalyticalCapability<I, O> { id: string; version: 1; calculate(input: I): O }
 const money = z.number().finite().min(0).max(1e9);
@@ -18,6 +19,11 @@ export const resourceSharing: AnalyticalCapability<SharingInput, ReturnType<type
 // One core-owned catalog extends the established capability interface. Python is
 // a bounded transport implementation, never a second authority/provider registry.
 export const analyticalCapabilityCatalog:Readonly<Record<string,AnalyticalCapabilityDescriptor>>=Object.freeze({
+ ...Object.fromEntries([
+  ['demand-forecast','Demand forecasting',forecastInput,6000,['status','series','horizon','interval']],
+  ['procurement-optimization','Constrained procurement optimization',procurementSchema,6000,['status','currency','baselineExternalCents','proposedCostCents','impacts','solver']],
+  ['scenario-comparison','Deterministic scenario comparison',scenarioOptions.extend({baseline:procurementSchema}),12000,['status','currency','coordinatedBaseline','scenarios']]
+ ].map(([name,label,schema,deadline,required]:any)=>['steward.scientific.'+name,{id:'steward.scientific.'+name,version:1,name:label,engine:'python',inputSchema:z.toJSONSchema(schema),outputSchema:{type:'object',required,properties:{status:{type:'string'},decisionExecuted:{const:false}}},permission:'analytical.read',sensitivity:'business',readonly:true,resources:{maximumInputBytes:262144,maximumExecutionMillis:deadline,maximumConcurrency:2},provenanceRequired:true}])) ,
  'steward.resource-sharing':{id:resourceSharing.id,version:1,name:'Resource sharing',engine:'typescript',inputSchema:z.toJSONSchema(sharingInput),outputSchema:{type:'object'},permission:'analytical.read',sensitivity:'business',readonly:true,resources:{maximumInputBytes:16384,maximumExecutionMillis:2000,maximumConcurrency:4},provenanceRequired:true},
  'steward.scientific.describe-series':{id:'steward.scientific.describe-series',version:1,name:'Scientific descriptive statistics',engine:'python',inputSchema:{type:'object',additionalProperties:false,required:['values'],properties:{values:{type:'array',minItems:1,maxItems:4096,items:{type:['number','null']}}}},outputSchema:{type:'object',required:['status','count','mean']},permission:'analytical.read',sensitivity:'business',readonly:true,resources:{maximumInputBytes:262144,maximumExecutionMillis:6000,maximumConcurrency:2},provenanceRequired:true}
 });

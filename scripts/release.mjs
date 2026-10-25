@@ -122,7 +122,7 @@ async function install(upgrade=false){
   if(m.images['commerce-simulator']&&simulatorMode)for(const provider of ['shopify','printify'])services.push('  '+provider+'-simulator:\n    image: '+m.images['commerce-simulator'].id+'\n    pull_policy: never');
   const releaseDir=path.join(directory,'release');await mkdir(releaseDir,{recursive:true});
   const overlay='services:\n'+services.join('\n')+'\n',candidate=path.join(releaseDir,'candidate.yaml');await writeFile(candidate,overlay);
-  const overlays=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','commerce/compose.yaml'].filter(f=>existsSync(path.join(directory,f))).flatMap(f=>['-f',path.join(directory,f)]);
+  const overlays=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml'].filter(f=>existsSync(path.join(directory,f))).flatMap(f=>['-f',path.join(directory,f)]);
   docker('compose',...overlays,'-f',candidate,'config','--quiet');
   const selected=path.join(releaseDir,'compose.yaml');
   if(existsSync(selected)&&await readFile(selected,'utf8')!==overlay)await copyFile(selected,path.join(releaseDir,'previous-compose.yaml'));

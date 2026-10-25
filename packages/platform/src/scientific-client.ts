@@ -4,6 +4,24 @@ import {request as httpRequest} from 'node:http';
 import {request as httpsRequest} from 'node:https';
 import {z} from 'zod';
 import type {AnalyticalService,ScientificRequest,ScientificResult} from '@steward/contracts';
+import {canonical} from './security/crypto.js';
+
+const reference=z.object({entityId:z.string().uuid(),moduleId:z.string().max(80),streamId:z.string().max(50),recordId:z.string().uuid(),revision:z.number().int().positive()}).strict();
+const resultSchema=z.object({schemaVersion:z.literal(1),jobId:z.string().uuid(),capability:z.enum(['describe-series','demand-forecast','procurement-optimization','scenario-comparison']),inputDigest:z.string().regex(/^[a-f0-9]{64}$/),elapsedMillis:z.number().int().min(0).max(15000),entityIds:z.array(z.string().uuid()).min(1).max(8),decisionExecuted:z.literal(false),
+ provenance:z.object({datasetId:z.string().uuid(),synthetic:z.boolean(),basis:z.enum(['authorized-synchronized-projection','synthetic-analytical-history']),asOf:z.string().datetime({offset:true}),references:z.array(reference).max(256)}).strict(),
+ engine:z.object({service:z.literal('steward-scientific'),version:z.string().regex(/^\d+\.\d+\.\d+$/),contractVersion:z.literal(1),python:z.string(),numpy:z.string(),scipy:z.string(),pandas:z.string()}).strict(),
+ calculation:z.record(z.string(),z.unknown())}).strict();
+export function validateScientificResult(raw:unknown,input:ScientificRequest):ScientificResult{
+ const parsed=resultSchema.safeParse(raw);if(!parsed.success)throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');const r=parsed.data;
+ if(r.jobId!==input.jobId||r.capability!==input.capability||canonical(r.entityIds)!==canonical(input.entityIds)||canonical({...r.provenance,asOf:Date.parse(r.provenance.asOf)})!==canonical({...input.provenance,asOf:Date.parse(input.provenance.asOf)}))throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
+ const c=r.calculation as any;
+ if(typeof c.status!=='string'||!['completed','partial','insufficient_data','optimal','infeasible','feasible_not_proven_optimal','no_feasible_solution'].includes(c.status))throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
+ const ids=input.entityIds;
+ if(input.capability==='demand-forecast'&&(!Array.isArray(c.series)||c.series.some((s:any)=>!ids.includes(s.entityId)||!Array.isArray(s.forecast))))throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
+ if(input.capability==='procurement-optimization'&&(!Array.isArray(c.impacts)||c.impacts.some((i:any)=>!ids.includes(i.entityId))||!c.solver))throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
+ if(input.capability==='scenario-comparison'&&(!Array.isArray(c.scenarios)||c.scenarios.some((s:any)=>!Array.isArray(s.entityImplications)||s.entityImplications.some((i:any)=>!ids.includes(i.entityId)))))throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
+ return r;
+}
 
 export const scientificConfigSchema=z.object({version:z.literal(1),endpoint:z.string().url(),keyFile:z.string().min(1),
  caFile:z.string().optional(),servername:z.string().optional(),allowIsolatedHttp:z.boolean().default(false),
@@ -45,8 +63,7 @@ export class ScientificClient implements AnalyticalService {
   const input=raw as ScientificRequest,{c}=await this.configuration();
   if(!input||input.schemaVersion!==1||!Number.isInteger(input.executionMillis)||input.executionMillis<100||input.executionMillis>c.maximumExecutionMillis)throw new ScientificError('SCIENTIFIC_INPUT_INVALID',422);
   const result=await this.call('/v1/execute','POST',input,signal,input.executionMillis+2000);
-  if(result.schemaVersion!==1||result.jobId!==input.jobId||result.capability!==input.capability||result.decisionExecuted!==false||JSON.stringify(result.entityIds)!==JSON.stringify(input.entityIds)||!result.calculation||!result.engine)throw new ScientificError('SCIENTIFIC_OUTPUT_INVALID');
-  return result;
+  return validateScientificResult(result,input);
  }
  async cancel(jobId:string,signal:AbortSignal){
   if(!/^[a-f0-9-]{36}$/.test(jobId))throw new ScientificError('SCIENTIFIC_INPUT_INVALID',422);

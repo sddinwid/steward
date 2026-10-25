@@ -1,6 +1,7 @@
 import { workspaceRoutes } from '../workspace.js';
 import { mcpRoutes } from '../mcp.js';
 import { analystRoutes } from '../analyst.js';
+import {scientificRoutes} from '../scientific.js';
 import Fastify from 'fastify';
 import helmet from '@fastify/helmet';
 import { readFile } from 'node:fs/promises';
@@ -37,6 +38,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
   }
   workspaceRoutes(app,database.pool,auth,installation);
   await synchronizationRoutes(app,database.pool,auth,installation,key,security);
+  if(installation.role==='master')await scientificRoutes(app,database.pool,auth,security.publicOrigin);
   await mcpRoutes(app,database.pool,auth,installation,security.publicOrigin);
   if(installation.role==='master') await analystRoutes(app,database.pool,auth,security);
   return app;

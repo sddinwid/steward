@@ -151,3 +151,12 @@ def test_timezone_offsets_are_normalized_to_the_same_instants():
     at = datetime.fromisoformat(body['series'][0]['observations'][1]['at'])
     body['series'][0]['observations'][1]['at'] = at.astimezone(timezone(timedelta(hours=3))).isoformat()
     assert one(body) == expected
+def test_empty_authorized_history_has_honest_insufficient_result():
+    from steward_science.forecast import forecast
+    result = forecast({'series': [{'entityId': '00000000-0000-4000-8000-000000000001', 'key': 'orders', 'measure': 'orders', 'observations': []}],
+                       'interval': 'day', 'horizon': 30})
+    assert result['status'] == 'partial'
+    assert result['series'][0]['status'] == 'insufficient_data'
+    assert result['series'][0]['forecast'] == []
+    assert result['series'][0]['dataQuality']['gridCompleteness'] is None
+
