@@ -29,7 +29,7 @@ BEGIN
    'stockout',CASE WHEN NEW.data->'reservationEvidence' IS NOT NULL AND NEW.data->'reservationEvidence'<>'null'::jsonb THEN jsonb_path_exists(NEW.data->'reservationEvidence','$[*] ? (@.reserved < @.requested)') ELSE NULL END,
    'revenueBasis','Completed merchandise quantities after line discounts; excludes shipping and tax',
    'refundBasis','Source total refunds; tax/shipping refunds are not allocated to products',
-   'costSource','Production catalog and shipping quote; estimates unless explicitly known') || CASE WHEN NEW.data ? 'financials' THEN jsonb_build_object('financials',NEW.data->'financials') ELSE '{}'::jsonb END || CASE WHEN NEW.data ? 'simulation' THEN jsonb_build_object('simulation',NEW.data->'simulation','simulationState',jsonb_build_object('stockStatus',NEW.data->>'stockStatus','reservationFailure',NEW.data->'reservationFailure','productionRequested',COALESCE((NEW.data->>'productionRequested')::boolean,false))) ELSE '{}'::jsonb END)
+   'costSource','Production catalog and shipping quote; estimates unless explicitly known') || CASE WHEN NEW.data ? 'financials' THEN jsonb_build_object('financials',NEW.data->'financials') ELSE '{}'::jsonb END || CASE WHEN NEW.data ? 'simulation' THEN jsonb_build_object('simulation',NEW.data->'simulation','simulationState',jsonb_build_object('stockStatus',NEW.data->>'stockStatus','reservationFailure',NEW.data->'reservationFailure','productionRequested',COALESCE((NEW.data->>'productionRequested')::boolean,false),'productionRequestedAt',NEW.data->'productionRequestedAt','productionObservedAt',NEW.data->'productionObservedAt')) ELSE '{}'::jsonb END)
   ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,projection=excluded.projection;
  END IF;
  RETURN NEW;

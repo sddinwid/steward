@@ -1,3 +1,4 @@
+import {simulationStageTools} from '../investigation-profiles.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resourceSharing, type SharingInput } from '../analytical-capabilities.js';
@@ -88,4 +89,12 @@ test('commerce planning offers calculation only after entity and source discover
 test('complete estimated commerce context states actual coverage and exact selected source amounts',()=>{
  const raw={structuredContent:{data:{calculation:{capabilityId:'steward.commerce-performance',contributionSummary:{marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 83.50'}},contributionAnalysis:[{sourceId:'order-a',marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 30.50'},missingCosts:[],recognitionComplete:true},{sourceId:'order-b',marginBasis:'estimated',displayAmounts:{contributionMargin:'USD 53.00'},missingCosts:[],recognitionComplete:true}]}}}};
  const view=modelToolResult('analyze_commerce_by_id',raw,false).structuredContent.data.calculation;assert(view.financialRule.includes('USD 83.50 (estimated)'));assert(view.financialRule.includes('No selected cost component is missing'));assert(view.financialRule.includes('order-a = USD 30.50'));assert(view.financialRule.includes('order-b = USD 53.00'));
+});
+
+
+test('synthetic investigation planning exposes only discovered next-step read tools and preserves full calculation evidence',()=>{
+ const tools=['list_entities','query_simulation_purchasing','analyze_simulation_purchasing','unrelated_write'].map(name=>({name}));
+ assert.deepEqual(simulationStageTools(tools,false,false).map(t=>t.name),['list_entities']);assert.deepEqual(simulationStageTools(tools,true,false).map(t=>t.name),['query_simulation_purchasing']);assert.deepEqual(simulationStageTools(tools,true,true).map(t=>t.name),['analyze_simulation_purchasing']);assert.deepEqual(simulationStageTools([],true,true),[]);
+ const raw={structuredContent:{data:{calculation:{capabilityId:'steward.simulation-purchasing',schemaVersion:1,currency:'USD',quantity:120,displayAmounts:{baseline:'USD 870.00',proposed:'USD 778.00',benefit:'USD 92.00'},impacts:[{entityId:'first',benefitCents:4600},{entityId:'second',benefitCents:4600}],internalTransferCents:0,assumptions:['Synthetic estimates; bounded source cohort only']},supportingReferences:[{streamId:'commerce_orders',recordId:'observed'}],affectedEntities:['first','second'],observed:{sources:[{reference:{streamId:'commerce_orders',recordId:'observed'},sourceWorker:'worker',observedAt:'now',payload:{allSourceEvidence:'retained'}}]}}}};
+ const before=JSON.stringify(raw),view=modelToolResult('analyze_simulation_purchasing',raw,true);assert.equal(JSON.stringify(raw),before);assert.equal(view.structuredContent.data.calculation.displayAmounts.benefit,'USD 92.00');assert.equal(view.structuredContent.data.observed.sources[0].payload,undefined);assert.deepEqual(view.structuredContent.data.supportingReferences,raw.structuredContent.data.supportingReferences);
 });

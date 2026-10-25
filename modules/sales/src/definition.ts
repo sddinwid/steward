@@ -59,7 +59,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
                 ensure(r.data.smartInventory&&r.data.inventoryIntegration&&r.data.status==='confirmed'&&r.data.stockStatus==='reserved'&&!r.data.productionRequested&&!r.data.remoteCanceled,'A confirmed, paid, fully reserved order is required');
                 ensure(r.data.lines.every((l:Data)=>r.data.reserved[l.sku]===l.quantity),'Production cannot exceed authoritative reserved stock');
                 await enqueueCapability(ctx,r.data.simulation?simulationContracts.fulfillment.id:contracts.production!.id,'fulfillment.submit',r.id,{orderId:r.id,currency:r.data.currency,lines:r.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});
-                return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,productionRequested:true,productionStatus:'intent_pending'},r))};
+                return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,productionRequested:true,productionRequestedAt:new Date().toISOString(),productionStatus:'intent_pending'},r))};
             }},
             {path:'/publish-commerce/:id',kind:'order',permission:'cee.sales.publish',run:async(r,ctx)=>{ensure(r.data.channel,'Only source-attributed commerce orders can be published');return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,commerceApproved:true},r))};}},
             {path:'/withdraw-commerce/:id',kind:'order',permission:'cee.sales.publish',run:async(r,ctx)=>({record:publicRecord(await save(ctx,'order',r.key,{...r.data,commerceApproved:false},r))})}

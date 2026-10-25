@@ -1,3 +1,5 @@
+import {simulationDashboard,simulationRunSchema} from './simulation-analysis.js';
+import {monitorSimulation,simulationPolicySchema} from './simulation-monitor.js';
 import {monitorCommerce,commerceExceptionSchema} from './commerce-monitor.js';
 import { randomUUID } from 'node:crypto';
 import type pg from 'pg';
@@ -18,6 +20,9 @@ export function validateEvent(e: DataEvent) {
       typeof e.moduleId !== 'string' || !/^[a-z][a-z0-9.-]{0,79}$/.test(e.moduleId) || typeof e.streamId !== 'string' || !/^[a-z][a-z0-9_]{0,49}$/.test(e.streamId) || !e.payload || Array.isArray(e.payload) || typeof e.payload !== 'object' || Buffer.byteLength(JSON.stringify(e)) > 12000) fail(400, 'Invalid synchronization event');
   if(e.eventType==='record.upsert'&&e.streamId==='commerce_orders'){
     if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceWireSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce projection');
+  }
+  if(e.eventType==='record.upsert'&&e.streamId==='simulation_runs'){
+    const parsed=simulationRunSchema.safeParse(e.payload.projection);if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!parsed.success||parsed.data.datasetId!==e.recordId)fail(400,'Invalid simulation projection');
   }
   if(e.eventType==='record.upsert'&&e.streamId==='commerce_exceptions'){
     if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceExceptionSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce exception');
@@ -59,6 +64,19 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
         relationships: (await pool.query('SELECT * FROM entity_relationships WHERE ($1::boolean OR from_entity=ANY($2::uuid[]) AND to_entity=ANY($2::uuid[])) AND ($3::uuid IS NULL OR from_entity=$3 OR to_entity=$3)',args)).rows };
     });
     app.get('/api/v4/commerce-monitor',async req=>{const s=await scope(req);return{policies:(await pool.query('SELECT entity_id,enabled,updated_at FROM commerce_monitor_policies WHERE $1::boolean OR entity_id=ANY($2::uuid[])',[s.all,s.entities])).rows,conditions:(await pool.query("SELECT c.*,r.entity_id,(r.payload->'projection'->>'approved'='true') AS publication_approved FROM commerce_monitor_conditions c JOIN analytical_records r ON r.installation_id=c.installation_id AND r.module_id=c.module_id AND r.record_id=c.record_id AND r.stream_id=c.stream_id WHERE $1::boolean OR r.entity_id=ANY($2::uuid[])",[s.all,s.entities])).rows};});
+    app.get('/api/v11/simulation-intelligence',async req=>{
+      const s=await scope(req);const rows=(await pool.query("SELECT * FROM analytical_records WHERE stream_id IN ('simulation_runs','commerce_orders') AND ($1::boolean OR entity_id=ANY($2::uuid[])) ORDER BY entity_id,source_at DESC,record_id LIMIT 10001",[s.all,s.entities])).rows;if(rows.length>10000)fail(413,'Narrow the authorized simulation dataset');
+      const conditions=(await pool.query('SELECT c.*,array_agg(e.entity_id) affected_entities FROM simulation_monitor_conditions c JOIN finding_entities e USING(finding_id) GROUP BY c.condition_key')).rows.filter(c=>s.all||c.affected_entities.every((id:string)=>s.entities.includes(id)));
+      const policy=s.all?(await pool.query('SELECT enabled,entity_ids,interval_seconds,thresholds,last_checked_at,last_error FROM simulation_monitor_policy WHERE singleton')).rows[0]??null:null;
+      return{...simulationDashboard(rows),conditions,policy,canConfigure:s.all};
+    });
+    app.put<{Body:unknown}>('/api/v11/simulation-monitor',async req=>{
+      const actor=await registry(req),parsed=simulationPolicySchema.safeParse(req.body);if(!parsed.success)fail(400,'Invalid bounded simulation monitoring policy');const b=parsed.data;if(b.enabled&&!b.entityIds.length)fail(400,'Choose authorized entities to monitor');
+      return transaction(pool,async sql=>{for(const id of b.entityIds)if(!(await sql.query('SELECT 1 FROM legal_entities WHERE entity_id=$1',[id])).rowCount)fail(404,'Unknown monitoring entity');
+        await sql.query(`INSERT INTO simulation_monitor_policy(singleton,enabled,entity_ids,approved_by,interval_seconds,thresholds) VALUES(true,$1,$2,$3,$4,$5) ON CONFLICT(singleton) DO UPDATE SET enabled=excluded.enabled,entity_ids=excluded.entity_ids,approved_by=excluded.approved_by,interval_seconds=excluded.interval_seconds,thresholds=excluded.thresholds,last_checked_at=NULL,updated_at=now()`,[b.enabled,[...new Set(b.entityIds)],actor.account_id,b.intervalSeconds,b.thresholds]);
+        await monitorSimulation(sql,true);await materializeFindings(sql);await audit(sql,actor.account_id,'simulation.monitor.policy',null,{enabled:b.enabled,entityIds:b.entityIds,intervalSeconds:b.intervalSeconds});return{saved:true};});
+    });
+    let monitoring=false;const monitorTimer=setInterval(()=>{if(monitoring)return;monitoring=true;void transaction(pool,async sql=>{await monitorSimulation(sql);await materializeFindings(sql);}).catch(async()=>{await pool.query("UPDATE simulation_monitor_policy SET last_error='Monitoring failed; source observations are retained. Review service health and source limits.' WHERE singleton").catch(()=>{});}).finally(()=>{monitoring=false;});},2000).unref();app.addHook('onClose',async()=>{clearInterval(monitorTimer);});
     app.put<{Body:{entityId:string;enabled:boolean}}>('/api/v4/commerce-monitor',async req=>{const actor=await registry(req);const b=req.body;if(!validUuid(b?.entityId)||typeof b.enabled!=='boolean')fail(400,'Invalid monitoring policy');return transaction(pool,async sql=>{if(!(await sql.query('SELECT 1 FROM legal_entities WHERE entity_id=$1',[b.entityId])).rowCount)fail(404,'Unknown entity');await sql.query('INSERT INTO commerce_monitor_policies VALUES($1,$2,$3,now()) ON CONFLICT(entity_id) DO UPDATE SET enabled=excluded.enabled,approved_by=excluded.approved_by,updated_at=now()',[b.entityId,b.enabled,actor.account_id]);if(b.enabled){const rows=(await sql.query("SELECT * FROM analytical_records WHERE entity_id=$1 AND stream_id IN ('commerce_orders','commerce_exceptions')",[b.entityId])).rows;for(const row of rows)await monitorCommerce(sql,row);await materializeFindings(sql);}await audit(sql,actor.account_id,'commerce.monitor.policy',b.entityId,{enabled:b.enabled});return{saved:true};});});
     app.get('/api/v4/financial-report',async req=>{
       const s=await scope(req);
@@ -80,7 +98,7 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
       const s=await scope(req);if(!validUuid(req.params.id))fail(400,'Invalid finding identity');
       const finding=(await pool.query('SELECT f.supporting_references FROM analytical_findings f WHERE f.finding_id=$1 AND ($2::boolean OR EXISTS(SELECT 1 FROM finding_entities e WHERE e.finding_id=f.finding_id AND e.entity_id=ANY($3::uuid[])))',[req.params.id,s.all,s.entities])).rows[0];if(!finding)fail(404,'Finding unavailable');
       const evidence=[];for(const ref of finding.supporting_references.filter((r:any)=>s.all||s.entities.includes(r.entityId))){
-        if(!['commerce_orders','commerce_exceptions'].includes(ref.streamId)){evidence.push({reference:ref,available:false,reason:'Use the retained originating investigation for this evidence stream'});continue;}
+        if(!['commerce_orders','commerce_exceptions','simulation_runs'].includes(ref.streamId)){evidence.push({reference:ref,available:false,reason:'Use the retained originating investigation for this evidence stream'});continue;}
         const rows=(await pool.query(`SELECT envelope,ingested_at FROM sync_inbox WHERE envelope->>'eventType'='record.upsert' AND envelope->'source'->'entity'->>'entityId'=$1 AND envelope->>'moduleId'=$2 AND envelope->>'streamId'=$3 AND envelope->>'recordId'=$4 AND envelope->>'recordRevision'=$5 ORDER BY ingested_at LIMIT 2`,[ref.entityId,ref.moduleId,ref.streamId,ref.recordId,String(ref.revision)])).rows;
         const signatures=new Set(rows.map(r=>canonical({source:r.envelope.source.installationId,payload:r.envelope.payload})));const row=rows[0];evidence.push(row&&signatures.size===1?{reference:ref,available:true,observedAt:row.envelope.occurredAt,ingestedAt:row.ingested_at,payload:row.envelope.payload}:{reference:ref,available:false,reason:signatures.size>1?'Ambiguous retained source identity':'Original envelope is not retained'});
       }return{evidence,historical:true,authoritative:false,decisionExecuted:false};

@@ -19,3 +19,7 @@ Commerce contribution reporting, governed operational alerts, compact MCP invest
 ## Shopify development stores
 
 The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.
+
+## Phase 11 continuous commerce simulation
+
+Implementation and release acceptance are in progress. See [operator/presenter controls, installation and recovery](docs/phase11-operations.md), [architecture](docs/adr/0025-continuous-commerce-simulation.md) and [actual verification evidence](docs/phase11-verification.md). The retained operator deployment and live connector credentials are preserved; no Phase 11 release is claimed until every mandatory gate passes.

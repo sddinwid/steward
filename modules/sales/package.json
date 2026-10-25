@@ -11,8 +11,7 @@
     "@steward/business-kit": "file:../../packages/business-kit",
     "@steward/commerce-kit": "file:../../packages/commerce-kit",
     "@steward/module-sdk": "file:../../packages/module-sdk",
-    "@steward/simulation-kit": "file:../../packages/simulation-kit",
-    "steward-platform": "file:../.."
+    "@steward/simulation-kit": "file:../../packages/simulation-kit"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

@@ -188,7 +188,7 @@
   "ui": [
     {
       "screenId": "customer",
-      "title": "Sales \u2014 customer",
+      "title": "Sales — customer",
       "navigationLabel": "sales customer",
       "listOperation": "listCustomer",
       "createOperation": "createCustomer",
@@ -232,7 +232,7 @@
     },
     {
       "screenId": "order",
-      "title": "Sales \u2014 order",
+      "title": "Sales — order",
       "navigationLabel": "sales order",
       "listOperation": "listOrder",
       "createOperation": "createOrder",
@@ -377,7 +377,7 @@
     },
     {
       "screenId": "fulfillment",
-      "title": "Sales \u2014 fulfillment",
+      "title": "Sales — fulfillment",
       "navigationLabel": "sales fulfillment",
       "listOperation": "listFulfillment",
       "createOperation": "createFulfillment",
@@ -814,7 +814,7 @@
       },
       {
         "version": 6,
-        "sha256": "3f9b58dc45291b4173e3ae693427c1f34d1d3e9606aca6acb25d2603914379bc"
+        "sha256": "b96134c29ce37ce0acf660b76221fd1c905bdfae8d589aef2a4093d0803db555"
       }
     ],
     "destructiveRollback": false
@@ -1311,6 +1311,50 @@
               ]
             },
             "command": "simulation.dataset.reset",
+            "permission": "cee.sales.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "simulation.sales.set-publication",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "approved": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "approved"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "updated": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "updated"
+              ]
+            },
+            "command": "simulation.sales.set-publication",
             "permission": "cee.sales.simulate",
             "mode": "durable",
             "idempotency": "required",

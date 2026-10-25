@@ -19,6 +19,7 @@ const dataset=(r:RecordValue)=>({datasetId:r.id,runId:r.data.runId});
 async function setup(ctx:Context,r:RecordValue){
  const body=dataset(r),items=catalog(r.id,r.data.runId);const pending=[];
  for(const key of ['sales','stock','production'] as const)pending.push(await command(ctx,r,key,'simulation.dataset.begin',body));
+ pending.push(await command(ctx,r,'sales','simulation.sales.set-publication',{...body,approved:r.data.shareWithMaster==='yes'}));
  pending.push(await command(ctx,r,'stock','simulation.stock.seed',{...body,items:items.map(({sku,name,quantity})=>({sku,name,quantity}))}));
  pending.push(await command(ctx,r,'production','simulation.production.configure',{...body,catalog:items.map(p=>({sku:p.sku,unitCostCents:p.unitQuoteCents}))}));
  return pending;
@@ -32,24 +33,25 @@ export function simulationCommerce(manifest:ModulePackageManifest):Definition {
   const values={ecosystem:'Commerce demonstration',scenario:'normal',seed:7,eventsPerMinute:6,speed:60,shareWithMaster:'no',...p?.data,...b};
   if(p&&p.data.eventIndex>0)ensure(values.seed===p.data.seed&&values.ecosystem===p.data.ecosystem,'Reset this synthetic dataset before changing its seed or ecosystem',409);
   return{...values,ecosystemId:stableId('ecosystem:'+values.ecosystem.trim().toLowerCase()),state:p?.data.state??'stopped',runId:p?.data.runId??null,eventIndex:p?.data.eventIndex??0,lastSummary:p?.data.lastSummary??null,error:null,warning:p?.data.warning??null,updatedAt:new Date().toISOString()};
- },after:async(r,p,ctx)=>{if(p&&['scenario','speed','eventsPerMinute','shareWithMaster'].some(k=>r.data[k]!==p.data[k]))await history(ctx,r,'configuration_changed',{scenario:r.data.scenario,speed:r.data.speed,eventsPerMinute:r.data.eventsPerMinute,publication:r.data.shareWithMaster});}}],actions:[
+ },after:async(r,p,ctx)=>{if(p&&['scenario','speed','eventsPerMinute','shareWithMaster'].some(k=>r.data[k]!==p.data[k]))await history(ctx,r,'configuration_changed',{scenario:r.data.scenario,speed:r.data.speed,eventsPerMinute:r.data.eventsPerMinute,publication:r.data.shareWithMaster});if(p&&r.data.runId&&p.data.shareWithMaster!==r.data.shareWithMaster){const id=await command(ctx,r,'sales','simulation.sales.set-publication',{...dataset(r),approved:r.data.shareWithMaster==='yes'});Object.assign(r,await updateRun(ctx,r,{publicationPending:id,warning:'Awaiting Sales owner publication receipt.'}));}}}],actions:[
  {path:'/start/:id',kind:'run',permission,run:async(r,ctx)=>{
   ensure((ctx.config.teePopularityBasisPoints??5500)+(ctx.config.mugPopularityBasisPoints??3000)<=10000,'Product popularity probabilities must not exceed 100 percent');ensure((ctx.config.minimumQuantity??1)<=(ctx.config.maximumQuantity??5),'Minimum quantity must not exceed maximum');
   ensure(ctx.config.integrationsEnabled===true,'Approve simulation module integration configuration and SSMA bindings before starting',409);
-  ensure(['stopped','paused','error'].includes(r.data.state),'Simulation is already active or resetting',409);
+  ensure(['stopped','paused','error'].includes(r.data.state),'Simulation is already active or resetting',409);ensure(!r.data.resetFailed,'Complete reset recovery before starting this dataset',409);
   let current=r;
   if(!r.data.runId){current=await updateRun(ctx,r,{runId:randomUUID(),simulatedBaseAt:new Date().toISOString(),elapsedSimulatedMs:0,eventIndex:0});current=await updateRun(ctx,current,{catalog:catalog(current.id,current.data.runId)});const s=origin(current);current=await updateRun(ctx,current,{initialOrigin:s});await simulationEpoch(scoped(ctx,s),true);const pending=await setup(ctx,current);current=await updateRun(ctx,current,{setupPending:pending,state:'starting',nextAt:new Date().toISOString(),error:null,observationAttempts:0});}
+  else if(current.data.setupFailed){ensure(!current.data.setupPending?.length,'Await outstanding setup receipts before retrying',409);const pending=await setup(ctx,current);current=await updateRun(ctx,current,{setupPending:pending,setupFailed:false,setupError:null,state:'starting',error:null,observationAttempts:0});}
   else current=await updateRun(ctx,current,{state:current.data.setupPending?.length?'starting':'running',nextAt:new Date().toISOString(),error:null,observationAttempts:0});
   await history(ctx,current,'started',{seed:current.data.seed});return{record:publicRecord(current)};
  }},
  ...(['pause','resume','stop'] as const).map(action=>({path:'/'+action+'/:id',kind:'run',permission,run:async(r:RecordValue,ctx:Context)=>{
-  ensure(r.data.state!=='resetting','Dataset reset is still in progress',409);if(action==='resume')ensure(r.data.runId&&['paused','stopped'].includes(r.data.state),'Only a paused or stopped run can resume',409);if(action==='pause')ensure(['running','starting'].includes(r.data.state),'Only active simulation can pause',409);
+  ensure(r.data.state!=='resetting','Dataset reset is still in progress',409);if(action==='resume')ensure(!r.data.resetFailed&&!r.data.setupFailed,'Recover the failed setup or reset before resuming',409);if(action==='resume')ensure(r.data.runId&&['paused','stopped'].includes(r.data.state),'Only a paused or stopped run can resume',409);if(action==='pause')ensure(['running','starting'].includes(r.data.state),'Only active simulation can pause',409);
   const current=await updateRun(ctx,r,{state:action==='pause'?'paused':action==='stop'?'stopped':r.data.setupPending?.length?'starting':'running',observationAttempts:0});await history(ctx,current,action);return{record:publicRecord(current)};
  }})),
  {path:'/reset/:id',kind:'run',permission,run:async(r,ctx)=>{
   ensure(['paused','stopped','error'].includes(r.data.state),'Pause or stop before resetting this synthetic dataset',409);if(!r.data.runId)return{record:publicRecord(r)};
   const pending=[];for(const key of ['sales','stock','production'] as const)pending.push(await command(ctx,r,key,'simulation.dataset.reset',dataset(r)));
-  const current=await updateRun(ctx,r,{state:'resetting',resetPending:pending,error:null});await history(ctx,current,'reset_requested');return{record:publicRecord(current)};
+  const current=await updateRun(ctx,r,{state:'resetting',resetPending:pending,resetFailed:false,error:null});await history(ctx,current,'reset_requested');return{record:publicRecord(current)};
  }}],
  queries:[{path:'/history',run:async ctx=>({records:(await records(ctx,'history')).slice(-20).map(publicRecord)})},{path:'/activity',run:async ctx=>({records:(await records(ctx,'event')).slice(-20).map(publicRecord)})},{path:'/dashboard',run:report}],report,
  receive:async(c,ctx)=>{
@@ -59,18 +61,20 @@ export function simulationCommerce(manifest:ModulePackageManifest):Definition {
 }
 async function acknowledge(c:IntegrationCommand,status:'delivered'|'rejected',result:Data,ctx:Context){
  if(!c.simulation)return;const base=control(ctx);let r=await get(base,'run',c.simulation.datasetId);if(r.data.runId!==c.simulation.runId)return;
- if(r.data.setupPending?.includes(c.commandId)){const remaining=r.data.setupPending.filter((id:string)=>id!==c.commandId);r=await updateRun(base,r,{setupPending:remaining,state:status==='rejected'?'error':remaining.length?r.data.state:r.data.state==='starting'?'running':r.data.state,error:status==='rejected'?String(result.error??'Simulation setup rejected'):null});await history(base,r,'setup_receipt',{operation:c.command,status});return;}
+ if(r.data.setupPending?.includes(c.commandId)){const remaining=r.data.setupPending.filter((id:string)=>id!==c.commandId),failed=r.data.setupFailed||status==='rejected',error=status==='rejected'?String(result.error??'Simulation setup rejected'):r.data.setupError??null;r=await updateRun(base,r,{setupPending:remaining,setupFailed:failed,setupError:error,state:failed?'error':remaining.length?r.data.state:r.data.state==='starting'?'running':r.data.state,error});await history(base,r,'setup_receipt',{operation:c.command,status});return;}
  if(r.data.resetPending?.includes(c.commandId)){
-  const remaining=r.data.resetPending.filter((id:string)=>id!==c.commandId);r=await updateRun(base,r,{resetPending:remaining,state:status==='rejected'?'error':r.data.state,error:status==='rejected'?String(result.error??'Dataset reset rejected'):null});
-  if(!remaining.length&&status==='delivered'){
+  const remaining=r.data.resetPending.filter((id:string)=>id!==c.commandId);r=await updateRun(base,r,{resetPending:remaining,resetFailed:r.data.resetFailed||status==='rejected',state:status==='rejected'?'error':r.data.state,error:status==='rejected'?String(result.error??'Dataset reset rejected'):r.data.error??null});
+  if(!remaining.length&&!r.data.resetFailed&&status==='delivered'){
    await ctx.db.query("DELETE FROM business_records WHERE kind='event' AND data->'simulation'->>'datasetId'=$1 AND data->'simulation'->>'runId'=$2",[r.id,r.data.runId]);await ctx.db.query("UPDATE simulation_dataset_epochs SET state='closed',updated_at=now() WHERE dataset_id=$1 AND run_id=$2",[r.id,r.data.runId]);
-   r=await updateRun(base,r,{state:'stopped',lastRunId:r.data.runId,runId:null,eventIndex:0,lastSummary:null,lastStockSummary:null,stockObservationPending:null,observationPending:null,initialOrigin:null,error:null});await history(base,r,'reset_completed');
+   r=await updateRun(base,r,{state:'stopped',lastRunId:r.data.runId,runId:null,eventIndex:0,lastSummary:null,lastStockSummary:null,stockObservationPending:null,observationPending:null,initialOrigin:null,resetFailed:false,setupFailed:false,setupError:null,error:null});await history(base,r,'reset_completed');
   }return;
  }
+ if(r.data.publicationPending===c.commandId){await updateRun(base,r,{publicationPending:null,warning:status==='rejected'?'Publication change rejected by Sales; review its simulation publication permission.':null,error:status==='rejected'?String(result.error??'Publication change rejected'):null});await history(base,r,'publication_receipt',{status,approved:r.data.shareWithMaster==='yes'});return;}
  if(r.data.stockObservationPending===c.commandId){const{_steward,...summary}=result;await updateRun(base,r,{stockObservationPending:null,lastStockSummary:status==='delivered'?summary:r.data.lastStockSummary,nextStockObservationAt:new Date(Date.now()+5000).toISOString()});return;}
  if(r.data.observationPending===c.commandId){const{_steward,...summary}=result;await updateRun(base,r,{observationPending:null,lastSummary:status==='delivered'?summary:r.data.lastSummary,lastSourceReceipt:status==='delivered'?{commandId:c.commandId,..._steward}:r.data.lastSourceReceipt,nextObservationAt:new Date(Date.now()+5000).toISOString()});return;}
  const e=await find(ctx,'event',c.aggregateId);if(!e||e.data.pendingCommand!==c.commandId)return;
  const body:Data={...e.data,pendingCommand:null};
+ if(status==='rejected'&&e.data.stage==='publishing'&&r.data.shareWithMaster!=='yes'){await save(ctx,'event',e.key,{...body,stage:e.data.sample.cancellation?'cancel-needed':'confirm-needed'},e);return;}
  if(status==='rejected'){await save(ctx,'event',e.key,{...body,stage:'exception',error:String(result.error??'Business service rejected the operation')},e);await history(base,r,'business_exception',{eventIndex:e.data.index,error:String(result.error??'rejected')});return;}
  if(e.data.stage==='seeding-shortage')body.stage='import-needed';
  else if(e.data.stage==='importing'){body.orderId=result.orderId;body.stage=r.data.shareWithMaster==='yes'?'publish-needed':e.data.sample.cancellation?'cancel-needed':'confirm-needed';}

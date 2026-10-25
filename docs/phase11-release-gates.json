@@ -1,0 +1,46 @@
+{
+  "version": "0.11.0",
+  "status": "open",
+  "gates": [
+    {
+      "id": "runtime",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "isolation",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "browser",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "master",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "ollama",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "recovery",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "installation",
+      "status": "open",
+      "evidence": []
+    },
+    {
+      "id": "regressions",
+      "status": "open",
+      "evidence": []
+    }
+  ]
+}

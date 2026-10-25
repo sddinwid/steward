@@ -433,7 +433,7 @@
     "migrations": [
       {
         "version": 1,
-        "sha256": "1f6722203ffecfbbf8e2117be6c05e4843b8804404c35c94db60cf60bbcc9b3e"
+        "sha256": "fea6c70b3e0bb64029b709de44f0e745a1afb2fd9ff2d49a644e0f94adc48d39"
       }
     ],
     "destructiveRollback": false
@@ -636,6 +636,45 @@
                 "datasetId",
                 "runId",
                 "removed"
+              ]
+            }
+          },
+          {
+            "name": "simulation.sales.set-publication",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "approved": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "approved"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "updated": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "updated"
               ]
             }
           },

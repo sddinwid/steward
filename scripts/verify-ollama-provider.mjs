@@ -1,3 +1,4 @@
+import {purchasingOpportunities} from '../packages/platform/dist/simulation-analysis.js';
 // Temporary real-provider validation. No simulated model output or core changes.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:https';
@@ -10,7 +11,7 @@ import {calculateCommerce} from '../packages/platform/dist/commerce-analysis.js'
 import { resourceSharing } from '../packages/platform/dist/analytical-capabilities.js';
 import {calculateProcurement,calculateWorkforce,canonicalBusinessPayload} from '../packages/platform/dist/business-analysis.js';
 const capability=process.env.STEWARD_ANALYST_CAPABILITY??'resource-sharing';
-assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance'].includes(capability));
+assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing'].includes(capability));
 
 const baseModel=process.env.STEWARD_OLLAMA_MODEL??'qwen2.5:7b';
 const context=Number(process.env.STEWARD_OLLAMA_CONTEXT??16384);
@@ -75,7 +76,7 @@ try{
   assert.equal(run.investigation.test_model,false);
   assert.equal(run.investigation.status,'completed',run.investigation.error_code??'Model did not complete');
   const tools=run.activity.filter(a=>a.kind==='tool'&&a.status==='success').map(a=>a.tool);
-  for(const name of capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
+  for(const name of capability==='simulation-purchasing'?['list_entities','query_simulation_purchasing','analyze_simulation_purchasing']:capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
   report.checks.push('real model selected and invoked live MCP tools');
   for(const analysis of report.result.analyses){
     if(capability==='resource-sharing'){
@@ -86,6 +87,9 @@ try{
     const recomputed=resourceSharing.calculate({...assumptions,sensitivity:assumptions.sensitivity??[],availableCapacity:Number(s.available_m3),requiredCapacity:Number(d.required_m3),externalMonthlyCost:Number(d.monthly_external_cost),currency:s.currency});
     assert.deepEqual(analysis.calculation,recomputed);
     assert.ok(analysis.observed.supplyWorker&&analysis.observed.demandWorker&&analysis.supportingReferences.length===2);
+    }else if(capability==='simulation-purchasing'){
+      const sourceRows=analysis.observed.sources.map(s=>({entity_id:s.reference.entityId,installation_id:s.sourceWorker,module_id:s.reference.moduleId,stream_id:s.reference.streamId,record_id:s.reference.recordId,revision:s.reference.revision,source_at:s.observedAt,ingested_at:s.ingestedAt,payload:s.payload}));
+      const opportunity=purchasingOpportunities(sourceRows).find(o=>o.key===analysis.calculation.key);assert(opportunity,'Observed source evidence must reconstruct the purchasing cohort');assert.deepEqual(analysis.calculation,{capabilityId:'steward.simulation-purchasing',schemaVersion:1,...opportunity});assert(analysis.affectedEntities.length>=2);assert(analysis.supportingReferences.every(r=>['simulation_runs','commerce_orders'].includes(r.streamId)));for(const value of Object.values(opportunity.displayAmounts))assert(report.result.narrative.includes(value),'Narrative must copy actual service-calculated amount '+value);
     }else{
       const sources=analysis.observed.sources.map(s=>canonicalBusinessPayload({payload:s.payload}));
       const recomputed=capability==='commerce-performance'?calculateCommerce(sources):capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);
