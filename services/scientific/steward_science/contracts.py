@@ -53,6 +53,10 @@ class Request(Closed):
             raise ValueError('Duplicate entity scope')
         if any(r.entityId not in self.entityIds for r in self.provenance.references):
             raise ValueError('Source reference outside authorized scope')
+        if self.capability == 'demand-forecast':
+            rows = self.parameters.get('series', [])
+            if not isinstance(rows, list) or len(rows) > 8 or any(not isinstance(row, dict) or str(row.get('entityId', '')).lower() not in {str(i) for i in self.entityIds} for row in rows):
+                raise ValueError('Demand series outside authorized scope')
         return self
 
 

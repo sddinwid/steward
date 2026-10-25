@@ -34,4 +34,7 @@ def describe(parameters):
 def calculate(capability, parameters):
     if capability == 'describe-series':
         return describe(parameters)
+    if capability == 'demand-forecast':
+        from .forecast import forecast
+        return forecast(parameters)
     raise ValueError('CAPABILITY_UNAVAILABLE')

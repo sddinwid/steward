@@ -123,3 +123,22 @@ def test_readiness_requires_private_configuration(tmp_path):
     with TestClient(create_app(tmp_path/'absent')) as c:
         assert c.get('/health').status_code == 200
         assert c.get('/ready').status_code == 503
+
+
+def test_forecast_payload_cannot_bypass_envelope_entity_scope(client):
+    c, key = client
+    body = envelope(capability='demand-forecast', parameters={'series': [{'entityId': str(uuid4())}]})
+    raw = json.dumps(body).encode()
+    assert c.post('/v1/execute', content=raw, headers=signed(key, raw)).status_code == 422
+
+
+def test_authenticated_forecast_executes_in_bounded_process(client):
+    from test_forecast import data
+    c, key = client
+    parameters = data('seasonal')
+    body = envelope(capability='demand-forecast', parameters=parameters, entityIds=[parameters['series'][0]['entityId']])
+    raw = json.dumps(body).encode()
+    r = c.post('/v1/execute', content=raw, headers=signed(key, raw))
+    assert r.status_code == 200, r.text
+    assert r.json()['calculation']['series'][0]['model']['id'] == 'seasonal-regression'
+    assert r.json()['calculation']['series'][0]['uncertainty']['supported']
