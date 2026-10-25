@@ -270,6 +270,7 @@ async function integrations(){
     let deliveryClient:pg.PoolClient|undefined;const deliveryLocks:string[]=[];
     try{
      if(source.configuration.integrationsEnabled!==true&&!command.simulation)continue;
+     if(command.simulation&&m.simulation?.role==='participant'&&source.configuration.simulationEnabled!==true)continue;
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
      const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId,()=>moduleDatabase(m.moduleId,async db=>(await db.query("SELECT (envelope->>'sequence')::bigint n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2 ORDER BY n DESC LIMIT 1000",[command.aggregateId,command.capability.capabilityId])).rows.map(r=>Number(r.n)))):null;
      if(!smart&&!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');

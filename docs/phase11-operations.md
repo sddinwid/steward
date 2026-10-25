@@ -4,7 +4,7 @@ Phase 11 acceptance is tracked in [the verification report](phase11-verification
 
 ## Architecture and safety
 
-Commerce Simulation (`steward.simulation.commerce` 1.0.0) is a separately signed, independently installed service with its own database. Simulated Fulfillment (`steward.simulation.fulfillment` 1.0.0) is a separate local SSMA provider. Neither declares a commerce connector, possesses Shopify/Printify credentials, implements commercial HTTP transport, or receives approved external egress. Worker core installation precedes installation of either package.
+Commerce Simulation (`steward.simulation.commerce` 1.0.0) is a separately signed, independently installed service with its own database. Simulated Fulfillment (`steward.simulation.fulfillment` 1.0.1) is a separate local SSMA provider. Neither declares a commerce connector, possesses Shopify/Printify credentials, implements commercial HTTP transport, or receives approved external egress. Worker core installation precedes installation of either package.
 
 Sales 1.3.0 and Stock Ledger 1.1.0 expose signed simulation service capabilities alongside their ordinary contracts. The generator sends approved durable commands to those owner services; it never connects to their operational databases. Sales creates orders/customers, reserves/consumes actual stock through Stock Ledger and records actual fulfillment progress from the isolated provider. The engine stores coordination state and service receipts, not a parallel business ledger.
 
@@ -91,3 +91,12 @@ Workers continue local operations and synthetic generation without Master or Oll
 Deactivation preserves module databases. Reset preserves ordinary business records, private credentials, enrollment identities, installations and unrelated datasets. Epoch barriers reject delayed commands from closed runs. Historical synchronization envelopes and audit trails remain retained for evidence; reset is not a forensic history purge. Do not manually delete databases, recreate identities or silently roll back migrations to recover.
 
 The synthetic provider does not establish live Shopify/Printify mutation compatibility. Catalog reuse is deliberately avoided: isolated synthetic SKUs/product attributes provide clear authority boundaries. Estimates omit unconfirmed taxes, supplier commitments and real billing terms. Monitor product-mix/window sensitivity, source freshness and all costs before making business decisions. Passing this MVP demonstration does not establish commercial production readiness.
+
+Additional verification/setup commands (all target the named existing deployment):
+
+```powershell
+node scripts/verify-phase11-installation.mjs .steward/phase8-upgrade-regressions
+node scripts/configure-phase11-demo.mjs .steward/phase8-upgrade-regressions
+```
+
+The installation verifier uses real Chromium authentication, Module Manager installation/activation and core-image comparisons. The configuration helper uses ordinary form controls for module configuration, then the authenticated governed binding/proposal/approval APIs. It preserves existing ordinary Sales configuration and original commercial workflow steps. It does not start generation or authorize an external provider. Original deterministic monitor calculations are frozen when a finding is created (append-only platform migration 14); current condition updates do not replace the historical financial evidence shown in that finding.

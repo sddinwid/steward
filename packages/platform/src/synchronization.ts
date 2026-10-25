@@ -70,6 +70,9 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
       const policy=s.all?(await pool.query('SELECT enabled,entity_ids,interval_seconds,thresholds,last_checked_at,last_error FROM simulation_monitor_policy WHERE singleton')).rows[0]??null:null;
       return{...simulationDashboard(rows),conditions,policy,canConfigure:s.all};
     });
+    app.get<{Params:{id:string}}>('/api/v11/simulation-findings/:id',async req=>{
+      const s=await scope(req);if(!validUuid(req.params.id))fail(400,'Invalid finding identity');const row=(await pool.query(`SELECT d.detail,d.created_at,array_agg(e.entity_id) affected_entities FROM simulation_finding_evidence d JOIN finding_entities e USING(finding_id) WHERE d.finding_id=$1 GROUP BY d.finding_id`,[req.params.id])).rows[0];if(!row||!s.all&&!row.affected_entities.every((id:string)=>s.entities.includes(id)))fail(404,'Original simulation calculation unavailable in this account scope');return{findingId:req.params.id,detail:row.detail,createdAt:row.created_at,historical:true,decisionExecuted:false};
+    });
     app.put<{Body:unknown}>('/api/v11/simulation-monitor',async req=>{
       const actor=await registry(req),parsed=simulationPolicySchema.safeParse(req.body);if(!parsed.success)fail(400,'Invalid bounded simulation monitoring policy');const b=parsed.data;if(b.enabled&&!b.entityIds.length)fail(400,'Choose authorized entities to monitor');
       return transaction(pool,async sql=>{for(const id of b.entityIds)if(!(await sql.query('SELECT 1 FROM legal_entities WHERE entity_id=$1',[id])).rowCount)fail(404,'Unknown monitoring entity');

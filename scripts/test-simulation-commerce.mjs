@@ -17,7 +17,7 @@ import {routeSmartCommand} from '../packages/module-host/dist/smart-routing.js';
 import {canonical,digest,signPackage,validateManifest,validateCapabilityValue,capabilityConfigured} from '../packages/module-sdk/dist/index.js';
 import {createBusinessServer,transaction} from '../packages/business-kit/dist/index.js';
 import {syncMigration} from '../packages/platform/dist/sync-migration.js';
-import {simulationIntelligenceMigration,simulationThresholds,monitorSimulation} from '../packages/platform/dist/simulation-monitor.js';
+import {simulationIntelligenceMigration,simulationFindingEvidenceMigration,simulationThresholds,monitorSimulation} from '../packages/platform/dist/simulation-monitor.js';
 import {simulationDashboard} from '../packages/platform/dist/simulation-analysis.js';
 import {dataEvent,validateEvent} from '../packages/platform/dist/synchronization.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
@@ -57,14 +57,14 @@ async function delivery(){
  }
  return count;
 }
-async function tick(){await delivery();for(const [id,background]of [[fakeId,simulationFulfillmentBackground],[engineId,simulationCommerceBackground]]){const f=modules.get(id);await background(f.pool,f.runtime);}await delivery();}
+async function tick(){await delivery();for(const [id,background]of [[fakeId,simulationFulfillmentBackground],[engineId,simulationCommerceBackground]]){const f=modules.get(id);await background(f.pool,f.runtime);if(id===fakeId)for(const j of await read(fakeId,'job')){if(!j.data.simulatedUpdatedAt||!['pending','in_production','shipped'].includes(j.data.status))continue;const elapsed=j.data.status==='pending'?0:j.data.status==='in_production'?j.data.productionDelaySeconds:j.data.productionDelaySeconds+j.data.shippingDelaySeconds;assert.equal(Date.parse(j.data.simulatedUpdatedAt),Date.parse(j.data.simulation.simulatedAt)+elapsed*1000,'Provider virtual timestamps match the actual persisted stage');}}await delivery();}
 async function until(fn,label,timeout=65000){const end=Date.now()+timeout;do{await tick();const value=await fn();if(value)return value;await delay(120);}while(Date.now()<end);throw Error('Timed out '+label+' '+JSON.stringify((await read(engineId,'event')).map(e=>({stage:e.data.stage,error:e.data.error})))+' '+JSON.stringify((await read(engineId,'run')).map(r=>r.data)));}
 async function action(id,name,record){return(await modules.get(id).api('POST','/'+name+'/'+record.id,{revision:record.revision,requestId:randomUUID()})).record;}
 try{
  docker(['run','--rm','-d','--name',container,'--env-file',dir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres'});pools.push(db);for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(300);}}
- for(const sql of [securityMigration,moduleMigration,smartMigration,syncMigration,commerceMigration,commerceGovernanceMigration,simulationRoutingMigration,simulationIntelligenceMigration])await db.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,syncMigration,commerceMigration,commerceGovernanceMigration,simulationRoutingMigration,simulationIntelligenceMigration,simulationFindingEvidenceMigration])await db.query(sql);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);await createAccount(db,'simulation-admin',adminPassword,'local_admin');
  const defs={sales,'stock-ledger':stockLedger,'simulation-commerce':simulationCommerce,'simulation-fulfillment':simulationFulfillment};
  for(const [name,define]of Object.entries(defs)){
@@ -114,11 +114,16 @@ try{
   }
   const dashboard=simulationDashboard((await db.query('SELECT * FROM analytical_records')).rows),order=(await read('cee.sales','order'))[0],company=dashboard.companies[0];assert.equal(company.orders,1);assert.equal(company.completedOrders,1);assert.equal(company.productionCostCents,order.data.productionCostCents);assert.equal(company.shippingCostCents,order.data.shippingCostCents);assert.equal(company.revenueCents,order.data.sourceLines[0].lineRevenueCents);assert.equal(company.contributionCents,company.revenueCents-order.data.productionCostCents-order.data.shippingCostCents-order.data.financials.transactionFeeCents);
  });
+ await check('revoking participant simulation approval cannot be bypassed by enabling ordinary integrations',async()=>{
+  const source=modules.get('cee.sales'),command=(await source.pool.query("SELECT envelope FROM integration_outbox WHERE envelope ? 'simulation' ORDER BY created_at LIMIT 1")).rows[0].envelope;
+  await db.query('UPDATE module_installations SET configuration=$2 WHERE module_id=$1',[source.manifest.moduleId,{...source.runtime.configuration,integrationsEnabled:true,simulationEnabled:false}]);
+  try{await assert.rejects(()=>routeSmartCommand(db,command,source.manifest,trust,installationId),/INTEGRATION_NOT_AUTHORIZED/);}finally{await db.query('UPDATE module_installations SET configuration=$2 WHERE module_id=$1',[source.manifest.moduleId,source.runtime.configuration]);}
+ });
  await check('real PostgreSQL monitor deduplicates findings and enforces the approving administrator identity',async()=>{
   const reviewer=await createAccount(db,'simulation-reviewer',adminPassword,'registry_admin');
   await db.query('INSERT INTO simulation_monitor_policy(singleton,enabled,entity_ids,approved_by,interval_seconds,thresholds) VALUES(true,true,$1,$2,5,$3)',[[entityId],reviewer,simulationThresholds.parse({minimumMarginBasisPoints:9900})]);
   await transaction(db,sql=>monitorSimulation(sql,true));const before=(await db.query('SELECT * FROM analytical_findings')).rows;assert(before.length>=1);assert(before.every(f=>f.explanation.includes('SYNTHETIC COMMERCE')));assert((await db.query('SELECT * FROM finding_entities')).rows.every(f=>f.entity_id===entityId));
-  await transaction(db,sql=>monitorSimulation(sql,true));assert.equal((await db.query('SELECT count(*)::int n FROM analytical_findings')).rows[0].n,before.length);
+  const frozen=(await db.query('SELECT * FROM simulation_finding_evidence ORDER BY finding_id')).rows;assert.equal(frozen.length,before.length);await db.query("UPDATE simulation_monitor_policy SET thresholds=jsonb_set(thresholds,'{minimumMarginBasisPoints}','9700')");await transaction(db,sql=>monitorSimulation(sql,true));assert.equal((await db.query('SELECT count(*)::int n FROM analytical_findings')).rows[0].n,before.length);assert.deepEqual((await db.query('SELECT * FROM simulation_finding_evidence ORDER BY finding_id')).rows,frozen,'Original finding calculations remain immutable when current monitoring details change');
   await db.query('UPDATE security_accounts SET enabled=false WHERE account_id=$1',[reviewer]);await transaction(db,sql=>monitorSimulation(sql,true));assert.equal((await db.query('SELECT count(*)::int n FROM analytical_findings')).rows[0].n,before.length);
  });
  await check('fixed-seed scenario distributions are repeatable and include all nine conditions',async()=>{

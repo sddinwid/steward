@@ -38,9 +38,9 @@ export async function simulationFulfillmentBackground(pool:pg.Pool,runtime:Data)
   const ctx:Context={db,config:runtime.configuration,installationId:runtime.installationId,moduleId:runtime.moduleId,actor:'simulation-provider-runtime',permissions:[]};setSimulationContext(ctx,row.data.simulation);if(!await simulationEpoch(ctx))return;
   const previous=await find(ctx,'job',row.key);if(!previous||Date.parse(previous.data.dueAt)>Date.now())return;
   const status=previous.data.status==='awaiting_authorization'?'pending':previous.data.status==='pending'?'in_production':'shipped';
-  const s=ctx.simulation!,delay=status==='pending'?previous.data.productionDelaySeconds:previous.data.shippingDelaySeconds;
+  const s=ctx.simulation!,elapsed=status==='pending'?0:status==='in_production'?previous.data.productionDelaySeconds:previous.data.productionDelaySeconds+previous.data.shippingDelaySeconds,delay=status==='pending'?previous.data.productionDelaySeconds:previous.data.shippingDelaySeconds;
   const dueAt=new Date(Date.now()+Math.max(1000,delay*1000/s.speed)).toISOString(),tracking=status==='shipped'?'SIM-'+previous.id:'-';
-  await save(ctx,'job',previous.key,{...previous.data,status,dueAt,tracking,updatedAt:new Date().toISOString(),simulatedUpdatedAt:new Date(Date.parse(s.simulatedAt)+(previous.data.productionDelaySeconds+previous.data.shippingDelaySeconds)*1000).toISOString()},previous);
+  await save(ctx,'job',previous.key,{...previous.data,status,dueAt,tracking,updatedAt:new Date().toISOString(),simulatedUpdatedAt:new Date(Date.parse(s.simulatedAt)+elapsed*1000).toISOString()},previous);
   await enqueueCapability(ctx,simulationContracts.status.id,'fulfillment.progress',previous.data.orderId,{orderId:previous.data.orderId,sourceId:'sim:'+previous.id,status,updatedAt:new Date().toISOString(),productionCostCents:previous.data.productionCostCents,shippingCostCents:previous.data.shippingCostCents,costBasis:'estimated',currency:'USD',tracking});
  });
 }

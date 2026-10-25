@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.simulation.fulfillment",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Simulated Fulfillment Provider",
   "description": "Isolated Printify-compatible SSMA fulfillment simulation. No commercial credentials, external HTTP or chargeable production.",
   "minimumPlatformVersion": "0.11.0",

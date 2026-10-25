@@ -56,5 +56,6 @@ test('signed per-capability prerequisites preserve independent ordinary and simu
  assert.equal(capabilityConfigured(m,{integrationsEnabled:false,simulationEnabled:true},synthetic),true);
  assert.equal(capabilityConfigured(m,{integrationsEnabled:true,simulationEnabled:false},ordinary),true);
  assert.equal(capabilityConfigured(m,{integrationsEnabled:true,simulationEnabled:false},synthetic),false);
+ const contradictory={...synthetic,configuration:{integrationsEnabled:false}};const global={...m,smart:{...m.smart!,prerequisites:{...m.smart!.prerequisites,configuration:{integrationsEnabled:true}}}};assert.equal(capabilityConfigured(global,{integrationsEnabled:false},contradictory),false);assert.equal(capabilityConfigured(global,{integrationsEnabled:true},contradictory),false);
  assert.throws(()=>validateManifest({...m,smart:{...m.smart!,provides:[{...synthetic,configuration:{unknown:true}}]}}));
 });

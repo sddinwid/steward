@@ -22,7 +22,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
   const [scopePermissions, setScopePermissions] = useState<string[]>([]);
   async function refresh() {
     const discovered = await api('/v3/modules/discovery'); setModules(discovered.modules);
-    if (administrator) {
+    if (administrator && !screenKey) {
       const [m, a] = await Promise.all([api('/v3/modules'), api('/v3/modules/accounts')]); setManager(m); setAccounts(a.accounts);
     }
   }
@@ -43,7 +43,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
   }
   const installedScope = manager?.installed.find((m: any) => m.moduleId === scopeModule);
   return <div className="module-console">
-    {administrator&&mode==='administration'&&!manager&&!error?<section role="status">Loading Module Manager…</section>:null}
+    {administrator&&!screenKey&&mode==='administration'&&!manager&&!error?<section role="status">Loading Module Manager…</section>:null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     {administrator && manager && !screenKey && ['all','administration'].includes(mode) ? <section><div className="section-heading"><h2>Module Manager</h2><button onClick={() => void refresh().catch(e => setError(e.message))}>Refresh modules</button></div>
       <p>Only signed packages from configured publishers can be installed. Modules run outside this Worker core.</p>

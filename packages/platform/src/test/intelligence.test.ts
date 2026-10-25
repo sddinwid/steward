@@ -10,3 +10,9 @@ test('failed investigation is explicit and unknown impact is not zero',()=>{
  const s=investigationSummary({status:'failed',prompt:'x'.repeat(4000),error_code:'MODEL_NOT_CONFIGURED'});
  assert(s.title.length<=85);assert.equal(s.impacts.length,0);assert.match(s.summary,/No final recommendation/);assert.equal(s.findingCount,0);
 });
+
+
+test('synthetic purchasing impact uses exact retained cents with a cohort period and never invents recurring savings',()=>{
+ const s=investigationSummary({status:'completed',result:{analyses:[{calculation:{capabilityId:'steward.simulation-purchasing',ecosystemBenefitCents:9200,currency:'USD',assumptions:['Counterfactual synthetic quotes only']},affectedEntities:['a','b'],supportingReferences:[{streamId:'simulation_runs',recordId:'source'}]}]}});
+ assert.equal(s.category,'Synthetic ecosystem purchasing');assert.equal(s.impacts[0].amount,92);assert.equal(s.impacts[0].period,'counterfactual selected synthetic cohort');assert.equal(s.impacts[0].horizonMonths,null);assert.equal(s.evidenceCount,1);
+});

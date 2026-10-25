@@ -110,4 +110,4 @@ export function resolveCapability(requirement: CapabilityRequirement, providers:
 }
 export function validateCapabilityValue(value: unknown, contract: JsonSchema) { if (!schema(contract)(value)) throw new Error('CAPABILITY_SCHEMA_MISMATCH'); }
 
-export function capabilityConfigured(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capability:CapabilityContract){return Object.entries({...manifest.smart?.prerequisites.configuration,...capability.configuration}).every(([k,v])=>configuration[k]===v);}
+export function capabilityConfigured(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capability:CapabilityContract){return [...Object.entries(manifest.smart?.prerequisites.configuration??{}),...Object.entries(capability.configuration??{})].every(([k,v])=>configuration[k]===v);}

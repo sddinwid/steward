@@ -21,6 +21,11 @@ CREATE TABLE simulation_monitor_conditions (
 );
 `;
 type Row=Record<string,any>;
+// Migration 13 is already applied on retained installations. Append evidence
+// persistence separately; never backfill an invented original calculation.
+export const simulationFindingEvidenceMigration=`CREATE TABLE simulation_finding_evidence (
+ finding_id uuid PRIMARY KEY REFERENCES analytical_findings,detail jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now()
+);`;
 export function simulationConditions(records:Row[],raw:unknown,now=Date.now()){
  const t=simulationThresholds.parse(raw),{runs,orders}=simulationEvidence(records);
  const result:{key:string;code:string;affectedEntities:string[];references:any[];severity:'warning'|'info';detail:Row;explanation:string}[]=[];
@@ -55,6 +60,7 @@ export async function monitorSimulation(sql:Sql,force=false,now=Date.now()){
   const old=(await sql.query('SELECT * FROM simulation_monitor_conditions WHERE condition_key=$1 FOR UPDATE',[c.key])).rows[0];
   if(old?.active){await sql.query('UPDATE simulation_monitor_conditions SET detail=$2,updated_at=now() WHERE condition_key=$1',[c.key,c.detail]);continue;}
   const findingId=randomUUID();await sql.query("INSERT INTO analytical_findings(finding_id,severity,explanation,status,supporting_references) VALUES($1,$2,$3,'open',$4)",[findingId,c.severity,c.explanation,JSON.stringify(c.references)]);
+  await sql.query('INSERT INTO simulation_finding_evidence(finding_id,detail) VALUES($1,$2)',[findingId,{...c.detail,code:c.code,supportingReferences:c.references,affectedEntities:c.affectedEntities}]);
   for(const entity of c.affectedEntities)await sql.query('INSERT INTO finding_entities VALUES($1,$2)',[findingId,entity]);
   await sql.query(`INSERT INTO simulation_monitor_conditions VALUES($1,$2,true,$3,$4,$5,now()) ON CONFLICT(condition_key) DO UPDATE SET active=true,episode=excluded.episode,finding_id=excluded.finding_id,detail=excluded.detail,updated_at=now()`,[c.key,c.code,(old?.episode??0)+1,findingId,c.detail]);
   await sql.query("INSERT INTO security_audit(actor_id,action,target_id,detail) VALUES($1,'simulation.monitor.finding',$2,$3)",[policy.approved_by,findingId,{code:c.code,affectedEntities:c.affectedEntities}]);
