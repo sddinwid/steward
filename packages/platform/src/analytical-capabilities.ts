@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type {AnalyticalCapabilityDescriptor} from '@steward/contracts';
 
 export interface AnalyticalCapability<I, O> { id: string; version: 1; calculate(input: I): O }
 const money = z.number().finite().min(0).max(1e9);
@@ -14,6 +15,12 @@ const round = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 export const resourceSharing: AnalyticalCapability<SharingInput, ReturnType<typeof calculate>> = {
   id: 'steward.resource-sharing', version: 1, calculate
 };
+// One core-owned catalog extends the established capability interface. Python is
+// a bounded transport implementation, never a second authority/provider registry.
+export const analyticalCapabilityCatalog:Readonly<Record<string,AnalyticalCapabilityDescriptor>>=Object.freeze({
+ 'steward.resource-sharing':{id:resourceSharing.id,version:1,name:'Resource sharing',engine:'typescript',inputSchema:z.toJSONSchema(sharingInput),outputSchema:{type:'object'},permission:'analytical.read',sensitivity:'business',readonly:true,resources:{maximumInputBytes:16384,maximumExecutionMillis:2000,maximumConcurrency:4},provenanceRequired:true},
+ 'steward.scientific.describe-series':{id:'steward.scientific.describe-series',version:1,name:'Scientific descriptive statistics',engine:'python',inputSchema:{type:'object',additionalProperties:false,required:['values'],properties:{values:{type:'array',minItems:1,maxItems:4096,items:{type:['number','null']}}}},outputSchema:{type:'object',required:['status','count','mean']},permission:'analytical.read',sensitivity:'business',readonly:true,resources:{maximumInputBytes:262144,maximumExecutionMillis:6000,maximumConcurrency:2},provenanceRequired:true}
+});
 function calculate(raw: SharingInput) {
   const i = sharingInput.parse(raw);
   const sharedCapacity = i.locationCompatible ? Math.min(i.availableCapacity, i.requiredCapacity) : 0;
