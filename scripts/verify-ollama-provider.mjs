@@ -112,7 +112,7 @@ try{
   }else report.checks.push('Finding publication deferred until separate operator narrative review');
   if(browserSession)await browserSession.verify(report);
   report.status='passed_pending_narrative_review';
-  console.log('PASS real local model MCP investigation and independently recomputed source-backed calculations. Review narrative before publishing a Phase 7 finding.');
+  console.log('PASS real local model MCP investigation and independently recomputed source-backed calculations. Review narrative before publishing a finding.');
 }catch(error){report.status='failed';report.failure=error.message;process.exitCode=1;console.log('Real Ollama validation failed: '+error.message);}
 finally{
   if(browserSession)await browserSession.close();

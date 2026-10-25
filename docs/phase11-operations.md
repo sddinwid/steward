@@ -123,3 +123,19 @@ node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions reset
 `verify` is a destructive acceptance operation for those controlled datasets only: it injects a rejected reset, restores the prerequisite, runs normal/seasonal/low-margin activity, restarts the generator, disconnects a peer and Master, reconciles source financials and checks governed finding delivery. `purchasing` resets only the controlled datasets and runs a bounded purchasing scenario. These commands retain ordinary records. Reports are emitted under `artifacts/phase11-demo-*.json`; failed attempts must be retained separately before retry. `finish-mixed` resumes the specifically retained synchronization-latency failure checkpoint, without generating another run.
 
 Synchronization keeps its existing two-second idle poll and bounded event/envelope sizes. Successful exchanges may drain up to four consecutive batches per burst, using the same oldest-polled-module selection and signed receipt/idempotency rules. Failure stops the burst and retains normal bounded backoff. No intermediate source revisions are discarded or falsely acknowledged. A long retained backlog can still delay a current projection; inspect module-owned outboxes and source freshness rather than assuming the core outbox contains module events.
+
+The successful local model run used a prompt requiring exact `displayAmounts` strings including their `USD` prefix, source-derived assumptions, and real outstanding human decisions. Configuration/model restoration remains mandatory. To reproduce against the settled purchasing dataset:
+
+```powershell
+$env:STEWARD_SEED_CREDENTIALS_FILE='.steward/phase8-upgrade-regressions/demo/presenter.json'
+$env:STEWARD_ANALYST_CAPABILITY='simulation-purchasing'
+$env:STEWARD_OLLAMA_REPORT='artifacts/phase11-ollama-provider.json'
+$env:STEWARD_ANALYST_PROMPT='Discover entities, query current synthetic purchasing candidates and calculate one with MCP. Copy every displayAmounts string verbatim including USD. Explain the observed bounded counterfactual cohort and supplier estimates. Both companies must separately review specifications, timing, taxes, shipping, supplier terms and transition costs. No purchase or production is authorized. Do not publish a finding.'
+node scripts/verify-ollama-provider.mjs .steward/phase8-upgrade-regressions
+# Review the resulting real narrative/evidence before this separate UI publication step:
+node scripts/demo-phase11.mjs .steward/phase8-upgrade-regressions review-ai
+```
+
+`lifecycle-check` verifies disabled services preserve records and ordinary availability. `reliability` uses a separately tracked, unpublished three-intent dataset, one outstanding job and a temporary synthetic-provider pause; it restores original public module settings and explicitly reviews updated bindings/workflows. Legitimate cancellations remain valid terminal business outcomes. `finish-purchasing` and `finish-reliability` resume retained acceptance checkpoints without regenerating existing evidence. `ai-evidence` opens the actual retained investigation and captures the narrative/evidence viewport. These are development acceptance helpers, not commercial execution authority.
+
+All nine scenarios are implemented and exercised against genuine owner services in the native suite. The selected-stack browser demo separately exercises normal, seasonal, low-margin and purchasing activity plus real outages, controls and reset. This distinction matters: synthetic fulfillment is not verified live Shopify/Printify production.
