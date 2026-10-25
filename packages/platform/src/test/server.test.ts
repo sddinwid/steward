@@ -1,4 +1,5 @@
 import { test } from 'node:test';
+import {configurationFailure} from '../module-broker.js';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
@@ -62,4 +63,9 @@ test('runtime config requires file secrets and verified database TLS by default'
     await writeFile(secretFile, 'short');
     await assert.rejects(loadConfig('worker', { ...env, DB_SSL_MODE: 'disable' }), /secret/);
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('configuration errors expose only actionable static egress codes, never runtime details',()=>{
+ for(const code of ['CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_EGRESS_GRANT_MISMATCH','CONNECTOR_EGRESS_NETWORK_REQUIRED','CONNECTOR_EGRESS_NETWORK_UNTRUSTED','CONNECTOR_EGRESS_IDENTITY_CHANGED'])assert.equal(configurationFailure(code),code);
+ for(const value of [undefined,null,{},'credential-value','CONNECTOR_EGRESS_GRANT_REQUIRED credential-value','MODULE_RUNTIME_FAILED'])assert.equal(configurationFailure(value),'MODULE_CONFIGURATION_UNAVAILABLE');
 });

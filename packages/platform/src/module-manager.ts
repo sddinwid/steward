@@ -1,4 +1,4 @@
-import { createModuleBroker } from './module-broker.js';
+import { createModuleBroker, configurationFailure } from './module-broker.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { request } from 'node:https';
@@ -155,14 +155,14 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
   app.get('/api/v3/modules/accounts', async req => {
     await admin(req); return { accounts: (await pool.query("SELECT account_id,username,role FROM security_accounts WHERE role IN ('local_admin','module_user') AND enabled ORDER BY username")).rows };
   });
-  app.put<{Params:{moduleId:string};Body:{configuration:unknown}}>('/api/v3/modules/:moduleId/configuration',{schema:{body:{type:'object',additionalProperties:false,required:['configuration'],properties:{configuration:{type:'object'}}}}},async req=>{
+  app.put<{Params:{moduleId:string};Body:{configuration:unknown}}>('/api/v3/modules/:moduleId/configuration',{schema:{body:{type:'object',additionalProperties:false,required:['configuration'],properties:{configuration:{type:'object'}}}}},async (req,reply)=>{
     const actor=await admin(req,true),client=await pool.connect();let locked=false;
     try{
       locked=(await client.query('SELECT pg_try_advisory_lock(hashtext($1)) acquired',['module:'+req.params.moduleId])).rows[0].acquired;
       if(!locked)fail(409,'A module operation is already in progress');
       const row=(await rows(client)).find(r=>r.module_id===req.params.moduleId);if(!row||['failed','installing'].includes(row.state))fail(409,'Module installation must complete first');
       const {trust}=await catalog(),p=verifyPackage(row.descriptor,trust);validateConfiguration(p.manifest,req.body.configuration);
-      const result=await broker('configure',row.descriptor,req.body.configuration);if(result.status!==200)fail(503,result.value.error??'Module configuration unavailable');
+      const result=await broker('configure',row.descriptor,req.body.configuration);if(result.status!==200)return reply.code(503).send({error:configurationFailure(result.value.error)});
       await client.query('UPDATE module_installations SET configuration=$1,updated_at=now() WHERE module_id=$2',[req.body.configuration,row.module_id]);
       await audit(client,actor.account_id,'module.configuration_updated',row.module_id);return{saved:true};
     }finally{if(locked)await client.query('SELECT pg_advisory_unlock(hashtext($1))',['module:'+req.params.moduleId]);client.release();}
