@@ -249,6 +249,9 @@ def one_series(series, settings):
                           'lower': None if bands is None else float(bands[j][0]),
                           'upper': None if bands is None else float(bands[j][1])}
                          for j, (at, value) in enumerate(zip(future_times, prediction))],
+            'planning': {'quantity': math.ceil(float(np.sum(prediction))), 'from': future_times[0].isoformat(),
+                         'to': future_times[-1].isoformat(),
+                         'basis': 'Ceiling of the sum of conditional point estimates; not a probabilistic inventory service-level guarantee.'},
             'uncertainty': uncertainty, 'backtesting': {'trainingEnd': grid[train_end-1].isoformat(),
                 'validationEnd': grid[select_end-1].isoformat(), 'testFrom': grid[select_end].isoformat(),
                 'testTo': grid[-1].isoformat(), 'trainingCount': int(train.sum()), 'validationCount': int(selection.sum()),

@@ -39,6 +39,13 @@ The minimized objective is external merchandise plus supplier shipping. Declared
 
 Inputs are bounded to eight entities, 32 requirements, six suppliers, three tiers each, 100000 total integer units, unit prices up to 10000000 cents, and one currency. Solver time is 0.1–3 seconds and node limit 10000, within the independently bounded service execution deadline. Returned incumbents must satisfy integrality (1e-5), bounds and linear constraints (1e-6), and objective reconciliation (0.01 cent); reported money is recomputed using integers. Optimal, feasible-without-proof, infeasible and no-incumbent outcomes remain distinct. Unsupported constraints are rejected, never silently ignored. Solver/library versions are retained with results.
 
+HiGHS uses one thread and seed zero per isolated process. These supported solver
+options use SciPy's verbatim option passthrough; only its expected passthrough
+notice is filtered. Other solver warnings remain visible. See the [official HiGHS
+option definitions](https://ergo-code.github.io/HiGHS/dev/options/definitions/).
+This bounds native thread pools under concurrent workloads; equal-cost optimum
+selection still does not constitute a fairness guarantee.
+
 # Scenario and sensitivity comparison
 
 `deterministic-procurement-sensitivity`, method version 1, runs up to four named cases and an optional 2–5 point evenly spaced sensitivity. Changes use integer basis points (10000 = unchanged). Demand, supplier unit prices, shipping and transition expenses round upward; capacity rounds downward. Supplier price/shipping/capacity changes can target named existing suppliers. MOQ and tier thresholds remain unchanged. Inputs are independently revalidated after transformation; unsupported constraints, unknown suppliers, currency mixing and out-of-bounds expansion fail closed.

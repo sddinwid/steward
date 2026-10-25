@@ -22,7 +22,8 @@ for (const args of [
   ['tools/installer/dist/cli.js', 'provision', '--directory', directory, '--mode', deployment.mode, '--workers', String(deployment.instances.filter(i => i.role === 'worker').length), '--project', deployment.project, '--label', deployment.label],
   ['tools/installer/dist/security-cli.js', directory], ['tools/installer/dist/modules-cli.js', directory],
   ...(existsSync(path.join(directory,'data/compose.yaml')) ? [['tools/installer/dist/data-cli.js',directory]] : []),
-  ...(existsSync(path.join(directory,'analyst/compose.yaml')) ? [['tools/installer/dist/analyst-cli.js',directory]] : [])
+  ...(existsSync(path.join(directory,'analyst/compose.yaml')) ? [['tools/installer/dist/analyst-cli.js',directory]] : []),
+  ...(existsSync(path.join(directory,'scientific/compose.yaml')) ? [['tools/installer/dist/scientific-cli.js',directory]] : [])
 ]) execFileSync(process.execPath, args, { stdio: 'pipe' });
 assert.deepEqual(await hashes(), before); assert.deepEqual(databaseState(), databases);
 await writeFile('artifacts/phase3-provision-results.json', JSON.stringify({ verifiedAt: new Date().toISOString(), assertions: 'all passed', filesPreserved: Object.keys(before).length }, null, 2));

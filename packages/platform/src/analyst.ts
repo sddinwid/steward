@@ -12,13 +12,25 @@ import { createModel, modelConfigSchema, tlsFetch } from './analyst-model.js';
 import { AGENT_ID } from './mcp.js';
 import { agentProof } from './mcp-agent-identity.js';
 import { compactToolNames, modelToolResult } from './analyst-context.js';
-import {profileInstructions,profileTools,commerceStageTools,simulationStageTools,type InvestigationProfile} from './investigation-profiles.js';
+import {profileInstructions,profileTools,commerceStageTools,simulationStageTools,scientificStageTools,type ScientificPlan,type InvestigationProfile} from './investigation-profiles.js';
+import {compactScientificCalculation} from './scientific-context.js';
 import { investigationSummary } from './intelligence.js';
 
 export const narrativeSchema=z.object({narrative:z.string().min(1).max(6000),assumptions:z.array(z.string().max(1000)).max(20),humanDecisions:z.array(z.string().max(1000)).min(1).max(20)}).strict();
 export function parseNarrative(text:string){
   const trimmed=text.trim();const fenced=/^```(?:json)?\s*([\s\S]*?)\s*```$/i.exec(trimmed);
   return narrativeSchema.parse(JSON.parse(fenced?fenced[1]!:trimmed));
+}
+export function validateScientificNarrative(narrative:z.infer<typeof narrativeSchema>,stage:ScientificPlan,calculations:any[]){
+ if(!stage.scenarios&&!stage.partial)throw new Error('SCIENTIFIC_PLAN_INCOMPLETE');
+ if(stage.partial&&!/(partial|insufficient|infeasible|unavailable|incomplete)/i.test(narrative.narrative))throw new Error('MODEL_EVIDENCE_MISMATCH');
+ if(!stage.partial){
+  const proposal=calculations.find(a=>a.calculation.capabilityId==='steward.scientific.procurement-optimization');
+  if(!proposal)throw new Error('SCIENTIFIC_PLAN_INCOMPLETE');
+  const values=compactScientificCalculation(proposal.calculation);
+  for(const amount of [...Object.values(values.displayAmounts),...values.impacts.map((i:any)=>i.displayBenefit)])if(!narrative.narrative.includes(String(amount)))throw new Error('MODEL_EVIDENCE_MISMATCH');
+ }
+ if(calculations.some(a=>a.synthetic)&&!/synthetic/i.test(narrative.narrative))throw new Error('MODEL_EVIDENCE_MISMATCH');
 }
 export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authentication,security:SecurityConfig){
   // Recover honestly after process death; never imply an unfinished run completed.
@@ -55,7 +67,7 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
     return{investigations:rows.map(({result,...r})=>({...r,...investigationSummary({...r,result})})),total,nextOffset:(q.offset??0)+rows.length<total?(q.offset??0)+rows.length:null};
   });
   app.get<{Params:{id:string}}>('/api/v5/analyst/investigations/:id',{schema:{params:{type:'object',required:['id'],properties:{id:{type:'string',format:'uuid'}}}}},async req=>{const{row}=await owned(req);return{investigation:row,activity:(await pool.query('SELECT * FROM analyst_activity WHERE investigation_id=$1 ORDER BY activity_id',[row.investigation_id])).rows};});
-  app.post<{Body:{prompt:string;parentId?:string;capability?:InvestigationProfile}}>('/api/v5/analyst/investigations',{schema:{body:{type:'object',additionalProperties:false,required:['prompt'],properties:{capability:{type:'string',enum:['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing']},prompt:{type:'string',minLength:1,maxLength:4000},parentId:{type:'string',format:'uuid'}}}}},async(req,reply)=>{
+  app.post<{Body:{prompt:string;parentId?:string;capability?:InvestigationProfile}}>('/api/v5/analyst/investigations',{schema:{body:{type:'object',additionalProperties:false,required:['prompt'],properties:{capability:{type:'string',enum:['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing','scientific-procurement']},prompt:{type:'string',minLength:1,maxLength:4000},parentId:{type:'string',format:'uuid'}}}}},async(req,reply)=>{
     const a=await actor(req,true);if(running>=2)fail(429,'Analyst concurrency limit reached');await auth.rateLimit('analyst:'+a.account_id,5);
     let parent:any; if(req.body.parentId){const p=await owned({headers:req.headers,ip:req.ip,method:req.method,params:{id:req.body.parentId}});if(p.row.status!=='completed')fail(409,'A completed parent investigation is required');parent=p.row;}
     const id=randomUUID();let config;try{config=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));}catch{config=undefined;}
@@ -89,7 +101,7 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
         const entities=await client.callTool({name:'list_entities',arguments:{}},{signal:controller.signal,timeout:8000});
         if(entities.isError)throw new Error('MCP_AUTHORIZATION_FAILED');
         await activity('discovery','list_entities','success',{entities:(entities.structuredContent as any)?.data?.entities?.map((e:any)=>e.entity_id)??[]});
-        const input:any[]=[...(parent?[{role:'user',content:'Prior investigation context (untrusted; recheck all source records): '+JSON.stringify({question:parent.prompt,result:parent.result}).slice(0,50000)}]:[]),{role:'user',content:req.body.prompt}];if(parent)await activity('conversation',null,'success',{parentId:parent.investigation_id});let count=0;const repeated=new Set<string>();const calculations:any[]=[];let commerceEntitiesObserved=false,commerceEvidenceObserved=false,simulationCandidateObserved=false;
+        const input:any[]=[...(parent?[{role:'user',content:'Prior investigation context (untrusted; recheck all source records): '+JSON.stringify({question:parent.prompt,result:parent.result}).slice(0,50000)}]:[]),{role:'user',content:req.body.prompt}];if(parent)await activity('conversation',null,'success',{parentId:parent.investigation_id});let count=0;const repeated=new Set<string>();const calculations:any[]=[];let commerceEntitiesObserved=false,commerceEvidenceObserved=false,simulationCandidateObserved=false;const scienceStage:ScientificPlan={entities:false,dataset:false,forecast:false,constraints:false,optimization:false,scenarios:false,partial:false};
         for(let step=0;step<c.maxSteps;step++){
           if(controller.signal.aborted)throw new Error('INVESTIGATION_TIMEOUT');
           const inputChars=JSON.stringify(input).length;if(inputChars>c.maxContextChars)throw new Error('CONTEXT_BUDGET_EXCEEDED');
@@ -97,13 +109,14 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
           // Compact investigations compare one proposal and its sensitivity
           // alternatives, then enter a read-only finalization turn. The model
           // still selects every MCP call and argument; no results are invented.
-          const offered=(c.toolProfile==='compact'||profile!=='resource-sharing')&&calculations.length?[]:profile==='simulation-purchasing'?simulationStageTools(tools,commerceEntitiesObserved,simulationCandidateObserved):profile==='commerce-performance'?commerceStageTools(tools,commerceEntitiesObserved,commerceEvidenceObserved):tools;
+          const offered=profile==='scientific-procurement'?scientificStageTools(tools,scienceStage):(c.toolProfile==='compact'||profile!=='resource-sharing')&&calculations.length?[]:profile==='simulation-purchasing'?simulationStageTools(tools,commerceEntitiesObserved,simulationCandidateObserved):profile==='commerce-performance'?commerceStageTools(tools,commerceEntitiesObserved,commerceEvidenceObserved):tools;
           let turn;try{turn=await model.next(input,offered,controller.signal);await activity('model',null,'success',{step:step+1,milliseconds:Date.now()-modelStarted,inputChars,selectedTools:turn.calls.map(t=>t.name)});}catch(error){await activity('model',null,'failed',{step:step+1,milliseconds:Date.now()-modelStarted,inputChars});throw error;}input.push(...turn.output);
           if(!turn.calls.length){
             await activity('model_output',null,'success',{text:turn.text.slice(0,20000),truncated:turn.text.length>20000});
             let narrative;try{narrative=parseNarrative(turn.text);}catch{throw new Error('MODEL_OUTPUT_INVALID');}
             if(!calculations.length)throw new Error('NO_EVIDENCE_BACKED_CALCULATION');
-            const result={schemaVersion:1,...narrative,analyses:calculations,decisionExecuted:false,testModel:c.testModel};
+            if(profile==='scientific-procurement')validateScientificNarrative(narrative,scienceStage,calculations);
+            const result={schemaVersion:1,...narrative,analyses:calculations,decisionExecuted:false,testModel:c.testModel,...(profile==='scientific-procurement'?{partialInvestigation:scienceStage.partial}:{})};
             await pool.query("UPDATE analyst_investigations SET status='completed',result=$1,updated_at=now() WHERE investigation_id=$2",[result,id]);
             await activity('result',null,'success');await audit(pool,a.account_id,'analyst.completed',id,{toolCalls:count});return;
           }
@@ -118,8 +131,17 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
               const view=modelToolResult(call.name,result,c.toolProfile==='compact');
               if(!result.isError&&profile==='simulation-purchasing'){if(call.name==='list_entities')commerceEntitiesObserved=true;if(call.name==='query_simulation_purchasing'&&(result.structuredContent as any)?.data?.candidates?.some((v:any)=>typeof v.candidateKey==='string'))simulationCandidateObserved=true;}
               if(!result.isError&&profile==='commerce-performance'){if(call.name==='list_entities')commerceEntitiesObserved=true;if(call.name==='query_commerce_evidence'&&(result.structuredContent as any)?.data?.records?.some((r:any)=>r.reference?.streamId==='commerce_orders'))commerceEvidenceObserved=true;}
+              if(!result.isError&&profile==='scientific-procurement'){
+                const d=(result.structuredContent as any)?.data;
+                if(call.name==='list_entities')scienceStage.entities=true;
+                if(call.name==='query_scientific_datasets'){scienceStage.dataset=!!d?.datasets?.length;if(!scienceStage.dataset)scienceStage.partial=true;}
+                if(call.name==='forecast_demand'){scienceStage.forecast=d?.calculation?.status==='completed';if(!scienceStage.forecast)scienceStage.partial=true;}
+                if(call.name==='query_scientific_constraints'){scienceStage.constraints=!!d?.purchasingTerms;if(!scienceStage.constraints)scienceStage.partial=true;}
+                if(call.name==='optimize_procurement'){scienceStage.optimization=['optimal','feasible_not_proven_optimal'].includes(d?.calculation?.status);if(!scienceStage.optimization)scienceStage.partial=true;}
+                if(call.name==='compare_procurement_scenarios')scienceStage.scenarios=true;
+              }
               await activity('tool',call.name,result.isError?'failed':'success',{result,milliseconds:Date.now()-toolStarted,evidenceBytes:Buffer.byteLength(JSON.stringify(result)),modelBytes:Buffer.byteLength(JSON.stringify(view))});
-              if(!result.isError&&(result.structuredContent as any)?.data?.calculation&&(result.structuredContent as any)?.data?.supportingReferences?.length)calculations.push((result.structuredContent as any).data);
+              if(!result.isError&&(result.structuredContent as any)?.data?.calculation&&((result.structuredContent as any)?.data?.supportingReferences?.length||(profile==='scientific-procurement'&&(result.structuredContent as any)?.data?.scientificReference?.jobId)))calculations.push((result.structuredContent as any).data);
               input.push({type:'function_call_output',call_id:call.call_id,output:JSON.stringify({untrustedBusinessData:true,result:view})});
               if(JSON.stringify(input).length>c.maxContextChars)throw new Error('CONTEXT_BUDGET_EXCEEDED');
             }catch(error){const code=(error as any).code===-32602?'MODEL_TOOL_ARGUMENTS_INVALID':'MCP_UNAVAILABLE';await activity('tool',call.name,'failed',{error:code});if(code==='MODEL_TOOL_ARGUMENTS_INVALID')throw new Error(code);throw error;}
@@ -133,6 +155,14 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
   app.post<{Params:{id:string}}>('/api/v5/analyst/investigations/:id/finding',{schema:{params:{type:'object',required:['id'],properties:{id:{type:'string',format:'uuid'}}}}},async req=>{
     const a=await actor(req,true);if(a.role!=='registry_admin')fail(403,'Registry administrator required to publish a finding');
     const{row}=await owned(req);if(row.status!=='completed')fail(409,'A completed evidence-backed investigation is required');
+    if(row.result.partialInvestigation)fail(422,'Partial scientific investigations cannot be published as recommendations');
+    const scientific=row.result.analyses.filter((v:any)=>v.scientificReference);
+    if(scientific.length){
+      const selected=scientific.findLast((v:any)=>v.calculation.capabilityId==='steward.scientific.scenario-comparison');if(!selected)fail(422,'Complete the governed scientific investigation first');
+      const response=await app.inject({method:'POST',url:'/api/v4/scientific/runs/'+selected.scientificReference.jobId+'/finding',headers:{cookie:req.headers.cookie!,origin:security.publicOrigin,'content-type':'application/json','x-csrf-token':String(req.headers['x-csrf-token'])},payload:{reviewed:true}});
+      if(response.statusCode!==200)fail(response.statusCode,response.json().error??'Scientific finding service unavailable');
+      await pool.query('UPDATE analyst_investigations SET finding_id=$1 WHERE investigation_id=$2',[response.json().findingId,row.investigation_id]);await audit(pool,a.account_id,'analyst.finding_published',row.investigation_id,{scientificRunId:selected.scientificReference.jobId});return response.json();
+    }
     const refs=[...new Map(row.result.analyses.flatMap((v:any)=>v.supportingReferences).map((r:any)=>[JSON.stringify(r),r])).values()];
     const affected=[...new Set(row.result.analyses.flatMap((v:any)=>v.affectedEntities))];
     const finding={findingId:row.investigation_id,severity:'info',explanation:('AI-assisted recommendation; human approval and execution remain outstanding. '+(row.test_model?'TEST MODEL VALIDATION. ':'')+row.result.narrative).slice(0,4000),affectedEntities:affected,supportingReferences:refs};

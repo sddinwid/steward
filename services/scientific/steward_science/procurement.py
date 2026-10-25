@@ -6,6 +6,7 @@ integer cents; every solver incumbent is independently checked before reporting.
 from uuid import UUID
 from typing import Annotated
 import math
+import warnings
 import numpy as np
 from scipy.optimize import Bounds, LinearConstraint, milp
 from scipy.sparse import csc_array
@@ -161,14 +162,22 @@ def optimize(parameters):
     lower, upper = np.asarray(lowers), np.asarray(uppers)
     objective = np.asarray(objective, dtype=float)
     bounds = Bounds(np.zeros(len(objective)), np.asarray(ceilings))
-    result = milp(objective, integrality=np.ones(len(objective)), bounds=bounds,
-                  constraints=LinearConstraint(matrix, lower, upper),
-                  options={'presolve': True, 'time_limit': p.solverSeconds, 'node_limit': 10000, 'mip_rel_gap': 0.0})
+    # Supported HiGHS options passed through SciPy's documented verbatim path.
+    # Fix worker count rather than allowing each concurrent process to allocate
+    # a host-sized automatic thread pool. Suppress only that expected passthrough
+    # notice; solver/input/numerical warnings are not hidden.
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', message=r'Unrecognized options detected:.*(threads|random_seed).*These will be passed to HiGHS verbatim\.', category=RuntimeWarning)
+        result = milp(objective, integrality=np.ones(len(objective)), bounds=bounds,
+                      constraints=LinearConstraint(matrix, lower, upper),
+                      options={'presolve': True, 'time_limit': p.solverSeconds, 'node_limit': 10000,
+                               'mip_rel_gap': 0.0, 'threads': 1, 'random_seed': 0})
     from scipy.optimize._highspy import _core as highs
     solver = {'name': 'SciPy milp / HiGHS', 'version': f'{highs.HIGHS_VERSION_MAJOR}.{highs.HIGHS_VERSION_MINOR}.{highs.HIGHS_VERSION_PATCH}',
               'statusCode': int(result.status), 'mipGap': _finite(getattr(result, 'mip_gap', None)),
               'dualBoundCents': _finite(getattr(result, 'mip_dual_bound', None)),
               'nodes': _finite(getattr(result, 'mip_node_count', None)), 'timeLimitSeconds': p.solverSeconds,
+              'threads': 1, 'randomSeed': 0,
               'integerTolerance': 1e-5, 'constraintTolerance': 1e-6}
     base = {'method': 'fixed-charge-all-units-milp', 'methodVersion': 1, 'currency': p.currency,
             'baselineExternalCents': p.baselineExternalCents, 'solver': solver, 'internalTransferCents': 0,

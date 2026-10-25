@@ -32,7 +32,8 @@ export function forecastProcurement(dataset:any,forecast:any){
  if(forecast.status!=='completed'||!Array.isArray(forecast.series)||forecast.series.length!==dataset.entity_ids.length)throw Object.assign(Error('A completed forecast for every participant is required'),{statusCode:422});
  const requirements=forecast.series.map((s:any)=>{
   if(s.status!=='completed'||!s.forecast?.length||s.forecast.some((v:any)=>!Number.isFinite(v.value)||v.value<0))throw Object.assign(Error('Insufficient forecast data; no requirements fabricated'),{statusCode:422});
-  return{entityId:s.entityId,product:terms.product,quantity:Math.ceil(s.forecast.reduce((n:number,v:any)=>n+v.value,0)),baselineUnitCents:terms.baselineUnitCents};
+  if(!Number.isSafeInteger(s.planning?.quantity)||s.planning.quantity<1)throw Object.assign(Error('Scientific planning quantity unavailable; no arithmetic delegated to the model'),{statusCode:422});
+  return{entityId:s.entityId,product:terms.product,quantity:s.planning.quantity,baselineUnitCents:terms.baselineUnitCents};
  });
  assertScientificScope(dataset.entity_ids,requirements.map((r:any)=>r.entityId));
  const entities=dataset.entity_ids.map((entityId:string)=>({entityId,currency,baselineShippingCents:terms.baselineShippingCents,transitionCents:terms.transitionCents}));

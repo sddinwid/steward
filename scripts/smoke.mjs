@@ -35,7 +35,7 @@ for (const i of deployment.instances) {
   assert.equal((await json(`${web}/ready`)).status, 'ready');
   assert.equal(sql(i.key, 'SELECT current_database()'), 'steward');
   assert.equal(sql(i.key, 'SELECT installation_id FROM platform_installation'), i.installationId);
-  assert.equal(sql(i.key, 'SELECT max(version) FROM platform_migrations'), overview.release==='0.11.0'?'14':overview.release==='0.10.0'?'11':['0.9.0','0.9.1'].includes(overview.release)?'10':overview.release==='0.8.0'?'9':'6');
+  assert.equal(sql(i.key, 'SELECT max(version) FROM platform_migrations'), overview.release==='0.12.0'?'15':overview.release==='0.11.0'?'14':overview.release==='0.10.0'?'11':['0.9.0','0.9.1'].includes(overview.release)?'10':overview.release==='0.8.0'?'9':'6');
   assert.equal(sql(i.key, "SELECT rolsuper OR rolcreatedb OR rolcreaterole FROM pg_roles WHERE rolname='steward_app'"), 'f');
   const db = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-db`)]))[0];
   const runtime = JSON.parse(docker(['inspect', compose('ps', '-q', `${i.key}-api`)]))[0];

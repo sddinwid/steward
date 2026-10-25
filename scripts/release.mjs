@@ -25,35 +25,37 @@ async function verifyBundle(){
  }
  const actual=(await files(bundle)).map(f=>path.relative(bundle,f).replaceAll('\\','/')).filter(f=>f!=='release.json').sort();
  if(JSON.stringify(actual)!==JSON.stringify(Object.keys(m.files).sort()))throw new Error('Unexpected or missing release files');
- const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres',...(['0.8.0','0.9.0','0.9.1','0.11.0'].includes(m.platformCompatibility)?['commerce-simulator']:[])];
- if(!['0.5.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
+ const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres',...(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(m.platformCompatibility)?['commerce-simulator']:[]),...(m.platformCompatibility==='0.12.0'?['scientific']:[])];
+ if(!['0.5.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
  return m;
 }
 async function acceptanceGates(){const gates=JSON.parse(await readFile(path.join(root,'docs/phase8-release-gates.json'),'utf8'));if(gates.status!=='passed'||!Array.isArray(gates.gates)||JSON.stringify(gates.gates.map(g=>g.id).sort())!==JSON.stringify(['A','B','C','D','E','F'])||gates.gates.some(g=>g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length))throw new Error('Mandatory Phase 8 acceptance gates remain open');return gates;}
 async function uiAcceptanceGates(version){const gates=JSON.parse(await readFile(path.join(root,version==='0.9.1'?'docs/v0.9.1-release-gates.json':'docs/ui-ux-release-gates.json'),'utf8'));if(gates.status!=='passed'||!Array.isArray(gates.gates)||JSON.stringify(gates.gates.map(g=>g.id).sort())!==JSON.stringify(['browser','commerce','ollama','currency','installation','regressions'].sort())||gates.gates.some(g=>g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length))throw new Error('Mandatory UI acceptance gates remain open');return gates;}
 async function simulationAcceptanceGates(){const gates=JSON.parse(await readFile(path.join(root,'docs/phase11-release-gates.json'),'utf8'));const required=['runtime','isolation','browser','master','ollama','recovery','installation','regressions'];if(gates.status!=='passed'||!Array.isArray(gates.gates)||canonicalIds(gates.gates.map(g=>g.id))!==canonicalIds(required)||gates.gates.some(g=>g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length))throw new Error('Mandatory Phase 11 acceptance gates remain open');return gates;}
 const canonicalIds=ids=>JSON.stringify(ids.slice().sort());
+async function scientificAcceptanceGates(){const gates=JSON.parse(await readFile(path.join(root,'docs/phase12-release-gates.json'),'utf8'));const required=['scientific','forecasts','optimization','scenarios','ui','workers','mcp','ollama','isolation','recovery','installation','upgrade','regressions','release'];if(gates.status!=='passed'||!Array.isArray(gates.gates)||canonicalIds(gates.gates.map(g=>g.id))!==canonicalIds(required)||gates.gates.some(g=>g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length))throw new Error('Mandatory Phase 12 acceptance gates remain open');return gates;}
 async function promote(){
- const m=await verifyBundle();if(!['0.8.0','0.9.0','0.9.1','0.11.0'].includes(m.version)||m.acceptanceStatus!=='candidate')throw new Error('Promotion requires a verified candidate');
+ const m=await verifyBundle();if(!['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(m.version)||m.acceptanceStatus!=='candidate')throw new Error('Promotion requires a verified candidate');
  if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Commit acceptance evidence before promotion');
- const gates=await (m.version==='0.11.0'?simulationAcceptanceGates():['0.9.0','0.9.1'].includes(m.version)?uiAcceptanceGates(m.version):acceptanceGates());if(gates.sourceCommit!==m.sourceCommit||gates.verifiedCandidateManifestSha256!==await digest(path.join(bundle,'release.json')))throw new Error('Acceptance evidence does not identify this exact candidate');
+ const gates=await (m.version==='0.12.0'?scientificAcceptanceGates():m.version==='0.11.0'?simulationAcceptanceGates():['0.9.0','0.9.1'].includes(m.version)?uiAcceptanceGates(m.version):acceptanceGates());if(gates.sourceCommit!==m.sourceCommit||gates.verifiedCandidateManifestSha256!==await digest(path.join(bundle,'release.json')))throw new Error('Acceptance evidence does not identify this exact candidate');
  await writeFile(path.join(bundle,'release.json'),JSON.stringify({...m,acceptanceStatus:'accepted',acceptanceEvidenceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim()},null,2)+'\n');await verifyBundle();console.log('Promoted exact verified candidate to accepted release; payload checksums and all image IDs are unchanged.');
 }
 async function pack(){
  if(values.version!==JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).version)throw new Error('Pack from source matching the target release version; use the preserved tagged source for historical releases.');
- if(!['0.6.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0'].includes(values.version))throw new Error('Unsupported release version');
- if(['0.9.0','0.9.1','0.11.0'].includes(values.version)&&!values.candidate)throw new Error('UI acceptance must be recorded before promoting a 0.9.0 candidate');
- if(['0.8.0','0.9.0','0.9.1','0.11.0'].includes(values.version)){if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Phase 8 packaging requires clean committed source');if(!values.candidate){await acceptanceGates();}}
+ if(!['0.6.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(values.version))throw new Error('Unsupported release version');
+ if(['0.9.0','0.9.1','0.11.0','0.12.0'].includes(values.version)&&!values.candidate)throw new Error('UI acceptance must be recorded before promoting a 0.9.0 candidate');
+ if(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(values.version)){if(run('git',['status','--porcelain'],{stdio:['ignore','pipe','pipe']}).trim())throw new Error('Phase 8 packaging requires clean committed source');if(!values.candidate){await acceptanceGates();}}
  if(!/^\d+\.\d+\.\d+$/.test(values.version))throw new Error('Version must be semver');
  if(path.resolve(run('git',['rev-parse','--show-toplevel'],{stdio:['ignore','pipe','pipe']}).trim())!==root)throw new Error('Pack from the verified repository root, not an installed toolkit');
  await mkdir(path.dirname(bundle),{recursive:true});await mkdir(bundle,{recursive:false});
  const source=JSON.parse(await readFile(path.join(directory,'modules/public/catalog.json'),'utf8'));
  const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
  const {verifyPackage}=await import('../packages/module-sdk/dist/index.js');
- const compatibility=['0.8.0','0.9.0','0.9.1','0.11.0'].includes(values.version)?values.version:values.version==='0.6.0'?'0.5.0':'0.7.0';
- const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(['0.8.0','0.9.0','0.9.1','0.11.0'].includes(compatibility)?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0','cee.sales@1.1.1','cee.printify@1.0.1','cee.printify@1.0.2',...(['0.9.0','0.9.1'].includes(compatibility)?['cee.shopify@1.0.1','cee.printify@1.0.3','cee.printify@1.0.4']:[])]:[])];
+ const compatibility=['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(values.version)?values.version:values.version==='0.6.0'?'0.5.0':'0.7.0';
+ const selected=compatibility==='0.5.0'?['cee.inventory@1.2.1','cee.operations@1.0.0']:['cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2',...(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(compatibility)?['cee.inventory@1.4.0','cee.sales@1.1.0','cee.shopify@1.0.0','cee.printify@1.0.0','cee.stock-ledger@1.0.0','cee.sales@1.1.1','cee.printify@1.0.1','cee.printify@1.0.2',...(['0.9.0','0.9.1'].includes(compatibility)?['cee.shopify@1.0.1','cee.printify@1.0.3','cee.printify@1.0.4']:[])]:[])];
  if(compatibility==='0.9.1'){selected.splice(0,selected.length,'cee.inventory@1.2.1','cee.inventory@1.3.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.0.2','cee.assets@1.0.3','cee.workforce@1.0.2','cee.inventory@1.4.2','cee.sales@1.1.3','cee.shopify@1.0.1','cee.printify@1.0.6','cee.stock-ledger@1.0.0');}
  if(compatibility==='0.11.0')selected.splice(0,selected.length,'cee.inventory@1.4.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.3.0','cee.assets@1.0.3','cee.workforce@1.0.2','cee.shopify@1.2.0','cee.printify@1.1.2','cee.stock-ledger@1.1.0','steward.simulation.commerce@1.0.2','steward.simulation.fulfillment@1.0.1');
+ if(compatibility==='0.12.0')selected.splice(0,selected.length,'cee.inventory@1.4.2','cee.operations@1.0.0','cee.procurement@1.0.2','cee.sales@1.3.1','cee.assets@1.0.3','cee.workforce@1.0.2','cee.shopify@1.2.0','cee.printify@1.1.2','cee.stock-ledger@1.1.0','steward.simulation.commerce@1.1.0','steward.simulation.fulfillment@1.0.1');
  const packages=selected.map(id=>{
   const signed=source.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===id);
   if(!signed)throw new Error('Publish required package '+id+' before packaging');return verifyPackage(signed,trust);
@@ -67,21 +69,22 @@ async function pack(){
   docker('tag',id,tag);images[kind]={tag,id,platform:metadata.Os+'/'+metadata.Architecture};
  }
  images.postgres={tag:'postgres:17.9-alpine',id:JSON.parse(docker('image','inspect','postgres:17.9-alpine'))[0].Id};
- if(['0.8.0','0.9.0','0.9.1','0.11.0'].includes(compatibility))images['commerce-simulator']={tag:compatibility==='0.11.0'?'steward-commerce-simulator:1.0.1':'steward-commerce-simulator:1.0.0',id:JSON.parse(docker('image','inspect',compatibility==='0.11.0'?'steward-commerce-simulator:1.0.1':'steward-commerce-simulator:1.0.0'))[0].Id};
+ if(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(compatibility))images['commerce-simulator']={tag:['0.11.0','0.12.0'].includes(compatibility)?'steward-commerce-simulator:1.0.1':'steward-commerce-simulator:1.0.0',id:JSON.parse(docker('image','inspect',['0.11.0','0.12.0'].includes(compatibility)?'steward-commerce-simulator:1.0.1':'steward-commerce-simulator:1.0.0'))[0].Id};
+ if(compatibility==='0.12.0'){const tag='steward-scientific:1.0.0',image=JSON.parse(docker('image','inspect',tag))[0];if(image.Config.Labels['org.opencontainers.image.revision']!==run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim())throw Error('Scientific image source does not match clean release source');images.scientific={tag,id:image.Id,platform:image.Os+'/'+image.Architecture};}
  const names=run('git',['ls-files','--cached','--others','--exclude-standard','-z'],{stdio:['ignore','pipe','pipe']}).split('\0').filter(Boolean);
  const toolkit=path.join(bundle,'toolkit');
  for(const name of names){
   // Acceptance evidence is emitted after packaging as a sidecar; avoid a
   // self-referential manifest checksum and stale evidence in later packages.
   if(['docs/phase6-verification-evidence.json','docs/phase7-verification-evidence.json'].includes(name))continue;
-  if(!/^(apps\/|packages\/|tools\/|modules\/|scripts\/|infra\/|datasets\/|docs\/|package(?:-lock)?\.json$|tsconfig.base.json$|README.md$|compose\.yaml$|\.dockerignore$)/.test(name))continue;
+  if(!/^(apps\/|packages\/|tools\/|modules\/|scripts\/|infra\/|services\/|datasets\/|docs\/|package(?:-lock)?\.json$|tsconfig.base.json$|README.md$|compose\.yaml$|\.dockerignore$)/.test(name))continue;
   if(/(^|\/)(node_modules|dist)\//.test(name))continue;
   const src=path.join(root,name);if(!(await lstat(src)).isFile())throw new Error('Non-file source');
   if(/\.(pem|key|p12|pfx)$/i.test(name)||/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----\r?\n[A-Za-z0-9+/=]{20}/.test(await readFile(src,'utf8')))throw new Error('Secret-like source file must not enter a release: '+name);
   const dest=path.join(toolkit,name);await mkdir(path.dirname(dest),{recursive:true});await copyFile(src,dest);
  }
  await writeFile(path.join(bundle,'module-packages.json'),JSON.stringify(packages,null,2)+'\n');
- for(const role of ['master','worker'])await writeFile(path.join(bundle,role+'-distribution.json'),JSON.stringify({formatVersion:1,version:values.version,platformCompatibility:compatibility,role,images:Object.fromEntries(Object.entries(images).filter(([k])=>k.startsWith(role)||k==='postgres'||role==='worker'&&k==='module-host')),modulesBundledSeparately:true},null,2)+'\n');
+ for(const role of ['master','worker'])await writeFile(path.join(bundle,role+'-distribution.json'),JSON.stringify({formatVersion:1,version:values.version,platformCompatibility:compatibility,role,images:Object.fromEntries(Object.entries(images).filter(([k])=>k.startsWith(role)||k==='postgres'||role==='master'&&k==='scientific'||role==='worker'&&k==='module-host')),modulesBundledSeparately:true},null,2)+'\n');
  console.log('Saving versioned core, PostgreSQL and separate module images…');
  docker('image','save','-o',path.join(bundle,'images.tar'),...Object.values(images).map(i=>i.tag),...packages.map(p=>p.imageId));
  const hashes={};for(const f of await files(bundle))hashes[path.relative(bundle,f).replaceAll('\\','/')]=await digest(f);
@@ -100,8 +103,9 @@ async function install(upgrade=false){
   const commerceManifest=path.join(directory,'commerce/manifest.json'),simulatorMode=values.simulators||(previous&&existsSync(commerceManifest)?JSON.parse(await readFile(commerceManifest,'utf8')).simulators:false);
   node('tools/installer/dist/cli.js',['provision','--directory',directory,'--mode',previous?.mode??values.mode,'--workers',String(previous?Math.max(1,previous.instances.filter(i=>i.role==='worker').length):values.workers),'--project',previous?.project??values.project,'--label',previous?.label??'Steward MVP',...(values['port-offset']?['--port-offset',values['port-offset']]:[])]);
   for(const cli of ['security','modules','data','analyst'])node('tools/installer/dist/'+cli+'-cli.js',[directory,...(cli==='security'&&values.trust?[path.resolve(values.trust)]:[])]);
-  if(['0.9.0','0.9.1','0.11.0'].includes(m.version))process.env.STEWARD_SIMULATOR_CURRENCY??='USD';
-  if(['0.8.0','0.9.0','0.9.1','0.11.0'].includes(m.platformCompatibility))node('scripts/provision-commerce.mjs',[directory,...(simulatorMode?['--simulators']:[])]);
+  if(m.platformCompatibility==='0.12.0'&&(previous?.mode??values.mode)!=='worker'&&(!previous||existsSync(path.join(directory,'scientific/manifest.json'))))node('tools/installer/dist/scientific-cli.js',[directory]);
+  if(['0.9.0','0.9.1','0.11.0','0.12.0'].includes(m.version))process.env.STEWARD_SIMULATOR_CURRENCY??='USD';
+  if(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0'].includes(m.platformCompatibility))node('scripts/provision-commerce.mjs',[directory,...(simulatorMode?['--simulators']:[])]);
   const {signPackage,canonical}=await import('../packages/module-sdk/dist/index.js');
   const key=await readFile(path.join(directory,'security/module-publisher-key.pem'),'utf8');
   const catalogPath=path.join(directory,'modules/public/catalog.json'),catalog=JSON.parse(await readFile(catalogPath,'utf8'));
@@ -120,6 +124,7 @@ async function install(upgrade=false){
    if(i.role==='worker')services.push('  '+i.key+'-module-host:\n    image: '+m.images['module-host'].id+'\n    build: !reset null\n    pull_policy: never');
   }
   if(m.images['commerce-simulator']&&simulatorMode)for(const provider of ['shopify','printify'])services.push('  '+provider+'-simulator:\n    image: '+m.images['commerce-simulator'].id+'\n    pull_policy: never');
+  if(m.images.scientific&&existsSync(path.join(directory,'scientific/manifest.json')))services.push('  scientific:\n    image: '+m.images.scientific.id+'\n    pull_policy: never');
   const releaseDir=path.join(directory,'release');await mkdir(releaseDir,{recursive:true});
   const overlay='services:\n'+services.join('\n')+'\n',candidate=path.join(releaseDir,'candidate.yaml');await writeFile(candidate,overlay);
   const overlays=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml'].filter(f=>existsSync(path.join(directory,f))).flatMap(f=>['-f',path.join(directory,f)]);

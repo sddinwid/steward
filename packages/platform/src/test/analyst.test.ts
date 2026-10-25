@@ -1,12 +1,36 @@
 import {simulationStageTools} from '../investigation-profiles.js';
+import {scientificStageTools,profileTools,type ScientificPlan} from '../investigation-profiles.js';
+import {compactScientificCalculation} from '../scientific-context.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resourceSharing, type SharingInput } from '../analytical-capabilities.js';
 import { modelConfigSchema, createModel, tlsFetch } from '../analyst-model.js';
-import { narrativeSchema, parseNarrative } from '../analyst.js';
+import { narrativeSchema, parseNarrative,validateScientificNarrative } from '../analyst.js';
 import { agentProof,verifyAgentProof } from '../mcp-agent-identity.js';
 import { resourcePage, resourceQuerySchema, modelToolResult, resourceMatches } from '../analyst-context.js';
 import { ollamaMessages, ollamaTurn } from '../ollama-model.js';
+
+test('scientific planning continues after forecasting through constraints, integer optimization and scenarios',()=>{
+ const tools=profileTools['scientific-procurement'].map(name=>({name})),stage:ScientificPlan={entities:false,dataset:false,forecast:false,constraints:false,optimization:false,scenarios:false,partial:false};
+ for(const [next,flag]of [['list_entities','entities'],['query_scientific_datasets','dataset'],['forecast_demand','forecast'],['query_scientific_constraints','constraints'],['optimize_procurement','optimization'],['compare_procurement_scenarios','scenarios']] as const){assert.deepEqual(scientificStageTools(tools,stage).map(t=>t.name),[next]);stage[flag]=true;}
+ assert.deepEqual(scientificStageTools(tools,stage),[]);stage.scenarios=false;stage.partial=true;assert.deepEqual(scientificStageTools(tools,stage),[]);
+});
+test('scientific provider views keep governed references and exact calculated amounts while retaining full evidence internally',()=>{
+ const calculation={method:'fixed-charge-all-units-milp',methodVersion:1,currency:'USD',status:'optimal',baselineExternalCents:56200,proposedCostCents:50080,ecosystemBenefitCents:6120,impacts:[{entityId:'a',benefitCents:3107,proposedCostCents:25693}],suppliers:[],allocations:[{privateFullAllocation:true}],solver:{statusCode:0},assumptions:['Explicit synthetic inputs'],limitations:[]};
+ const raw={structuredContent:{data:{calculation,scientificReference:{jobId:'retained-job'},affectedEntities:['a'],supportingReferences:[],observed:{provenance:{synthetic:true},engine:{scipy:'pinned'},completeRawInputs:'retained'}}}};
+ const before=JSON.stringify(raw),view=modelToolResult('optimize_procurement',raw,true).structuredContent.data;assert.equal(JSON.stringify(raw),before);assert.equal(view.calculation.displayAmounts.benefit,'USD 61.20');assert.equal(view.calculation.impacts[0].displayBenefit,'USD 31.07');assert.equal(view.scientificReference.jobId,'retained-job');assert.equal(view.calculation.allocations,undefined);assert.equal(view.observed.completeRawInputs,undefined);
+ assert.equal(compactScientificCalculation({...calculation,status:'infeasible',proposedCostCents:null,ecosystemBenefitCents:null}).displayAmounts.proposed,'UNKNOWN');
+});
+test('scientific recommendations require completed planning, synthetic labeling and exact service currency amounts',()=>{
+ const stage:ScientificPlan={entities:true,dataset:true,forecast:true,constraints:true,optimization:true,scenarios:true,partial:false};
+ const analyses=[{synthetic:true,calculation:{capabilityId:'steward.scientific.procurement-optimization',method:'fixed-charge-all-units-milp',currency:'USD',baselineExternalCents:56200,proposedCostCents:50080,ecosystemBenefitCents:6120,impacts:[{benefitCents:3107,proposedCostCents:25693}],suppliers:[]}}];
+ const value={narrative:'Synthetic comparison: USD 562.00 baseline; USD 500.80 proposed; USD 61.20 benefit; entity USD 31.07.',assumptions:['Conditional inputs'],humanDecisions:['Review consent']};
+ validateScientificNarrative(value,stage,analyses);
+ assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('USD 61.20','USD 6120.00')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
+ assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('Synthetic','Actual')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
+ assert.throws(()=>validateScientificNarrative(value,{...stage,scenarios:false},analyses),/SCIENTIFIC_PLAN_INCOMPLETE/);
+ validateScientificNarrative({...value,narrative:'Partial synthetic investigation; insufficient history.'},{...stage,partial:true},analyses);
+});
 
 test('native Ollama preserves tool arguments/results and rejects orphan or malformed responses',()=>{
  const input=[{role:'user',content:'Question'},{type:'function_call',call_id:'a',name:'query_resource_matches',arguments:'{"limit":1}'},{type:'function_call_output',call_id:'a',output:'{"untrustedBusinessData":true,"result":{"actual":"evidence"}}'}];

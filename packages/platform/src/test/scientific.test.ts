@@ -29,7 +29,7 @@ test('scientific source extraction is disclosed, stream-scoped and never invents
 
 test('forecast-derived integer requirements reuse the existing exact purchasing baseline and reject partial estimates',()=>{
  const entities=[randomUUID(),randomUUID()],dataset={basis:'synthetic-analytical-history',entity_ids:entities,content:{purchasingTerms:{currency:'USD',product:'test',baselineUnitCents:700,baselineShippingCents:1500,transitionCents:200,suppliers:[{id:'supplier',products:['test'],capacity:1000,minimumUnits:1,shippingCents:1800,tiers:[{minimumUnits:0,unitCosts:{test:630}}]}]}}};
- const result={status:'completed',series:entities.map((entityId,i)=>({entityId,status:'completed',forecast:[{value:i?36.2:38.2}]}))};
+ const result={status:'completed',series:entities.map((entityId,i)=>({entityId,status:'completed',forecast:[{value:i?36.2:38.2}],planning:{quantity:i?37:39}}))};
  const p=forecastProcurement(dataset,result);assert.equal(p.baselineExternalCents,56200);assert.deepEqual(p.requirements.map(r=>r.quantity),[39,37]);assert(procurementSchema.safeParse(p).success);
  assert.throws(()=>forecastProcurement(dataset,{...result,status:'partial'}),/completed forecast/);
  assert.throws(()=>forecastProcurement({...dataset,basis:'authorized-synchronized-projection'},result),/Declare approved supplier/);

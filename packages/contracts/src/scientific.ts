@@ -1,5 +1,7 @@
 import type {SourceReference} from './business.js';
 export const SCIENTIFIC_CONTRACT_VERSION=1 as const;
+/** Derived analytical evidence, never a fabricated Worker operational record. */
+export interface ScientificEvidenceReference {schemaVersion:1;jobId:string;datasetId:string;inputDigest:string}
 export type ScientificCapability='describe-series'|'demand-forecast'|'procurement-optimization'|'scenario-comparison';
 export interface ScientificProvenance {
  datasetId:string;synthetic:boolean;basis:'authorized-synchronized-projection'|'synthetic-analytical-history';

@@ -16,6 +16,22 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   if(b.instructions?.includes('query_scientific_datasets')){
+    const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
+    if(!rows.some(d=>d.entities))return calls([{name:'list_entities',arguments:{}}]);
+    const dataset=rows.find(d=>d.datasets)?.datasets[0];
+    if(!dataset)return calls([{name:'query_scientific_datasets',arguments:{basis:'synthetic-analytical-history',limit:1}}]);
+    const forecast=rows.find(d=>d.calculation?.capabilityId==='steward.scientific.demand-forecast');
+    if(!forecast)return calls([{name:'forecast_demand',arguments:{datasetId:dataset.datasetId,horizon:30}}]);
+    if(forecast.calculation.status!=='completed')return final({narrative:'TEST MODEL: partial investigation; insufficient authorized history. No complete procurement conclusion.',assumptions:['No historical transactions fabricated.'],humanDecisions:['Review evidence coverage before another investigation.']});
+    if(!rows.some(d=>Object.hasOwn(d,'purchasingTerms')))return calls([{name:'query_scientific_constraints',arguments:{datasetId:dataset.datasetId}}]);
+    const optimized=rows.find(d=>d.calculation?.capabilityId==='steward.scientific.procurement-optimization');
+    const args={datasetId:dataset.datasetId,forecastRunId:forecast.scientificReference.jobId};
+    if(!optimized)return calls([{name:'optimize_procurement',arguments:args}]);
+    if(!rows.some(d=>d.calculation?.capabilityId==='steward.scientific.scenario-comparison'))return calls([{name:'compare_procurement_scenarios',arguments:args}]);
+    const c=optimized.calculation;
+    return final({narrative:'TEST MODEL: conditional synthetic historical forecast and integer procurement comparison. Baseline '+c.displayAmounts.baseline+', proposed '+c.displayAmounts.proposed+', estimated benefit '+(prompt.includes('[fixture:wrong-amount]')?'USD 999999.00':c.displayAmounts.benefit)+'. Per-entity effects: '+c.impacts.map(i=>i.entityId+' '+i.displayBenefit).join('; ')+'. Declared shipping, transition, capacity and quantity tiers apply; internal transfers are zero. Scenario ranges are not probabilities, projected benefits are not realized, and no business decision was executed.',assumptions:c.assumptions,humanDecisions:['Review model uncertainty, supplier commitments, taxes, timing, compatibility, allocation and separate company consent before deciding.']});
+   }
    if(b.instructions?.includes('query_commerce_evidence')){
     if(!results.some(v=>v.structuredContent?.data?.entities))return calls([{name:'list_entities',arguments:{}}]);
     const analysis=results.find(v=>v.structuredContent?.data?.calculation)?.structuredContent.data;
@@ -63,6 +79,7 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    const c=analysis.calculation;
    respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify({narrative:`TEST MODEL investigation using actual synchronized records: share ${c.sharedCapacity} m3. Ecosystem monthly benefit ${c.proposal.ecosystemMonthlyBenefit} ${c.currency}; horizon benefit ${c.proposal.ecosystemHorizonBenefit}. Consumer monthly benefit ${c.proposal.consumerMonthlyBenefit}; provider ${c.proposal.providerMonthlyBenefit}. Internal payments cancel. External storage remains the zero-change alternative. No decision executed.`,assumptions:['Test scenario assumptions: incremental cost 1000 per month, internal payment 3000, transition 6000, 12 months, proportional full external bill avoidance.','Site text equality is insufficient to establish operational suitability.','Synchronized records are non-authoritative; source timestamps and revisions must be reviewed.'],humanDecisions:['Confirm location, actual incremental costs, lease cancellation, service levels, transport and tax before approval.']})}]}]);
    function calls(items){respond(items.map((v,i)=>({type:'function_call',call_id:'call_'+results.length+'_'+i,name:v.name,arguments:JSON.stringify(v.arguments)})));}
+   function final(value){respond([{type:'message',role:'assistant',content:[{type:'output_text',text:JSON.stringify(value)}]}]);}
    function respond(output){res.writeHead(200,{'content-type':'application/json'});res.end(JSON.stringify({id:'fixture',status:'completed',output}));}
   }catch{res.writeHead(500);res.end('{}');}
  });
