@@ -1,3 +1,4 @@
+import {capabilityConfigured} from '@steward/module-sdk';
 import type pg from 'pg';
 import { canonical, digest, verifyPackage, resolveCapability, validateCapabilityValue, type PublisherTrust, type CapabilityProvider, type CapabilityRequirement } from '@steward/module-sdk';
 import type { InstallationConfig } from '@steward/contracts';
@@ -29,7 +30,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       }
       for (const capability of row.manifest?.smart?.provides ?? []) {
         const provider: CapabilityProvider = { moduleId: row.module_id, moduleVersion: row.version, installationId: row.operation_id, entityId: await entityId(), packageDigest: digest(canonical(row.descriptor)), state,
-          configured: Object.entries(row.manifest.smart.prerequisites.configuration).every(([k,v]) => row.configuration[k] === v), capability };
+          configured: capabilityConfigured(row.manifest,row.configuration,capability), capability };
         providers.push(provider);
       }
     }
@@ -82,7 +83,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
     const a=await admin(req,true);return transaction(pool,async db=>{const r=await db.query("UPDATE smart_bindings SET state='disabled',reason=$1,revision=revision+1,updated_at=now() WHERE binding_id=$2 RETURNING binding_id",[req.body.reason,req.params.id]);if(!r.rowCount)fail(404,'Binding not found');await audit(db,a.account_id,'smart.binding_disabled',req.params.id);return{disabled:true};});
   });
   // Workflows are data, never scripts. Operations and their schemas come only from signed providers.
-  app.post<{Body:{workflowId:string;name:string;version:number;consumerId:string;steps:{bindingId:string;operation:string}[];reason:string}}>('/api/v8/smart-modules/workflows',{schema:body({workflowId:uuid,name:{type:'string',minLength:1,maxLength:100},version:{type:'integer',minimum:1,maximum:10000},consumerId:identifier,steps:{type:'array',minItems:1,maxItems:8,items:{type:'object',additionalProperties:false,required:['bindingId','operation'],properties:{bindingId:uuid,operation:identifier}}},reason:{type:'string',minLength:20,maxLength:1000}})},async req=>{
+  app.post<{Body:{workflowId:string;name:string;version:number;consumerId:string;steps:{bindingId:string;operation:string}[];reason:string}}>('/api/v8/smart-modules/workflows',{schema:body({workflowId:uuid,name:{type:'string',minLength:1,maxLength:100},version:{type:'integer',minimum:1,maximum:10000},consumerId:identifier,steps:{type:'array',minItems:1,maxItems:16,items:{type:'object',additionalProperties:false,required:['bindingId','operation'],properties:{bindingId:uuid,operation:identifier}}},reason:{type:'string',minLength:20,maxLength:1000}})},async req=>{
     const a=await admin(req,true),b=req.body;await registry();
     return transaction(pool,async db=>{
       for(const step of b.steps){const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state='approved'",[step.bindingId,b.consumerId])).rows[0];if(!binding||!binding.capability.operations.some((o:any)=>o.name===step.operation))fail(409,'Workflow step requires an approved compatible binding');}
@@ -103,7 +104,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       await db.query('INSERT INTO smart_history(workflow_id,actor_id,event,detail) VALUES($1,$2,$3,$4)',[w.workflow_id,a.account_id,next,{reason:req.body.reason}]);return{state:next};
     });
   });
-  app.post<{Body:{executionId:string;workflowId:string;inputs:unknown[]}}>('/api/v8/smart-modules/execute',{schema:body({executionId:uuid,workflowId:uuid,inputs:{type:'array',minItems:1,maxItems:8,items:{type:'object'}}})},async req=>{
+  app.post<{Body:{executionId:string;workflowId:string;inputs:unknown[]}}>('/api/v8/smart-modules/execute',{schema:body({executionId:uuid,workflowId:uuid,inputs:{type:'array',minItems:1,maxItems:16,items:{type:'object'}}})},async req=>{
     const a=await admin(req,true),b=req.body;const {rows,providers}=await registry();
     return transaction(pool,async db=>{
       const w=(await db.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND accepting_new FOR UPDATE",[b.workflowId])).rows[0];if(!w)fail(409,'Workflow is not active');

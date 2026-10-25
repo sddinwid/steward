@@ -1,3 +1,4 @@
+import {capabilityConfigured} from '@steward/module-sdk';
 import {protectSimulationRoute,recordSimulationDenial} from './simulation-routing.js';
 import type pg from 'pg';
 import { canonical,digest,verifyPackage,resolveCapability,validateCapabilityValue,INTEGRATION_PROTOCOL,type PublisherTrust,type IntegrationCommand,type CapabilityProvider } from '@steward/module-sdk';
@@ -35,11 +36,12 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const requirement=sm.smart?.consumes.find(r=>r.capabilityId===binding.capability_id),capability=tm.smart?.provides.find(c=>c.capabilityId===binding.capability_id);
       if(!requirement||canonical(requirement)!==canonical(binding.requirement)||!capability)throw new Error('CONTRACT_CHANGED_REVIEW_REQUIRED');
       if(!Object.entries(sm.smart!.prerequisites.configuration).every(([k,v])=>source.configuration[k]===v))throw new Error('CONSUMER_CONFIGURATION_PREREQUISITE');
-      const p:CapabilityProvider={moduleId:tm.moduleId,moduleVersion:tm.version,installationId:target.operation_id,entityId:binding.entity_id,packageDigest:binding.package_digest,state:'active',configured:Object.entries(tm.smart!.prerequisites.configuration).every(([k,v])=>target.configuration[k]===v),capability};
+      const p:CapabilityProvider={moduleId:tm.moduleId,moduleVersion:tm.version,installationId:target.operation_id,entityId:binding.entity_id,packageDigest:binding.package_digest,state:'active',configured:capabilityConfigured(tm,target.configuration,capability),capability};
       if(!resolveCapability(requirement,[p],{entityId:binding.entity_id,permissions:capability.operations.map(o=>o.permission)}).selected)throw new Error('INCOMPATIBLE_PROVIDER');
       if(!await runtimeMatches(tm.moduleId,target.configuration)||!await runtimeMatches(sm.moduleId,source.configuration))throw new Error('CONFIGURATION_MISMATCH');
       const op=capability.operations.find(o=>o.name===step.operation);if(!op)throw new Error('OPERATION_NOT_DECLARED');
       retrySafe = op.retry === 'safe';
+      if(sm.simulation?.role==='participant'&&source.configuration.integrationsEnabled!==true)throw Error('CONSUMER_CONFIGURATION_PREREQUISITE');
       const input=e.inputs[e.step];validateCapabilityValue(input,op.input);
       const commandId=workflowCommandId(e.execution_id,e.step);
       // A coordinator transaction may roll back after a provider commit. The same

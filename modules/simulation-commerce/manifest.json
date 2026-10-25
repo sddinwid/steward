@@ -1,0 +1,1528 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.simulation.commerce",
+  "version": "1.0.0",
+  "name": "Steward Commerce Simulation",
+  "description": "Continuous synthetic commerce through authorized real Sales/stock services and an isolated local fulfillment provider. No live commerce mutations.",
+  "minimumPlatformVersion": "0.11.0",
+  "simulation": {
+    "version": 1,
+    "role": "engine"
+  },
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listRuns",
+      "method": "GET",
+      "path": "/runs",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "createRun",
+      "method": "POST",
+      "path": "/runs",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "updateRun",
+      "method": "PUT",
+      "path": "/runs/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "startSimulation",
+      "method": "POST",
+      "path": "/start/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "pauseSimulation",
+      "method": "POST",
+      "path": "/pause/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "resumeSimulation",
+      "method": "POST",
+      "path": "/resume/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "stopSimulation",
+      "method": "POST",
+      "path": "/stop/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "resetSimulation",
+      "method": "POST",
+      "path": "/reset/:id",
+      "permission": "steward.simulation.commerce.admin"
+    },
+    {
+      "operationId": "dashboard",
+      "method": "GET",
+      "path": "/dashboard",
+      "permission": "steward.simulation.commerce.read"
+    },
+    {
+      "operationId": "history",
+      "method": "GET",
+      "path": "/history",
+      "permission": "steward.simulation.commerce.read"
+    },
+    {
+      "operationId": "activity",
+      "method": "GET",
+      "path": "/activity",
+      "permission": "steward.simulation.commerce.read"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "control-center",
+      "title": "Simulation Control Center",
+      "navigationLabel": "Simulation Control Center",
+      "listOperation": "listRuns",
+      "createOperation": "createRun",
+      "updateOperation": "updateRun",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Dataset name",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "ecosystem",
+          "label": "Shared ecosystem label",
+          "type": "string",
+          "required": false,
+          "maxLength": 80,
+          "default": "Commerce demonstration"
+        },
+        {
+          "name": "scenario",
+          "label": "Scenario",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "normal",
+            "seasonal-demand",
+            "low-margin",
+            "production-delay",
+            "inventory-shortage",
+            "refund-cancellation",
+            "shipping-increase",
+            "missing-mapping",
+            "purchasing-opportunity"
+          ],
+          "default": "normal"
+        },
+        {
+          "name": "seed",
+          "label": "Deterministic seed",
+          "type": "number",
+          "required": false,
+          "minimum": 0,
+          "default": 7
+        },
+        {
+          "name": "eventsPerMinute",
+          "label": "Orders per minute",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "default": 6
+        },
+        {
+          "name": "speed",
+          "label": "Simulated seconds per real second",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "default": 60
+        },
+        {
+          "name": "shareWithMaster",
+          "label": "Share synthetic analytics with Master",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "no",
+            "yes"
+          ],
+          "default": "no"
+        },
+        {
+          "name": "state",
+          "label": "State",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "eventIndex",
+          "label": "Generated order intents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "warning",
+          "label": "Warning",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Last error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "updatedAt",
+          "label": "Last update",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "state",
+        "scenario",
+        "eventIndex",
+        "warning",
+        "error"
+      ],
+      "actions": [
+        {
+          "label": "Start simulation",
+          "operationId": "startSimulation"
+        },
+        {
+          "label": "Pause simulation",
+          "operationId": "pauseSimulation"
+        },
+        {
+          "label": "Resume simulation",
+          "operationId": "resumeSimulation"
+        },
+        {
+          "label": "Stop simulation",
+          "operationId": "stopSimulation"
+        },
+        {
+          "label": "Reset selected synthetic dataset",
+          "operationId": "resetSimulation",
+          "confirmation": "Reset only this selected synthetic dataset? Its synthetic orders, stock and fulfillment jobs will be removed. Ordinary business records, credentials and installation settings are preserved."
+        }
+      ],
+      "workspace": "administration",
+      "refreshMs": 3000
+    },
+    {
+      "screenId": "live-dashboard",
+      "title": "Live simulated commerce",
+      "navigationLabel": "Simulation live dashboard",
+      "listOperation": "dashboard",
+      "fields": [],
+      "columns": [],
+      "workspace": "administration",
+      "refreshMs": 3000
+    },
+    {
+      "screenId": "activity",
+      "title": "Synthetic order activity",
+      "navigationLabel": "Simulation order activity",
+      "listOperation": "activity",
+      "fields": [
+        {
+          "name": "index",
+          "label": "Event index",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "orderId",
+          "label": "Sales order reference",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "stage",
+          "label": "Processing stage",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "simulatedAt",
+          "label": "Simulated timestamp",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "createdAt",
+          "label": "Actual processing timestamp",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Business exception",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "index",
+        "orderId",
+        "stage",
+        "simulatedAt",
+        "createdAt",
+        "error"
+      ],
+      "workspace": "administration",
+      "refreshMs": 3000
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "maximumEventsPerMinute": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 120,
+        "default": 120
+      },
+      "maximumConcurrentOperations": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 16,
+        "default": 8
+      },
+      "maximumOutstandingOrders": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 100,
+        "default": 20
+      },
+      "maximumOrders": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 500,
+        "default": 500
+      },
+      "maximumDatasets": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10,
+        "default": 10
+      },
+      "maximumHistory": {
+        "type": "integer",
+        "minimum": 20,
+        "maximum": 5000,
+        "default": 1000
+      },
+      "maximumMemoryBytes": {
+        "type": "integer",
+        "minimum": 67108864,
+        "maximum": 268435456,
+        "default": 134217728
+      },
+      "maximumDatabaseBytes": {
+        "type": "integer",
+        "minimum": 16777216,
+        "maximum": 536870912,
+        "default": 134217728
+      },
+      "teePopularityBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 5500
+      },
+      "mugPopularityBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 3000
+      },
+      "premiumVariantBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 3000
+      },
+      "minimumQuantity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 1
+      },
+      "maximumQuantity": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 20,
+        "default": 5
+      },
+      "cancellationBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 250
+      },
+      "refundBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 400
+      },
+      "increasedCancellationBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 3000
+      },
+      "increasedRefundBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 4500
+      },
+      "seasonalDemandMultiplier": {
+        "type": "integer",
+        "minimum": 2,
+        "maximum": 6,
+        "default": 3
+      },
+      "priceMultiplierBasisPoints": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 20000,
+        "default": 10000
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "1f6722203ffecfbbf8e2117be6c05e4843b8804404c35c94db60cf60bbcc9b3e"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "simulation-activity-evidence",
+      "version": 1
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "simulation_runs",
+        "table": "simulation_runs",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "simulation.channel.fulfillment",
+        "contract": "steward.simulation-channel",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "channel.fulfillment",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceId": {
+                  "type": "string",
+                  "maxLength": 120,
+                  "minLength": 1
+                },
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "tracking": {
+                  "type": "string",
+                  "maxLength": 160,
+                  "minLength": 1
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "sourceId",
+                "orderId",
+                "tracking",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "queued": {
+                  "const": true
+                }
+              },
+              "required": [
+                "queued"
+              ]
+            },
+            "command": "channel.fulfillment",
+            "permission": "steward.simulation.commerce.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "simulation.sales.manage",
+        "contract": "steward.simulation-sales",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "simulation.dataset.begin",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "begun": {
+                  "const": true
+                }
+              },
+              "required": [
+                "begun"
+              ]
+            }
+          },
+          {
+            "name": "simulation.dataset.reset",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "removed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "removed"
+              ]
+            }
+          },
+          {
+            "name": "simulation.sales.advance",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "action": {
+                  "type": "string",
+                  "enum": [
+                    "confirm",
+                    "request-production",
+                    "publish",
+                    "cancel"
+                  ]
+                }
+              },
+              "required": [
+                "orderId",
+                "action"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "orderId",
+                "status"
+              ]
+            }
+          },
+          {
+            "name": "simulation.sales.inspect",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80,
+                  "minLength": 1
+                },
+                "productionStatus": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 80,
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "error": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 500,
+                      "minLength": 1
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "orderId",
+                "status",
+                "stockStatus",
+                "productionStatus",
+                "error"
+              ]
+            }
+          },
+          {
+            "name": "simulation.sales.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "orderCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "awaitingFulfillment": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "completedOrders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "canceledOrders": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "revenueCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "refundCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "productionCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shippingCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "contributionCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": -1000000000000,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "exceptions": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "averageOrderValueCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "sourceIds": {
+                  "type": "array",
+                  "maxItems": 500,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                  }
+                },
+                "products": {
+                  "type": "array",
+                  "maxItems": 24,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "orderedQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "fulfilledQuantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "revenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "orderedQuantity",
+                      "fulfilledQuantity",
+                      "revenueCents"
+                    ]
+                  }
+                },
+                "series": {
+                  "type": "array",
+                  "maxItems": 120,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "at": {
+                        "type": "string",
+                        "maxLength": 40,
+                        "minLength": 1
+                      },
+                      "orders": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "completedOrders": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "revenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "at",
+                      "orders",
+                      "completedOrders",
+                      "revenueCents"
+                    ]
+                  }
+                },
+                "observedAt": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "orderCount",
+                "awaitingFulfillment",
+                "completedOrders",
+                "canceledOrders",
+                "revenueCents",
+                "refundCents",
+                "productionCostCents",
+                "shippingCostCents",
+                "contributionCents",
+                "exceptions",
+                "averageOrderValueCents",
+                "sourceIds",
+                "products",
+                "series",
+                "observedAt"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      },
+      {
+        "capabilityId": "simulation.stock.manage",
+        "contract": "steward.simulation-stock",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "simulation.dataset.begin",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "begun": {
+                  "const": true
+                }
+              },
+              "required": [
+                "begun"
+              ]
+            }
+          },
+          {
+            "name": "simulation.dataset.reset",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "removed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "removed"
+              ]
+            }
+          },
+          {
+            "name": "simulation.stock.seed",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "items": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 120,
+                        "minLength": 1
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "name",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "items"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "seeded": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "seeded"
+              ]
+            }
+          },
+          {
+            "name": "simulation.stock.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "items": {
+                  "type": "array",
+                  "maxItems": 24,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "reserved": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "available": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity",
+                      "reserved",
+                      "available"
+                    ]
+                  }
+                },
+                "observedAt": {
+                  "type": "string",
+                  "maxLength": 40,
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "items",
+                "observedAt"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      },
+      {
+        "capabilityId": "simulation.production.manage",
+        "contract": "steward.simulation-production",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "simulation.dataset.begin",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "begun": {
+                  "const": true
+                }
+              },
+              "required": [
+                "begun"
+              ]
+            }
+          },
+          {
+            "name": "simulation.dataset.reset",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "removed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "removed"
+              ]
+            }
+          },
+          {
+            "name": "simulation.production.configure",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "catalog": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "unitCostCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "unitCostCents"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "catalog"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "configured": {
+                  "const": true
+                }
+              },
+              "required": [
+                "configured"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      },
+      {
+        "capabilityId": "simulation.commerce.orders",
+        "contract": "steward.simulation-channel-orders",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "commerce.order.import",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "sourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "sourceCreatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "sourceUpdatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "channel": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "financialStatus": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "paid",
+                    "refunded",
+                    "partially_refunded",
+                    "authorized",
+                    "partially_paid",
+                    "voided",
+                    "expired"
+                  ]
+                },
+                "fulfillmentStatus": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "canceled": {
+                  "type": "boolean"
+                },
+                "refundCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sourceVariantId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "unitPriceCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "lineRevenueCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sourceVariantId",
+                      "sku",
+                      "quantity",
+                      "unitPriceCents",
+                      "lineRevenueCents"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "sourceId",
+                "sourceCreatedAt",
+                "sourceUpdatedAt",
+                "channel",
+                "currency",
+                "financialStatus",
+                "fulfillmentStatus",
+                "canceled",
+                "refundCents",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "orderId",
+                "status"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  },
+  "mcpTools": [
+    {
+      "name": "simulation_activity",
+      "description": "Read persisted synthetic Sales service observations and current simulation state. No simulation control or live production authority.",
+      "operationId": "dashboard"
+    }
+  ]
+}

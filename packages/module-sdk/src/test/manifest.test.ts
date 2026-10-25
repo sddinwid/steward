@@ -11,6 +11,11 @@ const m: ModulePackageManifest = {
   configurationSchema: { type: 'object', additionalProperties: false, required: ['unit'], properties: { unit: { type: 'string', minLength: 1 } } },
   persistence: { isolation: 'dedicated-database', schemaVersion: 1, migrations: [{ version: 1, sha256: 'a'.repeat(64) }], destructiveRollback: false }, integrationEvents: [], analyticalCapabilities: []
 };
+test('module-contributed workspace, bounded polling, form defaults and confirmations remain data-only',()=>{
+ const screen={...m.ui[0]!,workspace:'administration' as const,refreshMs:3000,columns:['scenario'],fields:[{name:'scenario',label:'Scenario',type:'string' as const,required:false,enum:['normal','delay'],default:'normal'}]};
+ validateManifest({...m,minimumPlatformVersion:'0.11.0',ui:[screen]});
+ for(const change of [{workspace:'arbitrary'},{refreshMs:1},{refreshMs:Infinity},{script:'fetch(secret)'},{fields:[{...screen.fields[0],default:'unlisted'}]}])assert.throws(()=>validateManifest({...m,ui:[{...screen,...change}]} as ModulePackageManifest));
+});
 test('signed MCP contributions can only target declared read-only parameterless APIs',()=>{
  validateManifest({...m,mcpTools:[{name:'get_records',description:'Read local records',operationId:'list'}]});
  validateManifest({...m,ui:[],mcpTools:[{name:'get_records',description:'Headless read contribution',operationId:'list'}]});

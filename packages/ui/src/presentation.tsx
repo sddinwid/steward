@@ -7,6 +7,7 @@ export function screenLabel(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution
  const label=humanize(s.navigationLabel).replace(/^Sales /,'').replace(/^Procurement Requisition$/,'Purchase Requisitions').replace(/^Workforce (People|Person)$/,'Workforce Directory').replace(/^Printify Job$/,'Production Orders');return label.replace(/\bJob\b/g,'Production Orders').replace(/\bOrder\b/g,'Orders').replace(/\bProduct\b/g,'Products').replace(/\bCustomer\b/g,'Customers').replace(/\bSupplier\b/g,'Suppliers').replace(/\bPerson\b/g,'People').replace(/\bFacility\b/g,'Facilities').replace(/\bMapping\b/g,'Product Mapping');
 }
 export function screenGroup(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
+ if(s.workspace==='administration')return 'Administration';if(s.workspace==='developer')return 'Integration diagnostics';
  const text=(m.name+' '+s.navigationLabel).toLowerCase();
  if(/delivery|integration-status/.test(s.screenId))return 'Integration diagnostics';
  if(/connection|mapping/.test(s.screenId))return 'Connections';

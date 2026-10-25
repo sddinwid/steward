@@ -1,3 +1,4 @@
+import {capabilityConfigured} from '@steward/module-sdk';
 import {protectSimulationRoute} from './simulation-routing.js';
 import type pg from 'pg';
 import {canonical,digest,verifyPackage,resolveCapability,validateCommand,validateCapabilityValue,type IntegrationCommand,type ModulePackageManifest,type PublisherTrust,type CapabilityProvider} from '@steward/module-sdk';
@@ -33,7 +34,7 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
     const manifest=verifyPackage(row.descriptor,trust).manifest,capability=manifest.smart?.provides.find(c=>c.capabilityId===reference.capabilityId);
     if(!capability||binding.provider_installation_id!==row.operation_id||binding.package_digest!==digest(canonical(row.descriptor)))throw new Error('INTEGRATION_PROVIDER_CHANGED');
     await protectSimulationRoute(db,command,source,manifest,row.configuration);
-    const p:CapabilityProvider={moduleId:row.module_id,moduleVersion:row.version,installationId:row.operation_id,entityId:local.entity_id,packageDigest:binding.package_digest,state:'active',configured:Object.entries(manifest.smart!.prerequisites.configuration).every(([k,v])=>row.configuration[k]===v),capability};
+    const p:CapabilityProvider={moduleId:row.module_id,moduleVersion:row.version,installationId:row.operation_id,entityId:local.entity_id,packageDigest:binding.package_digest,state:'active',configured:capabilityConfigured(manifest,row.configuration,capability),capability};
     if(!resolveCapability(requirement,[p],{entityId:local.entity_id,permissions:capability.operations.map(o=>o.permission)}).selected)throw new Error('INTEGRATION_NOT_AUTHORIZED');
     const operation=capability.operations.find(o=>o.name===reference.operation&&o.mode==='durable');if(!operation||operation.retry!=='safe')throw new Error('INTEGRATION_DURABLE_SAFE_RECEIPT_REQUIRED');
     validateCapabilityValue(command.payload,operation.input);

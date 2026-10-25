@@ -1,0 +1,587 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.simulation.fulfillment",
+  "version": "1.0.0",
+  "name": "Simulated Fulfillment Provider",
+  "description": "Isolated Printify-compatible SSMA fulfillment simulation. No commercial credentials, external HTTP or chargeable production.",
+  "minimumPlatformVersion": "0.11.0",
+  "simulation": {
+    "version": 1,
+    "role": "provider"
+  },
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listJobs",
+      "method": "GET",
+      "path": "/jobs",
+      "permission": "steward.simulation.fulfillment.read"
+    },
+    {
+      "operationId": "datasets",
+      "method": "GET",
+      "path": "/datasets",
+      "permission": "steward.simulation.fulfillment.simulate"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "jobs",
+      "title": "Simulated production",
+      "navigationLabel": "Simulated production",
+      "listOperation": "listJobs",
+      "fields": [
+        {
+          "name": "orderId",
+          "label": "Order reference",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "productionCostCents",
+          "label": "Estimated production cost",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shippingCostCents",
+          "label": "Estimated shipping cost",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "tracking",
+          "label": "Synthetic tracking",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "orderId",
+        "status",
+        "productionCostCents",
+        "shippingCostCents",
+        "tracking"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "productionMinimumSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "default": 180
+      },
+      "productionSpanSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "default": 240
+      },
+      "delayedProductionMinimumSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 7200,
+        "default": 2700
+      },
+      "delayedProductionSpanSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 7200,
+        "default": 1200
+      },
+      "shippingMinimumSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "default": 120
+      },
+      "shippingSpanSeconds": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "default": 180
+      },
+      "expenseVariationBasisPoints": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 2000,
+        "default": 500
+      },
+      "shippingMinimumCents": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 10000,
+        "default": 150
+      },
+      "shippingSpanCents": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10000,
+        "default": 100
+      },
+      "increasedShippingCents": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 20000,
+        "default": 1600
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "ac27b5ae7e5e1df4b74e1d0aec6eb51b3484cd2027a5c32ce7fa3b325668638a"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "synthetic-fulfillment-observations",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "simulation.production.manage",
+        "contract": "steward.simulation-production",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "simulation.dataset.begin",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "begun": {
+                  "const": true
+                }
+              },
+              "required": [
+                "begun"
+              ]
+            },
+            "command": "simulation.dataset.begin",
+            "permission": "steward.simulation.fulfillment.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "simulation.dataset.reset",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "removed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "removed"
+              ]
+            },
+            "command": "simulation.dataset.reset",
+            "permission": "steward.simulation.fulfillment.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "simulation.production.configure",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "datasetId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "runId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "catalog": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 12,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "unitCostCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "unitCostCents"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "datasetId",
+                "runId",
+                "catalog"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "configured": {
+                  "const": true
+                }
+              },
+              "required": [
+                "configured"
+              ]
+            },
+            "command": "simulation.production.configure",
+            "permission": "steward.simulation.fulfillment.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      },
+      {
+        "capabilityId": "simulation.fulfillment.submit",
+        "contract": "steward.simulation-fulfillment",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "fulfillment.submit",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "currency": {
+                  "const": "USD"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "maxLength": 80,
+                        "minLength": 1
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "orderId",
+                "currency",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "jobId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "const": "awaiting_authorization"
+                }
+              },
+              "required": [
+                "jobId",
+                "status"
+              ]
+            },
+            "command": "fulfillment.submit",
+            "permission": "steward.simulation.fulfillment.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "fulfillment.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "canceled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "canceled"
+              ]
+            },
+            "command": "fulfillment.cancel",
+            "permission": "steward.simulation.fulfillment.simulate",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "simulation.commerce.status",
+        "contract": "steward.simulation-production-progress",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "fulfillment.progress",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "sourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "in_production",
+                    "shipped",
+                    "failed"
+                  ]
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "productionCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "shippingCostCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "costBasis": {
+                  "type": "string",
+                  "enum": [
+                    "estimated",
+                    "known",
+                    "incomplete"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{3}$"
+                },
+                "tracking": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "orderId",
+                "sourceId",
+                "status",
+                "updatedAt",
+                "productionCostCents",
+                "shippingCostCents",
+                "costBasis",
+                "currency",
+                "tracking"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "recorded": {
+                  "const": true
+                }
+              },
+              "required": [
+                "recorded"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": false
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  },
+  "mcpTools": [
+    {
+      "name": "simulation_fulfillment_jobs",
+      "description": "Read synthetic fulfillment jobs. No commercial production or credentials.",
+      "operationId": "listJobs"
+    }
+  ]
+}

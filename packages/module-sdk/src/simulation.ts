@@ -17,7 +17,7 @@ export function sameSimulationDataset(a:SimulationOrigin,b:SimulationOrigin){ret
 export function assertSimulationBoundary(command:IntegrationCommand,source:ModulePackageManifest,target:ModulePackageManifest,configuration:Record<string,unknown>,known?:SimulationOrigin){
  const origin=command.simulation;
  if(known&&(!origin||canonical(origin)!==canonical(known)))fail('PROVENANCE_CHANGED');
- if(['engine','provider'].includes(source.simulation?.role??'')&&!origin)fail('PROVENANCE_REQUIRED');
+ if((['engine','provider'].includes(source.simulation?.role??'')||command.capability?.capabilityId.startsWith('simulation.'))&&!origin)fail('PROVENANCE_REQUIRED');
  if(!origin)return;
  validateSimulationOrigin(origin);
  // Reject before a live adapter or its private credentials can be addressed.

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID, generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { resolveCapability, validateManifest, validateCapabilityValue, signPackage, verifyPackage, type CapabilityContract, type CapabilityRequirement, type CapabilityProvider, type ModulePackageManifest } from '../index.js';
+import { capabilityConfigured, resolveCapability, validateManifest, validateCapabilityValue, signPackage, verifyPackage, type CapabilityContract, type CapabilityRequirement, type CapabilityProvider, type ModulePackageManifest } from '../index.js';
 const input={type:'object',additionalProperties:false,required:['sku'],properties:{sku:{type:'string',maxLength:80}}};
 const output={type:'object',additionalProperties:false,required:['available'],properties:{available:{type:'integer',minimum:0}}};
 const c:CapabilityContract={capabilityId:'inventory.availability.read',contract:'steward.inventory-availability',version:'1.0.0',operations:[{name:'read',command:'availability',input,output,permission:'example.stock.read',mode:'sync',idempotency:'required',retry:'safe'}],events:[],sensitivity:'business',scope:'entity',ownership:'provider'};
@@ -36,7 +36,8 @@ test('signed optional SSMA metadata preserves legacy manifests and cannot be tam
   const base=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
   base.persistence.migrations=Array.from({length:base.persistence.schemaVersion},(_,i)=>({version:i+1,sha256:'a'.repeat(64)}));
   validateManifest(base);
-  const m:ModulePackageManifest={...base,minimumPlatformVersion:'0.8.0',smart:{version:1,provides:[],consumes:[requirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};
+  const {simulation,...legacy}=base;
+  const m:ModulePackageManifest={...legacy,minimumPlatformVersion:'0.8.0',smart:{version:1,provides:[],consumes:[requirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};
   validateManifest(m);
   assert.throws(()=>validateManifest({...m,smart:{...m.smart!,consumes:[{...requirement,operations:[{name:'read',input:{$ref:'https://invalid.example/schema'},output}]}]}}));
   const pair=generateKeyPairSync('ed25519'),secret=pair.privateKey.export({type:'pkcs8',format:'pem'}).toString(),publicKey=pair.publicKey.export({type:'spki',format:'pem'}).toString();
@@ -45,4 +46,15 @@ test('signed optional SSMA metadata preserves legacy manifests and cannot be tam
 });
 test('capability values validate closed signed schemas and reject extra or invalid fields',()=>{
   validateCapabilityValue({sku:'SYN-1'},input);assert.throws(()=>validateCapabilityValue({sku:'SYN-1',secret:'x'},input));assert.throws(()=>validateCapabilityValue({available:-1},output));
+});
+
+
+test('signed per-capability prerequisites preserve independent ordinary and simulation configuration',()=>{
+ const m=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
+ validateManifest(m);const ordinary=m.smart!.provides.find(p=>p.capabilityId==='commerce.orders.manage')!,synthetic=m.smart!.provides.find(p=>p.capabilityId==='simulation.sales.manage')!;
+ assert.equal(capabilityConfigured(m,{integrationsEnabled:false,simulationEnabled:true},ordinary),false);
+ assert.equal(capabilityConfigured(m,{integrationsEnabled:false,simulationEnabled:true},synthetic),true);
+ assert.equal(capabilityConfigured(m,{integrationsEnabled:true,simulationEnabled:false},ordinary),true);
+ assert.equal(capabilityConfigured(m,{integrationsEnabled:true,simulationEnabled:false},synthetic),false);
+ assert.throws(()=>validateManifest({...m,smart:{...m.smart!,provides:[{...synthetic,configuration:{unknown:true}}]}}));
 });

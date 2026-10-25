@@ -4,6 +4,7 @@ import { canonical, digest, atLeast, type ModulePackageManifest } from './index.
 export type JsonSchema = Record<string, unknown>;
 export type Sensitivity = 'public' | 'business' | 'restricted';
 export interface CapabilityContract {
+  configuration?:Record<string,string|number|boolean>;
   capabilityId: string; contract: string; version: string;
   operations: { name: string; command: string; input: JsonSchema; output: JsonSchema; permission: string; mode: 'sync' | 'durable'; idempotency: 'required'; retry: 'safe' | 'reconcile' }[];
   events: { name: string; schema: JsonSchema }[];
@@ -55,7 +56,8 @@ export function validateSmartManifest(m: ModulePackageManifest) {
   check(closed(s.prerequisites, ['configuration','requiresActive','requiresHealthy']) && s.prerequisites.requiresActive === true && s.prerequisites.requiresHealthy === true, 'prerequisites');
   check(s.prerequisites.configuration && Object.keys(s.prerequisites.configuration).length <= 12 && Object.entries(s.prerequisites.configuration).every(([k,v]) => Object.hasOwn((m.configurationSchema.properties ?? {}) as object,k) && ['string','number','boolean'].includes(typeof v)), 'configuration prerequisites');
   for (const c of s.provides) {
-    check(closed(c, ['capabilityId','contract','version','operations','events','sensitivity','scope','ownership']) && id.test(c.capabilityId) && id.test(c.contract) && semver.test(c.version), 'provider identity');
+    check(closed(c, ['capabilityId','contract','version','operations','events','sensitivity','scope','ownership','configuration']) && id.test(c.capabilityId) && id.test(c.contract) && semver.test(c.version), 'provider identity');
+    if(c.configuration!==undefined)check(atLeast(m.minimumPlatformVersion,'0.11.0')&&c.configuration&&typeof c.configuration==='object'&&!Array.isArray(c.configuration)&&Object.keys(c.configuration).length<=12&&Object.entries(c.configuration).every(([k,v])=>Object.hasOwn((m.configurationSchema.properties??{}) as object,k)&&['string','number','boolean'].includes(typeof v)),'capability configuration prerequisites');
     check(levels.includes(c.sensitivity) && c.scope === 'entity' && c.ownership === 'provider', 'authority');
     check(unique(c.operations, o => o.name, 12) && c.operations.length, 'operations');
     for (const o of c.operations) {
@@ -107,3 +109,5 @@ export function resolveCapability(requirement: CapabilityRequirement, providers:
   return { state: compatible.length === 1 ? 'resolved' as const : compatible.length ? 'ambiguous' as const : 'unavailable' as const, selected: compatible.length === 1 ? compatible[0]!.provider : null, evaluations };
 }
 export function validateCapabilityValue(value: unknown, contract: JsonSchema) { if (!schema(contract)(value)) throw new Error('CAPABILITY_SCHEMA_MISMATCH'); }
+
+export function capabilityConfigured(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capability:CapabilityContract){return Object.entries({...manifest.smart?.prerequisites.configuration,...capability.configuration}).every(([k,v])=>configuration[k]===v);}

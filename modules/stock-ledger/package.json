@@ -1,6 +1,6 @@
 {
   "name": "@steward/stock-ledger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,8 +8,10 @@
   },
   "dependencies": {
     "@steward/business-kit": "file:../../packages/business-kit",
+    "@steward/commerce-kit": "file:../../packages/commerce-kit",
     "@steward/module-sdk": "file:../../packages/module-sdk",
-    "@steward/commerce-kit": "file:../../packages/commerce-kit"
+    "@steward/simulation-kit": "file:../../packages/simulation-kit",
+    "steward-platform": "file:../.."
   },
   "devDependencies": {
     "@types/node": "24.10.1",

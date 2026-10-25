@@ -9,3 +9,7 @@ Dockerfile* text eol=lf
 # These overrides change checkout policy, not migration SQL or recorded checksums.
 modules/shopify/migrations/003-operational-conditions.sql text eol=crlf
 modules/shopify/migrations/004-publication-gate.sql text eol=crlf
+
+# Preserve bytes of existing Sales 1.2.x applied migrations.
+modules/sales/migrations/004-financial-evidence.sql text eol=crlf
+modules/sales/migrations/005-atomic-financial-projection.sql text eol=crlf

@@ -275,13 +275,13 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
 }
 export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, runtime: Data, definition: Definition) {
     const ctx = (db: pg.PoolClient): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [] });
-    app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,command_id LIMIT 4")).rows.map(r => r.envelope) }));
+    app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,(envelope->>'sequence')::bigint,command_id LIMIT 4")).rows.map(r => r.envelope) }));
     app.post<{
         Body: IntegrationCommand;
     }>('/integration-inbox', async (req, reply) => {
         const result = await transaction(pool, async (db) => {
             const c = ctx(db);
-            ensure(c.config.integrationsEnabled === true, 'Integrations disabled', 403);
+            ensure(c.config.integrationsEnabled===true||req.body.simulation&&definition.manifest.simulation?.role==='participant'&&c.config.simulationEnabled===true,'Integrations disabled',403);
             validateCommand(req.body);
             ensure(!req.body.simulation||definition.manifest.simulation&&!definition.manifest.connector&&runtime.configuration.mode!=='live','SIMULATION_LIVE_PROVIDER_DENIED',403);
             ensure(!['engine','provider'].includes(definition.manifest.simulation?.role??'')||req.body.simulation,'SIMULATION_PROVENANCE_REQUIRED',403);

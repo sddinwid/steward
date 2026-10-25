@@ -1,9 +1,11 @@
+import {simulationSales} from './simulation.js';
+import {simulationContracts} from '@steward/simulation-kit';
 import {financialAssessment,intelligence,exceptions} from './intelligence.js';
 import { ensure, find, get, save, records, enqueue, enqueueCapability,publicRecord, object, text, amount, lines, uniqueLines, centsTotal, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {contracts} from '@steward/commerce-kit';
 export function sales(manifest: ModulePackageManifest): Definition {
-    return { manifest, resources: [financialAssessment,
+    return simulationSales({ manifest, resources: [financialAssessment,
             { kind: 'customer', path: '/customers', key: 'code', schema: object({ code: text(60), name: text(), reference: text(120) }) },
             { kind: 'order', path: '/orders', key: 'number', schema: object({ number: text(80), customerCode: text(60), currency: text(3), lines: lines() }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Only draft sales orders can be edited');
@@ -56,7 +58,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
             {path:'/production/:id',kind:'order',permission:'cee.sales.production.authorize',run:async(r,ctx)=>{
                 ensure(r.data.smartInventory&&r.data.inventoryIntegration&&r.data.status==='confirmed'&&r.data.stockStatus==='reserved'&&!r.data.productionRequested&&!r.data.remoteCanceled,'A confirmed, paid, fully reserved order is required');
                 ensure(r.data.lines.every((l:Data)=>r.data.reserved[l.sku]===l.quantity),'Production cannot exceed authoritative reserved stock');
-                await enqueueCapability(ctx,contracts.production!.id,'fulfillment.submit',r.id,{orderId:r.id,currency:r.data.currency,lines:r.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});
+                await enqueueCapability(ctx,r.data.simulation?simulationContracts.fulfillment.id:contracts.production!.id,'fulfillment.submit',r.id,{orderId:r.id,currency:r.data.currency,lines:r.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});
                 return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,productionRequested:true,productionStatus:'intent_pending'},r))};
             }},
             {path:'/publish-commerce/:id',kind:'order',permission:'cee.sales.publish',run:async(r,ctx)=>{ensure(r.data.channel,'Only source-attributed commerce orders can be published');return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,commerceApproved:true},r))};}},
@@ -85,7 +87,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
             else if(command.command==='fulfillment.submit')await save(ctx,'order',order.key,{...order.data,productionStatus:status==='delivered'?'awaiting_authorization':'intent_rejected',productionJobId:result.jobId??null,productionProviderId:result._steward?.providerModuleId??null},order);
             else if(command.command==='fulfillment.cancel'){if(status==='delivered'&&result.canceled){await stock(ctx,order,'stock.release',{orderId:order.id});await save(ctx,'order',order.key,{...order.data,status:'canceled',stockStatus:'release_pending',productionStatus:'canceled'},order);}else await save(ctx,'order',order.key,{...order.data,reconciliationRequired:true},order);}
             else if(command.command==='channel.fulfillment')await save(ctx,'order',order.key,{...order.data,channelDeliveryStatus:status==='delivered'?'queued':'rejected'},order);
-        },receive:receiveCommerce,queries:[{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) };
+        },receive:receiveCommerce,queries:[{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
 }
 async function salesReport(ctx:Context,query:Record<string,string>={}){
     const timestamp=(value:string|undefined)=>{if(value===undefined)return null;ensure(Number.isFinite(Date.parse(value)),'Invalid reporting timestamp',400);return new Date(value).toISOString();};
@@ -106,9 +108,9 @@ async function complete(ctx: Context, order: RecordValue, lines: Data[]) {
     }
     const all = order.data.lines.every((v: Data) => fulfilled[v.sku] === v.quantity);
     await save(ctx, 'order', order.key, { ...order.data, fulfilled, reserved, status: all ? 'fulfilled' : 'partially_fulfilled',...(all?{completedAt:new Date().toISOString()}:{}) }, order);
-    if(all&&order.data.channel&&order.data.productionTracking){await enqueueCapability(ctx,contracts.channel!.id,'channel.fulfillment',order.id,{sourceId:order.data.sourceId,orderId:order.id,tracking:order.data.productionTracking,lines:order.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});}
+    if(all&&order.data.channel&&order.data.productionTracking){await enqueueCapability(ctx,order.data.simulation?simulationContracts.channel.id:contracts.channel!.id,'channel.fulfillment',order.id,{sourceId:order.data.sourceId,orderId:order.id,tracking:order.data.productionTracking,lines:order.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});}
 }
-async function stock(ctx:Context,order:RecordValue,command:string,payload:Data){return order.data.smartInventory?enqueueCapability(ctx,contracts.stock!.id,command,order.id,payload):enqueue(ctx,'cee.inventory',command,order.id,payload);}
+async function stock(ctx:Context,order:RecordValue,command:string,payload:Data){return order.data.simulation?enqueueCapability(ctx,simulationContracts.reserve.id,command,order.id,payload):order.data.smartInventory?enqueueCapability(ctx,contracts.stock!.id,command,order.id,payload):enqueue(ctx,'cee.inventory',command,order.id,payload);}
 async function receiveCommerce(command:import('@steward/module-sdk').IntegrationCommand,ctx:Context):Promise<Data>{
  const b=command.payload as Data;
  if(command.command==='commerce.order.import'){
@@ -119,11 +121,11 @@ async function receiveCommerce(command:import('@steward/module-sdk').Integration
   const localLines=(b.lines as Data[]).map(l=>({sku:l.sku,quantity:l.quantity,unitPriceCents:l.unitPriceCents}));
   centsTotal(localLines);
   if(old&&old.data.status!=='draft')ensure(canonical(old.data.lines)===canonical(localLines),'Confirmed order lines changed at source; reconcile before applying',409);
-  const customer='channel-'+digest(command.sourceModuleId).slice(0,16);if(!await find(ctx,'customer',customer))await save(ctx,'customer',customer,{code:customer,name:'Channel customer — no personal information imported',reference:'source-adapter'});
+  const customer='channel-'+digest(command.sourceModuleId+(ctx.simulation?':'+ctx.simulation.datasetId+':'+ctx.simulation.runId:'')).slice(0,16);if(!await find(ctx,'customer',customer))await save(ctx,'customer',customer,{code:customer,name:'Channel customer — no personal information imported',reference:'source-adapter'});
   ensure(Number.isFinite(Date.parse(b.sourceCreatedAt)),'Invalid source creation timestamp');
   const data={status:b.canceled?'canceled':'draft',stockStatus:'not_requested',inventoryIntegration:false,reserved:{},fulfilled:{},reservationFailure:null,commerceApproved:false,createdAt:b.sourceCreatedAt,...old?.data,number:key,customerCode:customer,currency:b.currency,lines:localLines,sourceLines:b.lines,sourceId:b.sourceId,sourceModuleId:command.sourceModuleId,sourceUpdatedAt:b.sourceUpdatedAt,channel:b.channel,financialStatus:b.financialStatus,remoteFulfillmentStatus:b.fulfillmentStatus,remoteCanceled:b.canceled,refundCents:b.refundCents};
   let r=await save(ctx,'order',key,data,old);
-  if(b.canceled&&old&&!old.data.remoteCanceled){if(old.data.productionRequested){await enqueueCapability(ctx,contracts.production!.id,'fulfillment.cancel',r.id,{orderId:r.id});}else if(old.data.inventoryIntegration){await stock(ctx,r,'stock.release',{orderId:r.id});r=await save(ctx,'order',key,{...r.data,status:'canceled',stockStatus:'release_pending'},r);}else r=await save(ctx,'order',key,{...r.data,status:'canceled'},r);}
+  if(b.canceled&&old&&!old.data.remoteCanceled){if(old.data.productionRequested){await enqueueCapability(ctx,old.data.simulation?simulationContracts.fulfillment.id:contracts.production!.id,'fulfillment.cancel',r.id,{orderId:r.id});}else if(old.data.inventoryIntegration){await stock(ctx,r,'stock.release',{orderId:r.id});r=await save(ctx,'order',key,{...r.data,status:'canceled',stockStatus:'release_pending'},r);}else r=await save(ctx,'order',key,{...r.data,status:'canceled'},r);}
   return{orderId:r.id,status:r.data.status};
  }
  ensure(command.command==='fulfillment.progress','Unsupported commerce operation',403);validateCapabilityValue(b,contracts.status!.operations[0]!.input);const order=await get(ctx,'order',String(b.orderId));ensure(order.data.productionRequested&&order.data.currency===b.currency,'Unknown authorized production order',403);
