@@ -17,6 +17,10 @@ test('optional scientific provisioning is isolated and repeatable without replac
   assert.deepEqual(await Promise.all(files.map(f=>readFile(path.join(directory,'scientific',f),'utf8'))),original);
   assert.deepEqual(await Promise.all(['manifest.json','compose.yaml','security/compose.yaml'].map(f=>readFile(path.join(directory,f),'utf8'))),before);
   const overlay=await readFile(path.join(directory,'scientific/compose.yaml'),'utf8');assert.match(overlay,/internal: true/);assert.match(overlay,/mem_limit: 768m/);assert(!overlay.includes('worker-'));assert(!overlay.includes('ports:'));assert(!overlay.includes('docker.sock'));assert(!overlay.includes('depends_on:'));
+  const compose=JSON.parse(execFileSync('docker',['compose','-f',path.join(directory,'compose.yaml'),'-f',path.join(directory,'security/compose.yaml'),'-f',path.join(directory,'scientific/compose.yaml'),'config','--format','json'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}));
+  assert.deepEqual(compose.services.scientific.tmpfs,['/tmp:rw,noexec,nosuid,size=32m']);assert.equal(compose.networks.scientific.internal,true);
+  const key=await readFile(path.join(directory,'scientific/key.txt'),'utf8');await writeFile(path.join(directory,'scientific/compose.yaml'),overlay.replace('tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]','tmpfs: [/tmp:rw,noexec,nosuid,size=32m]'));
+  execFileSync(process.execPath,[cli,directory],{stdio:'pipe'});assert.equal(await readFile(path.join(directory,'scientific/compose.yaml'),'utf8'),overlay);assert.equal(await readFile(path.join(directory,'scientific/key.txt'),'utf8'),key);
   const manifest=JSON.parse(await readFile(path.join(directory,'scientific/manifest.json'),'utf8'));manifest.installationId='wrong-installation';await writeFile(path.join(directory,'scientific/manifest.json'),JSON.stringify(manifest));
   assert.throws(()=>execFileSync(process.execPath,[cli,directory],{stdio:'pipe'}));assert.equal(await readFile(path.join(directory,'scientific/key.txt'),'utf8'),original[files.indexOf('key.txt')]);
  }finally{await rm(base,{recursive:true,force:true});}

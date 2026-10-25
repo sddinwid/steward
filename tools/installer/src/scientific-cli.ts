@@ -13,6 +13,13 @@ try{
  if(existsSync(target)){
   const saved=JSON.parse(await readFile(path.join(target,'manifest.json'),'utf8'));if(saved.version!==1||saved.installationId!==master.installationId)throw Error('Scientific installation identity mismatch');
   for(const file of ['config.json','key.txt','compose.yaml'])if(!existsSync(path.join(target,file)))throw Error('Existing scientific setup is incomplete; restore its private backup');
+  const overlayFile=path.join(target,'compose.yaml'),overlay=await readFile(overlayFile,'utf8');
+  // Narrow repair for the initial generated flow-list quoting defect. Never
+  // regenerate keys, rewrite configured endpoints or replace other operator data.
+  if(overlay.includes('tmpfs: [/tmp:rw,noexec,nosuid,size=32m]')){
+   await writeFile(overlayFile,overlay.replace('tmpfs: [/tmp:rw,noexec,nosuid,size=32m]','tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]'));
+   console.log('Corrected generated tmpfs quoting; scientific identity, key and endpoint retained.');
+  }
   console.log('Preserved scientific configuration and authentication key.');
  }else{
   staging=await mkdtemp(path.join(directory,'.scientific-staging-'));privateDirectory(staging);
@@ -44,7 +51,7 @@ try{
     pids_limit: 128
     mem_limit: 768m
     cpus: 2
-    tmpfs: [/tmp:rw,noexec,nosuid,size=32m]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
     volumes:
       - type: bind
         source: ${quote(path.join(target,'key.txt'))}
