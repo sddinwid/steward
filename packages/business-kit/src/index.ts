@@ -1,3 +1,6 @@
+export * from './simulation.js';
+import {setSimulationContext,simulationEpoch,inferSimulationContext} from './simulation.js';
+import {simulationEpochSql,sameSimulationDataset,type SimulationOrigin} from '@steward/module-sdk';
 import Fastify, { type FastifyRequest, type FastifyInstance } from 'fastify';
 import pg from 'pg';
 import { Ajv } from 'ajv';
@@ -20,6 +23,7 @@ export class BusinessError extends Error {
 export function ensure(condition: unknown, message: string, status = 422): asserts condition { if (!condition)
     throw new BusinessError(status, message); }
 export interface Context {
+    simulation?:SimulationOrigin;
     db: pg.PoolClient;
     config: Data;
     installationId: string;
@@ -60,7 +64,8 @@ CREATE TABLE IF NOT EXISTS business_records(id uuid PRIMARY KEY,kind text NOT NU
 CREATE INDEX IF NOT EXISTS business_records_kind ON business_records(kind,key);
 CREATE TABLE IF NOT EXISTS business_requests(request_id uuid PRIMARY KEY,actor text NOT NULL,operation text NOT NULL,digest text NOT NULL,response jsonb NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS business_audit(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,actor text NOT NULL,operation text NOT NULL,record_id uuid,created_at timestamptz NOT NULL DEFAULT now());
-${integrationSql}`;
+${integrationSql}
+${simulationEpochSql}`;
 export async function transaction<T>(pool: pg.Pool, run: (db: pg.PoolClient) => Promise<T>): Promise<T> {
     const db = await pool.connect();
     try {
@@ -80,10 +85,12 @@ export async function transaction<T>(pool: pg.Pool, run: (db: pg.PoolClient) => 
     }
 }
 const convert = (r: any): RecordValue => ({ id: r.id, kind: r.kind, key: r.key, data: r.data, revision: r.revision });
-export async function find(ctx: Context, kind: string, key: string): Promise<RecordValue | null> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND key=$2', [kind, key])).rows[0]; return row ? convert(row) : null; }
-export async function get(ctx: Context, kind: string, id: string): Promise<RecordValue> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND id=$2 FOR UPDATE', [kind, id])).rows[0]; ensure(row, 'Record not found', 404); return convert(row); }
+export async function find(ctx: Context, kind: string, key: string): Promise<RecordValue | null> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND key=$2', [kind, key])).rows[0]; if(row&&ctx.simulation)ensure(row.data.simulation&&sameSimulationDataset(row.data.simulation,ctx.simulation),'SIMULATION_RECORD_SCOPE_MISMATCH',403);return row ? convert(row) : null; }
+export async function get(ctx: Context, kind: string, id: string): Promise<RecordValue> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND id=$2 FOR UPDATE', [kind, id])).rows[0]; ensure(row, 'Record not found', 404);if(ctx.simulation)ensure(row.data.simulation&&sameSimulationDataset(row.data.simulation,ctx.simulation),'SIMULATION_RECORD_SCOPE_MISMATCH',403); return convert(row); }
 export async function records(ctx: Context, kind: string): Promise<RecordValue[]> { const rows = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 ORDER BY key LIMIT 10001', [kind])).rows; ensure(rows.length <= 10000, 'Reporting limit reached; narrow the operational dataset', 413); return rows.map(convert); }
 export async function save(ctx: Context, kind: string, key: string, data: Data, previous?: RecordValue | null): Promise<RecordValue> {
+    const origin=ctx.simulation??previous?.data.simulation;
+    if(origin){setSimulationContext(ctx,origin);if(previous)ensure(previous.data.simulation&&sameSimulationDataset(previous.data.simulation,origin),'SIMULATION_RECORD_NOT_OWNED',403);ensure(!data.simulation||sameSimulationDataset(data.simulation,origin),'SIMULATION_PROVENANCE_CHANGED',403);data={...data,simulation:previous?.data.simulation??origin};}
     const row = previous ? (await ctx.db.query('UPDATE business_records SET data=$1,revision=revision+1,updated_at=now() WHERE id=$2 AND revision=$3 RETURNING *', [data, previous.id, previous.revision])).rows[0]
         : (await ctx.db.query('INSERT INTO business_records(id,kind,key,data) VALUES($1,$2,$3,$4) RETURNING *', [randomUUID(), kind, key, data])).rows[0];
     ensure(row, 'Record changed; refresh before retrying', 409);
@@ -91,15 +98,17 @@ export async function save(ctx: Context, kind: string, key: string, data: Data, 
 }
 export const publicRecord = (r: RecordValue): Data => ({ ...r.data, id: r.id, revision: r.revision });
 export async function enqueue(ctx: Context, targetModuleId: string, command: string, aggregateId: string, payload: Data) {
+    await inferSimulationContext(ctx,aggregateId);
     const last = Number((await ctx.db.query("SELECT COALESCE(max((envelope->>'sequence')::bigint),0) AS n FROM integration_outbox WHERE envelope->>'aggregateId'=$1 AND envelope->>'targetModuleId'=$2", [aggregateId, targetModuleId])).rows[0].n);
-    const envelope: IntegrationCommand = { protocol: INTEGRATION_PROTOCOL, commandId: randomUUID(), sourceModuleId: ctx.moduleId, targetModuleId, command, version: 1, aggregateId, sequence: last + 1, occurredAt: new Date().toISOString(), payload };
+    const envelope: IntegrationCommand = { protocol: INTEGRATION_PROTOCOL, commandId: randomUUID(), sourceModuleId: ctx.moduleId, targetModuleId, command, version: 1, aggregateId, sequence: last + 1, occurredAt: new Date().toISOString(), payload,...(ctx.simulation?{simulation:ctx.simulation}:{}) };
     validateCommand(envelope);
     await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)', [envelope.commandId, envelope]);
     return envelope.commandId;
 }
 export async function enqueueCapability(ctx:Context,capabilityId:string,operation:string,aggregateId:string,payload:Data) {
+    await inferSimulationContext(ctx,aggregateId);
     const last=Number((await ctx.db.query("SELECT COALESCE(max((envelope->>'sequence')::bigint),0) n FROM integration_outbox WHERE envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2",[aggregateId,capabilityId])).rows[0].n);
-    const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation}};
+    const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation},...(ctx.simulation?{simulation:ctx.simulation}:{})};
     validateCommand(envelope);await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)',[envelope.commandId,envelope]);return envelope.commandId;
 }
 export async function receiveCommand(ctx: Context, command: IntegrationCommand, receive: NonNullable<Definition['receive']>): Promise<{
@@ -113,6 +122,7 @@ export async function receiveCommand(ctx: Context, command: IntegrationCommand, 
         ensure(cached.digest === hash, 'Command identity reused with different content', 409);
         return cached.response;
     }
+    if(command.simulation){setSimulationContext(ctx,command.simulation);ensure(command.command==='simulation.dataset.reset'||await simulationEpoch(ctx,command.command==='simulation.dataset.begin'),'SIMULATION_DATASET_CLOSED',403);}
     const previous = Number((await ctx.db.query('SELECT sequence FROM integration_sequences WHERE source_module=$1 AND aggregate_id=$2 FOR UPDATE', [command.sourceModuleId, command.aggregateId])).rows[0]?.sequence ?? 0);
     ensure(command.sequence === previous + 1, command.sequence > previous + 1 ? 'Earlier command has not arrived' : 'Stale integration sequence', command.sequence > previous + 1 ? 425 : 409);
     await ctx.db.query('SAVEPOINT business_command');
@@ -130,7 +140,8 @@ export async function receiveCommand(ctx: Context, command: IntegrationCommand, 
         await ctx.db.query('ROLLBACK TO SAVEPOINT business_command');
         response = { httpStatus: error.status, value: { error: error.message } };
     }
-    await ctx.db.query('INSERT INTO integration_inbox(source_module,command_id,digest,response) VALUES($1,$2,$3,$4)', [command.sourceModuleId, command.commandId, hash, response]);
+    if(ctx.simulation)await ctx.db.query('INSERT INTO integration_inbox(source_module,command_id,digest,response,simulation) VALUES($1,$2,$3,$4,$5)',[command.sourceModuleId,command.commandId,hash,response,ctx.simulation]);
+    else await ctx.db.query('INSERT INTO integration_inbox(source_module,command_id,digest,response) VALUES($1,$2,$3,$4)', [command.sourceModuleId, command.commandId, hash, response]);
     await ctx.db.query('INSERT INTO integration_sequences(source_module,aggregate_id,sequence) VALUES($1,$2,$3) ON CONFLICT(source_module,aggregate_id) DO UPDATE SET sequence=excluded.sequence', [command.sourceModuleId, command.aggregateId, command.sequence]);
     return response;
 }
@@ -244,8 +255,10 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             }
             const record = await get(c, action.kind, req.params.id);
             ensure(record.revision === req.body.revision, 'Revision conflict', 409);
+            if(record.data.simulation){setSimulationContext(c,record.data.simulation);ensure(await simulationEpoch(c),'SIMULATION_DATASET_CLOSED',403);}
             const response = await action.run(record, c);
-            await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response) VALUES($1,$2,$3,$4,$5)', [req.body.requestId, c.actor, action.path, hash, response]);
+            if(c.simulation)await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response,simulation) VALUES($1,$2,$3,$4,$5,$6)',[req.body.requestId,c.actor,action.path,hash,response,c.simulation]);
+            else await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response) VALUES($1,$2,$3,$4,$5)', [req.body.requestId, c.actor, action.path, hash, response]);
             await db.query('INSERT INTO business_audit(actor,operation,record_id) VALUES($1,$2,$3)', [c.actor, action.path, record.id]);
             return response;
         }));
@@ -270,6 +283,8 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             const c = ctx(db);
             ensure(c.config.integrationsEnabled === true, 'Integrations disabled', 403);
             validateCommand(req.body);
+            ensure(!req.body.simulation||definition.manifest.simulation&&!definition.manifest.connector&&runtime.configuration.mode!=='live','SIMULATION_LIVE_PROVIDER_DENIED',403);
+            ensure(!['engine','provider'].includes(definition.manifest.simulation?.role??'')||req.body.simulation,'SIMULATION_PROVENANCE_REQUIRED',403);
             ensure(req.headers['x-steward-integration-source'] === req.body.sourceModuleId && req.headers['x-steward-installation'] === c.installationId, 'Integration identity mismatch', 403);
             const peer = definition.manifest.integration?.peers.find(p => p.moduleId === req.body.sourceModuleId);
             // This header is supplied only by the authenticated local host after
@@ -293,8 +308,9 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             ensure(b.status === row.status || b.status === 'retry', 'Terminal acknowledgment conflict', 409);
             return { status: row.status };
         }
-        if (b.status !== 'retry')
-            await definition.acknowledge?.(row.envelope, b.status, b.result ?? {}, ctx(db));
+        const acknowledgmentContext=ctx(db);if(row.envelope.simulation)setSimulationContext(acknowledgmentContext,row.envelope.simulation);
+        if (b.status !== 'retry'&&(!acknowledgmentContext.simulation||await simulationEpoch(acknowledgmentContext)))
+            await definition.acknowledge?.(row.envelope, b.status, b.result ?? {}, acknowledgmentContext);
         await db.query("UPDATE integration_outbox SET attempts=attempts+1,status=$2,last_error=$3,result=$4,next_attempt_at=now()+make_interval(secs=>LEAST(60,power(2,LEAST(attempts,6))::integer)),completed_at=CASE WHEN $2='pending' THEN NULL ELSE now() END WHERE command_id=$1", [b.commandId, b.status === 'retry' ? 'pending' : b.status, String(b.error ?? '').slice(0, 160) || null, b.result ?? null]);
         return { status: b.status };
     }));

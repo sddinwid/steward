@@ -1,0 +1,30 @@
+# ADR 0025 — Continuous commerce simulation through existing authority
+
+Status: implementation in progress. No Phase 11 acceptance/release is claimed by this ADR.
+
+Baseline HEAD was c6a5d90, after Shopify 5cfe05f and Printify 955e0c2/c6a5d90. Current live operator project is steward-phase8-upgrade-reg. All four databases and its private configuration were backed up before source changes. Phase 11 branch is codex/phase11-continuous-commerce. Existing v0.8.0/v0.9.1 tags, credentials, identities, original business rows and live Worker 3 connector configuration must be preserved.
+
+## Decisions
+
+Use Workers 1 and 2 for synthetic activity; Worker 3 stays a live-catalog installation. Install `steward.simulation.commerce` as an independent signed scheduler/control module and `steward.simulation.fulfillment` as a separately packaged fake Printify-compatible fulfillment-capability implementation. Both are isolated processes/databases with no connector declaration, private commercial credential mount, external network grant or external commerce HTTP implementation. This is a genuine local simulated provider, not a claim of paid Printify production.
+
+Use existing Sales and Stock Ledger business services, dedicated operational databases and SSMA routes. Do not write their databases from the simulation engine. Add closed simulation-only service capabilities for dataset setup/reset, Sales lifecycle progression/inspection and stock setup; these delegate to existing validation/actions. Engine emits existing channel order-import intents; Sales confirms/reserves actual stock, requests the approved fake fulfillment provider, receives real durable progress, consumes reservations and completes real Sales records. Source updates implement cancellations/refunds using existing commerce semantics. Missing mappings/shortages remain real validation failures.
+
+Provenance is versioned signed envelope metadata (dataset/run/ecosystem identity, seed, event index, scenario, simulated timestamp/speed) and persists on every synthetic business record. Actual occurred_at/processing timestamps remain separate. Business-kit carries provenance through actions, records, ACKs and subsequent envelopes. Module Host pins aggregate provenance and checks it both during deterministic provider selection and immediately before delivery. Missing/changed provenance fails closed; any synthetic event targeting any commercial connector or live-mode provider is denied and audited, regardless of binding. A signed simulation declaration never grants authority. All bindings/workflows still require the existing Worker-local approval flow. Legacy modules remain supported for non-synthetic work.
+
+Reset is an owner-service command scoped to exact dataset and run. Per-module epoch barriers reject delayed/replayed work after reset and permit a new run only through an explicit begin command. Only synthetic records/receipts for that epoch may be removed; original rows, credentials, module installations, obligations and enrollment remain intact. Sales projection withdrawal must synchronize to Master before/reset deletion, with source history retained. No destructive migration rollback is used.
+
+Use an isolated synthetic catalog with synthetic SKU/source IDs rather than copying live order identities. Catalog source observations remain untouched. Module-owned scheduler/intents are coordination state, not another order-processing system. Seeded distributions are deterministic by seed/index; real processing time and generated UUID identity are explicitly excluded from reproducibility comparisons. Generation, outstanding work, dataset size, memory/DB growth and retained history are bounded; pause/stop stop new intents, while already accepted durable work may complete.
+
+Control Center navigation, typed forms/actions, polling and dashboard reports remain signed declarative module contributions through the generic SSDS renderer. Add validated workspace/refresh/report-time-series metadata rather than hardcoded module screens. New financial demos use USD; existing EUR records remain separate.
+
+Master uses authorized synchronized source projections only. Add provenance to Sales commerce projections via append-only migration, closed wire schema validation, source-backed dashboard/monitoring and deterministic pooled-purchasing calculations. Pooled analysis includes per-entity quantities, unit quotes, shipping, thresholds, transition costs and net ecosystem benefit; intercompany transfers are excluded. Monitoring has approved policies, bounded intervals/thresholds and stable condition deduplication; findings retain evidence and human-review requirements and use the existing delivery/acknowledgment flow. Real Ollama is optional for operations but mandatory for the AI acceptance gate.
+
+## Implementation and acceptance sequence
+
+1. Preserve baseline and verify tests/health. Implement provenance/epoch contracts, routing/adapter enforcement and negative tests.
+2. Add isolated generator/provider, Sales/Stock Ledger closed service contracts, all nine scenarios and restart/reset/backpressure tests. Commit meaningful checkpoints.
+3. Add generic declarative UI polling/reports/charts and Master synchronized intelligence/monitors/MCP calculations. Verify service/domain financial reconciliation.
+4. Back up and upgrade the selected stack in place; dynamically install modules afterward and prove core hashes unchanged by installation. Approve explicit simulation providers on Workers 1/2; retain Worker 3 live connectors unchanged.
+5. Run actual browser flow, outages/restarts/reset/cross-company findings/ack and real Qwen/MCP investigation. Capture evidence; keep failed/unverified gates open.
+6. Clean-install acceptance must stop the selected stack before a temporary full-stack fixture, clean up temporary services even on failure, then restore the selected stack and check single ownership. Package clean committed v0.11.0 candidate using extended established release tooling; checksum/digest/redeployment gates must pass before accepting/tagging it. Never overwrite historical releases.

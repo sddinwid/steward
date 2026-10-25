@@ -1,3 +1,4 @@
+import {simulationMigration} from './simulation-migration.js';
 import {commerceMonitorMigration} from './commerce-monitor.js';
 import { workspaceMigration } from './workspace.js';
 import { analystMigration } from './analyst-migration.js';
@@ -19,7 +20,7 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }, { version:8,sql:commerceMigration }, { version:9,sql:commerceGovernanceMigration }, {version:10,sql:workspaceMigration}, {version:11,sql:commerceMonitorMigration}];
+` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }, { version:8,sql:commerceMigration }, { version:9,sql:commerceGovernanceMigration }, {version:10,sql:workspaceMigration}, {version:11,sql:commerceMonitorMigration},{version:12,sql:simulationMigration}];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;

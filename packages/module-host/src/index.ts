@@ -1,3 +1,4 @@
+import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} from './simulation-routing.js';
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
 import Fastify from 'fastify';
 import { moduleContainerName } from './naming.js';
@@ -292,14 +293,15 @@ async function integrations(){
       if(current?.phase!=='active'||current.version!==target.version||sourceState?.version!==m.version||sourceState?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)||canonical(liveSourceRuntime.configuration)!==canonical(source.configuration)){error='PEER_UNAVAILABLE';}
       else if(target.configuration.integrationsEnabled!==true){error='PEER_DISABLED';}
       else{
+       await protectSimulationRoute(metadataPool,wire,m,targetManifest,target.configuration);
        if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});
        const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{})},4000);
-       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor))}}:response.value;}
+       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor))}}:response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
       }
      }
-    }catch(e){const code=(e as Error).message;error=code==='CAPABILITY_SCHEMA_MISMATCH'?'INTEGRATION_SCHEMA_MISMATCH':/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';if(['INTEGRATION_IDENTITY_MISMATCH','INTEGRATION_NOT_AUTHORIZED','INTEGRATION_APPROVAL_REQUIRED','INTEGRATION_APPROVAL_REVOKED','INTEGRATION_PROVIDER_CHANGED','INTEGRATION_DURABLE_SAFE_RECEIPT_REQUIRED','INTEGRATION_SCHEMA_MISMATCH'].includes(error))status='rejected';}
+    }catch(e){const code=(e as Error).message;error=code==='CAPABILITY_SCHEMA_MISMATCH'?'INTEGRATION_SCHEMA_MISMATCH':/^INTEGRATION_[A-Z_]+$/.test(code)?code:'INTEGRATION_TRANSPORT_UNAVAILABLE';await recordSimulationDenial(metadataPool,command,(e as any).targetModuleId??command.targetModuleId,error);if(error.startsWith('INTEGRATION_SIMULATION_'))status='rejected';if(['INTEGRATION_IDENTITY_MISMATCH','INTEGRATION_NOT_AUTHORIZED','INTEGRATION_APPROVAL_REQUIRED','INTEGRATION_APPROVAL_REVOKED','INTEGRATION_PROVIDER_CHANGED','INTEGRATION_DURABLE_SAFE_RECEIPT_REQUIRED','INTEGRATION_SCHEMA_MISMATCH'].includes(error))status='rejected';}
     finally{if(deliveryClient){let broken=false;try{for(const id of deliveryLocks)await deliveryClient.query('SELECT pg_advisory_unlock_shared(hashtext($1))',[id]);}catch{broken=true;}deliveryClient.release(broken);}}
     // A lost ACK is safe: the next delivery has the same identity and digest.
     await callModule(m.moduleId,'POST',m.integration.acknowledgmentPath,{commandId:command.commandId,digest:digest(canonical(command)),status,result,error},{},4000);

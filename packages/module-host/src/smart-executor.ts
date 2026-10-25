@@ -1,3 +1,4 @@
+import {protectSimulationRoute,recordSimulationDenial} from './simulation-routing.js';
 import type pg from 'pg';
 import { canonical,digest,verifyPackage,resolveCapability,validateCapabilityValue,INTEGRATION_PROTOCOL,type PublisherTrust,type IntegrationCommand,type CapabilityProvider } from '@steward/module-sdk';
 
@@ -59,10 +60,12 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         let sequence=1;
         for(let i=0;i<e.step;i++){const prior=(await db.query('SELECT provider_id FROM smart_bindings WHERE binding_id=$1',[w.definition.steps[i].bindingId])).rows[0];if(prior?.provider_id===target.module_id)sequence++;}
         const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence,occurredAt:new Date(e.created_at).toISOString(),payload:input};
+        await protectSimulationRoute(db,envelope,sm,tm,target.configuration);
         response=await call(tm.moduleId,'POST',tm.integration.inboxPath,envelope,{'x-steward-integration-source':sm.moduleId,'x-steward-installation':installationId,'x-steward-capability':capability.capabilityId},4000);
       }else if(!response){
         const api=tm.api.find(a=>a.operationId===op.command&&!a.path.includes(':'));
         if(!api||api.permission!==op.permission)throw new Error('SYNC_ENDPOINT_MISSING');
+        await protectSimulationRoute(db,{protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence:e.step+1,occurredAt:new Date(e.created_at).toISOString(),payload:input},sm,tm,target.configuration);
         response=await call(tm.moduleId,api.method,api.path,api.method==='GET'?undefined:{...input,requestId:commandId},{'x-steward-actor':e.actor_id,'x-steward-permissions':JSON.stringify([op.permission]),'x-steward-installation':installationId},4000);
       }
       if(!retrySafe)await pool.query("UPDATE smart_attempts SET state='responded',response=$1,updated_at=now() WHERE command_id=$2",[response,commandId]);

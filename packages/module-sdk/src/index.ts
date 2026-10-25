@@ -1,3 +1,5 @@
+export * from './simulation.js';
+import type {SimulationDeclaration} from './simulation.js';
 import { createHash, sign, verify } from 'node:crypto';
 import { Ajv } from 'ajv';
 import {validateIntegration,type IntegrationContract} from './integration.js';
@@ -18,6 +20,7 @@ export interface ScreenContribution {
   actions?:{label:string;operationId:string}[];
 }
 export interface ModulePackageManifest {
+  simulation?:SimulationDeclaration;
   manifestVersion: 1; sdkVersion: 1; moduleId: string; version: string; name: string; description: string;
   minimumPlatformVersion: string;
   dependencies: { moduleId: string; minimumVersion: string }[];
@@ -79,7 +82,8 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector','simulation'])) reject('Unsupported module manifest fields');
+  if(m.simulation&&(!onlyKeys(m.simulation,['version','role'])||m.simulation.version!==1||!['engine','provider','participant'].includes(m.simulation.role)||!atLeast(m.minimumPlatformVersion,'0.11.0')||(['engine','provider'].includes(m.simulation.role)&&m.connector)))reject('Invalid isolated simulation declaration');
   if(m.connector&&(!onlyKeys(m.connector,['version','provider','webhookTopics'])||m.connector.version!==1||!['shopify','printify'].includes(m.connector.provider)||!atLeast(m.minimumPlatformVersion,'0.8.0')||!Array.isArray(m.connector.webhookTopics)||m.connector.webhookTopics.length>20||m.connector.webhookTopics.some(t=>typeof t!=='string'||! /^[a-z][a-z0-9_-]*(?:[/:][a-z][a-z0-9_-]*)+$/.test(t))))reject('Invalid connector declaration');
   if(m.api?.some(a=>a.path==='/connector-webhook'))reject('Connector ingress must not be a public module API');
   validateIntegration(m);
