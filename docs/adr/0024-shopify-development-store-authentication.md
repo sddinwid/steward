@@ -13,3 +13,5 @@ Reserve the standalone commercial authorization-code flow through a token-provid
 No new release tag is authorized. Live verification requires real operator-provided organization/store/app configuration and is distinct from simulator acceptance.
 
 Migration 003/004 checkout attributes explicitly retain their already-published CRLF bytes. No migration SQL or applied checksum is rewritten. Build from a Git checkout respecting these attributes; the accepted image/package digests remain authoritative.
+
+Expose only allowlisted static connector-egress denial codes through the Worker configuration API; preserve generic redaction for other runtime errors. Deployed negative-path testing caught the original generic HTTP 500. The narrow correction is covered by regression and deployment checks.

@@ -15,7 +15,7 @@ docker compose down
 
 Current addresses remain Master `https://master.localhost:26100`, Workers `https://worker-1.localhost:26201`, `https://worker-2.localhost:26202`, `https://worker-3.localhost:26203`. Passwords remain in the existing private `demo/presenter.json` beneath that deployment. No account or password was regenerated.
 
-Sales 1.2.3, Shopify 1.1.1 and Printify 1.1.1 are installed/active on Workers 1 and 3. Worker 2 remains without Shopify. In **Business**, open Shopify Orders, Shopify connection, or Commerce Intelligence. New connectors have integrations disabled and no commercial credentials. There are no simulator services in this operator deployment. New module defaults use USD; the existing Sales configuration and historical EUR records were preserved. An installed UI does not establish a configured or verified provider connection.
+Sales 1.2.3, Shopify 1.2.0 and Printify 1.1.1 are installed/active on Workers 1 and 3. Worker 2 remains without Shopify. In **Business**, open Shopify Orders, Shopify connection, or Commerce Intelligence. New connectors have integrations disabled and no commercial credentials. There are no simulator services in this operator deployment. New module defaults use USD; the existing Sales configuration and historical EUR records were preserved. An installed UI does not establish a configured or verified provider connection.
 
 ## Verified development promotion
 
@@ -48,3 +48,7 @@ Raw results are ignored local files `artifacts/selected-stack-upgrade.json`, `se
 ## Future runs
 
 Do not start a second full Steward version alongside the operator stack. If isolated full-stack acceptance is necessary, stop the operator services first without deleting data, clean up the temporary services in a failure-safe finalizer, then restore or upgrade the selected stack. Finish with `node scripts/verify-single-stack.mjs` and readiness/browser checks on the actual operator URLs. Preserve archived data unless the operator explicitly requests its deletion. Unrelated non-Steward applications are outside this cleanup scope.
+
+## Shopify development-store readiness update
+
+The same selected deployment now runs Shopify 1.2.0 on Workers 1 and 3, module host 0.8.1 on all three Workers, and a narrow Worker API configuration-error reporting fix. Master API and every frontend image remain unchanged. The original identities, passwords, business data and module configuration were preserved with private backups. Current connection mode remains simulator: Worker 1 retains integrations disabled and Worker 3 retains its existing integrations-enabled setting, but neither has private Shopify credentials or a simulator service configured. No external network grant remains after acceptance. See [development-store setup](shopify-development-store.md) and [actual verification](shopify-live-verification.md). The historical promotion commands/results above remain evidence of the earlier Phase 10A consolidation.

@@ -33,7 +33,7 @@ The module exchanges credentials at `POST https://<shop>.myshopify.com/admin/oau
 Use the current operator installation and original login information. Worker 3 is `https://worker-3.localhost:26203`. Worker 1 remains `https://worker-1.localhost:26201`; use a separate, explicitly configured connection if it is to connect another store. Do not start the archived acceptance stack alongside this installation.
 
 1. Create/install the app as above. Verify its development store domain, for example `your-store.myshopify.com`. Store client ID and secret in private local files, or set `STEWARD_SHOPIFY_CLIENT_ID` and `STEWARD_SHOPIFY_CLIENT_SECRET` securely outside shell history. Do not paste credentials into a chat or a module settings form.
-2. Install/activate the trusted Shopify 1.2.0 package using the existing Module Manager. The module host must include the image-bound connector-egress support introduced with this change (module host 0.8.1); ordinary core APIs and frontends are unchanged.
+2. Install/activate the trusted Shopify 1.2.0 package using the existing Module Manager. The module host must include the image-bound connector-egress support introduced with this change (module host 0.8.1); the Worker configuration API includes a narrow safe error-reporting correction; Master API and frontend images are unchanged.
 3. Prepare the private file. With environment variables already configured:
 
 ```powershell
