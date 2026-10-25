@@ -1,0 +1,298 @@
+{
+  "version": "0.11.0",
+  "status": "passed",
+  "sourceCommit": "ea8b8a0de8db8f286208ec17020bdbb39256e50d",
+  "verifiedCandidateManifestSha256": "70184c3412fab15b88c2a3d2df01bbd9a6b74b2a8d94a56f44c45bb4c9160f2d",
+  "archiveSha256": "03705d4f9028c61b375bd7d74c55970aabc769fb219df73a4cb1e7703c1bae87",
+  "verifiedAt": "2026-10-25T13:40:28.228Z",
+  "regressions": {
+    "tests": 164,
+    "passed": 164,
+    "failed": 0,
+    "skipped": 0
+  },
+  "smartBrowser": {
+    "tests": 9,
+    "passed": 9,
+    "failed": 0,
+    "skipped": 0
+  },
+  "nativeLifecycle": {
+    "checks": 18,
+    "durableCommands": 256
+  },
+  "coreImages": {
+    "master-api": "sha256:31add2560f5a8be4602d52c700ddd5bc8a79fea507fc4af00f854643c957dfb8",
+    "master-web": "sha256:dd8d1e1d88497a8a9692b2797894b5ea4a8a8737ee36c88c6ac6cfaab41061e8",
+    "worker-api": "sha256:11717c7edace6d2552ce514f684f2a6278cc22282fe7ddb3d84d864b4c51e445",
+    "worker-web": "sha256:2b9609379cb9c05bdef8161fd3f2b99a509a60fbe097ae6ddbd0ae7f4e159fc3",
+    "module-host": "sha256:1405e916017eaf2021af1983815db2aef84c14cc98b87a8478ac089f969b218d",
+    "postgres": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+    "commerce-simulator": "sha256:892ccc062ad0ddce8ae0cc1d447167ef67e9ba3f8838d00047acd6c8c8f0378b"
+  },
+  "modules": [
+    {
+      "id": "cee.inventory",
+      "version": "1.4.2",
+      "imageId": "sha256:72be0fcced3d02926a74049cfdda846947b99ee037a4f82e3ec7559b8b352b24"
+    },
+    {
+      "id": "cee.operations",
+      "version": "1.0.0",
+      "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+    },
+    {
+      "id": "cee.procurement",
+      "version": "1.0.2",
+      "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7"
+    },
+    {
+      "id": "cee.sales",
+      "version": "1.3.0",
+      "imageId": "sha256:ebadd385f7e121a8f2d4f1487c4a8b4d60972c6b822b1292d0043c632604508f"
+    },
+    {
+      "id": "cee.assets",
+      "version": "1.0.3",
+      "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58"
+    },
+    {
+      "id": "cee.workforce",
+      "version": "1.0.2",
+      "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0"
+    },
+    {
+      "id": "cee.shopify",
+      "version": "1.2.0",
+      "imageId": "sha256:cafe7468c79cac02f7478d5635d74af394d6daeb3b6e672c404305923184bbbc"
+    },
+    {
+      "id": "cee.printify",
+      "version": "1.1.2",
+      "imageId": "sha256:2fb3344f47209d5b9e669762ee0b493c100de96afac2939acf134fd8d7962744"
+    },
+    {
+      "id": "cee.stock-ledger",
+      "version": "1.1.0",
+      "imageId": "sha256:0280b2f1eedec4defbd0b5ef48ffc0708b4c138d5518f3ab8d28271512451779"
+    },
+    {
+      "id": "steward.simulation.commerce",
+      "version": "1.0.2",
+      "imageId": "sha256:4c72760d20cc1c3158a6520cda3742956129f02f43b1bceb82c7e2434ccb7373"
+    },
+    {
+      "id": "steward.simulation.fulfillment",
+      "version": "1.0.1",
+      "imageId": "sha256:e64fc041e217df7d6b6c3069459685c132bf666417241d5a32b9f50f22451722"
+    }
+  ],
+  "cohorts": {
+    "mixed": [
+      {
+        "worker": "worker-1",
+        "datasetId": "96346645-1f11-4475-9100-5d7bb175fa2d",
+        "runId": "a2e5a333-36f0-49e3-8c29-acda96f40b1b",
+        "orders": 24,
+        "completed": 24,
+        "revenueCents": 175000,
+        "refundCents": 0,
+        "productionCostCents": 117172,
+        "shippingCostCents": 4759,
+        "contributionCents": 47099,
+        "currency": "USD"
+      },
+      {
+        "worker": "worker-2",
+        "datasetId": "460a526f-7384-449e-b1aa-6c743bba137c",
+        "runId": "61a7ac47-56cf-47ba-a78a-6de49b8b2f59",
+        "orders": 24,
+        "completed": 24,
+        "revenueCents": 159500,
+        "refundCents": 2775,
+        "productionCostCents": 109272,
+        "shippingCostCents": 4653,
+        "contributionCents": 37295,
+        "currency": "USD"
+      }
+    ],
+    "purchasing": [
+      {
+        "worker": "worker-1",
+        "datasetId": "96346645-1f11-4475-9100-5d7bb175fa2d",
+        "runId": "518a03d7-d304-4f4f-9561-1434f91a64b6",
+        "orders": 12,
+        "completed": 12,
+        "revenueCents": 287100,
+        "refundCents": 0,
+        "productionCostCents": 81003,
+        "shippingCostCents": 2386,
+        "contributionCents": 194738,
+        "currency": "USD"
+      },
+      {
+        "worker": "worker-2",
+        "datasetId": "460a526f-7384-449e-b1aa-6c743bba137c",
+        "runId": "21171c3a-2a92-4da8-884d-4d10e89a06b8",
+        "orders": 12,
+        "completed": 12,
+        "revenueCents": 273300,
+        "refundCents": 5400,
+        "productionCostCents": 79027,
+        "shippingCostCents": 2433,
+        "contributionCents": 177881,
+        "currency": "USD"
+      }
+    ],
+    "reliability": {
+      "intents": 3,
+      "fulfilled": 2,
+      "canceled": 1,
+      "providerJobs": 2
+    }
+  },
+  "purchasing": {
+    "quantity": 76,
+    "baselineCents": 56200,
+    "proposedCents": 50080,
+    "benefitCents": 6120,
+    "entityImpacts": [
+      {
+        "entityId": "8e14f228-bdf4-477f-a5b5-f03ab9ec3be9",
+        "quantity": 39,
+        "baselineExternalCents": 28800,
+        "pooledMerchandiseCents": 24570,
+        "allocatedShippingCents": 923,
+        "transitionCostCents": 200,
+        "proposedCostCents": 25693,
+        "benefitCents": 3107
+      },
+      {
+        "entityId": "8ff40000-0000-4000-8000-000000000002",
+        "quantity": 37,
+        "baselineExternalCents": 27400,
+        "pooledMerchandiseCents": 23310,
+        "allocatedShippingCents": 877,
+        "transitionCostCents": 200,
+        "proposedCostCents": 24387,
+        "benefitCents": 3013
+      }
+    ],
+    "assumptions": [
+      "Cohort is the most recent four eligible source orders per entity/product/variant, for two to four distinct entities; not a complete census or demand forecast.",
+      "Counterfactual repeat purchase of the observed noncanceled demand cohort, not a new commitment or a second recognition of historical profit.",
+      "Synthetic catalog terms are estimates. Specifications, timing, taxes, supplier approval and separate entity consent require human review.",
+      "Pooled unit quote uses the highest observed eligible quote before the declared discount. Shipping is quantity-allocated with exact remainder assigned to the last entity.",
+      "Only external supplier costs, shipping and transition expense enter ecosystem benefit; no intercompany revenue or transfer is counted."
+    ]
+  },
+  "realModel": {
+    "id": "3597aba9-d1c0-45cb-85dc-19f14cf9f53e",
+    "model": "qwen2.5:7b",
+    "context": 16384,
+    "elapsedMs": 26566,
+    "modelCalls": 5,
+    "configurationRestored": true,
+    "modelUnloaded": true,
+    "publishedFinding": "3597aba9-d1c0-45cb-85dc-19f14cf9f53e",
+    "browserInvestigation": "be73fa33-5217-4f94-b1b8-a3b90c59e3d2",
+    "browserElapsedMs": 25980,
+    "browserFinding": "be73fa33-5217-4f94-b1b8-a3b90c59e3d2",
+    "browser": {
+      "launchedThroughUI": true,
+      "publishedThroughUI": true,
+      "historyRefresh": true,
+      "workerAcknowledgments": true,
+      "errors": []
+    }
+  },
+  "liveCatalogs": {
+    "cee.shopify": {
+      "products": 17,
+      "variants": 26
+    },
+    "cee.printify": {
+      "products": 5,
+      "variants": 625
+    }
+  },
+  "oneActiveStack": {
+    "verifiedAt": "2026-10-25T13:40:26.956Z",
+    "selectedProject": "steward-phase8-upgrade-reg",
+    "selectedRunningContainers": 36,
+    "unexpectedRunningContainers": [],
+    "status": "passed"
+  },
+  "checksums": {
+    "artifacts/phase11-service-lifecycle.json": "1ea87887424e4d6e7446203a668634f8e714db6f0f396677008e241f44747b41",
+    "artifacts/phase11-demo-finish-mixed.json": "458efdfac09ef670b2129c0dc5fd2bf8a781beb529fe3b3aaeb5d00de7ef499c",
+    "artifacts/phase11-demo-finish-purchasing.json": "6525ca3b9aee649e3f704d132f7450b563c530eb108727c73e2b4207160c6f31",
+    "artifacts/phase11-live-isolation.json": "1dfa4d0a15871b4baf2982bf97b57f41011bdaccc658c7a63d4566b52b1cf8cb",
+    "artifacts/phase11-final-regressions.log": "56258b61adbba53478a394e4e7eaa8a9e1ef05adaf8383f72865aea262761c60",
+    "artifacts/phase11-final-smart-browser.log": "7fa325c4199d46574b348d88720b21aa8122b10300759388e2360de1043a32dc",
+    "artifacts/phase11-demo-lifecycle-check.json": "cf6298f6b55c0d43667224c4f385b8ba33dcf94d024fd1d109faefc8e35bfdb2",
+    "artifacts/phase11-demo-ai-evidence.json": "715003192674e5b829b09e2da58d5f876d12aa00bf119602ed5b02a0f7f98760",
+    "artifacts/releases/steward-0.11.0/toolkit/artifacts/phase11-browser-installation.json": "a7e8c42fba769e0abb225049ab07eef0c28953e5a16991701883d1448f356394",
+    "artifacts/phase11-demo-review-ai.json": "41d1fa88d3338bb8d1959def4e6fb8f8b6b27d3e3235eedbdf252d2c6b891fa8",
+    "artifacts/phase11-ollama-provider.json": "b94af46f4120bd4c2b66f50e57a25bcf4373663ad9dabb96378e651d726bec98",
+    "artifacts/phase11-ollama-browser-provider.json": "4dd7e36acdfc2a573b03ef2bcd71ed5d9bf106d63b0eecbf5983968486c60645",
+    "artifacts/phase11-demo-finish-reliability.json": "70f94e552f5aa2c654bdf24c0abb7e5f569dfb0e4f79aab7113bdd992e0b2f93",
+    "artifacts/phase11-clean-installation.json": "28ca33c223200a8c0d9b2d3e9fc98d2659ca523c0f793d4a60d475c9d1951171",
+    "artifacts/phase11-clean-installation.log": "ef5efd98aef1278c584f4196cb15bdac10472fada19bff25bd33d7f7d161bf22",
+    "artifacts/phase11-selected-upgrade.json": "e63688054abc432890c393f25cb1784d9d57fd6071eddc2e9008291dc72d9fa3",
+    "artifacts/single-stack-audit.json": "49cf3899c3908a5c73d2b6259d416dcafb6ec5c3a03b59935ae1f2d2a7cdd3cf",
+    "artifacts/phase11-final-build.log": "b8ea4536d11f60f00544e476aa2c21e7bd4fa8b4602dcfde5280ffc4e07e038c"
+  },
+  "limitations": [
+    "Synthetic commerce does not verify live Shopify/Printify mutation compatibility.",
+    "Costs and pooled purchasing are conditional synthetic estimates; no purchase or agreement was executed.",
+    "Original provider configuration is restored after temporary live-model validation; reruns require provider availability.",
+    "Local Docker privileges, development TLS/publisher trust, retention/archival and bounded polling need production operational hardening."
+  ],
+  "resources": {
+    "verifiedAt": "2026-10-25T13:41:40.235Z",
+    "status": "passed",
+    "runningSelectedContainers": 36,
+    "simulationContainers": [
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_0c98b8b831f9e8158c61",
+        "cpu": "0.11%",
+        "memory": "25.05MiB / 256MiB"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_0c98b8b831f9e8158c61",
+        "cpu": "0.72%",
+        "memory": "25.33MiB / 256MiB"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_4bf94324df83a85715b4",
+        "cpu": "0.06%",
+        "memory": "21.87MiB / 256MiB"
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_4bf94324df83a85715b4",
+        "cpu": "0.09%",
+        "memory": "21.82MiB / 256MiB"
+      }
+    ],
+    "simulationDatabaseBytes": {
+      "worker-1/steward.simulation.commerce": 13006515,
+      "worker-1/steward.simulation.fulfillment": 8533683,
+      "worker-2/steward.simulation.commerce": 12719795,
+      "worker-2/steward.simulation.fulfillment": 8541875
+    },
+    "modelResourcesDuringRun": [
+      {
+        "model": "steward-analyst-qwen2.5-ctx16384:7b",
+        "sizeBytes": 5835377868,
+        "vramBytes": 4075112366,
+        "contextLength": 16384,
+        "parameterSize": "7.6B",
+        "quantization": "Q4_K_M"
+      }
+    ],
+    "loadedModelsAfterRun": 0,
+    "benchmark": false,
+    "note": "Desktop samples and bounded acceptance only; not production capacity certification."
+  }
+}

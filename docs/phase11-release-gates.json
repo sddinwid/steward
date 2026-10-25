@@ -1,46 +1,81 @@
 {
   "version": "0.11.0",
-  "status": "open",
+  "status": "passed",
+  "sourceCommit": "ea8b8a0de8db8f286208ec17020bdbb39256e50d",
+  "verifiedCandidateManifestSha256": "70184c3412fab15b88c2a3d2df01bbd9a6b74b2a8d94a56f44c45bb4c9160f2d",
   "gates": [
     {
       "id": "runtime",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-service-lifecycle.json",
+        "artifacts/phase11-demo-finish-mixed.json",
+        "artifacts/phase11-demo-finish-purchasing.json"
+      ]
     },
     {
       "id": "isolation",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-live-isolation.json",
+        "artifacts/phase11-final-regressions.log"
+      ]
     },
     {
       "id": "browser",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-final-smart-browser.log",
+        "artifacts/phase11-demo-lifecycle-check.json",
+        "artifacts/phase11-demo-ai-evidence.json",
+        "artifacts/releases/steward-0.11.0/toolkit/artifacts/phase11-browser-installation.json"
+      ]
     },
     {
       "id": "master",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-demo-finish-mixed.json",
+        "artifacts/phase11-demo-finish-purchasing.json",
+        "artifacts/phase11-demo-review-ai.json"
+      ]
     },
     {
       "id": "ollama",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-ollama-provider.json",
+        "artifacts/phase11-ollama-browser-provider.json",
+        "artifacts/phase11-demo-review-ai.json"
+      ]
     },
     {
       "id": "recovery",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-demo-finish-reliability.json",
+        "artifacts/phase11-demo-lifecycle-check.json",
+        "artifacts/phase11-demo-finish-mixed.json"
+      ]
     },
     {
       "id": "installation",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-clean-installation.json",
+        "artifacts/phase11-clean-installation.log",
+        "artifacts/phase11-selected-upgrade.json",
+        "artifacts/single-stack-audit.json"
+      ]
     },
     {
       "id": "regressions",
-      "status": "open",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase11-final-build.log",
+        "artifacts/phase11-final-regressions.log",
+        "artifacts/phase11-final-smart-browser.log"
+      ]
     }
   ]
 }
