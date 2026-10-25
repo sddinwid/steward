@@ -4,7 +4,7 @@ import {catalog,companyName,dateLabel,FindingPreview,Impact,priorityOrder} from 
 import type {Api} from './workspaces.js';
 export function FindingsReview({api,master,administrator,id}:{api:Api;master:boolean;administrator:boolean;id?:string|undefined}){
  const [simulationSnapshot,setSimulationSnapshot]=useState<any>();
- useEffect(()=>{let disposed=false;setSimulationSnapshot(undefined);if(master&&id)void api('/v11/simulation-findings/'+id).then(v=>{if(!disposed)setSimulationSnapshot(v);}).catch(()=>{});return()=>{disposed=true;};},[master,id]);
+ useEffect(()=>{let disposed=false;setSimulationSnapshot(undefined);if(master&&id)void api('/v4/simulation-findings/'+id).then(v=>{if(!disposed)setSimulationSnapshot(v);}).catch(()=>{});return()=>{disposed=true;};},[master,id]);
  const [commerceEvidence,setCommerceEvidence]=useState<Record<string,any>>({});
  const [items,setItems]=useState<any[]>([]),[receipts,setReceipts]=useState<any[]>([]),[entities,setEntities]=useState<any[]>([]),[runs,setRuns]=useState<any[]>([]),[detail,setDetail]=useState<any>(),[error,setError]=useState(''),[loaded,setLoaded]=useState(false),[search,setSearch]=useState(''),[severity,setSeverity]=useState(''),[status,setStatus]=useState(''),[entity,setEntity]=useState(''),[since,setSince]=useState(''),[category,setCategory]=useState('');
  async function refresh(){try{const f=await api('/v4/findings');setItems(f.findings);setReceipts(f.receipts??[]);if(master){const [d,r]=await Promise.all([api('/v4/analytics'),catalog(api)]);setEntities(d.entities);setRuns(r);}setError('');}catch(e){setError((e as Error).message);}finally{setLoaded(true);}}

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.simulation.commerce",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Steward Commerce Simulation",
   "description": "Continuous synthetic commerce through authorized real Sales/stock services and an isolated local fulfillment provider. No live commerce mutations.",
   "minimumPlatformVersion": "0.11.0",

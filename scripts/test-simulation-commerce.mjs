@@ -129,8 +129,13 @@ try{
  await check('fixed-seed scenario distributions are repeatable and include all nine conditions',async()=>{
   for(const scenario of SIMULATION_SCENARIOS){const a=Array.from({length:40},(_,i)=>sampleOrder(7,i,scenario));assert.deepEqual(a,Array.from({length:40},(_,i)=>sampleOrder(7,i,scenario)));if(scenario==='missing-mapping')assert(a.some(s=>s.missingMapping));if(scenario==='refund-cancellation')assert(a.some(s=>s.refund)&&a.some(s=>s.cancellation));if(scenario==='production-delay')assert(a.every(s=>s.productionDelaySeconds>=2700));}
  });
+ await check('background counters do not invalidate configuration edits or safe state controls; concurrent configuration writes still conflict',async()=>{
+  const module=modules.get(engineId),r=(await read(engineId,'run'))[0],visible=(await module.api('GET','/runs')).records.find(v=>v.id===r.id);assert(r.revision>visible.revision,'Actual workflow progress has its own physical revision');
+  const saved=await module.api('PUT','/runs/'+r.id,{name:r.data.name,revision:visible.revision,eventsPerMinute:119});assert.equal(saved.record.revision,visible.revision+1);await module.api('PUT','/runs/'+r.id,{name:r.data.name,revision:visible.revision,eventsPerMinute:118},409);assert.equal((await read(engineId,'run'))[0].data.eventsPerMinute,119);
+  await module.api('POST','/stop/'+r.id,{revision:visible.revision,requestId:randomUUID()});await module.api('POST','/resume/'+r.id,{revision:visible.revision,requestId:randomUUID()});await until(async()=>(await read(engineId,'run'))[0].data.state==='paused','bounded resume');assert.equal((await read('cee.sales','order')).length,1);
+ });
  await check('publication changes use the Sales owner service and prohibit delayed/manual republication after withdrawal',async()=>{
-  const configure=async share=>{const r=(await read(engineId,'run'))[0];await modules.get(engineId).api('PUT','/runs/'+r.id,{name:r.data.name,revision:r.revision,shareWithMaster:share});await until(async()=>!(await read(engineId,'run'))[0].data.publicationPending,'publication receipt');};
+  const configure=async share=>{const r=(await read(engineId,'run'))[0];await modules.get(engineId).api('PUT','/runs/'+r.id,{name:r.data.name,revision:r.data.configurationRevision??1,shareWithMaster:share});await until(async()=>!(await read(engineId,'run'))[0].data.publicationPending,'publication receipt');};
   await configure('no');let p=(await modules.get('cee.sales').pool.query('SELECT * FROM commerce_orders')).rows[0];assert.equal(p.projection.approved,false);
   const o=(await read('cee.sales','order'))[0];await modules.get('cee.sales').api('POST','/publish-commerce/'+o.id,{revision:o.revision,requestId:randomUUID()},403);assert.equal((await modules.get('cee.sales').pool.query('SELECT projection FROM commerce_orders')).rows[0].projection.approved,false);
   const sourceRows=(await db.query('SELECT * FROM analytical_records')).rows;sourceRows.find(r=>r.stream_id==='simulation_runs').payload.projection.approved=false;sourceRows.find(r=>r.stream_id==='commerce_orders').payload=p;assert.equal(simulationDashboard(sourceRows).companies.length,0);
@@ -152,7 +157,7 @@ try{
  });
  for(const scenario of SIMULATION_SCENARIOS.filter(s=>s!=='normal'))await check('genuine owner-service lifecycle and duplicate receipts: '+scenario,async()=>{
   let seed=7;if(scenario==='missing-mapping')while(!sampleOrder(seed,0,scenario).missingMapping)seed++;if(scenario==='refund-cancellation')while(!sampleOrder(seed,0,scenario).refund)seed++;
-  let r=(await read(engineId,'run'))[0];await modules.get(engineId).api('PUT','/runs/'+r.id,{name:r.data.name,revision:r.revision,scenario,seed,speed:600,eventsPerMinute:120,shareWithMaster:'yes'});
+  let r=(await read(engineId,'run'))[0];await modules.get(engineId).api('PUT','/runs/'+r.id,{name:r.data.name,revision:r.data.configurationRevision??1,scenario,seed,speed:600,eventsPerMinute:120,shareWithMaster:'yes'});
   r=(await read(engineId,'run'))[0];await action(engineId,'start',r);
   await until(async()=>(await read(engineId,'run'))[0].data.state==='paused','scenario '+scenario);
   const o=(await read('cee.sales','order'))[0],e=(await read(engineId,'event'))[0];assert(o);assert.equal(o.data.simulation.scenario,scenario);assert.equal(o.data.simulation.seed,seed);

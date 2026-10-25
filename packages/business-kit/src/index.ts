@@ -32,6 +32,8 @@ export interface Context {
     moduleId: string;
 }
 export interface Resource {
+    /** Optional logical configuration revision; background state keeps its own row revision. */
+    revisionField?: string;
     kind: string;
     path: string;
     schema: Data;
@@ -40,6 +42,8 @@ export interface Resource {
     after?: (record: RecordValue, previous: RecordValue | null, ctx: Context) => Promise<void>;
 }
 export interface Action {
+    /** State controls still lock the current row and validate its domain state. */
+    concurrency?: 'revision' | 'current-state';
     path: string;
     permission: string;
     kind: string;
@@ -88,6 +92,7 @@ const convert = (r: any): RecordValue => ({ id: r.id, kind: r.kind, key: r.key, 
 export async function find(ctx: Context, kind: string, key: string): Promise<RecordValue | null> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND key=$2', [kind, key])).rows[0]; if(row&&ctx.simulation)ensure(row.data.simulation&&sameSimulationDataset(row.data.simulation,ctx.simulation),'SIMULATION_RECORD_SCOPE_MISMATCH',403);return row ? convert(row) : null; }
 export async function get(ctx: Context, kind: string, id: string): Promise<RecordValue> { const row = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 AND id=$2 FOR UPDATE', [kind, id])).rows[0]; ensure(row, 'Record not found', 404);if(ctx.simulation)ensure(row.data.simulation&&sameSimulationDataset(row.data.simulation,ctx.simulation),'SIMULATION_RECORD_SCOPE_MISMATCH',403); return convert(row); }
 export async function records(ctx: Context, kind: string): Promise<RecordValue[]> { const rows = (await ctx.db.query('SELECT * FROM business_records WHERE kind=$1 ORDER BY key LIMIT 10001', [kind])).rows; ensure(rows.length <= 10000, 'Reporting limit reached; narrow the operational dataset', 413); return rows.map(convert); }
+function resourceRecord(resource:Resource,record:RecordValue){const value=publicRecord(record);if(resource.revisionField){const revision=record.data[resource.revisionField]??1;ensure(Number.isInteger(revision)&&revision>=1,'Invalid resource configuration revision');value.revision=revision;}return value;}
 export async function save(ctx: Context, kind: string, key: string, data: Data, previous?: RecordValue | null): Promise<RecordValue> {
     const origin=ctx.simulation??previous?.data.simulation;
     if(origin){setSimulationContext(ctx,origin);if(previous)ensure(previous.data.simulation&&sameSimulationDataset(previous.data.simulation,origin),'SIMULATION_RECORD_NOT_OWNED',403);ensure(!data.simulation||sameSimulationDataset(data.simulation,origin),'SIMULATION_PROVENANCE_CHANGED',403);data={...data,simulation:previous?.data.simulation??origin};}
@@ -192,7 +197,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             const fields = q.fields?.split(',');
             ensure(!fields || fields.every(f => allowed.includes(f)), 'Unknown selected field', 400);
             const rows = (await db.query("SELECT * FROM business_records WHERE kind=$1 AND ($2='' OR data->>'status'=$2) AND ($3='' OR key ILIKE $3 ESCAPE '!') ORDER BY key LIMIT $4 OFFSET $5", [resource.kind, q.status ?? '', q.q ? '%' + q.q.replace(/[!%_]/g, '!$&') + '%' : '', limit + 1, offset])).rows;
-            return { records: rows.slice(0, limit).map(r => { const value = publicRecord(convert(r)); return fields ? Object.fromEntries(fields.map(f => [f, value[f]])) : value; }), nextOffset: rows.length > limit ? offset + limit : null, summary: 'Module-owned records; quantities and money use the declared units.' };
+            return { records: rows.slice(0, limit).map(r => { const value = resourceRecord(resource,convert(r)); return fields ? Object.fromEntries(fields.map(f => [f, value[f]])) : value; }), nextOffset: rows.length > limit ? offset + limit : null, summary: 'Module-owned records; quantities and money use the declared units.' };
         }));
         app.post<{
             Body: Data;
@@ -211,9 +216,9 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
                 const data = resource.prepare ? await resource.prepare({ ...req.body }, null, c) : req.body;
                 const record = await save(c, resource.kind, key, data);
                 await resource.after?.(record, null, c);
-                await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response) VALUES($1,$2,$3,$4,$5)', [randomUUID(), c.actor, resource.kind + ':create', digest(canonical(req.body)), { id: record.id, record: publicRecord(record) }]);
+                await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response) VALUES($1,$2,$3,$4,$5)', [randomUUID(), c.actor, resource.kind + ':create', digest(canonical(req.body)), { id: record.id, record: resourceRecord(resource,record) }]);
                 await db.query('INSERT INTO business_audit(actor,operation,record_id) VALUES($1,$2,$3)', [c.actor, resource.kind + ':create', record.id]);
-                return { record: publicRecord(record) };
+                return { record: resourceRecord(resource,record) };
             }));
         });
         app.put<{
@@ -226,13 +231,13 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             const { revision, ...input } = req.body;
             ensure(Number.isInteger(revision) && validate(input), 'Invalid update', 400);
             const c = ctx(db, req), previous = await get(c, resource.kind, req.params.id);
-            ensure(previous.revision === revision, 'Revision conflict', 409);
+            ensure((resource.revisionField?previous.data[resource.revisionField]??1:previous.revision) === revision, 'Revision conflict', 409);
             ensure(String(input[resource.key]) === previous.key, 'Business key cannot change', 409);
             const data = resource.prepare ? await resource.prepare(input, previous, c) : input;
             const record = await save(c, resource.kind, previous.key, data, previous);
             await resource.after?.(record, previous, c);
             await db.query('INSERT INTO business_audit(actor,operation,record_id) VALUES($1,$2,$3)', [c.actor, resource.kind + ':update', record.id]);
-            return { record: publicRecord(record) };
+            return { record: resourceRecord(resource,record) };
         }));
     }
     for (const action of definition.actions) {
@@ -254,7 +259,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
                 return cached.response;
             }
             const record = await get(c, action.kind, req.params.id);
-            ensure(record.revision === req.body.revision, 'Revision conflict', 409);
+            if(action.concurrency!=='current-state')ensure(record.revision === req.body.revision, 'Revision conflict', 409);
             if(record.data.simulation){setSimulationContext(c,record.data.simulation);ensure(await simulationEpoch(c),'SIMULATION_DATASET_CLOSED',403);}
             const response = await action.run(record, c);
             if(c.simulation)await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response,simulation) VALUES($1,$2,$3,$4,$5,$6)',[req.body.requestId,c.actor,action.path,hash,response,c.simulation]);
