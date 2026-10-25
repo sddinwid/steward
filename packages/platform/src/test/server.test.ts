@@ -66,6 +66,6 @@ test('runtime config requires file secrets and verified database TLS by default'
 });
 
 test('configuration errors expose only actionable static egress codes, never runtime details',()=>{
- for(const code of ['CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_EGRESS_GRANT_MISMATCH','CONNECTOR_EGRESS_NETWORK_REQUIRED','CONNECTOR_EGRESS_NETWORK_UNTRUSTED','CONNECTOR_EGRESS_IDENTITY_CHANGED'])assert.equal(configurationFailure(code),code);
+ for(const code of ['CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_INVALID','CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_EGRESS_GRANT_MISMATCH','CONNECTOR_EGRESS_NETWORK_REQUIRED','CONNECTOR_EGRESS_NETWORK_UNTRUSTED','CONNECTOR_EGRESS_IDENTITY_CHANGED'])assert.equal(configurationFailure(code),code);
  for(const value of [undefined,null,{},'credential-value','CONNECTOR_EGRESS_GRANT_REQUIRED credential-value','MODULE_RUNTIME_FAILED'])assert.equal(configurationFailure(value),'MODULE_CONFIGURATION_UNAVAILABLE');
 });

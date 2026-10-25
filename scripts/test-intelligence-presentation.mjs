@@ -22,3 +22,13 @@ test('executive opportunities visibly distinguish test models without inventing 
  const render=test_model=>renderToStaticMarkup(createElement(FindingPreview,{finding,run:{test_model,title:'Retained result',impacts:[]},entities:[]}));
  assert.match(render(true),/TEST MODEL/);assert.match(render(true),/Financial impact unavailable/);assert.doesNotMatch(render(false),/TEST MODEL/);
 });
+
+import {configurationErrorMessage,saveModuleConfiguration} from '../packages/ui/dist/module-configuration.js';
+test('module save confirms persisted values and never presents rejected or stale saves as success',async()=>{
+ const mode={mode:'live',currency:'USD'};let calls=0;
+ await assert.rejects(saveModuleConfiguration(async()=>{calls++;throw Error('CONNECTOR_EGRESS_GRANT_REQUIRED');},'cee.shopify',mode),/GRANT_REQUIRED/);assert.equal(calls,1);
+ await assert.rejects(saveModuleConfiguration(async(p)=>p==='/v3/modules'?{installed:[{moduleId:'cee.shopify',configuration:{mode:'simulator'}}]}:{saved:true},'cee.shopify',mode),/NOT_CONFIRMED/);
+ const saved=await saveModuleConfiguration(async(p)=>p==='/v3/modules'?{installed:[{moduleId:'cee.shopify',configuration:{currency:'USD',mode:'live'}}]}:{saved:true},'cee.shopify',mode);assert.equal(saved.configuration.mode,'live');
+ for(const code of ['CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_INVALID'])assert(configurationErrorMessage(code).startsWith('Not saved.'));
+ assert(!configurationErrorMessage('private-value').includes('private-value'));
+});

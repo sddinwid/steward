@@ -1,4 +1,4 @@
-import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork} from './connector-egress.js';
+import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
 import Fastify from 'fastify';
 import { moduleContainerName } from './naming.js';
 import { executeSmartStep } from './smart-executor.js';
@@ -89,7 +89,7 @@ async function ready(id: string) {
 async function connectorEgress(descriptor:SignedModulePackage,configuration:unknown,container?:any){
  const latest=JSON.parse(await readFile(process.env.MODULE_HOST_CONFIG!,'utf8'));if(latest.installationId!==config.installationId||latest.project!==config.project||latest.workerKey!==config.workerKey)failure('CONNECTOR_EGRESS_IDENTITY_CHANGED');
  const network=plannedConnectorEgress(config,descriptor,configuration,latest.connectorEgress??{}),id=descriptor.payload.manifest.moduleId,expected=connectorNetworkName(config,id);
- if(network){const result=await docker('GET','/networks/'+encodeURIComponent(network),undefined,[200,404]);if(result.status!==200)failure('CONNECTOR_EGRESS_NETWORK_REQUIRED');validateEgressNetwork(config,id,result.value);}
+ if(network){const result=await docker('GET','/networks/'+encodeURIComponent(network),undefined,[200,404]);if(result.status!==200)failure('CONNECTOR_EGRESS_NETWORK_REQUIRED');validateEgressNetwork(config,id,result.value);await requireConnectorConfiguration(config.connectorSecretsRoot?`${config.connectorSecretsRoot}/${slug(id)}.json`:undefined);}
  if(container){const connected=Object.hasOwn(container.NetworkSettings?.Networks??{},expected);if(connected&&!network)await docker('POST','/networks/'+encodeURIComponent(expected)+'/disconnect',{Container:containerName(id),Force:false});if(network&&!connected)await docker('POST','/networks/'+encodeURIComponent(network)+'/connect',{Container:containerName(id)});}
  return network;
 }

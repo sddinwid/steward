@@ -1,4 +1,11 @@
 import {digest,type SignedModulePackage} from '@steward/module-sdk';
+import {readFile} from 'node:fs/promises';
+// Presence/JSON preflight only; authentication and provider schemas stay module-owned.
+export async function requireConnectorConfiguration(file?:string){
+ if(!file)deny('CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED');
+ let raw:string;try{raw=await readFile(file,'utf8');}catch{deny('CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED');}
+ try{const value=JSON.parse(raw);if(Buffer.byteLength(raw)>131072||!value||typeof value!=='object'||Array.isArray(value))deny('CONNECTOR_PRIVATE_CONFIGURATION_INVALID');}catch{deny('CONNECTOR_PRIVATE_CONFIGURATION_INVALID');}
+}
 function deny(code:string):never{throw Object.assign(new Error(code),{code});}
 export interface EgressIdentity {project:string;workerKey:string;installationId:string}
 export interface ConnectorEgressGrant {network:string;imageId:string}

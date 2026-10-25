@@ -7,7 +7,7 @@ import {boundedLookup} from '@steward/module-sdk';
 import {signAssertion} from './security/crypto.js';
 /** Only operator-actionable static codes may cross the configuration boundary. */
 export function configurationFailure(error:unknown):string {
- const allowed=['CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_EGRESS_GRANT_MISMATCH','CONNECTOR_EGRESS_NETWORK_REQUIRED','CONNECTOR_EGRESS_NETWORK_UNTRUSTED','CONNECTOR_EGRESS_IDENTITY_CHANGED'];
+ const allowed=['CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_INVALID','CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_EGRESS_GRANT_MISMATCH','CONNECTOR_EGRESS_NETWORK_REQUIRED','CONNECTOR_EGRESS_NETWORK_UNTRUSTED','CONNECTOR_EGRESS_IDENTITY_CHANGED'];
  return typeof error==='string'&&allowed.includes(error)?error:'MODULE_CONFIGURATION_UNAVAILABLE';
 }
 export async function createModuleBroker(configFile:string,installation:InstallationConfig,key:string){

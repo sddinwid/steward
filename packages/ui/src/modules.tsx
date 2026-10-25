@@ -1,3 +1,4 @@
+import {configurationErrorMessage,saveModuleConfiguration} from './module-configuration.js';
 import {ModuleReportView} from './module-report.js';
 import { useEffect, useState, type FormEvent } from 'react';
 import { SmartModules } from './smart-modules.js';
@@ -14,6 +15,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [configurations, setConfigurations] = useState<Record<string, string>>({});
+  const [configurationResults,setConfigurationResults]=useState<Record<string,{error?:string;saved?:boolean}>>({});
   const [accounts, setAccounts] = useState<any[]>([]);
   const [scopeAccount, setScopeAccount] = useState('');
   const [scopeModule, setScopeModule] = useState('');
@@ -26,6 +28,12 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
   }
   useEffect(() => { void refresh().catch(e => { setError(String(e.message).includes('Route ')?'The module runtime is not configured. Ask an operator to provision the trusted module host.':e.message); }); }, []);
   async function act(work: () => Promise<unknown>) { setBusy(true); setError(''); try { await work(); } catch (e) { setError((e as Error).message); } finally { await refresh().catch(e => setError(e.message)); setBusy(false); } }
+  async function saveConfiguration(m:any){
+    setBusy(true);setConfigurationResults(v=>({...v,[m.moduleId]:{}}));
+    try{await saveModuleConfiguration(api,m.moduleId,JSON.parse(configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration)));await refresh();setConfigurations(v=>{const copy={...v};delete copy['installed:'+m.moduleId];return copy;});setConfigurationResults(v=>({...v,[m.moduleId]:{saved:true}}));}
+    catch(e){setConfigurationResults(v=>({...v,[m.moduleId]:{error:configurationErrorMessage((e as Error).message)}}));}
+    finally{setBusy(false);}
+  }
   function configuration(p: any): string {
     if (configurations[p.packageId] !== undefined) return configurations[p.packageId]!;
     const installed = manager?.installed.find((m: any) => m.moduleId === p.manifest.moduleId);
@@ -41,7 +49,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
       <p>Only signed packages from configured publishers can be installed. Modules run outside this Worker core.</p>
       <h3>Installed modules</h3>{manager.installed.length ? manager.installed.map((m: any) => <div className="request-card" key={m.moduleId} data-testid={`installed-${m.moduleId}`}>
         <strong>{m.manifest.name}</strong> {m.version} · <span>{m.state}</span>{m.errorCode ? <p role="alert">Installation failed: {m.errorCode}. Data was retained. Review the package and use explicit recovery below.</p> : null}
-        <details><summary>Module configuration</summary><ConfigurationFields schema={m.manifest.configurationSchema} value={safeObject(configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration))} onChange={v=>setConfigurations({...configurations,['installed:'+m.moduleId]:JSON.stringify(v)})}/><details><summary>Advanced configuration JSON</summary><label>Installed configuration for {m.moduleId}<textarea aria-label={`Installed configuration for ${m.moduleId}`} value={configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration,null,2)} onChange={e=>setConfigurations({...configurations,['installed:'+m.moduleId]:e.target.value})} /></label></details><button disabled={busy} onClick={()=>void act(()=>api(`/v3/modules/${encodeURIComponent(m.moduleId)}/configuration`,'PUT',{configuration:JSON.parse(configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration))}))}>Save configuration for {m.manifest.name}</button></details>
+        <details><summary>Module configuration</summary><ConfigurationFields schema={m.manifest.configurationSchema} value={safeObject(configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration))} onChange={v=>{setConfigurations({...configurations,['installed:'+m.moduleId]:JSON.stringify(v)});setConfigurationResults(r=>({...r,[m.moduleId]:{}}));}}/><details><summary>Advanced configuration JSON</summary><label>Installed configuration for {m.moduleId}<textarea aria-label={`Installed configuration for ${m.moduleId}`} value={configurations['installed:'+m.moduleId]??JSON.stringify(m.configuration,null,2)} onChange={e=>{setConfigurations({...configurations,['installed:'+m.moduleId]:e.target.value});setConfigurationResults(r=>({...r,[m.moduleId]:{}}));}} /></label></details>{typeof m.configuration?.mode==='string'?<p>Saved mode: <strong>{m.configuration.mode}</strong></p>:null}<p>Form changes remain unsaved until the save is confirmed.</p>{configurationResults[m.moduleId]?.error?<p role="alert" className="form-error">{configurationResults[m.moduleId]?.error}</p>:null}{configurationResults[m.moduleId]?.saved?<p role="status">Configuration saved and applied.</p>:null}<button disabled={busy} onClick={()=>void saveConfiguration(m)}>Save configuration for {m.manifest.name}</button></details>
         {['installed', 'disabled'].includes(m.state) ? <button disabled={busy} onClick={() => void act(() => api(`/v3/modules/${encodeURIComponent(m.moduleId)}/lifecycle`, 'POST', { action: 'activate' }))}>Activate {m.manifest.name}</button> : null}
         {m.state === 'active' ? <button disabled={busy} onClick={() => void act(() => api(`/v3/modules/${encodeURIComponent(m.moduleId)}/lifecycle`, 'POST', { action: 'deactivate' }))}>Deactivate {m.manifest.name}</button> : null}
       </div>) : <p>No installed module packages.</p>}
