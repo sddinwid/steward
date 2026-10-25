@@ -1,5 +1,7 @@
 # Worker 3 Shopify configuration diagnosis
 
+> Subsequent operator setup on 2026-10-25 UTC resolved the missing prerequisites. Worker 3 now has verified real development-store identity and a synchronized read-only catalog: 17 products / 26 variants. See [actual live verification](shopify-live-store-verification.md). Missing-prerequisite statements below describe the earlier checkpoint.
+
 ## Observed root cause
 
 Inspected the selected existing deployment, Worker 3, Shopify **1.2.0**. PostgreSQL and `/run/module-secrets/runtime.json` both contained `mode=simulator`, `currency=USD`, `integrationsEnabled=true`, `publishOperationalAlerts=false`. No configuration propagation discrepancy was found.

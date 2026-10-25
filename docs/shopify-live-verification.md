@@ -1,5 +1,7 @@
 # Shopify live-readiness verification
 
+> Subsequent operator setup on 2026-10-25 UTC resolved the missing prerequisites. Worker 3 now has verified real development-store identity and a synchronized read-only catalog: 17 products / 26 variants. See [actual live verification](shopify-live-store-verification.md). Missing-prerequisite statements below describe the earlier checkpoint.
+
 Implementation branch `codex/shopify-development-auth`, starting at `f9949fd`. This continues the latest adapter/UI code descended from v0.8.0 rather than deploying an old checkout. v0.8.0 tag object `138a5875641563899bddcc4042159e8e68a4bd1e`, peeled commit `7d3a70d6349ca684111b7e2b879650c2be4c54d6`, remains preserved. No release tag is created.
 
 Implementation image source is `7c8f77a`; the subsequent narrow Worker configuration-error reporting fix is `739f78e`. Current implementation: Shopify 1.2.0; optional connector-egress support in module host 0.8.1. All applied Shopify migrations are unchanged (schema 4); connection profiles/pins/requests use the existing module-owned record foundation. SSMA provided/consumed contract bodies are unchanged; simulator mode is an additional deterministic availability prerequisite for fulfillment. Existing SSDS renderer and frontend source are unchanged.

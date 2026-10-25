@@ -56,3 +56,7 @@ The same selected deployment now runs Shopify 1.2.0 on Workers 1 and 3, module h
 ## Configuration feedback correction
 
 The selected stack now includes the Worker-local module configuration feedback fix from `44d52af`: all three Workers use the same updated Worker API, frontend and Module Host images. Master images and Shopify 1.2.0 remain unchanged. This supersedes the earlier statement that Worker frontends were unchanged during the initial Shopify-readiness promotion. Failed Live saves now show an inline prerequisite explanation and the persisted mode; successful saves are confirmed against stored configuration. Original simulator settings, profiles, business records, credentials and identities are retained. See [the diagnosis and verification](shopify-configuration-diagnosis.md). No release tag was created.
+
+## Worker 3 real development-store connection
+
+Worker 3 now has a privately configured, verified real Shopify development-store connection in **live** mode, with automatic synchronization **off** and a manually synchronized catalog of **17 products / 26 variants**. Its image-bound egress grant remains intentionally approved for that connection. Worker 1 retains simulator mode; Worker 2 has no Shopify module. No core or module image changed during setup. See [actual live verification](shopify-live-store-verification.md); earlier missing-prerequisite statements above are historical.

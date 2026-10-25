@@ -2,7 +2,7 @@
 
 This extends the existing `cee.shopify` adapter descended from v0.8.0, including its later multi-store and SSDS work. It does not introduce another Shopify module or replace the renderer. New package: **Shopify 1.2.0**. Existing simulator order/reservation/production/fulfillment flows remain supported. Live mode is deliberately **development-store catalog only**: authentication, store identity, products and variants. It cannot read, create, change or fulfill live orders.
 
-The source and simulator/protocol tests are not proof of successful Shopify authentication. Actual live verification remains blocked until the operator supplies their own development store/app credentials privately. No credential is requested in chat.
+The source and simulator/protocol tests are not proof of successful Shopify authentication. Worker 3 subsequently passed real development-store authentication and read-only catalog synchronization; see [actual live verification](shopify-live-store-verification.md). Other installations require their own privately configured credentials. No credential is requested in chat.
 
 ## Current Shopify requirements
 
