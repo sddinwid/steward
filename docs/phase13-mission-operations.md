@@ -45,3 +45,9 @@ docker run --rm --network none --cpus 2 --memory 2g steward-scientific:1.1.0-tes
 ```
 
 Isolated database harnesses clean up their own temporary containers and never mount the operator deployment. Their source-authority/scientific fixtures are explicitly identified in output; they do not prove installed browser workflows, real cross-Worker delivery or live Ollama reasoning. Consult the phase verification report for those separate actual acceptance gates. Do not retag scientific1.0.0 or prior platform/module releases.
+
+## Rejected training and package upgrades
+
+Employment1.0.2 supports **Reconcile rejected training request** for a human reviewer when the provider has definitively rejected an unreserved request. It refuses pending/uncertain work, accepted reservations and employment obligations. Reconciliation preserves the original command, provider terms and terminal receipt; a new course and disclosure need fresh review. A catalogue refresh is a new read under the currently approved provider; it never changes an existing reservation.
+
+Upgrading a module does not transfer old SSMA obligations to its replacement package. Review new bindings/workflows for new work. In the retained demonstration, one historical Participant referral remains pinned to Employment1.0.0 with its last verified status. Its rejected downstream request and unreserved local Employment pathway were explicitly reconciled/withdrawn; the original source referral is retained and is not falsely reported closed. The separately reviewed replacement referral uses the same synthetic person/receiving alias, so aggregate participant counts do not increase. Do not delete this history or retry an uncertain external operation to clear a screen.
