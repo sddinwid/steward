@@ -1,0 +1,134 @@
+{
+  "version": "0.12.0",
+  "status": "passed",
+  "sourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+  "verifiedCandidateManifestSha256": "4764b47574488d33849b6a1b8a74362ec88012774052d8f37a6e533f072a6d18",
+  "gates": [
+    {
+      "id": "scientific",
+      "status": "passed",
+      "result": "70 scientific tests and actual authenticated isolated/deployed Python service",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "forecasts",
+      "status": "passed",
+      "result": "chronological splits, independent known scenarios, supported uncertainty, reproducibility and actual UI/MCP forecasts",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "optimization",
+      "status": "passed",
+      "result": "independent reference/oracle cases, integer constraints, exact-cent reconciliation and actual deployed MILP",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "scenarios",
+      "status": "passed",
+      "result": "bounded deterministic variations, feasibility/entity effects and actual browser comparison",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "ui",
+      "status": "passed",
+      "result": "8 presentation-only checks plus complete actual browser walkthroughs on retained and clean deployments; zero JavaScript errors",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "workers",
+      "status": "passed",
+      "result": "separate databases/core-image equality, genuine independent owner services, exact fees and paused twelve-order retained datasets",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "mcp",
+      "status": "passed",
+      "result": "actual scoped tools, complete stored evidence and reproducible scientific test-model failure coverage",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "ollama",
+      "status": "passed",
+      "result": "real qwen2.5:7b, six MCP calls, 86.377 seconds, separately reviewed browser finding and both acknowledgments",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "isolation",
+      "status": "passed",
+      "result": "actual live read-only catalogs/private configuration preserved, isolated synthetic/scientific networks and entity authorization",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "recovery",
+      "status": "passed",
+      "result": "actual science/Master/model/database/process outages and durable recovery without fabricated results",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "installation",
+      "status": "passed",
+      "result": "clean copied-toolkit npm ci/build, real enrollment and browser module installation, repeat provisioning; failed subnet attempt retained",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "upgrade",
+      "status": "passed",
+      "result": "in-place v0.11.0 schema/core upgrade plus final exact-image redeployment; scientific/Analyst history, identities and private configuration preserved",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "regressions",
+      "status": "passed",
+      "result": "182 backend tests, 70 Python tests, 28 governance checks, 8 presentation checks, 9 SSMA suite tests including browser; earlier-phase deployed regressions in clean installation",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    },
+    {
+      "id": "release",
+      "status": "passed",
+      "result": "exact candidate checksum verification, eight image kinds, portable payload cleanup and redeployment, one restored active operator stack",
+      "evidence": [
+        "docs/phase12-acceptance-evidence.json",
+        "docs/phase12-verification.md"
+      ]
+    }
+  ]
+}

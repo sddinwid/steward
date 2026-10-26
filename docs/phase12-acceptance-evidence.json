@@ -1,5 +1,5 @@
 {
-  "status": "pre_release_acceptance_passed_release_gates_pending",
+  "status": "passed",
   "verifiedApplicationCommit": "18f5d7bef4952085f8cfecd9fff5866c0f30f189",
   "build": "artifacts/phase12-release-build.log",
   "regressions": {
@@ -15129,10 +15129,880 @@
     "status": "passed",
     "finishedAt": "2026-10-26T00:42:14.358Z"
   },
-  "releaseGatesStillPending": [
-    "clean portable installation",
-    "exact candidate redeployment/checksums/image digests",
-    "final ownership/resource/persistence verification",
-    "release promotion/tag"
-  ]
+  "release": {
+    "version": "0.12.0",
+    "sourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+    "verifiedCandidateManifestSha256": "4764b47574488d33849b6a1b8a74362ec88012774052d8f37a6e533f072a6d18",
+    "checksummedFiles": 547,
+    "images": {
+      "master-api": {
+        "tag": "steward-master-api:0.12.0",
+        "id": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+        "platform": "linux/amd64"
+      },
+      "master-web": {
+        "tag": "steward-master-web:0.12.0",
+        "id": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+        "platform": "linux/amd64"
+      },
+      "worker-api": {
+        "tag": "steward-worker-api:0.12.0",
+        "id": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "platform": "linux/amd64"
+      },
+      "worker-web": {
+        "tag": "steward-worker-web:0.12.0",
+        "id": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "platform": "linux/amd64"
+      },
+      "module-host": {
+        "tag": "steward-module-host:0.12.0",
+        "id": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "platform": "linux/amd64"
+      },
+      "postgres": {
+        "tag": "postgres:17.9-alpine",
+        "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+      },
+      "commerce-simulator": {
+        "tag": "steward-commerce-simulator:1.0.1",
+        "id": "sha256:892ccc062ad0ddce8ae0cc1d447167ef67e9ba3f8838d00047acd6c8c8f0378b"
+      },
+      "scientific": {
+        "tag": "steward-scientific:1.0.0",
+        "id": "sha256:08b12beb678438f40ba569154f72814be075e0f28fb179b2ee24345aef0734fb",
+        "platform": "linux/amd64"
+      }
+    },
+    "imageArchiveBytes": 1828203520,
+    "imageArchiveSha256": "e79e9b3b16209679a4d1c677f83296c3c2c5c5d98faf3adb2ec017ae6edeffb3",
+    "promotion": "pending after committed gate evidence"
+  },
+  "cleanInstallation": {
+    "startedAt": "2026-10-26T01:14:40.114Z",
+    "project": "steward-phase12-clean-release-002",
+    "checks": [
+      "copied release toolkit npm ci and full build without developer checkout dependencies",
+      "clean digest-pinned initialization, API/frontend smoke, repeated provisioning, isolated databases and outage/restart preservation",
+      "real Chromium and authenticated enrollment, rejection, identity, trust, replay, outage/restart and secret non-disclosure regressions",
+      "three independent enrolled Workers, genuine operational seeding and durable synchronization/finding regressions",
+      "actual deployed MCP and reproducible test-model investigations, failures, evidence, permissions and outage regressions; not live model validation",
+      "independent browser module installation without core image replacement; approved synthetic bindings and workflows",
+      "actual scientific forecast/optimization/scenario UI, affected-only reviewed findings, local outage recovery and reproducible scientific MCP model/failure coverage",
+      "repeat installation/upgrade and pinned image redeployment"
+    ],
+    "operatorProject": "steward-phase8-upgrade-reg",
+    "operatorRestored": true,
+    "stoppedOperatorContainers": 37,
+    "status": "passed",
+    "finishedAt": "2026-10-26T01:33:26.726Z"
+  },
+  "firstCleanAttempt": {
+    "startedAt": "2026-10-26T01:08:25.352Z",
+    "project": "steward-phase12-clean-release-001",
+    "checks": [
+      "copied release toolkit npm ci and full build without developer checkout dependencies"
+    ],
+    "operatorProject": "steward-phase8-upgrade-reg",
+    "operatorRestored": true,
+    "stoppedOperatorContainers": 37,
+    "status": "failed",
+    "error": "Acceptance child failed; inspect the retained log for its exact assertion.",
+    "finishedAt": "2026-10-26T01:12:33.995Z"
+  },
+  "networkRecovery": {
+    "removedVerifiedEmptyAcceptanceNetworks": 21,
+    "preservedAllContainersVolumesIdentitiesConfigurationsAndLiveEgress": true,
+    "audit": "artifacts/phase12-empty-acceptance-network-audit.json",
+    "prerequisite": "14 available Docker subnet allocations for a three-Worker lab with scientific service and commerce simulators"
+  },
+  "finalRetainedDeployment": {
+    "status": "passed",
+    "sourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+    "checks": [
+      "all core images match exact candidate, all three Workers identical",
+      "real Qwen history, original scientific calculation/digests and acknowledged affected-only finding survive clean-test downtime and redeployment",
+      "both original controlled twelve-completed-order datasets remain paused; live connectors remain read-only",
+      "final retained Master/Worker browser evidence is readable with zero JavaScript errors"
+    ],
+    "images": {
+      "master-api": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+      "master-web": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+      "worker-1-api": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+      "worker-1-web": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+      "worker-1-module-host": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+      "worker-2-api": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+      "worker-2-web": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+      "worker-2-module-host": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+      "worker-3-api": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+      "worker-3-web": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+      "worker-3-module-host": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb"
+    },
+    "browserErrors": [],
+    "startedAt": "2026-10-26T01:35:02.364Z",
+    "finishedAt": "2026-10-26T01:35:12.943Z"
+  },
+  "finalInfrastructureDigests": {
+    "status": "passed",
+    "sourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+    "checks": [
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-1-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-2-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-3-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "master-web",
+        "kind": "master-web",
+        "imageId": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-3-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-1-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-2-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-3-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-1-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-2-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "master-api",
+        "kind": "master-api",
+        "imageId": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "scientific",
+        "kind": "scientific",
+        "imageId": "sha256:08b12beb678438f40ba569154f72814be075e0f28fb179b2ee24345aef0734fb",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-2-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-3-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "worker-1-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": true
+      },
+      {
+        "project": "steward-phase8-upgrade-reg",
+        "service": "master-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": true
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-1-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-2-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "master-web",
+        "kind": "master-web",
+        "imageId": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-3-web",
+        "kind": "worker-web",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-1-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-1-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-2-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-2-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "master-api",
+        "kind": "master-api",
+        "imageId": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-3-api",
+        "kind": "worker-api",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-3-module-host",
+        "kind": "module-host",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-1-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-2-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "scientific",
+        "kind": "scientific",
+        "imageId": "sha256:08b12beb678438f40ba569154f72814be075e0f28fb179b2ee24345aef0734fb",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "shopify-simulator",
+        "kind": "commerce-simulator",
+        "imageId": "sha256:892ccc062ad0ddce8ae0cc1d447167ef67e9ba3f8838d00047acd6c8c8f0378b",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "printify-simulator",
+        "kind": "commerce-simulator",
+        "imageId": "sha256:892ccc062ad0ddce8ae0cc1d447167ef67e9ba3f8838d00047acd6c8c8f0378b",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "master-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": false
+      },
+      {
+        "project": "steward-phase12-clean-release-002",
+        "service": "worker-3-db",
+        "kind": "postgres",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "running": false
+      }
+    ]
+  },
+  "runtimeSourceEquivalence": {
+    "status": "passed",
+    "realModelVerifiedApplicationCommit": "18f5d7bef4952085f8cfecd9fff5866c0f30f189",
+    "packagedSourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+    "unchangedRuntimeSourcePaths": [
+      "packages",
+      "apps",
+      "services",
+      "modules",
+      "tools",
+      "datasets",
+      "infra",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.base.json"
+    ],
+    "changesBetweenCommits": "acceptance documentation and scripts only"
+  },
+  "finalResources": {
+    "observedAt": "2026-10-26T01:35:13.954Z",
+    "project": "steward-phase8-upgrade-reg",
+    "kind": "single runtime snapshot and sequential localhost health observations; not a capacity benchmark",
+    "containerCount": 37,
+    "containers": [
+      {
+        "name": "steward-phase8-upgrade-reg-master-api-1",
+        "imageId": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+        "moduleId": null,
+        "cpuPercent": 3.72,
+        "memoryMiB": 120.4,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-master-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 1.58,
+        "memoryMiB": 30.14,
+        "pids": 8
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-master-web-1",
+        "imageId": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+        "moduleId": null,
+        "cpuPercent": 0.38,
+        "memoryMiB": 18.31,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-scientific-1",
+        "imageId": "sha256:08b12beb678438f40ba569154f72814be075e0f28fb179b2ee24345aef0734fb",
+        "moduleId": null,
+        "cpuPercent": 0.22,
+        "memoryMiB": 33.79,
+        "pids": 1
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-api-1",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "moduleId": null,
+        "cpuPercent": 12.66,
+        "memoryMiB": 130,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 1.03,
+        "memoryMiB": 64.59,
+        "pids": 18
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-module-host-1",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "moduleId": null,
+        "cpuPercent": 2.16,
+        "memoryMiB": 167.7,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-web-1",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 16.24,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-api-1",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "moduleId": null,
+        "cpuPercent": 0.16,
+        "memoryMiB": 85.11,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 2.95,
+        "memoryMiB": 52.25,
+        "pids": 15
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-module-host-1",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "moduleId": null,
+        "cpuPercent": 1.11,
+        "memoryMiB": 151.8,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-web-1",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 14.69,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-api-1",
+        "imageId": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+        "moduleId": null,
+        "cpuPercent": 15.97,
+        "memoryMiB": 79.67,
+        "pids": 12
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-db-1",
+        "imageId": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee",
+        "moduleId": null,
+        "cpuPercent": 0.38,
+        "memoryMiB": 49.95,
+        "pids": 16
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-module-host-1",
+        "imageId": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+        "moduleId": null,
+        "cpuPercent": 8.56,
+        "memoryMiB": 152.3,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-web-1",
+        "imageId": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+        "moduleId": null,
+        "cpuPercent": 0,
+        "memoryMiB": 15,
+        "pids": 17
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_0c98b8b831f9e8158c61",
+        "imageId": "sha256:7271399084d60e541f1fdcd17038f158f8e95187722282f4a16108e6493b4e61",
+        "moduleId": "steward.simulation.commerce",
+        "cpuPercent": 0.65,
+        "memoryMiB": 24.84,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_3cf2b05be8bc4acde2ec",
+        "imageId": "sha256:a1e3dc0dd22f7dd9f32150313fce24efa22fadb6cc870c1c38af03aec9fc9dd4",
+        "moduleId": "cee.sales",
+        "cpuPercent": 0.08,
+        "memoryMiB": 23.14,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_4bf94324df83a85715b4",
+        "imageId": "sha256:e64fc041e217df7d6b6c3069459685c132bf666417241d5a32b9f50f22451722",
+        "moduleId": "steward.simulation.fulfillment",
+        "cpuPercent": 0.08,
+        "memoryMiB": 22.93,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_8920ca19033fb2969a3d",
+        "imageId": "sha256:0280b2f1eedec4defbd0b5ef48ffc0708b4c138d5518f3ab8d28271512451779",
+        "moduleId": "cee.stock-ledger",
+        "cpuPercent": 0.08,
+        "memoryMiB": 22.32,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_0cf35c19fedd620840a5",
+        "imageId": "sha256:cafe7468c79cac02f7478d5635d74af394d6daeb3b6e672c404305923184bbbc",
+        "moduleId": "cee.shopify",
+        "cpuPercent": 0,
+        "memoryMiB": 23.21,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_3a43c2405ab5444a317d",
+        "imageId": "sha256:23a06051fd4968e7d3aee9ae4bb8530482ffbfe49aa8ec181998ab02b4669f9b",
+        "moduleId": "cee.printify",
+        "cpuPercent": 0.13,
+        "memoryMiB": 22.99,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 23.07,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_7a51719aba0bcd58eed8",
+        "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0",
+        "moduleId": "cee.workforce",
+        "cpuPercent": 0,
+        "memoryMiB": 22.24,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_46911fffce08b41184c3",
+        "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7",
+        "moduleId": "cee.procurement",
+        "cpuPercent": 0,
+        "memoryMiB": 22.15,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-1-m_1675588e58787da091eb",
+        "imageId": "sha256:add7f621757966331f405bd6da028f29d2764c934c4f2e9b06678ecc716fdec3",
+        "moduleId": "cee.inventory",
+        "cpuPercent": 0,
+        "memoryMiB": 25.95,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_0c98b8b831f9e8158c61",
+        "imageId": "sha256:7271399084d60e541f1fdcd17038f158f8e95187722282f4a16108e6493b4e61",
+        "moduleId": "steward.simulation.commerce",
+        "cpuPercent": 0.12,
+        "memoryMiB": 24.38,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_3cf2b05be8bc4acde2ec",
+        "imageId": "sha256:a1e3dc0dd22f7dd9f32150313fce24efa22fadb6cc870c1c38af03aec9fc9dd4",
+        "moduleId": "cee.sales",
+        "cpuPercent": 0.07,
+        "memoryMiB": 23.23,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_4bf94324df83a85715b4",
+        "imageId": "sha256:e64fc041e217df7d6b6c3069459685c132bf666417241d5a32b9f50f22451722",
+        "moduleId": "steward.simulation.fulfillment",
+        "cpuPercent": 0.22,
+        "memoryMiB": 22.79,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_8920ca19033fb2969a3d",
+        "imageId": "sha256:0280b2f1eedec4defbd0b5ef48ffc0708b4c138d5518f3ab8d28271512451779",
+        "moduleId": "cee.stock-ledger",
+        "cpuPercent": 0.09,
+        "memoryMiB": 22.23,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 22.5,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-2-m_1675588e58787da091eb",
+        "imageId": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd",
+        "moduleId": "cee.inventory",
+        "cpuPercent": 0,
+        "memoryMiB": 21.99,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_3a43c2405ab5444a317d",
+        "imageId": "sha256:2fb3344f47209d5b9e669762ee0b493c100de96afac2939acf134fd8d7962744",
+        "moduleId": "cee.printify",
+        "cpuPercent": 0.51,
+        "memoryMiB": 33.05,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_0cf35c19fedd620840a5",
+        "imageId": "sha256:cafe7468c79cac02f7478d5635d74af394d6daeb3b6e672c404305923184bbbc",
+        "moduleId": "cee.shopify",
+        "cpuPercent": 0.13,
+        "memoryMiB": 23.51,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_3cf2b05be8bc4acde2ec",
+        "imageId": "sha256:7f678c7854de5abaf8af3f2ce9bc01c9d59a89aa4d793ee9085b03137cc961e7",
+        "moduleId": "cee.sales",
+        "cpuPercent": 0,
+        "memoryMiB": 23.14,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_f7b7e9d62f4f73bc531c",
+        "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+        "moduleId": "cee.operations",
+        "cpuPercent": 0,
+        "memoryMiB": 22.41,
+        "pids": 11
+      },
+      {
+        "name": "steward-phase8-upgrade-reg-worker-3-m_1675588e58787da091eb",
+        "imageId": "sha256:7b2cdefceb5ab8233b7a3897a8ade9b58022d26bff4477f89f9fb017c7688fbd",
+        "moduleId": "cee.inventory",
+        "cpuPercent": 0,
+        "memoryMiB": 21.82,
+        "pids": 11
+      }
+    ],
+    "health": {
+      "master": {
+        "samples": 10,
+        "medianMs": 1.96,
+        "maxMs": 32.43
+      },
+      "worker-1": {
+        "samples": 10,
+        "medianMs": 1.48,
+        "maxMs": 2.83
+      },
+      "worker-2": {
+        "samples": 10,
+        "medianMs": 1.4,
+        "maxMs": 3.59
+      },
+      "worker-3": {
+        "samples": 10,
+        "medianMs": 1.33,
+        "maxMs": 2.77
+      }
+    },
+    "databases": {
+      "master": [
+        "steward"
+      ],
+      "worker-1": [
+        "m_0c98b8b831f9e8158c61",
+        "m_0cf35c19fedd620840a5",
+        "m_1675588e58787da091eb",
+        "m_3a43c2405ab5444a317d",
+        "m_3cf2b05be8bc4acde2ec",
+        "m_46911fffce08b41184c3",
+        "m_4bf94324df83a85715b4",
+        "m_7a51719aba0bcd58eed8",
+        "m_8920ca19033fb2969a3d",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ],
+      "worker-2": [
+        "m_0c98b8b831f9e8158c61",
+        "m_1675588e58787da091eb",
+        "m_3cf2b05be8bc4acde2ec",
+        "m_4bf94324df83a85715b4",
+        "m_8920ca19033fb2969a3d",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ],
+      "worker-3": [
+        "m_0cf35c19fedd620840a5",
+        "m_1675588e58787da091eb",
+        "m_3a43c2405ab5444a317d",
+        "m_3cf2b05be8bc4acde2ec",
+        "m_f7b7e9d62f4f73bc531c",
+        "steward"
+      ]
+    },
+    "totalMemoryMiB": 1675.83,
+    "totalCpuPercent": 53.04,
+    "operationalBusinessCodeAbsentFromWorkerImages": true,
+    "loadedOllamaModels": [],
+    "status": "passed"
+  },
+  "finalLiveReadOnlyIsolation": {
+    "startedAt": "2026-10-26T01:38:59.194Z",
+    "checks": [
+      "actual Shopify authentication, development-store identity and read-only catalog synchronization",
+      "Printify available live catalog connection and retained products",
+      "live connector versions, images, identities, configuration and private file hashes unchanged; zero synthetic records in either connector"
+    ],
+    "liveMutations": false,
+    "shopify": [
+      {
+        "operation": "test",
+        "status": "verified",
+        "productCount": 17,
+        "authentication": "client_credentials",
+        "shopId": "gid://shopify/Shop/102536675692"
+      },
+      {
+        "operation": "catalog",
+        "status": "synced",
+        "productCount": 17,
+        "authentication": "client_credentials",
+        "shopId": "gid://shopify/Shop/102536675692"
+      }
+    ],
+    "printify": [
+      {
+        "status": "connection_unavailable",
+        "error": "CONNECTOR_CONFIGURATION_OR_DATA_INVALID"
+      },
+      {
+        "status": "available",
+        "error": null
+      }
+    ],
+    "catalogs": {
+      "cee.shopify": {
+        "products": 17,
+        "variants": 26
+      },
+      "cee.printify": {
+        "products": 5,
+        "variants": 625
+      }
+    },
+    "isolation": [
+      {
+        "worker": "worker-1",
+        "module": "steward.simulation.commerce",
+        "networks": [
+          "steward-phase8-upgrade-reg_worker-1-data",
+          "steward-phase8-upgrade-reg_worker-1-modules"
+        ],
+        "internalOnly": true,
+        "noConnectorSecretsOrDockerSocket": true
+      },
+      {
+        "worker": "worker-1",
+        "module": "steward.simulation.fulfillment",
+        "networks": [
+          "steward-phase8-upgrade-reg_worker-1-data",
+          "steward-phase8-upgrade-reg_worker-1-modules"
+        ],
+        "internalOnly": true,
+        "noConnectorSecretsOrDockerSocket": true
+      },
+      {
+        "worker": "worker-2",
+        "module": "steward.simulation.commerce",
+        "networks": [
+          "steward-phase8-upgrade-reg_worker-2-data",
+          "steward-phase8-upgrade-reg_worker-2-modules"
+        ],
+        "internalOnly": true,
+        "noConnectorSecretsOrDockerSocket": true
+      },
+      {
+        "worker": "worker-2",
+        "module": "steward.simulation.fulfillment",
+        "networks": [
+          "steward-phase8-upgrade-reg_worker-2-data",
+          "steward-phase8-upgrade-reg_worker-2-modules"
+        ],
+        "internalOnly": true,
+        "noConnectorSecretsOrDockerSocket": true
+      }
+    ],
+    "status": "passed",
+    "finishedAt": "2026-10-26T01:39:06.649Z"
+  },
+  "copiedToolkitChecks": {
+    "phase12-browser-installation": {
+      "status": "passed",
+      "checks": [
+        "real browser authentication, signed package installation/upgrades and activation on two retained Workers",
+        "dedicated declarative Administration Control Center without Module Manager framing",
+        "core image hashes unchanged by module installation; Worker 3 preserved"
+      ],
+      "startedAt": "2026-10-26T01:25:51.143Z",
+      "finishedAt": "2026-10-26T01:26:18.441Z",
+      "browserErrors": []
+    },
+    "phase12-configuration": {
+      "status": "passed",
+      "checks": [],
+      "startedAt": "2026-10-26T01:26:20.104Z",
+      "finishedAt": "2026-10-26T01:26:46.155Z",
+      "browserErrors": []
+    },
+    "phase12-browser-acceptance": {
+      "status": "passed",
+      "checks": [
+        "real browser-controlled synthetic activity on two retained Workers; grouped state, fees, source trends and authorized Control Center links",
+        "browser-only forecasting with validated intervals, optimization/entity impacts, scenario comparison, frozen evidence, reviewed finding and affected-only delivery/acknowledgments",
+        "actual Master outage with new local source orders, durable pending publications, recovery, retained charts, exact reconciliation and unchanged other datasets"
+      ],
+      "startedAt": "2026-10-26T01:26:47.832Z",
+      "finishedAt": "2026-10-26T01:28:29.023Z",
+      "browserErrors": []
+    },
+    "phase12-test-model": {
+      "status": "passed",
+      "checks": [
+        "labelled test model selected six actual MCP stages, completed three governed scientific calculations and retained digest/source references without publishing",
+        "incorrect financial conclusion blocked without a fabricated finding",
+        "MODEL_UNAVAILABLE is explicit and retains partial activity",
+        "MODEL_OUTPUT_INVALID is explicit and retains partial activity",
+        "MODEL_UNDECLARED_TOOL is explicit and retains partial activity",
+        "TRANSPORT_TIMEOUT is explicit and retains partial activity",
+        "tool execution limit remains enforced"
+      ],
+      "startedAt": "2026-10-26T01:28:29.549Z",
+      "finishedAt": "2026-10-26T01:29:34.870Z",
+      "browserErrors": []
+    }
+  }
 }
