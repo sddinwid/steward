@@ -89,7 +89,7 @@ try{
   const release=(await q('POST','/release-requests',{programId:program.id,code:'CANONICAL',cohortId:randomUUID(),policyId:randomUUID(),reason:'Controlled synthetic six-person canonical programme disclosure'},201)).record;
   const result=await act('/publish-aggregate',release),p=result.projection;
   assert.equal(p.suppressed,false);assert.equal(p.participantCount,6);assert.equal(p.participantCounts.housedParticipants,6);assert.equal(p.participantCounts.housingRetainedParticipants,null);assert.equal(p.participantCounts.followedUpParticipants,6);
-  assert.equal(p.capacity.housingUnits,12);assert.equal(p.capacity.occupiedHousingUnits,6);assert.equal(p.capacity.availableHousingUnits,6);assert.equal(p.financials.actualOperatingCostCents,600000);assert.equal(p.financials.approvedAvailableCents,null);assert.equal(p.financials.estimatedUnitCostCents,null);
+  assert.equal(p.capacity.housingPlacements,6);assert.equal(p.capacity.housingUnits,12);assert.equal(p.capacity.occupiedHousingUnits,6);assert.equal(p.capacity.availableHousingUnits,6);assert.equal(p.financials.actualOperatingCostCents,600000);assert.equal(p.financials.approvedAvailableCents,null);assert.equal(p.financials.estimatedUnitCostCents,null);
   assert.equal((await q('GET','/occupancy')).records.filter(r=>r.programId===program.id).length,6);assert.equal((await q('GET','/availability')).records.filter(r=>r.programId===program.id&&r.status==='available').length,6);
   const aggregate=JSON.stringify((await q('GET','/published-aggregates')).records.find(r=>r.releaseId===p.releaseId));for(const ref of aliases)assert(!aggregate.includes(ref));
  });

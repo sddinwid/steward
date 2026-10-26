@@ -2320,7 +2320,8 @@
             "capacity:essentialSupplyUnits",
             "capacity:consumedSupplyUnits",
             "capacity:employmentOpportunities",
-            "capacity:localSupplyShortages"
+            "capacity:localSupplyShortages",
+            "capacity:housingPlacements"
           ]
         },
         {
@@ -3461,6 +3462,14 @@
                       "maximum": 100000000
                     },
                     "localSupplyShortages": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housingPlacements": {
                       "type": [
                         "integer",
                         "null"

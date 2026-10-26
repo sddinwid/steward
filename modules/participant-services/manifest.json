@@ -2300,6 +2300,14 @@
                       ],
                       "minimum": 0,
                       "maximum": 100000000
+                    },
+                    "housingPlacements": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
                     }
                   },
                   "required": [
