@@ -43,7 +43,7 @@ try{
  pass('Six existing synthetic participants received distinct approved Food referrals and human-reviewed delivery acknowledgments through local SSMA');
  const received=(await records(worker,food,'/referrals')).filter(r=>state.cases.some(c=>c.receivingReferralId===r.id));assert.equal(received.length,6);assert.equal(new Set(received.map(r=>r.participantAlias)).size,6);assert.equal((await find(food,'/deliveries',foodState.localDeliveryId)).quantity,6);
  pass('Six recipient allocations reconcile to the existing six-meal delivery without duplicate stock consumption');
- await screen(page,food,'referral');await page.screenshot({path:'artifacts/phase13-participant-food-browser.png',fullPage:true});
+ const finalView=(await screen(page,food,'referral')).view;await waitFor(async()=>await finalView.getByRole('row').count()>=7,'six actual Food referrals rendered in the browser');await page.screenshot({path:'artifacts/phase13-participant-food-browser.png',fullPage:true});
  const general=JSON.stringify((await api('master','/api/v4/analytics')).value);for(const c of participants.cases)assert(!general.includes(c.participant.participantRef));for(const r of received)assert(!general.includes(r.participantAlias));pass('General Master analytics contains neither source participant identifiers nor Food service aliases');
  report.status='passed';report.caseCount=6;
 }catch(e){report.status='failed';report.error=e.message;throw e;}finally{await browser?.close();await writeFile('artifacts/phase13-participant-food-deployment.json',JSON.stringify(report,null,2)+'\n');}
