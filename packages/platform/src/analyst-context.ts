@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import {compactScientificCalculation} from './scientific-context.js';
+import {compactScientificCalculation,compactScientificConstraints} from './scientific-context.js';
 
 export const resourceFields = ['name','site','availableCapacity','requiredCapacity','externalMonthlyCost','operatingMonthlyCost','currency'] as const;
 export const resourceQuerySchema = z.object({
@@ -29,6 +29,7 @@ export function resourcePage(records:any[], raw:unknown) {
 export function modelToolResult(name:string,result:any,compact=false) {
   if(!result.structuredContent)return result;
   let data=result.structuredContent.data;
+  if(name==='query_scientific_constraints')return{structuredContent:{...result.structuredContent,data:{...data,purchasingTerms:compactScientificConstraints(data.purchasingTerms)}}};
   if(data?.scientificReference)return{structuredContent:{...result.structuredContent,data:{...data,calculation:compactScientificCalculation(data.calculation),observed:{provenance:data.observed?.provenance,engine:data.observed?.engine},evidenceRule:'Complete inputs/results retained at scientificReference.jobId. Synthetic history is not a real commercial prediction. No business action authorized.'}}};
   if(compact&&name==='list_entities')data={entities:data.entities.map((e:any)=>({entity_id:e.entity_id,name:e.name,classification:e.classification})),authoritative:false};
   if(compact&&data?.calculation)data={calculation:data.calculation,supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,observed:{supplyWorker:data.observed.supplyWorker,demandWorker:data.observed.demandWorker,supplyAt:data.observed.supplyAt,demandAt:data.observed.demandAt,...(data.observed.sources?{sources:data.observed.sources.map((s:any)=>({reference:s.reference,sourceWorker:s.sourceWorker,observedAt:s.observedAt}))}:{})},decisionExecuted:false};
