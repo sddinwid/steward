@@ -63,7 +63,8 @@
     "test:economy:budgets": "node scripts/test-economic-budgets.mjs",
     "test:economy:coordination": "node scripts/test-economic-coordination.mjs",
     "test:economy:principals": "node scripts/test-economic-principals.mjs",
-    "test:economy": "npm run test:economy:contracts && npm run test:economy:resources && npm run test:economy:budgets && npm run test:economy:coordination && npm run test:economy:principals"
+    "test:economy": "npm run test:economy:contracts && npm run test:economy:resources && npm run test:economy:budgets && npm run test:economy:coordination && npm run test:economy:principals",
+    "test:economy:science": "node scripts/test-economic-science.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

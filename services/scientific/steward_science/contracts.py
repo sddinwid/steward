@@ -50,7 +50,7 @@ class Provenance(Closed):
 class Request(Closed):
     schemaVersion: Literal[1]
     jobId: UUID
-    capability: Literal['describe-series', 'demand-forecast', 'procurement-optimization', 'scenario-comparison', 'mission-sustainability']
+    capability: Literal['describe-series', 'demand-forecast', 'procurement-optimization', 'scenario-comparison', 'mission-sustainability', 'economic-allocation', 'economic-scenarios']
     principalId: UUID
     entityIds: list[UUID] = Field(min_length=1, max_length=8)
     provenance: Provenance
@@ -63,6 +63,14 @@ class Request(Closed):
             raise ValueError('Duplicate entity scope')
         if any(r.entityId not in self.entityIds for r in self.provenance.references):
             raise ValueError('Source reference outside authorized scope')
+        if self.capability in ('economic-allocation', 'economic-scenarios'):
+            if not self.provenance.synthetic:
+                raise ValueError('Economic planning remains synthetic')
+            from .economy import EconomyInput
+            problem = EconomyInput.model_validate(self.parameters.get('baseline', {}) if self.capability == 'economic-scenarios' else self.parameters)
+            scoped = {s.entityId for s in problem.sources} | {p.entityId for p in problem.programs} | {r.ownerEntityId for r in problem.resources}
+            if not scoped <= set(self.entityIds):
+                raise ValueError('Economic input outside authorized entity scope')
         if self.capability == 'demand-forecast':
             rows = self.parameters.get('series', [])
             if not isinstance(rows, list) or len(rows) > 8 or any(not isinstance(row, dict) or str(row.get('entityId', '')).lower() not in {str(i) for i in self.entityIds} for row in rows):
