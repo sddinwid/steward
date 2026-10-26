@@ -1,6 +1,6 @@
 {
   "version": "0.13.0",
-  "acceptanceStatus": "verified-pending-promotion",
+  "acceptanceStatus": "accepted",
   "sourceCommit": "f998794641bd9b8f358d0a600cf310571ff13669",
   "bundle": "artifacts/releases/steward-0.13.0-rc4",
   "candidateManifestSha256": "1a74d639f73317e056f9a28dea8f89f2b3d4f904e66af5267a60891db73fc702",
@@ -62,5 +62,9 @@
     "steward.employment.pathways": "1.1.0",
     "steward.services.food": "1.0.1"
   },
-  "note": "All mandatory gates passed. Immutable candidate payloads verified; promotion follows the evidence commit."
+  "note": "Promoted after all mandatory gates passed; payload checksums and image IDs unchanged. Verify the complete bundle before installation.",
+  "acceptedManifestSha256": "d7822df560d1d393b29206012770e15814d8a24ec30ad568b8e5f5014ad86845",
+  "acceptanceEvidenceCommit": "480db0af1bee386af4866fd01513840c38819507",
+  "verificationArchive": "artifacts/releases/steward-0.13.0-verification.zip",
+  "verificationArchiveSha256": "89dba3b0c714aba4e334084eedcd21c30365ccea23e3edae1a3d5914ef24d394"
 }
