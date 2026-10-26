@@ -16,7 +16,7 @@ Execution uses bounded process admission, one subprocess per calculation, finite
 
 Run `node scripts/test-scientific-service.mjs` to build the hash-locked image, run isolated pytest and exercise an actual authenticated HTTP calculation in a nonroot network-disabled container. The test creates and deletes only its own private temporary key/container; it never mounts an operator deployment.
 
-Forecasting, optimization, scenarios, governed persistence and UI/MCP execution are subsequent Phase 12 checkpoints, not claimed by this foundation.
+The foundation now includes the forecasting, optimization and scenario methods below, with governed persistence and UI/MCP execution described in scientific-deployment.md. Full acceptance evidence is recorded separately in phase12-verification.md.
 
 ## Demand forecasting methods (implemented scientific core)
 

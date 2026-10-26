@@ -84,7 +84,7 @@ node scripts/verify-phase12-science.mjs .steward/phase8-upgrade-regressions
 node scripts/verify-phase12-browser.mjs .steward/phase8-upgrade-regressions
 node scripts/verify-phase12-test-model.mjs .steward/phase8-upgrade-regressions
 $env:STEWARD_RELEASE_BUNDLE='artifacts/releases/steward-0.12.0'
-node scripts/verify-phase12-clean-installation.mjs .steward/phase12-clean-NEWNAME
+node scripts/verify-phase12-clean-installation.mjs .steward/phase12-clean-acceptance-001
 node scripts/verify-single-stack.mjs
 ```
 

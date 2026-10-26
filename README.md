@@ -23,3 +23,8 @@ The existing Shopify adapter supports read-only organization-owned development-s
 ## Phase 11 continuous commerce simulation
 
 All mandatory gates passed and the exact candidate was promoted to accepted v0.11.0. See [operator/presenter controls, installation and recovery](docs/phase11-operations.md), [architecture](docs/adr/0025-continuous-commerce-simulation.md) and [actual verification evidence](docs/phase11-verification.md). The retained operator deployment and live connector credentials are preserved; the original 36-container operator stack is restored, controlled simulations are paused, and no unnecessary model remains loaded.
+
+
+## Phase 12 scientific intelligence
+
+Phase 12 release candidate: optional bounded Python analytics, chronological demand forecasts, integer procurement optimization, conditional sensitivity, executive/company comparisons, shared accessible charts and governed scientific MCP investigations. The generic signed module renderer remains extensible. See [presenter guide](docs/phase12-presenter.md), [installation/deployment](docs/phase12-release.md), [methods](docs/scientific-methodology.md) and [actual verification](docs/phase12-verification.md). The candidate is not tagged until clean-install/redeployment and all release gates pass. The selected operator installation is upgraded in place with retained accounts and databases; the optional service adds one isolated container.
