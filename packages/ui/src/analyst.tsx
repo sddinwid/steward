@@ -31,6 +31,7 @@ function BusinessCalculation({analysis:a}:{analysis:any}){if(a.missionCalculatio
 const humanizeScience=(id:string)=>id.replace('steward.scientific.','').replaceAll('-',' ');
 
 function MissionCalculation({analysis:a}:{analysis:any}){
+ if(a.calculation.capabilityId==='steward.mission.scenario-comparison')return <article data-testid="mission-analyst-comparison"><h3>Reviewed mission scenario comparison</h3><p>Alternatives share the same fixed source evidence; their money and service units must not be summed. No model ranking or business decision is executed.</p>{a.calculation.comparisons.map((r:any)=><section key={r.scenarioId}><h4>Reviewed scenario {r.scenarioId}</h4><p>Retained calculation {r.missionCalculationId}</p><MissionCalculation analysis={{...a,missionCalculationId:r.missionCalculationId,calculation:r.calculation}}/></section>)}</article>;
  const c=a.calculation,currency=typeof c.financial?.currency==='string'&&/^[A-Z]{3}$/.test(c.financial.currency)?c.financial.currency:undefined;
  const monetary=(value:any)=>currency?value:Object.fromEntries(Object.entries(value??{}).map(([key,v])=>[key,key.endsWith('Cents')?'UNKNOWN — source currency unavailable':v]));
  return <article data-testid="mission-analyst-calculation"><h3>Governed mission calculation</h3><p>Synthetic reviewed aggregate evidence. Conditional service units are not unique people, delivered services, commitments or eligibility decisions. Source-issued programme permissions remain required.</p>

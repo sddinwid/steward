@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.employment.pathways",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Employment Pathways",
   "description": "Synthetic authorized training and employment referrals, deterministic qualification comparisons, human-reviewed placement and retention.",
   "minimumPlatformVersion": "0.13.0",
@@ -243,6 +243,18 @@
       "permission": "steward.employment.pathways.admin"
     },
     {
+      "operationId": "refreshTrainingCapacity",
+      "path": "/refresh-training-capacity/:id",
+      "method": "POST",
+      "permission": "steward.employment.pathways.admin"
+    },
+    {
+      "operationId": "refreshEmploymentCapacity",
+      "path": "/refresh-employment-capacity/:id",
+      "method": "POST",
+      "permission": "steward.employment.pathways.admin"
+    },
+    {
       "operationId": "reconcileRejectedTraining",
       "path": "/reconcile-rejected-training/:id",
       "method": "POST",
@@ -380,6 +392,12 @@
       "path": "/referral-status",
       "method": "GET",
       "permission": "steward.employment.pathways.referral"
+    },
+    {
+      "operationId": "programmeCapacity",
+      "path": "/programme-capacity",
+      "method": "GET",
+      "permission": "steward.employment.pathways.read"
     }
   ],
   "ui": [
@@ -533,6 +551,16 @@
           "label": "Review programme permission upgrade",
           "operationId": "reviewProgrammeUpgrade",
           "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: program.finance, program.fund. Existing case/team grants and intentionally removed rights remain unchanged."
+        },
+        {
+          "label": "Refresh approved training capacity",
+          "operationId": "refreshTrainingCapacity",
+          "confirmation": "Confirm this human pathway decision?"
+        },
+        {
+          "label": "Refresh approved employment opportunities",
+          "operationId": "refreshEmploymentCapacity",
+          "confirmation": "Confirm this human pathway decision?"
         },
         {
           "label": "Refresh training catalogue",
@@ -1441,6 +1469,71 @@
         "programId",
         "suppressed",
         "participantCount"
+      ]
+    },
+    {
+      "screenId": "programme-capacity",
+      "title": "Authorized programme capacity",
+      "navigationLabel": "Programme capacity",
+      "listOperation": "programmeCapacity",
+      "fields": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "trainingState",
+          "label": "training State",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "employmentState",
+          "label": "employment State",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "trainingSeats",
+          "label": "training Seats",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "availableTrainingSeats",
+          "label": "available Training Seats",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "employmentOpportunities",
+          "label": "employment Opportunities",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "trainingState",
+        "trainingSeats",
+        "availableTrainingSeats",
+        "employmentState",
+        "employmentOpportunities"
       ]
     }
   ],
@@ -2874,6 +2967,179 @@
                 "positionId",
                 "status",
                 "synthetic"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "restricted",
+        "optional": true
+      },
+      {
+        "capabilityId": "workforce.program-capacity",
+        "contract": "steward.workforce-program-capacity",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "training.read",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "allocationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "trainingSeats": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "availableTrainingSeats": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "allocationId",
+                "revision",
+                "observedAt",
+                "validUntil",
+                "synthetic",
+                "trainingSeats",
+                "availableTrainingSeats"
+              ]
+            }
+          },
+          {
+            "name": "employment.read",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "allocationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "approvedEmploymentSlots": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "employmentOpportunities": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "allocationId",
+                "revision",
+                "observedAt",
+                "validUntil",
+                "synthetic",
+                "approvedEmploymentSlots",
+                "employmentOpportunities"
               ]
             }
           }

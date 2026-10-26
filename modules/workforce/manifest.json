@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.workforce",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Workforce",
   "description": "Authoritative skills, training and positions with opt-in private, programme-scoped mission reservations and human employer decisions.",
   "minimumPlatformVersion": "0.13.0",
@@ -443,6 +443,46 @@
       "path": "/service-status",
       "method": "GET",
       "permission": "cee.workforce.mission.exchange"
+    },
+    {
+      "operationId": "listCapacityAllocation",
+      "path": "/capacity-allocations",
+      "method": "GET",
+      "permission": "cee.workforce.admin",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCapacityAllocation",
+      "path": "/capacity-allocations",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "updateCapacityAllocation",
+      "path": "/capacity-allocations/:id",
+      "method": "PUT",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "approveCapacityAllocation",
+      "path": "/approve-capacity-allocation/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "revokeCapacityAllocation",
+      "path": "/revoke-capacity-allocation/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "capacityResources",
+      "path": "/capacity-resource-options",
+      "method": "GET",
+      "permission": "cee.workforce.read"
     }
   ],
   "ui": [
@@ -1470,6 +1510,125 @@
         "status",
         "completedSkills"
       ]
+    },
+    {
+      "screenId": "capacity-allocations",
+      "title": "Exclusive programme capacity",
+      "navigationLabel": "Programme capacity allocations",
+      "listOperation": "listCapacityAllocation",
+      "createOperation": "createCapacityAllocation",
+      "updateOperation": "updateCapacityAllocation",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "number",
+          "label": "number",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "resourceType",
+          "label": "resource Type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "training",
+            "employment"
+          ]
+        },
+        {
+          "name": "resourceId",
+          "label": "resource Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "capacityResources",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "source Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "source Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "source Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "source Module Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "quota",
+          "label": "quota",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "validUntil",
+          "label": "valid Until",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "resourceType",
+        "resourceId",
+        "quota",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve exclusive allocation",
+          "operationId": "approveCapacityAllocation",
+          "confirmation": "I reviewed the source programme, audience and exclusive resource quota. This holds unused capacity for this programme without adopting any existing reservation."
+        },
+        {
+          "label": "Revoke unused allocation authority",
+          "operationId": "revokeCapacityAllocation",
+          "confirmation": "Revoke authority for new work only. Existing provider claims remain unchanged and consume their original capacity."
+        }
+      ]
     }
   ],
   "configurationSchema": {
@@ -1512,7 +1671,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "migrations": [
       {
         "version": 1,
@@ -1529,6 +1688,10 @@
       {
         "version": 4,
         "sha256": "732cb2dac1874409896ccb132fdb5ec87e23d17a031c2ae65e07e0c0b390f9c5"
+      },
+      {
+        "version": 5,
+        "sha256": "5fe00bd05d547dba434d261667e4edb2e4845416faab1ffaa8e886aa1d45eddc"
       }
     ],
     "destructiveRollback": false
@@ -2625,6 +2788,194 @@
                 "employerReferralId",
                 "positionId",
                 "status",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      },
+      {
+        "capabilityId": "workforce.program-capacity",
+        "contract": "steward.workforce-program-capacity",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "missionSensitive": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "training.read",
+            "command": "workforce.capacity.training",
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "allocationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "trainingSeats": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "availableTrainingSeats": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "allocationId",
+                "revision",
+                "observedAt",
+                "validUntil",
+                "synthetic",
+                "trainingSeats",
+                "availableTrainingSeats"
+              ]
+            },
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "employment.read",
+            "command": "workforce.capacity.employment",
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "allocationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "approvedEmploymentSlots": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "employmentOpportunities": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "allocationId",
+                "revision",
+                "observedAt",
+                "validUntil",
+                "synthetic",
+                "approvedEmploymentSlots",
+                "employmentOpportunities"
+              ]
+            },
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
                 "synthetic"
               ]
             },

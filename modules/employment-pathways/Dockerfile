@@ -21,5 +21,5 @@ COPY modules/employment-pathways/package.json modules/employment-pathways/manife
 COPY modules/employment-pathways/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="steward.employment.pathways" steward.module.version="1.0.2" steward.module.sdk="1"
+LABEL steward.module.id="steward.employment.pathways" steward.module.version="1.1.0" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

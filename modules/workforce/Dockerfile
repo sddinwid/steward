@@ -21,5 +21,5 @@ COPY modules/workforce/package.json modules/workforce/manifest.json ./
 COPY modules/workforce/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="cee.workforce" steward.module.version="1.1.0" steward.module.sdk="1"
+LABEL steward.module.id="cee.workforce" steward.module.version="1.2.0" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

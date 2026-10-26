@@ -28,11 +28,14 @@ try{
  run('scripts/verify-phase13-housing.mjs',[target]);
  run('scripts/verify-phase13-participants.mjs',[target]);
  run('scripts/verify-phase13-employment.mjs',[target,'--prove-master-outage']);
+ run('scripts/verify-phase13-capacity.mjs',[target]);
  run('scripts/verify-phase13-food.mjs',[target]);
  run('scripts/verify-phase13-essential-services.mjs',[target]);
  run('scripts/verify-phase13-participant-food.mjs',[target]);
  report.checks.push('Four independently installed mission modules and complete six-case synthetic housing/food/training/employment pathway through governed SSMA; no elapsed retention invented');
  run('scripts/verify-phase13-mission.mjs',[target,'--prove-master-outage']);
+ run('scripts/verify-phase13-operational-alerts.mjs',[target,'--require-positive']);
+ run('scripts/verify-phase13-comparison.mjs',[target]);
  report.checks.push('Closed operational module cohorts survive Master outage in their own durable outboxes; named programme/finance disclosures, real scientific calculation, reviewed browser finding and affected-only Worker acknowledgments');
  run('scripts/release.mjs',['upgrade','--bundle',bundle,'--directory',target,'--trust-bundled-modules']);run('scripts/release.mjs',['stop','--directory',target]);run('scripts/release.mjs',['start','--directory',target]);run('scripts/smoke.mjs',[target]);report.checks.push('repeat installation/upgrade and pinned image redeployment');report.status='passed';
 }catch(e){report.status='failed';report.error='Acceptance child failed; inspect the retained log for its exact assertion.';process.exitCode=1;console.log(report.error);}finally{

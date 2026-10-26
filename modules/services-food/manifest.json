@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.services.food",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "programServices": {
     "contractVersion": 1,
     "domain": "food",

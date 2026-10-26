@@ -46,7 +46,8 @@ and Worker 2. Worker 3 must not receive this two-source finding.
 
 The second command uses the existing real Ollama bridge and the installed
 `qwen2.5:7b`, with its separate larger-context alias. The model must select the
-three authorized mission MCP tools and invoke the retained reviewed scenario.
+authorized mission MCP tools, retrieve fixed programme aggregates, and invoke
+the retained reviewed scenario.
 The verifier re-resolves current programme authority, independently recomputes
 the retained exact-cent calculation and checks the scientific result and full
 source references. It retains actual model turns, tool calls, timings and final
@@ -75,5 +76,43 @@ node scripts/review-phase13-mission-ollama.mjs $selected
 This review is separate from the deterministic Mission workspace finding. The
 reviewer checks the saved investigation and evidence again; it does not rerun
 the model or silently replace its sources. No business operation is authorized.
+
+For the expanded acceptance, run the explicit provider capacity workflow before
+the first G/H seal. It creates programme-specific resource allocations and fresh
+signed reads; it does not retrain the six participants. Existing sealed releases
+remain unchanged when this is added to an older deployment.
+
+```powershell
+node scripts/verify-phase13-capacity.mjs $selected
+node scripts/verify-phase13-essential-services.mjs $selected
+node scripts/verify-phase13-mission.mjs $selected
+node scripts/verify-phase13-operational-alerts.mjs $selected
+node scripts/verify-phase13-comparison.mjs $selected
+$env:STEWARD_OLLAMA_MISSION_COMPARE = '1'
+node scripts/verify-phase13-mission-ollama.mjs $selected
+```
+
+The comparison helper preserves the original reviewed scenario and creates a
+second reviewed alternative over identical evidence, with USD 1,250 rather than
+USD 1,000 incremental unit cost. Actual exact-cent/SciPy results must be four
+versus five conditional service units, each using USD 5,000. The original funding
+and participants are not modified. Operational alerts from historical releases
+with missing optional fields may honestly be unknown; only a fresh first-seal
+clean scenario proves the new fields, without rewriting old cohorts.
+
+Read `artifacts/phase13-mission-ollama-comparison.json` and its full retained
+evidence before identifying the actual investigation for separate publication:
+
+```powershell
+$env:STEWARD_REVIEWED_INVESTIGATION_ID = '<independently reviewed comparison investigation UUID>'
+node scripts/review-phase13-mission-ollama.mjs $selected
+Remove-Item Env:STEWARD_OLLAMA_MISSION_COMPARE
+Remove-Item Env:STEWARD_REVIEWED_INVESTIGATION_ID
+```
+
+The comparison report is separate from earlier single-scenario evidence. A
+failed run is retained as failed; never replace its ID or result with a test
+model. One-hour disclosure leases may need explicit renewal and acceptance by
+the same authorized accounts before reading, calculating or publishing.
 
 The credential file must identify the same actual named Master account for scenario creation, source disclosure, model investigation and final human review. Use the appropriate existing account file for a clean installation; do not replace operator passwords. With `--prove-master-outage`, first-time aggregate publication stops Master briefly, proves the sealed records remain in each dedicated module database outbox, restores Master, then verifies authorized synchronization. Reruns cannot claim a new outage publication for already sealed releases.

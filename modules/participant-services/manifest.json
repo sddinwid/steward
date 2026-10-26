@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.housing.services",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "Participant Services",
   "description": "Synthetic programme-scoped intake, assessed support plans, human-reviewed referrals and private service follow-up. No real participant information.",
   "minimumPlatformVersion": "0.13.0",
