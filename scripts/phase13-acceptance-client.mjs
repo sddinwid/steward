@@ -6,6 +6,7 @@ import {existsSync} from 'node:fs';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {canonical,digest,verifyPackage} from '../packages/module-sdk/dist/index.js';
+import {supersedeNewWorkEntries} from './phase13-governance-plans.mjs';
 if(!process.argv[2]){const selection=JSON.parse(await readFile('.steward/operator/selection.json','utf8'));assert(selection.directory,'Selected operator deployment is required');process.argv[2]=selection.directory;}
 const client=await import('./phase4-client.mjs'),lib=await import('./lib.mjs');
 export const{api,logins,credentials,deployment,origin,sessions,waitFor}=client;
@@ -76,12 +77,13 @@ async function ensurePeerWorkflowLocked(options,governanceName){
   await api(source,'/api/v13/peer-services/grants/approve','POST',entry.signed);
   await api(source,'/api/v8/smart-modules/bindings','POST',{bindingId:entry.bindingId,consumerId,capabilityId,providerId,packageDigest:scopes.providerPackageDigest,reason:entry.reason,peerGrantId:entry.grantId,preserveExistingObligations:true});entry.bindingApproved=true;await own.persist();
  }
+ if(options.supersedesKeys?.length){supersedeNewWorkEntries(state.peerWorkflows,key,options.supersedesKeys.map(prior=>section+':'+prior));await own.persist();}
  // One reviewed workflow per consumer/programme, unioning ONLY this section's
  // explicitly approved capability operations. New versions retain old work.
  // Historical obligations keep their original approvals. They cannot become
  // active steps of a newly installed consumer merely because its module ID is
  // unchanged. Only this exact installation/package's explicit grants compose.
- const entries=Object.entries(state.peerWorkflows).filter(([,v])=>v.source===source&&v.consumerId===consumerId&&v.sourceProgramId===sourceProgramId&&v.payload.consumerInstallationId===scopes.consumerInstallationId&&v.payload.consumerPackageDigest===scopes.consumerPackageDigest&&(v.bindingApproved||v.signed)).sort(([a],[b])=>a.localeCompare(b)),steps=entries.flatMap(([,v])=>v.operations.map(operation=>({bindingId:v.bindingId,operation})));assert(steps.length<=16,'Explicit workflow exceeds 16 reviewed operations');
+ const entries=Object.entries(state.peerWorkflows).filter(([,v])=>!v.supersededForNewWork&&v.source===source&&v.consumerId===consumerId&&v.sourceProgramId===sourceProgramId&&v.payload.consumerInstallationId===scopes.consumerInstallationId&&v.payload.consumerPackageDigest===scopes.consumerPackageDigest&&(v.bindingApproved||v.signed)).sort(([a],[b])=>a.localeCompare(b)),steps=entries.flatMap(([,v])=>v.operations.map(operation=>({bindingId:v.bindingId,operation})));assert(steps.length<=16,'Explicit workflow exceeds 16 reviewed operations');
  let group=state.workflowGroups[groupKey];if(!group||canonical(group.steps)!==canonical(steps)){const previous=group;group=state.workflowGroups[groupKey]={workflowId:randomUUID(),version:(previous?.version??0)+1,steps,name:('P13 '+section+' '+consumerId+' '+sourceProgramId.slice(0,8)).slice(0,100),reason:'Synthetic Phase 13 explicit review of all programme service bindings and bounded operations',previousWorkflowIds:[...(previous?.previousWorkflowIds??[]),...(previous?[previous.workflowId]:[])]};await own.persist();}
  await api(source,'/api/v8/smart-modules/workflows','POST',{workflowId:group.workflowId,name:group.name,version:group.version,consumerId,steps:group.steps,reason:group.reason});
  let current=(await api(source,'/api/v8/smart-modules')).value.workflows.find(w=>w.workflow_id===group.workflowId);assert(current);

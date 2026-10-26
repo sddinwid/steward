@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.employment.pathways",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Employment Pathways",
   "description": "Synthetic authorized training and employment referrals, deterministic qualification comparisons, human-reviewed placement and retention.",
   "minimumPlatformVersion": "0.13.0",
@@ -239,6 +239,12 @@
     {
       "operationId": "createReleaseRequest",
       "path": "/release-requests",
+      "method": "POST",
+      "permission": "steward.employment.pathways.admin"
+    },
+    {
+      "operationId": "reconcileRejectedTraining",
+      "path": "/reconcile-rejected-training/:id",
       "method": "POST",
       "permission": "steward.employment.pathways.admin"
     },
@@ -1017,6 +1023,11 @@
         "employerState"
       ],
       "actions": [
+        {
+          "label": "Reconcile rejected training request",
+          "operationId": "reconcileRejectedTraining",
+          "confirmation": "I reviewed the terminal rejected reservation and retained receipt. This closes only that rejected attempt; a new training choice, disclosure and eligibility review are required. Uncertain or accepted reservations cannot be reset."
+        },
         {
           "label": "Record eligibility review",
           "operationId": "reviewPathway",
