@@ -43,7 +43,15 @@ for (const i of deployment.instances) {
   assert.equal(Object.keys(db.HostConfig.PortBindings ?? {}).length, 0);
   assert.equal(Object.keys(db.NetworkSettings.Networks).length, 1);
   assert.equal(Object.keys(frontend.NetworkSettings.Networks).length, 1);
-  assert.ok([2, 3].includes(Object.keys(runtime.NetworkSettings.Networks).length));
+  const scientific=i.role==='master'&&runtime.Config.Env.some(v=>v.startsWith('STEWARD_SCIENTIFIC_FILE='));
+  assert.ok([2, 3].includes(Object.keys(runtime.NetworkSettings.Networks).length-(scientific?1:0)));
+  if(scientific){
+    const scientificNetworks=Object.keys(runtime.NetworkSettings.Networks).map(id=>JSON.parse(docker(['network','inspect',id]))[0]).filter(n=>n.Labels?.['com.docker.compose.network']==='scientific');
+    assert.equal(scientificNetworks.length,1);const network=scientificNetworks[0];assert.equal(network.Internal,true);
+    const service=JSON.parse(docker(['inspect',compose('ps','-q','scientific')]))[0];
+    assert.deepEqual(Object.keys(network.Containers).sort(),[runtime.Id,service.Id].sort(),'Scientific network has only Master API and science');
+    assert.equal(Object.keys(service.NetworkSettings.Networks).length,1);assert.equal(Object.keys(service.HostConfig.PortBindings??{}).length,0);
+  }
   const dbNetwork = Object.keys(db.NetworkSettings.Networks)[0];
   assert.equal(JSON.parse(docker(['network', 'inspect', dbNetwork]))[0].Internal, true);
   assert.equal(frontend.NetworkSettings.Networks[dbNetwork], undefined);

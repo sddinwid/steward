@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.12.0",
@@ -188,7 +188,7 @@
   "ui": [
     {
       "screenId": "customer",
-      "title": "Sales — customer",
+      "title": "Sales \u2014 customer",
       "navigationLabel": "sales customer",
       "listOperation": "listCustomer",
       "createOperation": "createCustomer",
@@ -232,7 +232,7 @@
     },
     {
       "screenId": "order",
-      "title": "Sales — order",
+      "title": "Sales \u2014 order",
       "navigationLabel": "sales order",
       "listOperation": "listOrder",
       "createOperation": "createOrder",
@@ -377,7 +377,7 @@
     },
     {
       "screenId": "fulfillment",
-      "title": "Sales — fulfillment",
+      "title": "Sales \u2014 fulfillment",
       "navigationLabel": "sales fulfillment",
       "listOperation": "listFulfillment",
       "createOperation": "createFulfillment",

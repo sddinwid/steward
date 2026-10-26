@@ -1,4 +1,4 @@
-import {configurationErrorMessage,saveModuleConfiguration} from './module-configuration.js';
+import {configurationErrorMessage,saveModuleConfiguration,moduleInstallIntent} from './module-configuration.js';
 import {ModuleReportView} from './module-report.js';
 import { useEffect, useState, type FormEvent } from 'react';
 import { SmartModules } from './smart-modules.js';
@@ -59,8 +59,7 @@ export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onN
         {p.manifest ? <details><summary>Package details</summary><pre>{JSON.stringify(p.manifest, null, 2)}</pre><p>Image: <code>{p.imageId}</code></p></details> : null}
         {p.trusted && p.compatible ? <><ConfigurationFields schema={p.manifest.configurationSchema} value={safeObject(configuration(p))} onChange={v=>setConfigurations({...configurations,[p.packageId]:JSON.stringify(v)})}/><details><summary>Advanced configuration JSON</summary><label>Configuration for {p.packageId}<textarea aria-label={`Configuration for ${p.packageId}`} rows={3} value={configuration(p)} onChange={e => setConfigurations({ ...configurations, [p.packageId]: e.target.value })} /></label></details>
           <button disabled={busy} onClick={() => void act(() => api('/v3/modules/install', 'POST', { packageId: p.packageId, operationId: crypto.randomUUID(), configuration: JSON.parse(configuration(p)),
-            upgrade: manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && m.version !== p.manifest.version && !['failed','installing'].includes(m.state)),
-            ...(manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && ['failed', 'installing'].includes(m.state)) ? { recover: true } : {}) }))}>
+            ...moduleInstallIntent(manager.installed.find((m:any)=>m.moduleId===p.manifest.moduleId),p.manifest.version) }))}>
             {manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && ['failed', 'installing'].includes(m.state)) ? 'Recover' : manager.installed.some((m: any) => m.moduleId === p.manifest.moduleId && m.version !== p.manifest.version) ? 'Upgrade to' : 'Install'} {p.manifest.name}</button></> : null}
       </div>) : <p>No trusted module packages have been published.</p>}
       {manager.installed.length ? <details><summary>Module user permissions</summary><p>Local administrators manage modules. Module users receive only explicitly granted module API permissions.</p>

@@ -2,7 +2,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {z} from 'zod';
 import type pg from 'pg';
-import type {ScientificRequest,ScientificResult} from '@steward/contracts';
+import type {ScientificRequest,ScientificResult,ScientificEvidenceReference} from '@steward/contracts';
 import type {SecureApp,Authentication} from './security/auth.js';
 import {audit,transaction} from './security/store.js';
 import {canonical,fail,validUuid} from './security/crypto.js';
@@ -83,7 +83,15 @@ export async function scientificRoutes(app:SecureApp,pool:pg.Pool,auth:Authentic
   const s=await scope(req);
   return{capabilities:Object.values(analyticalCapabilityCatalog).filter(c=>c.engine==='python'),
    datasets:(await pool.query('SELECT dataset_id,label,basis,synthetic,entity_ids,created_at FROM scientific_datasets WHERE entity_ids <@ $1::uuid[] ORDER BY created_at DESC LIMIT 100',[s.allowed])).rows,
-   runs:(await pool.query('SELECT job_id,dataset_id,entity_ids,capability,state,error_code,created_at,finished_at FROM scientific_runs WHERE entity_ids <@ $1::uuid[] ORDER BY created_at DESC LIMIT 100',[s.allowed])).rows,
+   runs:(await pool.query(`SELECT r.job_id,r.dataset_id,r.entity_ids,r.capability,r.state,r.error_code,r.created_at,r.finished_at,e.finding_id,
+    CASE WHEN r.state='completed' THEN jsonb_build_object('synthetic',r.result#>'{provenance,synthetic}',
+     'status',r.result#>'{calculation,status}','currency',r.result#>'{calculation,currency}',
+     'baselineExternalCents',coalesce(r.result#>'{calculation,baselineExternalCents}',r.result#>'{calculation,coordinatedBaseline,baselineExternalCents}'),
+     'proposedCostCents',coalesce(r.result#>'{calculation,proposedCostCents}',r.result#>'{calculation,coordinatedBaseline,proposedCostCents}'),
+     'ecosystemBenefitCents',coalesce(r.result#>'{calculation,ecosystemBenefitCents}',r.result#>'{calculation,coordinatedBaseline,ecosystemBenefitCents}'),
+     'method',r.result#>'{calculation,method}') ELSE NULL END AS summary
+    FROM scientific_runs r LEFT JOIN scientific_finding_evidence e USING(job_id)
+    WHERE r.entity_ids <@ $1::uuid[] ORDER BY r.created_at DESC LIMIT 100`,[s.allowed])).rows,
    canPublish:s.actor.role==='registry_admin',decisionExecuted:false};
  });
  app.get<{Params:{id:string}}>('/api/v4/scientific/datasets/:id',async req=>{const s=await scope(req);return{dataset:await dataset(req.params.id,s.allowed)};});
@@ -110,7 +118,7 @@ export async function scientificRoutes(app:SecureApp,pool:pg.Pool,auth:Authentic
   });
  });
  async function buildRequest(b:z.infer<typeof scienceRunSchema>,d:any,s:any):Promise<ScientificRequest>{
-  let parameters:any;
+  let parameters:any;const derivedFrom:ScientificEvidenceReference[]=[];
   if(b.capability==='demand-forecast')parameters={...forecastOptions.parse(b.options),interval:d.content.interval,coverage:d.content.coverage,series:d.content.series};
   else{
    const option=z.object({forecastRunId:z.string().uuid().optional(),problem:procurementSchema.optional(),scenarios:scenarioOptions.shape.scenarios.optional(),sensitivity:scenarioOptions.shape.sensitivity}).strict().parse(b.options);
@@ -120,13 +128,14 @@ export async function scientificRoutes(app:SecureApp,pool:pg.Pool,auth:Authentic
     if(!option.forecastRunId)fail(422,'Select a completed forecast or declare approved purchasing inputs');
     const f=await run(option.forecastRunId,s.allowed);
     if(f.dataset_id!==d.dataset_id||f.capability!=='demand-forecast'||f.state!=='completed')fail(422,'Select a completed forecast for this exact dataset');
+    derivedFrom.push({schemaVersion:1,jobId:f.job_id,datasetId:f.dataset_id,inputDigest:f.result.inputDigest});
     problem=forecastProcurement(d,f.result.calculation);
    }
    if(b.capability==='scenario-comparison'){
     const selected=scenarioOptions.parse({scenarios:option.scenarios,sensitivity:option.sensitivity});parameters={baseline:problem,...selected};
    }else{if(option.scenarios||option.sensitivity)fail(400,'Scenario parameters require scenario-comparison');parameters=problem;}
   }
-  return{schemaVersion:1,jobId:b.jobId,principalId:s.actor.account_id,entityIds:d.entity_ids,provenance:d.provenance,
+  return{schemaVersion:1,jobId:b.jobId,principalId:s.actor.account_id,entityIds:d.entity_ids,provenance:{...d.provenance,...(derivedFrom.length?{derivedFrom}:{})},
    capability:b.capability,parameters,executionMillis:b.capability==='scenario-comparison'?12000:6000};
  }
  app.post('/api/v4/scientific/runs',async(req,reply)=>{

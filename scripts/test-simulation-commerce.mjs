@@ -178,6 +178,13 @@ try{
   else {assert.equal(o.data.status,'fulfilled');const job=(await read(fakeId,'job'))[0];if(scenario==='production-delay')assert(job.data.productionDelaySeconds>=2700);if(scenario==='shipping-increase')assert.equal(job.data.shippingCostCents,1600);if(scenario==='refund-cancellation')assert(o.data.refundCents>0);if(scenario==='purchasing-opportunity')assert(o.data.lines[0].quantity>=8);}
   r=(await read(engineId,'run'))[0];await action(engineId,'reset',r);await until(async()=>!(await read(engineId,'run'))[0].data.runId,'reset '+scenario);assert.equal((await read('cee.stock-ledger','item')).length,1);
  });
+ await check('dashboard selects the most recently updated retained dataset rather than lexical UUID order',async()=>{
+  const module=modules.get(engineId),aux=(await module.api('POST','/runs',{name:'Auxiliary retained dataset',seed:19,speed:60,eventsPerMinute:6},201)).record;
+  await module.pool.query("UPDATE business_records SET key='zzzz-lexically-last-fixture' WHERE id=$1",[aux.id]);
+  assert.equal((await module.api('GET','/dashboard')).groups[0].title,'Auxiliary retained dataset');
+  const original=(await read(engineId,'run'))[0];await module.api('PUT','/runs/'+original.id,{name:original.data.name,revision:original.data.configurationRevision??1,seed:original.data.seed,speed:original.data.speed,eventsPerMinute:original.data.eventsPerMinute,scenario:original.data.scenario,shareWithMaster:original.data.shareWithMaster});
+  assert.equal((await module.api('GET','/dashboard')).groups[0].title,original.data.name);assert.equal((await read(engineId,'run')).length,2);
+ });
 }finally{
  for(const app of apps.reverse())await app.close();for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
  await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase11-service-lifecycle.json',JSON.stringify({checks,commandCount,finishedAt:new Date().toISOString()},null,2)+'\n');await rm(dir,{recursive:true,force:true});

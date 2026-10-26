@@ -137,7 +137,7 @@ export async function simulationCommerceBackground(pool:pg.Pool,runtime:Data){
  });
 }
 async function report(ctx:Context){
- const runs=(await records(ctx,'run')).map(publicRecord),active=runs.find(r=>r.state==='running')??runs.at(-1),s=active?.lastSummary;
+ const runs=(await records(ctx,'run')).map(publicRecord).sort((a,b)=>String(b.updatedAt??'').localeCompare(String(a.updatedAt??''))||String(a.id).localeCompare(String(b.id))),active=runs.find(r=>r.state==='running')??runs[0],s=active?.lastSummary;
  const financialComplete=s?.reconciliationComplete===true;
  const limit=ctx.config.maximumOrders??500,atLimit=(active?.eventIndex??0)>=limit;
  const state=atLimit&&active?.state==='paused'&&s?.awaitingFulfillment===0?'Completed bounded dataset':active?.state??'Not started';
@@ -145,7 +145,7 @@ async function report(ctx:Context){
  const series=(label:string,key:string,money=false)=>({label,...(money?{format:'money'}:{}),points:(s?.series??[]).map((p:Data)=>({at:p.at,value:p[key]??null}))});
  return{version:2,groups:[{
   title:active?.name??'Commerce simulation',currency:'USD',status:state,navigation:['control-center','activity'],
-  description:active?`Scenario: ${active.scenario}. Speed: ${active.speed} simulated seconds per real second. Generation limit ${limit} order intents; reaching it pauses generation after accepted work settles. Last Sales receipt: ${s?.observedAt??'not received'}. ${active.warning??''}`:'Create a dedicated synthetic dataset in Simulation Control Center. No live provider is used.',
+  description:active?`Running or most recently updated dataset; other retained datasets remain in Control Center. Scenario: ${active.scenario}. Speed: ${active.speed} simulated seconds per real second. Generation limit ${limit} order intents; reaching it pauses generation after accepted work settles. Last Sales receipt: ${s?.observedAt??'not received'}. ${active.warning??''}`:'Create a dedicated synthetic dataset in Simulation Control Center. No live provider is used.',
   metrics:[{label:'Generated order intents',value:active?.eventIndex??0},{label:'Persisted Sales orders',value:s?.orderCount??null},{label:'Completed orders',value:s?.completedOrders??null},{label:'Awaiting fulfillment',value:s?.awaitingFulfillment??null},{label:'Canceled orders',value:s?.canceledOrders??null},{label:'Fulfillment exceptions',value:s?.exceptions??null}],
   series:[series('Persisted orders per real source minute','orders'),series('Completed orders per real source minute','completedOrders')],
   sections:[{title:'Recent actual simulation order activity',value:await recent(ctx,'event',10)}]

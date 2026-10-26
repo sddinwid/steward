@@ -1,11 +1,21 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createHmac} from 'node:crypto';
-import {scientificHeaders,ScientificClient} from '../scientific-client.js';
+import {scientificHeaders,ScientificClient,validateScientificResult} from '../scientific-client.js';
 import {analyticalCapabilityCatalog} from '../analytical-capabilities.js';
 import {procurementSchema,assertScientificScope,forecastProcurement} from '../scientific-schema.js';
 import {operationalScienceDataset} from '../scientific.js';
 import {randomUUID} from 'node:crypto';
+import type {ScientificRequest} from '@steward/contracts';
+
+test('scientific transport rejects substituted derivation digests and private undeclared response fields',()=>{
+ const entityId=randomUUID(),datasetId=randomUUID(),parent={schemaVersion:1 as const,jobId:randomUUID(),datasetId,inputDigest:'a'.repeat(64)};
+ const input:ScientificRequest={schemaVersion:1,jobId:randomUUID(),capability:'describe-series',principalId:randomUUID(),entityIds:[entityId],parameters:{values:[1]},executionMillis:6000,provenance:{datasetId,synthetic:true,basis:'synthetic-analytical-history',asOf:'2026-01-01T00:00:00Z',references:[],derivedFrom:[parent]}};
+ const result={schemaVersion:1,jobId:input.jobId,capability:input.capability,inputDigest:'b'.repeat(64),elapsedMillis:100,entityIds:[entityId],provenance:input.provenance,decisionExecuted:false,calculation:{status:'completed',count:1,mean:1},engine:{service:'steward-scientific',version:'1.0.0',contractVersion:1,python:'3.13.16',numpy:'2.5.4',scipy:'1.18.1',pandas:'3.1.0'}};
+ assert.equal(validateScientificResult(result,input).provenance.derivedFrom?.[0]?.jobId,parent.jobId);
+ assert.throws(()=>validateScientificResult({...result,provenance:{...input.provenance,derivedFrom:[{...parent,inputDigest:'c'.repeat(64)}]}},input),/SCIENTIFIC_OUTPUT_INVALID/);
+ assert.throws(()=>validateScientificResult({...result,privateKey:'must never be returned'},input),/SCIENTIFIC_OUTPUT_INVALID/);
+});
 test('scientific transport authentication binds method, route, timestamp, nonce and exact minimized body',()=>{
  const key=Buffer.from('x'.repeat(64)),body='{"schemaVersion":1}',nonce='1'.repeat(32),headers=scientificHeaders(key,'POST','/v1/execute',body,1234567890,nonce);
  assert.equal(headers['x-steward-signature'],createHmac('sha256',key).update('1234567890\n'+nonce+'\nPOST\n/v1/execute\n'+body).digest('hex'));

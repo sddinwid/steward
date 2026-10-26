@@ -11,6 +11,13 @@ export function configurationErrorMessage(code:string):string {
  return guidance[code]??'Save could not be confirmed. Refresh the saved settings before retrying. Your form may still contain unsaved changes.';
 }
 const ordered=(v:any):any=>Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;
+/** Presentation flags only; the API still validates versions, state and authority. */
+export function moduleInstallIntent(installed:{version:string;state:string}|undefined,version:string){
+ const recover=!!installed&&['failed','installing'].includes(installed.state);
+ const a=version.split('.').map(Number),b=installed?.version.split('.').map(Number);
+ const newer=!!b&&a.some((v,i)=>v>b[i]!&&a.slice(0,i).every((n,j)=>n===b[j]));
+ return{upgrade:!!installed&&installed.version!==version&&(!recover||newer),...(recover?{recover:true}:{})};
+}
 export async function saveModuleConfiguration(api:(path:string,method?:string,body?:unknown)=>Promise<any>,moduleId:string,configuration:unknown){
  const result=await api(`/v3/modules/${encodeURIComponent(moduleId)}/configuration`,'PUT',{configuration});
  if(result.saved!==true)throw Error('CONFIGURATION_SAVE_NOT_CONFIRMED');

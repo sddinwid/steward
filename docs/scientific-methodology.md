@@ -33,6 +33,14 @@ Thirty independent known synthetic trend/noise experiments validate held-out pre
 `datasets/scientific-history-v1.json` is a separate reproducible 168-day analytical-only synthetic fixture for two anonymous entity slots, with explicit seeds, trend/weekly components, rounded independent noise and synthetic supplier terms. Its generator is `services/scientific/scripts/generate_history.py`. Entity slots are mapped only after authorization. No operational record, actual historical transaction, commercial quote, purchase or reservation is imported. Forecast dates follow the last synthetic observation and must not be represented as actual current-market predictions.
 # Procurement optimization
 
+Derived scientific provenance links each forecast-based procurement/scenario run
+to the original forecast job, dataset and normalized input SHA-256. The digest
+uses the closed Pydantic request's JSON-mode representation, sorted object keys,
+compact separators and finite JSON values; it does not depend on JSONB property
+order. Independent verification can reconstruct it from the frozen input. These
+analytical references are distinct from Worker stream/record/revision references
+and never create fabricated operational history.
+
 `fixed-charge-all-units-milp`, method version 1, uses SciPy `optimize.milp` with bundled HiGHS 1.12.0. Integer requirement/supplier/tier quantities meet demand exactly. Binary tier selectors enforce one active all-units tier, its quantity interval and MOQ; supplier quantity is bounded by declared capacity. Fixed shipping enters the objective once per active supplier. Optional binary entity/supplier selectors bound supplier count. Multiple compatible products share a supplier's declared tier thresholds. No overbuy or currency conversion is implicit.
 
 The minimized objective is external merchandise plus supplier shipping. Declared transition expense is a fixed once-per-participant addition. Master must supply the existing deterministic baseline, reconciled against requirement prices and per-entity baseline shipping. No internal transfer enters ecosystem savings. Shipping is quantity-allocated in exact cents, with remainder assigned to the last sorted participant. Entity disadvantage is explicitly flagged even if total benefit is positive. Equal-cost allocations are not a fairness guarantee.

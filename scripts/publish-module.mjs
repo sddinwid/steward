@@ -8,12 +8,14 @@ try {
   const sourcePackage=JSON.parse(await readFile(path.join(source,'package.json'),'utf8'));
   if(['steward-platform','@steward/platform'].some(name=>sourcePackage.dependencies?.[name]))throw new Error('Independent module packages must not depend on the Steward core');
   const manifest = JSON.parse(await readFile(path.join(source, 'manifest.json'), 'utf8'));
+  if(sourcePackage.version!==manifest.version)throw new Error('Source package and manifest versions must agree before publication');
   const migrations = (await readdir(path.join(source, 'migrations'))).filter(f => /^\d{3}-[a-z-]+\.sql$/.test(f)).sort();
   manifest.persistence.migrations = await Promise.all(migrations.map(async (f, i) => ({ version: i + 1, sha256: digest(await readFile(path.join(source, 'migrations', f), 'utf8')) })));
   manifest.persistence.schemaVersion = migrations.length;
   const image = `${manifest.moduleId}:${manifest.version}`;
   execFileSync('docker', ['build', '-f', path.join(source, 'Dockerfile'), '-t', image, process.cwd()], { stdio: 'inherit' });
-  const imageId = JSON.parse(execFileSync('docker', ['image', 'inspect', image], { encoding: 'utf8' }))[0].Id;
+  const metadata = JSON.parse(execFileSync('docker', ['image', 'inspect', image], { encoding: 'utf8' }))[0],imageId=metadata.Id;
+  if(metadata.Config.Labels?.['steward.module.id']!==manifest.moduleId||metadata.Config.Labels?.['steward.module.version']!==manifest.version||metadata.Config.Labels?.['steward.module.sdk']!==String(manifest.sdkVersion))throw new Error('Built image identity labels do not match the manifest; package was not signed or published');
   const descriptor = signPackage({ formatVersion: 1, publisherId: 'local-operator', imageId, manifest }, await readFile(path.join(directory, 'security', 'module-publisher-key.pem'), 'utf8'));
   const catalogFile = path.join(directory, 'modules/public/catalog.json');
   const catalog = JSON.parse(await readFile(catalogFile, 'utf8'));

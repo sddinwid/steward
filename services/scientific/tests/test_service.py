@@ -9,7 +9,7 @@ import pytest
 from fastapi.testclient import TestClient
 from steward_science.app import create_app
 from steward_science.contracts import Request
-from steward_science.execution import Supervisor, ExecutionFailure
+from steward_science.execution import Supervisor, ExecutionFailure, request_digest
 
 
 def envelope(**changes):
@@ -25,6 +25,23 @@ def signed(key, body, nonce=None, stamp=None, method='POST', path='/v1/execute')
     nonce, stamp = nonce or secrets.token_hex(16), str(stamp or int(time.time()))
     signature = hmac.new(key, stamp.encode() + b'\n' + nonce.encode() + b'\n' + method.encode() + b'\n' + path.encode() + b'\n' + body, hashlib.sha256).hexdigest()
     return {'x-steward-timestamp': stamp, 'x-steward-nonce': nonce, 'x-steward-signature': signature}
+
+
+def test_retained_input_digest_is_independent_of_json_property_order():
+    data = envelope()
+    def reordered(value):
+        if isinstance(value, dict): return {k: reordered(v) for k, v in reversed(list(value.items()))}
+        if isinstance(value, list): return [reordered(v) for v in value]
+        return value
+    assert request_digest(Request.model_validate(data)) == request_digest(Request.model_validate(reordered(data)))
+
+
+def test_scientific_derivation_reference_must_match_exact_dataset():
+    data = envelope()
+    data['provenance']['derivedFrom'] = [{'schemaVersion': 1, 'jobId': str(uuid4()), 'datasetId': str(uuid4()), 'inputDigest': 'a'*64}]
+    with pytest.raises(ValueError): Request.model_validate(data)
+    data['provenance']['derivedFrom'][0]['datasetId'] = data['provenance']['datasetId']
+    assert len(Request.model_validate(data).provenance.derivedFrom) == 1
 
 
 @pytest.fixture

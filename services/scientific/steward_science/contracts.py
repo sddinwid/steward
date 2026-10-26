@@ -16,12 +16,20 @@ class SourceReference(Closed):
     revision: int = Field(strict=True, ge=1, le=2**53-1)
 
 
+class ScientificEvidenceReference(Closed):
+    schemaVersion: Literal[1]
+    jobId: UUID
+    datasetId: UUID
+    inputDigest: str = Field(pattern=r'^[a-f0-9]{64}$')
+
+
 class Provenance(Closed):
     datasetId: UUID
     synthetic: bool
     basis: Literal['authorized-synchronized-projection', 'synthetic-analytical-history']
     asOf: datetime
     references: list[SourceReference] = Field(max_length=256)
+    derivedFrom: list[ScientificEvidenceReference] = Field(default_factory=list, max_length=4)
 
     @field_validator('asOf')
     @classmethod
@@ -34,6 +42,8 @@ class Provenance(Closed):
     def synthetic_history(self):
         if self.basis == 'synthetic-analytical-history' and not self.synthetic:
             raise ValueError('Analytical synthetic history cannot be labeled operational')
+        if any(r.datasetId != self.datasetId for r in self.derivedFrom) or len({r.jobId for r in self.derivedFrom}) != len(self.derivedFrom):
+            raise ValueError('Invalid scientific derivation chain')
         return self
 
 

@@ -13,6 +13,13 @@ class ExecutionFailure(Exception):
         self.code, self.status = code, status
 
 
+def request_digest(request):
+    # JSONB/history retrieval can reorder object keys. Hash a canonical normalized
+    # contract, not transport/property insertion order, so evidence is recheckable.
+    body = json.dumps(request.model_dump(mode='json'), sort_keys=True, separators=(',', ':'), allow_nan=False)
+    return hashlib.sha256(body.encode()).hexdigest()
+
+
 def child_main(connection, capability, parameters, seconds):
     try:
         import resource
@@ -85,9 +92,9 @@ class Supervisor:
                     if 'error' in result:
                         raise ExecutionFailure(result['error'], 422 if result['error'] == 'ANALYTICAL_INPUT_INVALID' else 503)
                     return {'schemaVersion': 1, 'jobId': key, 'capability': request.capability,
-                            'inputDigest': hashlib.sha256(request.model_dump_json().encode()).hexdigest(),
+                            'inputDigest': request_digest(request),
                             'elapsedMillis': round((time.monotonic() - started) * 1000),
-                            'provenance': request.provenance.model_dump(mode='json'),
+                            'provenance': request.provenance.model_dump(mode='json', exclude_unset=True),
                             'entityIds': [str(i) for i in request.entityIds],
                             'decisionExecuted': False, **result}
                 if not process.is_alive():

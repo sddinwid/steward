@@ -1,4 +1,6 @@
 import {purchasingOpportunities} from '../packages/platform/dist/simulation-analysis.js';
+import {purchasingBaseline} from '../packages/platform/dist/simulation-analysis.js';
+import {compactScientificCalculation} from '../packages/platform/dist/scientific-context.js';
 // Temporary real-provider validation. No simulated model output or core changes.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:https';
@@ -11,7 +13,7 @@ import {calculateCommerce} from '../packages/platform/dist/commerce-analysis.js'
 import { resourceSharing } from '../packages/platform/dist/analytical-capabilities.js';
 import {calculateProcurement,calculateWorkforce,canonicalBusinessPayload} from '../packages/platform/dist/business-analysis.js';
 const capability=process.env.STEWARD_ANALYST_CAPABILITY??'resource-sharing';
-assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing'].includes(capability));
+assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing','scientific-procurement'].includes(capability));
 
 const baseModel=process.env.STEWARD_OLLAMA_MODEL??'qwen2.5:7b';
 const context=Number(process.env.STEWARD_OLLAMA_CONTEXT??16384);
@@ -64,7 +66,7 @@ try{
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});
   await logins();
   await writeFile(keyPath,token+'\n');
-  await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:8000,maxContextChars:48000}));
+  await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:capability==='scientific-procurement'?20000:8000,maxContextChars:48000}));
   if(process.env.STEWARD_VERIFY_PROVIDER_STATUS==='1'){report.providerStatus=(await api('master','/api/v5/analyst/provider-status')).value;assert.equal(report.providerStatus.state,'reachable');assert.equal(report.providerStatus.testModel,false);}
   if(process.env.STEWARD_OLLAMA_BROWSER==='1')browserSession=await(await import('./analyst-browser-session.mjs')).analystBrowserSession();
   const investigationStart=Date.now();
@@ -76,7 +78,7 @@ try{
   assert.equal(run.investigation.test_model,false);
   assert.equal(run.investigation.status,'completed',run.investigation.error_code??'Model did not complete');
   const tools=run.activity.filter(a=>a.kind==='tool'&&a.status==='success').map(a=>a.tool);
-  for(const name of capability==='simulation-purchasing'?['list_entities','query_simulation_purchasing','analyze_simulation_purchasing']:capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
+  for(const name of capability==='scientific-procurement'?['list_entities','query_scientific_datasets','forecast_demand','query_scientific_constraints','optimize_procurement','compare_procurement_scenarios']:capability==='simulation-purchasing'?['list_entities','query_simulation_purchasing','analyze_simulation_purchasing']:capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
   report.checks.push('real model selected and invoked live MCP tools');
   for(const analysis of report.result.analyses){
     if(capability==='resource-sharing'){
@@ -90,6 +92,20 @@ try{
     }else if(capability==='simulation-purchasing'){
       const sourceRows=analysis.observed.sources.map(s=>({entity_id:s.reference.entityId,installation_id:s.sourceWorker,module_id:s.reference.moduleId,stream_id:s.reference.streamId,record_id:s.reference.recordId,revision:s.reference.revision,source_at:s.observedAt,ingested_at:s.ingestedAt,payload:s.payload}));
       const opportunity=purchasingOpportunities(sourceRows).find(o=>o.key===analysis.calculation.key);assert(opportunity,'Observed source evidence must reconstruct the purchasing cohort');assert.deepEqual(analysis.calculation,{capabilityId:'steward.simulation-purchasing',schemaVersion:1,...opportunity});assert(analysis.affectedEntities.length>=2);assert(analysis.supportingReferences.every(r=>['simulation_runs','commerce_orders'].includes(r.streamId)));for(const value of Object.values(opportunity.displayAmounts))assert(report.result.narrative.includes(value),'Narrative must copy actual service-calculated amount '+value);
+    }else if(capability==='scientific-procurement'){
+      const ref=analysis.scientificReference;assert(ref?.jobId&&ref.inputDigest,'Actual governed scientific reference required');
+      const saved=(await api('master','/api/v4/scientific/runs/'+ref.jobId)).value.run;assert.equal(saved.state,'completed');assert.equal(saved.result.inputDigest,ref.inputDigest);assert.equal(saved.dataset_id,ref.datasetId);assert.equal(saved.result.provenance.synthetic,true);
+      assert.deepEqual(analysis.calculation,{...saved.result.calculation,capabilityId:'steward.scientific.'+saved.capability,schemaVersion:1});
+      if(saved.capability==='procurement-optimization'){
+        const p=saved.request.parameters,c=saved.result.calculation,baseline=purchasingBaseline(p.entities,p.requirements).baselineExternalCents;
+        assert.equal(c.baselineExternalCents,baseline);assert.equal(c.proposedCostCents,c.allocations.reduce((n,a)=>n+a.merchandiseCents,0)+c.suppliers.reduce((n,s)=>n+s.shippingCents,0)+p.entities.reduce((n,e)=>n+e.transitionCents,0));
+        assert.equal(c.ecosystemBenefitCents,baseline-c.proposedCostCents);assert.equal(c.impacts.reduce((n,i)=>n+i.benefitCents,0),c.ecosystemBenefitCents);
+        for(const requirement of p.requirements)assert.equal(c.allocations.filter(a=>a.entityId===requirement.entityId&&a.product===requirement.product).reduce((n,a)=>n+a.quantity,0),requirement.quantity);
+        for(const supplier of c.suppliers){const terms=p.suppliers.find(s=>s.id===supplier.id);assert(supplier.quantity<=terms.capacity);if(supplier.quantity){assert(supplier.quantity>=terms.minimumUnits);assert(supplier.quantity>=terms.tiers[supplier.tier].minimumUnits);for(const a of c.allocations.filter(a=>a.supplierId===supplier.id)){assert(Number.isInteger(a.quantity));assert.equal(a.unitCents,terms.tiers[supplier.tier].unitCosts[a.product]);}}}
+        const compact=compactScientificCalculation(c);for(const value of [...Object.values(compact.displayAmounts),...compact.impacts.map(i=>i.displayBenefit)])assert(report.result.narrative.includes(value),'Narrative copies actual scientific service currency amounts');
+      }
+      if(saved.capability!=='demand-forecast'){const forecast=report.result.analyses.find(a=>a.calculation.capabilityId==='steward.scientific.demand-forecast');assert.equal(saved.result.provenance.derivedFrom[0].jobId,forecast.scientificReference.jobId);assert.equal(saved.result.provenance.derivedFrom[0].inputDigest,forecast.scientificReference.inputDigest);}
+      assert(!report.result.partialInvestigation,'Full scientific investigation required');
     }else{
       const sources=analysis.observed.sources.map(s=>canonicalBusinessPayload({payload:s.payload}));
       const recomputed=capability==='commerce-performance'?calculateCommerce(sources):capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);

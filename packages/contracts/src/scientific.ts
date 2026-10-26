@@ -6,6 +6,7 @@ export type ScientificCapability='describe-series'|'demand-forecast'|'procuremen
 export interface ScientificProvenance {
  datasetId:string;synthetic:boolean;basis:'authorized-synchronized-projection'|'synthetic-analytical-history';
  asOf:string;references:SourceReference[];
+ derivedFrom?:ScientificEvidenceReference[];
 }
 export interface ScientificRequest {
  schemaVersion:1;jobId:string;capability:ScientificCapability;principalId:string;entityIds:string[];

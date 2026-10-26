@@ -42,7 +42,13 @@ test('executive opportunities visibly distinguish test models without inventing 
  assert.match(render(true),/TEST MODEL/);assert.match(render(true),/Financial impact unavailable/);assert.doesNotMatch(render(false),/TEST MODEL/);
 });
 
-import {configurationErrorMessage,saveModuleConfiguration} from '../packages/ui/dist/module-configuration.js';
+import {configurationErrorMessage,saveModuleConfiguration,moduleInstallIntent} from '../packages/ui/dist/module-configuration.js';
+test('failed package recovery distinguishes newer active-runtime replacement from a compatible retained package',()=>{
+ assert.deepEqual(moduleInstallIntent({version:'1.3.1',state:'failed'},'1.3.2'),{upgrade:true,recover:true});
+ assert.deepEqual(moduleInstallIntent({version:'1.3.1',state:'failed'},'1.3.0'),{upgrade:false,recover:true});
+ assert.deepEqual(moduleInstallIntent({version:'1.9.0',state:'failed'},'1.10.0'),{upgrade:true,recover:true});
+ assert.deepEqual(moduleInstallIntent({version:'1.3.0',state:'active'},'1.3.2'),{upgrade:true});
+});
 test('module save confirms persisted values and never presents rejected or stale saves as success',async()=>{
  const mode={mode:'live',currency:'USD'};let calls=0;
  await assert.rejects(saveModuleConfiguration(async()=>{calls++;throw Error('CONNECTOR_EGRESS_GRANT_REQUIRED');},'cee.shopify',mode),/GRANT_REQUIRED/);assert.equal(calls,1);
