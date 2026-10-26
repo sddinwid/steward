@@ -179,3 +179,14 @@ referenced acceptance reports and sanitized test logs alongside the preserved
 release, without adding undeclared files inside the checksummed bundle. Do not
 tag `v0.13.0` until all original mandatory release gates pass. No tag, accepted
 release or commercial readiness is implied by this procedure document.
+
+## Hosts with exhausted Docker default address pools
+
+Use the existing optional network overlay after installation and before startup; choose a private range that does not overlap host/VPN routes. The tool rejects overlap with existing Docker networks, preserves existing network allocations, and never prunes networks or volumes:
+
+```powershell
+node scripts/configure-network-pool.mjs $deployment 10.241
+node scripts/release.mjs start --directory $deployment
+```
+
+For the full clean acceptance runner, set `$env:STEWARD_TEST_NETWORK_PREFIX='10.241'` before invoking it (after checking host routes). The runner configures only its new test deployment, including the Scientific network. Existing operator addresses, databases and credentials remain unchanged. A failed startup still runs operator restoration and single-stack health checks; retain its failed report rather than presenting it as a passing installation.

@@ -1,0 +1,141 @@
+# Phase 13 acceptance — verified results and remaining gates
+
+**Draft; release acceptance remains open.** Source checkpoint:
+`df4fd0a42773df2dc2fd1076c5f7825aa1e72210`. Final clean-installation acceptance is pending the explicit private-network
+configuration after Docker exhausted its default address pools. This report does not declare Phase 13 complete, promote an
+archive, or authorize a `v0.13.0` tag.
+
+## Independently packaged modules
+
+| Module | Version |
+| --- | --- |
+| Housing Management | 1.0.1 |
+| Participant Services | 1.0.3 |
+| Employment Pathways | 1.1.0 |
+| Food & Essential Services | 1.0.1 |
+
+Workforce 1.2.0 supplies governed training and employment capacity. Scientific
+1.1.0 supplies deterministic scientific calculations. The complete selection is
+in [phase13-module-versions.json](phase13-module-versions.json). Module installs
+and upgrades preserve dedicated databases and historical migration checksums;
+they do not replace the identical Worker core images.
+
+## Verified operations and privacy
+
+Actual installed-module/browser acceptance exercised six synthetic people:
+reviewed intake, enrollment and service plans; authorized housing referrals;
+human placement approval, reservation and occupied units; Food referrals and
+delivery; governed training reservation, instructor participation and actual
+elapsed completion; source-backed skills; employer review and separate human
+employment confirmation. Immediate follow-ups were recorded. Signed outcomes
+returned to Participant Services. Worker/provider operations continued during
+Master outage, and restart/recovery retained records and exact retry receipts.
+
+Food used local stock independently, consumed private remote Inventory through
+SSMA, and created a reviewed Procurement draft without a purchase or financial
+commitment. Separate browser acceptance recorded six hygiene supply units;
+repetition reused the delivery without consuming twice. Original commercial
+records and live connector configuration were retained.
+
+Evidence: `artifacts/phase13-participant-deployment.json`,
+`phase13-employment-deployment.json`, `phase13-food-deployment.json`,
+`phase13-participant-food-deployment.json`, `phase13-essential-services.json`,
+`phase13-capacity-verification.json`, and `phase13-operational-recovery.json`.
+
+Earlier premature retention claims used requested historical dates rather than
+actual confirmation time. They are **invalid**, not achieved stability outcomes.
+Append-only corrections retain original observations and receipts, quarantine
+unsupported claims, and require authoritative placement/pathway identity and
+actual elapsed timestamps. New zero-day check-ins do not establish 30/90-day
+retention; immature outcomes remain unknown. Controlled-clock tests validate the
+future boundaries without claiming elapsed retention in the demonstration.
+
+Programme/case relationships, named-account disclosure leases, closed source
+projections, whole-vector small-group/complement suppression and immutable cohort
+membership remain enforced. Missing optional metrics remain unknown in older
+sealed records; those records were not resealed. Public quota projections hide
+remaining counts once claims could expose a private complement. Exact local
+capacity requires programme-management authority. No unrestricted participant
+records or aliases enter general Master analytics or mission MCP tools.
+
+## Verified intelligence and model use
+
+The controlled continuation of the earlier clean deployment passed fresh first
+sealing during Master outage, source-owned capacity reporting, positive
+operational-alert review, affected-only delivery/acknowledgment, and scenario
+comparison. Evidence: `phase13-clean-continuation.json`,
+`phase13-clean-fresh-mission-verification.json`,
+`phase13-clean-comparison-verification.json`, and
+`phase13-operational-alerts.json`. This continuation is separate evidence; it does
+not retroactively pass the failed rc2 clean run.
+
+Browser finance input preserved exact integer cents: USD 7,500 authorized,
+5,000 available, 2,500 committed, 2,000 transferred and 1,000 spent. These are
+explicit synthetic cash states, not transfers executed by Steward. Housing's
+synthetic period cost is USD 6,000. Real TypeScript and SciPy calculations agree:
+USD 1,000 versus USD 1,250 incremental cost yields five versus four conditional
+housing units, each costing USD 5,000. Alternatives reuse the same evidence and
+budget; their resources are never summed. The zero period-authority gap compares
+authorized USD 7,500 with observed USD 6,000 cost, independently of the available
+balance used for expansion.
+
+Real local Qwen completed the comparison in **58,974 ms**, with five model calls
+and four live MCP tools: `query_mission_programmes`, `query_mission_aggregates`,
+`query_mission_scenarios`, and `compare_mission_scenarios`. Actual tool calls,
+source references and independently recomputed results are retained in
+`artifacts/phase13-mission-ollama-comparison.json`. Separate narrative/source
+review preceded browser publication of finding
+`b5e713de-499b-4c1d-a600-1d808d06965a`. Only Workers 1 and 2 received it; both
+browser acknowledgments returned to Master, and Worker 3 was excluded. Provider
+configuration was restored and the model unloaded.
+
+This proves housing alternatives over authorized historical evidence. It does
+**not** prove joint housing-and-training optimization or individual employment
+forecasts. Historical training/opportunity unknowns remain unknown; fresh source
+capacity is verified separately. The model neither grants authority nor executes
+service, hiring, funding or reservation decisions.
+
+## Test evidence
+
+| Verification | Actual result | Evidence |
+| --- | --- | --- |
+| Full checkpoint Node regressions | 354 passed | `phase13-protocol-full-regressions.log` |
+| Programme/privacy PostgreSQL checks | 26 passed | Same log, programme-access result |
+| Mission API/security/MCP checks | 78 passed | Same log, authenticated mission result |
+| Final release/governance contracts | 9 passed | `phase13-final-release-contracts.log` |
+| Scientific Python tests and isolated authenticated HTTP service | 74 passed; one warning; HTTP passed | `phase13-final-scientific-service.log` |
+| Scientific governance | 28 passed | `phase13-final-scientific-governance.log` |
+| Scientific Chromium fixtures | 8 passed | `phase13-final-scientific-presentation.log` |
+| Mission Chromium fixtures | 7 passed | `phase13-mission-analyst-presentation.json` |
+
+Logs are under `artifacts/`. Fixture checks are not deployment/provider evidence;
+the actual browser, operational and real-model reports above provide that
+separate evidence. These checkpoint counts are not a claim that final clean
+acceptance or post-restoration verification has finished.
+
+## Pending final acceptance
+
+- Finish the complete corrected clean installation from the committed copied toolkit,
+  including repeated provisioning, independent installs, all operational paths,
+  fresh quota/optional-field first seals, positive alert review and comparison.
+- Stop temporary acceptance services in cleanup; restore the selected operator,
+  then verify health/readiness, retained identities/configuration/business data,
+  and `node scripts/verify-single-stack.mjs`.
+- Verify the final source-bound archive, checksums, signed packages, image IDs,
+  redeployment/upgrade preservation and the exact candidate's required gates.
+  Record actual gate evidence before any promotion or release tag.
+
+The earlier rc2 run failed stale verifier version expectations; its failure and
+successful cleanup remain retained. The rc3 run subsequently encountered host network-pool exhaustion before creating containers; its cleanup also restored the operator. Final acceptance must stand on its own.
+
+## Production limitations
+
+Synthetic-only MVP: no real client records, HMIS certification, privacy-law
+compliance claim, or commercial production-readiness claim. Disclosure revocation
+during disconnection is bounded by the signed lease expiry, at most one hour.
+Fixed cohorts cannot be republished or recombined; this phase does not provide
+general longitudinal releases or differential privacy. Shared-provider forecasts,
+bank reconciliation, consolidation, legal distributability and transfers require
+separate authority and implementation. Simulator checks do not establish live
+Shopify/Printify compatibility; no paid/order/fulfillment operation is authorized
+by this report. Consequential decisions remain with authorized humans.

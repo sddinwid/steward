@@ -18,6 +18,7 @@ try{
  execFileSync(process.env.ComSpec??'cmd.exe',['/d','/s','/c','npm ci && npm run build'],{cwd:toolkit,stdio:'inherit',timeout:1200000});report.checks.push('copied release toolkit npm ci and full build without developer checkout dependencies');
  docker(['stop',...operatorIds]);report.stoppedOperatorContainers=operatorIds.length;console.log('Stopped all retained operator core and managed module containers:',operatorIds.length);assert.equal(running(selected.project).length,0);
  run('scripts/release.mjs',['install','--bundle',bundle,'--directory',target,'--project',project,'--port-offset','30000','--trust-bundled-modules','--simulators']);
+ if(process.env.STEWARD_TEST_NETWORK_PREFIX){run('scripts/configure-network-pool.mjs',[target,process.env.STEWARD_TEST_NETWORK_PREFIX]);report.networkPrefix=process.env.STEWARD_TEST_NETWORK_PREFIX;}
  run('scripts/release.mjs',['start','--directory',target]);
  run('scripts/smoke.mjs',[target]);run('scripts/verify-isolation.mjs',[target]);report.checks.push('clean digest-pinned initialization, API/frontend smoke, repeated provisioning, isolated databases and outage/restart preservation');
  run('scripts/verify-phase2.mjs',[target]);report.checks.push('real Chromium and authenticated enrollment, rejection, identity, trust, replay, outage/restart and secret non-disclosure regressions');

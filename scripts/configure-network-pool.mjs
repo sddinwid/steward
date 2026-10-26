@@ -7,7 +7,7 @@ import path from 'node:path';
 const directory=path.resolve(process.argv[2]??'.steward/dev'),prefix=process.argv[3];
 if(!/^10\.(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/.test(prefix??''))throw new Error('Choose a private prefix, e.g. 10.241');
 const manifest=JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8'));
-const names=[...manifest.instances.flatMap(i=>[i.key,i.key+'-data',...(i.role==='worker'?[i.key+'-modules']:[])]),'enrollment',...(existsSync(path.join(directory,'commerce/manifest.json'))?['commerce-simulators']:[])];
+const names=[...manifest.instances.flatMap(i=>[i.key,i.key+'-data',...(i.role==='worker'?[i.key+'-modules']:[])]),'enrollment',...(existsSync(path.join(directory,'commerce/manifest.json'))?['commerce-simulators']:[]),...(existsSync(path.join(directory,'scientific/manifest.json'))?['scientific']:[])];
 const ids=execFileSync('docker',['network','ls','-q'],{encoding:'utf8'}).trim().split(/\s+/).filter(Boolean);
 const networks=ids.length?JSON.parse(execFileSync('docker',['network','inspect',...ids],{encoding:'utf8'})):[];
 const lines=[];
