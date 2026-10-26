@@ -13,7 +13,7 @@ import { AGENT_ID } from './mcp.js';
 import { agentProof } from './mcp-agent-identity.js';
 import { compactToolNames, modelToolResult } from './analyst-context.js';
 import {profileInstructions,profileTools,commerceStageTools,simulationStageTools,scientificStageTools,type ScientificPlan,type InvestigationProfile} from './investigation-profiles.js';
-import {compactScientificCalculation} from './scientific-context.js';
+import {compactScientificCalculation,containsScientificAmount} from './scientific-context.js';
 import { investigationSummary } from './intelligence.js';
 
 export const narrativeSchema=z.object({narrative:z.string().min(1).max(6000),assumptions:z.array(z.string().max(1000)).max(20),humanDecisions:z.array(z.string().max(1000)).min(1).max(20)}).strict();
@@ -28,7 +28,7 @@ export function validateScientificNarrative(narrative:z.infer<typeof narrativeSc
   const proposal=calculations.find(a=>a.calculation.capabilityId==='steward.scientific.procurement-optimization');
   if(!proposal)throw new Error('SCIENTIFIC_PLAN_INCOMPLETE');
   const values=compactScientificCalculation(proposal.calculation);
-  for(const amount of [...Object.values(values.displayAmounts),...values.impacts.map((i:any)=>i.displayBenefit)])if(!narrative.narrative.includes(String(amount)))throw new Error('MODEL_EVIDENCE_MISMATCH');
+  for(const amount of [...Object.values(values.displayAmounts),...values.impacts.map((i:any)=>i.displayBenefit)])if(!containsScientificAmount(narrative.narrative,String(amount)))throw new Error('MODEL_EVIDENCE_MISMATCH');
  }
  if(calculations.some(a=>a.synthetic)&&!/synthetic/i.test(narrative.narrative))throw new Error('MODEL_EVIDENCE_MISMATCH');
 }

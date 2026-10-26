@@ -1,4 +1,10 @@
 import {formatMoneyCents} from './business-analysis.js';
+/** Permit conventional thousands grouping without changing currency or value. */
+export function containsScientificAmount(text:string,expected:string){
+ const normalized=text.replace(/\b([A-Z]{3})\s+(-?\d{1,3}(?:,\d{3})+)\.(\d{2})(?!\d)/g,(_match,currency,whole,cents)=>currency+' '+whole.replaceAll(',','')+'.'+cents);
+ const literal=expected.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+ return new RegExp('(?:^|[^A-Z0-9])'+literal+'(?!\\d|[,.]\\d)').test(normalized);
+}
 const amount=(v:any,currency:string)=>Number.isSafeInteger(v)?formatMoneyCents(v,currency):'UNKNOWN';
 const impact=(i:any,currency:string)=>({entityId:i.entityId,quantity:i.quantity,displayBaseline:amount(i.baselineExternalCents,currency),displayMerchandise:amount(i.pooledMerchandiseCents,currency),displayShipping:amount(i.allocatedShippingCents,currency),displayTransition:amount(i.transitionCostCents,currency),displayProposed:amount(i.proposedCostCents,currency),displayBenefit:amount(i.benefitCents,currency),disadvantaged:i.disadvantaged});
 const suppliers=(rows:any[],currency:string)=>(rows??[]).map(s=>({id:s.id,allocatedUnits:s.quantity,declaredCapacityUnits:s.capacity,unusedCapacityUnits:s.unusedCapacity,fullyUtilized:s.unusedCapacity===0,displayFixedShipping:amount(s.shippingCents,currency),selectedTierIndex:s.tier}));

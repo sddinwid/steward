@@ -1,6 +1,6 @@
 import {purchasingOpportunities} from '../packages/platform/dist/simulation-analysis.js';
 import {purchasingBaseline} from '../packages/platform/dist/simulation-analysis.js';
-import {compactScientificCalculation} from '../packages/platform/dist/scientific-context.js';
+import {compactScientificCalculation,containsScientificAmount} from '../packages/platform/dist/scientific-context.js';
 // Temporary real-provider validation. No simulated model output or core changes.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:https';
@@ -102,7 +102,7 @@ try{
         assert.equal(c.ecosystemBenefitCents,baseline-c.proposedCostCents);assert.equal(c.impacts.reduce((n,i)=>n+i.benefitCents,0),c.ecosystemBenefitCents);
         for(const requirement of p.requirements)assert.equal(c.allocations.filter(a=>a.entityId===requirement.entityId&&a.product===requirement.product).reduce((n,a)=>n+a.quantity,0),requirement.quantity);
         for(const supplier of c.suppliers){const terms=p.suppliers.find(s=>s.id===supplier.id);assert(supplier.quantity<=terms.capacity);if(supplier.quantity){assert(supplier.quantity>=terms.minimumUnits);assert(supplier.quantity>=terms.tiers[supplier.tier].minimumUnits);for(const a of c.allocations.filter(a=>a.supplierId===supplier.id)){assert(Number.isInteger(a.quantity));assert.equal(a.unitCents,terms.tiers[supplier.tier].unitCosts[a.product]);}}}
-        const compact=compactScientificCalculation(c);for(const value of [...Object.values(compact.displayAmounts),...compact.impacts.map(i=>i.displayBenefit)])assert(report.result.narrative.includes(value),'Narrative copies actual scientific service currency amounts');
+        const compact=compactScientificCalculation(c);for(const value of [...Object.values(compact.displayAmounts),...compact.impacts.map(i=>i.displayBenefit)])assert(containsScientificAmount(report.result.narrative,value),'Narrative preserves actual scientific service currency amounts');
       }
       if(saved.capability!=='demand-forecast'){const forecast=report.result.analyses.find(a=>a.calculation.capabilityId==='steward.scientific.demand-forecast');assert.equal(saved.result.provenance.derivedFrom[0].jobId,forecast.scientificReference.jobId);assert.equal(saved.result.provenance.derivedFrom[0].inputDigest,forecast.scientificReference.inputDigest);}
       assert(!report.result.partialInvestigation,'Full scientific investigation required');

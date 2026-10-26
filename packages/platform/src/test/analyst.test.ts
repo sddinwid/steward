@@ -1,6 +1,6 @@
 import {simulationStageTools} from '../investigation-profiles.js';
 import {scientificStageTools,profileTools,type ScientificPlan} from '../investigation-profiles.js';
-import {compactScientificCalculation,compactScientificConstraints} from '../scientific-context.js';
+import {compactScientificCalculation,compactScientificConstraints,containsScientificAmount} from '../scientific-context.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resourceSharing, type SharingInput } from '../analytical-capabilities.js';
@@ -26,6 +26,7 @@ test('scientific recommendations require completed planning, synthetic labeling 
  const analyses=[{synthetic:true,calculation:{capabilityId:'steward.scientific.procurement-optimization',method:'fixed-charge-all-units-milp',currency:'USD',baselineExternalCents:56200,proposedCostCents:50080,ecosystemBenefitCents:6120,impacts:[{benefitCents:3107,proposedCostCents:25693}],suppliers:[]}}];
  const value={narrative:'Synthetic comparison: USD 562.00 baseline; USD 500.80 proposed; USD 61.20 benefit; entity USD 31.07.',assumptions:['Conditional inputs'],humanDecisions:['Review consent']};
  validateScientificNarrative(value,stage,analyses);
+ assert(containsScientificAmount('Baseline USD 38,012.00;','USD 38012.00'));assert(!containsScientificAmount('USD 38,012.000','USD 38012.00'));assert(!containsScientificAmount('USD 3801200.00','USD 38012.00'));assert(!containsScientificAmount('EUR 38012.00','USD 38012.00'));assert(!containsScientificAmount('USD 61.200','USD 61.20'));
  const correction=scientificCorrectionEvidence(analyses);assert(correction);assert.deepEqual(correction.displayAmounts,{baseline:'USD 562.00',proposed:'USD 500.80',benefit:'USD 61.20'});assert.equal(correction.entityBenefits[0].displayBenefit,'USD 31.07');assert.equal(scientificCorrectionEvidence([]),null);
  assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('USD 61.20','USD 6120.00')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
  assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('Synthetic','Actual')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
