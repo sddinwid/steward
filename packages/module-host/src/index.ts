@@ -2,6 +2,7 @@ import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} 
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
 import Fastify from 'fastify';
 import { moduleContainerName } from './naming.js';
+import { boundReplicationEvents } from './replication.js';
 import { executeSmartStep } from './smart-executor.js';
 import { routeSmartCommand } from './smart-routing.js';
 import pg from 'pg';
@@ -120,7 +121,13 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   if (!(await resourcePool.query('SELECT 1 FROM pg_database WHERE datname=$1', [db])).rowCount) await resourcePool.query(`CREATE DATABASE ${db} OWNER ${db}`);
   await resourcePool.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
   await resourcePool.query(`GRANT CONNECT ON DATABASE ${db} TO ${db}`);
+  let sourceIdentity:unknown;
+  if(m.programServices){
+    const coreIdentity=new pg.Client({...adminConnection,database:'steward'});await coreIdentity.connect();
+    try{const row=(await coreIdentity.query("SELECT entity_id,entity_name FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];if(!row)failure('ENROLLMENT_REQUIRED');sourceIdentity={installationId:config.installationId,role:'worker',entity:{entityId:row.entity_id,displayName:row.entity_name}};}finally{await coreIdentity.end();}
+  }
   await atomicJson(base + '/runtime.json', { installationId: config.installationId, moduleId: id, version: m.version,
+    ...(sourceIdentity?{sourceIdentity,entityId:(sourceIdentity as any).entity.entityId}:{}),
     databaseHost: config.databaseHost, databaseName: db, databaseUser: db, configuration, persistence: m.persistence }, 0o644);
   let container = await ownedContainer(id);
   if (container && container.Image !== payload.imageId) {
@@ -216,7 +223,10 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     if (p.operation === 'outbox.read' || p.operation === 'outbox.complete') {
       if (!payload.manifest.replication) return { events: [] };
       return moduleDatabase(p.moduleId, async sql => {
-        if (p.operation === 'outbox.read') return { events: (await sql.query('SELECT envelope FROM sync_outbox WHERE acknowledged_at IS NULL AND next_attempt_at<=now() ORDER BY created_at,event_id LIMIT 10')).rows.map(r => r.envelope) };
+        if (p.operation === 'outbox.read') {
+          const runtime = payload.manifest.programServices ? JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`, 'utf8')) : undefined;
+          return { events: boundReplicationEvents(payload.manifest, (await sql.query('SELECT envelope FROM sync_outbox WHERE acknowledged_at IS NULL AND next_attempt_at<=now() ORDER BY created_at,event_id LIMIT 10')).rows.map(r => r.envelope), config.installationId, runtime?.sourceIdentity) };
+        }
         for (const ids of [p.acknowledged, p.failed]) if (!Array.isArray(ids) || ids.length > 20 || ids.some((id: unknown) => typeof id !== 'string' || !/^[0-9a-f-]{36}$/.test(id))) failure('INVALID_ACKNOWLEDGMENT');
         await sql.query('UPDATE sync_outbox SET acknowledged_at=now(),error_code=NULL WHERE event_id=ANY($1::uuid[])', [p.acknowledged]);
         await sql.query("UPDATE sync_outbox SET attempts=attempts+1,error_code='TRANSPORT_UNAVAILABLE',next_attempt_at=now()+least(30,power(2,least(attempts,5)))*interval '1 second' WHERE event_id=ANY($1::uuid[]) AND acknowledged_at IS NULL", [p.failed]);

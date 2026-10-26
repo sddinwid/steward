@@ -30,6 +30,7 @@ export interface SynchronizationEnvelope<T = unknown> {
   eventType: string;
   payloadVersion: number;
   correlationId?: string;
+  disclosure?:{contractVersion:1;kind:'program-aggregate';domain:'housing'|'participant-services'|'employment'|'food'};
   payload: T;
 }
 export interface PlatformOverview {
@@ -95,3 +96,5 @@ export interface SyncReceipt {
 export * from './business.js';
 export * from './scientific.js';
 export const PLATFORM_RELEASE='0.12.0';
+
+export * from './mission.js';

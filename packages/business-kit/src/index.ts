@@ -30,8 +30,37 @@ export interface Context {
     actor: string;
     permissions: string[];
     moduleId: string;
+    /** Enrolled identity from the trusted runtime file, never module settings. */
+    readonly entityId?: string;
+}
+/** Optional module-owned data policy. Platform permission is checked separately. */
+export interface AccessRequest {
+    operation: 'list' | 'create' | 'update' | 'action' | 'query' | 'report' | 'integration-status' | 'integration-receive' | 'integration-ack';
+    path: string;
+    kind?: string;
+    record?: RecordValue;
+    input?: Data;
+    query?: Record<string, string>;
+    command?: IntegrationCommand;
+}
+export interface AccessAuditEvent {
+    actor: string | null;
+    operationId: string;
+    method: string;
+    path: string;
+    kind?: string;
+    recordId?: string;
+    /** Opaque identities of returned collection rows, bounded by page size. */
+    recordIds?: string[];
+    statusCode: number;
+    allowed: boolean;
 }
 export interface Resource {
+    authorize?: (ctx: Context, access: AccessRequest) => Promise<void>;
+    /** UUID allowlist applied in SQL before pagination/search; no browser SQL. */
+    listScope?: (ctx: Context) => Promise<{ ids: string[] }>;
+    /** Deterministic private identity namespace; legacy resources use input[key]. */
+    deriveKey?: (ctx: Context, input: Data) => Promise<string> | string;
     /** Optional logical configuration revision; background state keeps its own row revision. */
     revisionField?: string;
     kind: string;
@@ -50,6 +79,11 @@ export interface Action {
     run: (record: RecordValue, ctx: Context) => Promise<Data>;
 }
 export interface Definition {
+    authorize?: (ctx: Context, access: AccessRequest) => Promise<void>;
+    /** Runs in a separate committed transaction after the request transaction.
+     * Receives no body, query strings, record contents or error text. Failure is
+     * closed: the original response is withheld and a generic 503 is returned. */
+    auditAccess?: (event: AccessAuditEvent, db: pg.PoolClient) => Promise<void>;
     manifest: ModulePackageManifest;
     resources: Resource[];
     actions: Action[];
@@ -160,21 +194,77 @@ catch {
 const uuidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$';
 const idParams = { type: 'object', additionalProperties: false, required: ['id'], properties: { id: { type: 'string', pattern: uuidPattern } } };
 const ajv = new Ajv({ strict: true, allErrors: false });
+async function authorizeAccess(definition: Definition, resource: Resource | undefined, c: Context, access: AccessRequest) {
+    try {
+        await definition.authorize?.(c, access);
+        await resource?.authorize?.(c, access);
+    } catch (error) {
+        if (error instanceof BusinessError && [403, 404].includes(error.status))
+            throw new BusinessError(access.operation === 'update' || access.operation === 'action' || access.record ? 404 : 403, access.operation === 'update' || access.operation === 'action' || access.record ? 'Record unavailable or not permitted' : 'Module data access denied');
+        throw error;
+    }
+}
+async function authorizedRecord(definition: Definition, resource: Resource | undefined, c: Context, access: AccessRequest, id: string) {
+    let record: RecordValue;
+    try { record = await get(c, access.kind!, id); }
+    catch (error) {
+        if ((definition.authorize || resource?.authorize) && error instanceof BusinessError && error.status === 404)
+            throw new BusinessError(404, 'Record unavailable or not permitted');
+        throw error;
+    }
+    await authorizeAccess(definition, resource, c, { ...access, record });
+    return record;
+}
+async function resourceKey(resource: Resource, c: Context, input: Data) {
+    if (!resource.deriveKey) return String(input[resource.key]);
+    const key = await resource.deriveKey(c, input);
+    ensure(typeof key === 'string' && key.length > 0 && key.length <= 512, 'Invalid module record identity', 500);
+    return key;
+}
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
-    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), permissions: request ? permissions(request) : [] });
+    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
+    const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
+    const audited = new WeakSet<FastifyRequest>();
+    const identifyRecord = (request: FastifyRequest, kind: string, id?: string) => {
+        const access = accesses.get(request);
+        if (access) { access.kind = kind; if (id) access.recordId = id; }
+    };
     app.addHook('onRequest', async (request, reply) => {
         if (request.url === '/health')
             return;
+        const op = operationFor(definition.manifest, request.method, request.url);
+        if (op) accesses.set(request, { actor: null, operationId: op.operationId, method: request.method, path: op.path });
+        else if (['/integration-inbox', '/integration-ack'].includes(request.url) && request.method === 'POST')
+            accesses.set(request, { actor: null, operationId: request.url === '/integration-inbox' ? 'integrationReceive' : 'integrationAcknowledge', method: request.method, path: request.url });
         const a = Buffer.from(String(request.headers.authorization ?? '')), b = Buffer.from('Bearer ' + token);
         if (a.length !== b.length || !timingSafeEqual(a, b))
             return reply.code(401).send({ error: 'Module gateway authentication required' });
-        const op = operationFor(definition.manifest, request.method, request.url);
+        const access = accesses.get(request);
+        if (access) access.actor = String(request.headers['x-steward-actor'] ?? 'module-runtime');
         const privatePaths = ['/ready', '/internal/migrate', '/integration-outbox', '/integration-inbox', '/integration-ack', ...(definition.manifest.connector?['/connector-webhook']:[])];
         if (!op && !privatePaths.includes(request.url))
             return reply.code(403).send({ error: 'Undeclared module operation' });
         if (op && !permissions(request).includes(op.permission))
             return reply.code(403).send({ error: 'Module permission denied' });
+    });
+    if (definition.auditAccess) app.addHook('onSend', async (request, reply, payload) => {
+        const access = accesses.get(request);
+        if (!access || audited.has(request)) return payload;
+        audited.add(request);
+        let db: pg.PoolClient | undefined;
+        try {
+            db = await pool.connect();
+            await db.query('BEGIN');
+            await definition.auditAccess!({ ...access, statusCode: reply.statusCode, allowed: reply.statusCode < 400 }, db);
+            await db.query('COMMIT');
+            return payload;
+        } catch {
+            if (db) await db.query('ROLLBACK').catch(() => {});
+            const committedMutation = request.method !== 'GET' && reply.statusCode < 400;
+            reply.code(503);
+            return JSON.stringify(committedMutation ? { error: 'Module access audit unavailable; the operation may have committed. Refresh and reconcile using the original request identity.', recovery: 'OUTCOME_REQUIRES_RECONCILIATION' } : { error: 'Module access audit unavailable' });
+        } finally { db?.release(); }
     });
     app.get('/health', async () => ({ status: 'ok' }));
     app.get('/ready', async (_req, reply) => { try {
@@ -192,11 +282,17 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             Querystring: Record<string, string>;
         }>(resource.path, async (req) => transaction(pool, async (db) => {
             const c = ctx(db, req), q = req.query, limit = Number(q.limit ?? 20), offset = Number(q.offset ?? 0);
+            identifyRecord(req, resource.kind);
+            await authorizeAccess(definition, resource, c, { operation: 'list', path: resource.path, kind: resource.kind, query: q });
             ensure(Number.isInteger(limit) && limit >= 1 && limit <= 20 && Number.isInteger(offset) && offset >= 0 && offset <= 100000, 'Invalid pagination', 400);
             const allowed = Object.keys(resource.schema.properties).concat('id', 'revision', ...definition.manifest.ui.filter(s => definition.manifest.api.find(a => a.operationId === s.listOperation)?.path === resource.path).flatMap(s => s.fields.map(f => f.name)));
             const fields = q.fields?.split(',');
             ensure(!fields || fields.every(f => allowed.includes(f)), 'Unknown selected field', 400);
-            const rows = (await db.query("SELECT * FROM business_records WHERE kind=$1 AND ($2='' OR data->>'status'=$2) AND ($3='' OR key ILIKE $3 ESCAPE '!') ORDER BY key LIMIT $4 OFFSET $5", [resource.kind, q.status ?? '', q.q ? '%' + q.q.replace(/[!%_]/g, '!$&') + '%' : '', limit + 1, offset])).rows;
+            const scope = resource.listScope ? await resource.listScope(c) : undefined;
+            ensure(!scope || Array.isArray(scope.ids) && scope.ids.length <= 10000 && scope.ids.every(id => typeof id === 'string' && new RegExp(uuidPattern).test(id)), 'Invalid module record scope', 500);
+            const rows = (await db.query("SELECT * FROM business_records WHERE kind=$1 AND ($2='' OR data->>'status'=$2) AND ($3='' OR key ILIKE $3 ESCAPE '!')" + (scope ? ' AND id=ANY($6::uuid[])' : '') + ' ORDER BY key LIMIT $4 OFFSET $5', [resource.kind, q.status ?? '', q.q ? '%' + q.q.replace(/[!%_]/g, '!$&') + '%' : '', limit + 1, offset, ...(scope ? [scope.ids] : [])])).rows;
+            const audit = accesses.get(req);
+            if (audit) audit.recordIds = rows.slice(0, limit).map(r => r.id);
             return { records: rows.slice(0, limit).map(r => { const value = resourceRecord(resource,convert(r)); return fields ? Object.fromEntries(fields.map(f => [f, value[f]])) : value; }), nextOffset: rows.length > limit ? offset + limit : null, summary: 'Module-owned records; quantities and money use the declared units.' };
         }));
         app.post<{
@@ -204,9 +300,14 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
         }>(resource.path, async (req, reply) => {
             ensure(validate(req.body), 'Invalid record: ' + ajv.errorsText(validate.errors), 400);
             return reply.code(201).send(await transaction(pool, async (db) => {
-                const c = ctx(db, req), key = String(req.body[resource.key]);
+                const c = ctx(db, req);
+                identifyRecord(req, resource.kind);
+                await authorizeAccess(definition, resource, c, { operation: 'create', path: resource.path, kind: resource.kind, input: req.body });
+                const key = await resourceKey(resource, c, req.body);
                 const previous = await find(c, resource.kind, key);
                 if (previous) {
+                    identifyRecord(req, resource.kind, previous.id);
+                    await authorizeAccess(definition, resource, c, { operation: 'create', path: resource.path, kind: resource.kind, input: req.body, record: previous });
                     const original = (await db.query('SELECT actor,digest,response FROM business_requests WHERE operation=$1 AND response->>\'id\'=$2', [resource.kind + ':create', previous.id])).rows[0];
                     ensure(original?.actor === c.actor && original?.digest === digest(canonical(req.body)), 'Business key already belongs to another creation request', 409);
                     // Creation retries return their original receipt, never a later private
@@ -215,6 +316,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
                 }
                 const data = resource.prepare ? await resource.prepare({ ...req.body }, null, c) : req.body;
                 const record = await save(c, resource.kind, key, data);
+                identifyRecord(req, resource.kind, record.id);
                 await resource.after?.(record, null, c);
                 await db.query('INSERT INTO business_requests(request_id,actor,operation,digest,response) VALUES($1,$2,$3,$4,$5)', [randomUUID(), c.actor, resource.kind + ':create', digest(canonical(req.body)), { id: record.id, record: resourceRecord(resource,record) }]);
                 await db.query('INSERT INTO business_audit(actor,operation,record_id) VALUES($1,$2,$3)', [c.actor, resource.kind + ':create', record.id]);
@@ -230,9 +332,11 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             ensure(req.body && typeof req.body === 'object' && !Array.isArray(req.body), 'Invalid update', 400);
             const { revision, ...input } = req.body;
             ensure(Number.isInteger(revision) && validate(input), 'Invalid update', 400);
-            const c = ctx(db, req), previous = await get(c, resource.kind, req.params.id);
+            const c = ctx(db, req);
+            identifyRecord(req, resource.kind, req.params.id);
+            const previous = await authorizedRecord(definition, resource, c, { operation: 'update', path: resource.path + '/:id', kind: resource.kind, input }, req.params.id);
             ensure((resource.revisionField?previous.data[resource.revisionField]??1:previous.revision) === revision, 'Revision conflict', 409);
-            ensure(String(input[resource.key]) === previous.key, 'Business key cannot change', 409);
+            ensure(await resourceKey(resource, c, input) === previous.key, 'Business key cannot change', 409);
             const data = resource.prepare ? await resource.prepare(input, previous, c) : input;
             const record = await save(c, resource.kind, previous.key, data, previous);
             await resource.after?.(record, previous, c);
@@ -251,14 +355,20 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             };
         }>(action.path, { schema: { params: idParams, body: { type: 'object', additionalProperties: false, required: ['revision', 'requestId'], properties: { revision: { type: 'integer', minimum: 1 }, requestId: { type: 'string', pattern: uuidPattern } } } } }, async (req) => transaction(pool, async (db) => {
             const c = ctx(db, req);
+            identifyRecord(req, action.kind, req.params.id);
             ensure(c.permissions.includes(action.permission), 'Action permission denied', 403);
             const hash = digest(canonical({ path: action.path, id: req.params.id, body: req.body }));
+            const resource = definition.resources.find(r => r.kind === action.kind);
+            const governed = !!(definition.authorize || resource?.authorize);
+            // Opted-in policies recheck current relationships before returning an
+            // old receipt. Legacy modules retain their original retry behavior.
+            const authorized = governed ? await authorizedRecord(definition, resource, c, { operation: 'action', path: action.path, kind: action.kind, input: req.body }, req.params.id) : undefined;
             const cached = (await db.query('SELECT * FROM business_requests WHERE request_id=$1', [req.body.requestId])).rows[0];
             if (cached) {
                 ensure(cached.actor === c.actor && cached.digest === hash, 'Request identity conflict', 409);
                 return cached.response;
             }
-            const record = await get(c, action.kind, req.params.id);
+            const record = authorized ?? await get(c, action.kind, req.params.id);
             if(action.concurrency!=='current-state')ensure(record.revision === req.body.revision, 'Revision conflict', 409);
             if(record.data.simulation){setSimulationContext(c,record.data.simulation);ensure(await simulationEpoch(c),'SIMULATION_DATASET_CLOSED',403);}
             const response = await action.run(record, c);
@@ -268,18 +378,21 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             return response;
         }));
     }
-    app.get('/integration-status', async (req) => transaction(pool, async (db) => ({ records: (await db.query('SELECT command_id AS id,envelope->>\'command\' AS command,envelope->>\'targetModuleId\' AS target,status,attempts,last_error AS error,created_at AS created FROM integration_outbox ORDER BY created_at DESC LIMIT 20')).rows })));
+    app.get('/integration-status', async (req) => transaction(pool, async (db) => {
+        await authorizeAccess(definition, undefined, ctx(db, req), { operation: 'integration-status', path: '/integration-status' });
+        return { records: (await db.query('SELECT command_id AS id,envelope->>\'command\' AS command,envelope->>\'targetModuleId\' AS target,status,attempts,last_error AS error,created_at AS created FROM integration_outbox ORDER BY created_at DESC LIMIT 20')).rows };
+    }));
     if (definition.report)
-        app.get('/reports', async (req) => transaction(pool, async (db) => { const report = await definition.report!(ctx(db, req)); if (Array.isArray(report.records) && report.records.length === 0)
+        app.get('/reports', async (req) => transaction(pool, async (db) => { const c = ctx(db, req); await authorizeAccess(definition, undefined, c, { operation: 'report', path: '/reports' }); const report = await definition.report!(c); if (Array.isArray(report.records) && report.records.length === 0)
             report.records = Object.entries(report).filter(([k]) => !['records', 'source', 'summary'].includes(k)).map(([metric, value]) => ({ id: metric, metric, value })); return report; }));
     for (const query of definition.queries ?? [])
-        app.get<{Querystring:Record<string,string>}>(query.path, async (req) => transaction(pool, async (db) => query.run(ctx(db, req),req.query)));
+        app.get<{Querystring:Record<string,string>}>(query.path, async (req) => transaction(pool, async (db) => { const c = ctx(db, req); await authorizeAccess(definition, undefined, c, { operation: 'query', path: query.path, query: req.query }); return query.run(c, req.query); }));
     registerIntegrationRoutes(app, pool, runtime, definition);
     app.setErrorHandler((error, _req, reply) => { const e = error as any; return reply.code(error instanceof BusinessError ? error.status : e.code === '23505' ? 409 : e.statusCode && e.statusCode < 500 ? e.statusCode : 500).send({ error: error instanceof BusinessError ? error.message : e.code === '23505' ? 'Business key already exists' : 'Business module request failed' }); });
     return app;
 }
 export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, runtime: Data, definition: Definition) {
-    const ctx = (db: pg.PoolClient): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [] });
+    const ctx = (db: pg.PoolClient): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
     app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,(envelope->>'sequence')::bigint,command_id LIMIT 4")).rows.map(r => r.envelope) }));
     app.post<{
         Body: IntegrationCommand;
@@ -298,6 +411,7 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             const capability = typeof req.headers['x-steward-capability'] === 'string' ? definition.manifest.smart?.provides.find(c => c.capabilityId === req.headers['x-steward-capability']) : undefined;
             ensure(peer?.receives.some(v => v.command === req.body.command && v.version === req.body.version) || capability?.operations.some(o => o.command === req.body.command && o.mode === 'durable'), 'Command is not authorized', 403);
             ensure(definition.receive, 'Integration command unsupported', 403);
+            await authorizeAccess(definition, undefined, c, { operation: 'integration-receive', path: '/integration-inbox', command: req.body });
             return receiveCommand(c, req.body, definition.receive);
         });
         return reply.code(result.httpStatus).send(result.value);
@@ -309,6 +423,7 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
         ensure(b && ['retry', 'delivered', 'rejected'].includes(b.status) && typeof b.commandId === 'string', 'Invalid acknowledgment', 400);
         const row = (await db.query('SELECT * FROM integration_outbox WHERE command_id=$1 FOR UPDATE', [b.commandId])).rows[0];
         ensure(row && validateCommand(row.envelope) === b.digest, 'Acknowledgment digest mismatch', 409);
+        await authorizeAccess(definition, undefined, ctx(db), { operation: 'integration-ack', path: '/integration-ack', command: row.envelope, input: b });
         if (row.status !== 'pending') {
             ensure(b.status === row.status || b.status === 'retry', 'Terminal acknowledgment conflict', 409);
             return { status: row.status };
@@ -348,7 +463,7 @@ export async function startBusinessModule(definition: Definition, background?: (
     const app = createBusinessServer(pool, (await readFile('/run/module-secrets/gateway-token', 'utf8')).trim(), runtime, definition, migrate, ready);
     let ticking = false;
     const timer = definition.tick ? setInterval(() => { if (ticking)
-        return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [] })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
+        return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
     let working=false;
     const backgroundTimer=background?setInterval(()=>{if(working)return;working=true;void background(pool,runtime).catch(()=>{}).finally(()=>{working=false;});},2000).unref():undefined;
     app.addHook('onClose', async () => { if (timer)

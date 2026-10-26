@@ -11,6 +11,17 @@ const m: ModulePackageManifest = {
   configurationSchema: { type: 'object', additionalProperties: false, required: ['unit'], properties: { unit: { type: 'string', minLength: 1 } } },
   persistence: { isolation: 'dedicated-database', schemaVersion: 1, migrations: [{ version: 1, sha256: 'a'.repeat(64) }], destructiveRollback: false }, integrationEvents: [], analyticalCapabilities: []
 };
+test('programme module declarations permit only aggregate disclosure streams',()=>{
+ const p:ModulePackageManifest={...m,minimumPlatformVersion:'0.13.0',programServices:{contractVersion:1,domain:'housing',syntheticOnly:true},replication:{contractVersion:1,streams:[{streamId:'mission_aggregates_v1',table:'mission_aggregate_releases',idColumn:'id',revisionColumn:'revision',columns:['id','revision','projection']}]}};
+ validateManifest(p);
+ for(const change of [{minimumPlatformVersion:'0.12.0'},{replication:undefined},{programServices:{contractVersion:1,domain:'housing',syntheticOnly:false}},{replication:{contractVersion:1,streams:[{...p.replication!.streams[0],streamId:'private_cases'}]}},{replication:{contractVersion:1,streams:[{...p.replication!.streams[0],columns:['id','revision','projection','case_notes']}]}}])assert.throws(()=>validateManifest({...p,...change} as ModulePackageManifest));
+});
+test('signed form references and generated identities remain bounded data declarations',()=>{
+ const field={name:'programId',label:'Program',type:'string' as const,required:true,reference:{operationId:'list',valueField:'id',labelField:'name'}};
+ const p={...m,minimumPlatformVersion:'0.13.0',ui:[{...m.ui[0]!,fields:[field,{name:'reference',label:'Synthetic reference',type:'string' as const,required:true,generate:'synthetic-participant' as const}],columns:['reference']}]};validateManifest(p);
+ for(const bad of [{reference:{...field.reference,operationId:'create'}},{reference:{...field.reference,valueField:'__proto__'}},{reference:{...field.reference,endpoint:'https://untrusted.invalid'}},{generate:'arbitrary-code'},{generate:'uuid',enum:['fixed']},{generate:'uuid',readOnly:true},{generate:'uuid',reference:field.reference}])assert.throws(()=>validateManifest({...p,ui:[{...p.ui[0]!,fields:[{...field,...bad}]}]} as ModulePackageManifest));
+ assert.throws(()=>validateManifest({...p,minimumPlatformVersion:'0.12.0'}));
+});
 test('module-contributed workspace, bounded polling, form defaults and confirmations remain data-only',()=>{
  const screen={...m.ui[0]!,workspace:'administration' as const,refreshMs:3000,columns:['scenario'],fields:[{name:'scenario',label:'Scenario',type:'string' as const,required:false,enum:['normal','delay'],default:'normal'}]};
  validateManifest({...m,minimumPlatformVersion:'0.11.0',ui:[screen]});assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.10.0',ui:[screen]}));

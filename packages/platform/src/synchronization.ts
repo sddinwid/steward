@@ -1,3 +1,4 @@
+import {isMissionEvent,validateMissionEvent} from './mission-wire.js';
 import {simulationDashboard,simulationRunSchema} from './simulation-analysis.js';
 import {monitorSimulation,simulationPolicySchema} from './simulation-monitor.js';
 import {monitorCommerce,commerceExceptionSchema} from './commerce-monitor.js';
@@ -18,6 +19,7 @@ export function validateEvent(e: DataEvent) {
   if (!e || e.envelopeVersion !== 1 || e.payloadVersion !== 1 || !validUuid(e.eventId) || !validUuid(e.recordId) || !validUuid(e.source?.installationId) || !validUuid(e.source?.entity?.entityId) || !validUuid(e.destinationInstallationId) ||
       !['record.upsert','finding.issued','finding.status'].includes(e.eventType) || !Number.isSafeInteger(e.recordRevision) || e.recordRevision < 1 || e.sequence !== String(e.recordRevision) || !Number.isFinite(Date.parse(e.occurredAt)) ||
       typeof e.moduleId !== 'string' || !/^[a-z][a-z0-9.-]{0,79}$/.test(e.moduleId) || typeof e.streamId !== 'string' || !/^[a-z][a-z0-9_]{0,49}$/.test(e.streamId) || !e.payload || Array.isArray(e.payload) || typeof e.payload !== 'object' || Buffer.byteLength(JSON.stringify(e)) > 12000) fail(400, 'Invalid synchronization event');
+  if(isMissionEvent(e))validateMissionEvent(e);
   if(e.eventType==='record.upsert'&&e.streamId==='commerce_orders'){
     if(Object.keys(e.payload).some(k=>!['id','revision','projection'].includes(k))||e.payload.id!==e.recordId||Number(e.payload.revision)!==e.recordRevision||!commerceWireSchema.safeParse(e.payload.projection).success)fail(400,'Invalid or non-private commerce projection');
   }
@@ -59,7 +61,7 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
       const predicate = '($1::boolean OR entity_id=ANY($2::uuid[])) AND ($3::uuid IS NULL OR entity_id=$3)';
       return { authoritative: false, operatingEntityId: installation.entity.entityId,
         entities: (await pool.query('SELECT * FROM legal_entities WHERE '+predicate+' ORDER BY name', args)).rows,
-        records: (await pool.query('SELECT * FROM analytical_records WHERE '+predicate+' ORDER BY entity_id,module_id,stream_id,record_id',args)).rows,
+        records: (await pool.query("SELECT * FROM analytical_records WHERE stream_id NOT IN ('mission_aggregates_v1','mission_resources_v1') AND "+predicate+' ORDER BY entity_id,module_id,stream_id,record_id',args)).rows,
         peers: (await pool.query('SELECT * FROM sync_peers WHERE '+predicate,args)).rows,
         relationships: (await pool.query('SELECT * FROM entity_relationships WHERE ($1::boolean OR from_entity=ANY($2::uuid[]) AND to_entity=ANY($2::uuid[])) AND ($3::uuid IS NULL OR from_entity=$3 OR to_entity=$3)',args)).rows };
     });
@@ -109,6 +111,7 @@ export async function synchronizationRoutes(app: SecureApp, pool: pg.Pool, auth:
     app.post<{Body:{findingId:string;severity:string;explanation:string;affectedEntities:string[];supportingReferences:any[]}}>('/api/v4/findings', async req => {
       const actor=await registry(req);const b=req.body;
       if (!validUuid(b?.findingId)||!['info','warning','critical'].includes(b.severity)||typeof b.explanation!=='string'||!b.explanation.trim()||b.explanation.length>4000||!Array.isArray(b.affectedEntities)||!b.affectedEntities.length||b.affectedEntities.length>20||b.affectedEntities.some(e=>!validUuid(e))||!Array.isArray(b.supportingReferences)||b.supportingReferences.length>20) fail(400,'Invalid finding');
+      if(b.supportingReferences.some(r=>['mission_aggregates_v1','mission_resources_v1'].includes(r?.streamId)))fail(403,'Use the programme-scoped mission finding workflow');
       return transaction(pool,async sql=>{
         for(const entity of new Set(b.affectedEntities)) if(!(await sql.query('SELECT 1 FROM legal_entities WHERE entity_id=$1',[entity])).rowCount) fail(404,'Unknown affected entity');
         for(const r of b.supportingReferences) if(!b.affectedEntities.includes(r.entityId)||!(await sql.query('SELECT 1 FROM analytical_records WHERE entity_id=$1 AND module_id=$2 AND stream_id=$3 AND record_id=$4 AND revision=$5',[r.entityId,r.moduleId,r.streamId,r.recordId,r.revision])).rowCount) fail(400,'Supporting reference is unavailable or outside affected entities');
