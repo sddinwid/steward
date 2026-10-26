@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resourceSharing, type SharingInput } from '../analytical-capabilities.js';
 import { modelConfigSchema, createModel, tlsFetch } from '../analyst-model.js';
-import { narrativeSchema, parseNarrative,validateScientificNarrative } from '../analyst.js';
+import { narrativeSchema, parseNarrative,validateScientificNarrative,scientificCorrectionEvidence } from '../analyst.js';
 import { agentProof,verifyAgentProof } from '../mcp-agent-identity.js';
 import { resourcePage, resourceQuerySchema, modelToolResult, resourceMatches } from '../analyst-context.js';
 import { ollamaMessages, ollamaTurn } from '../ollama-model.js';
@@ -26,6 +26,7 @@ test('scientific recommendations require completed planning, synthetic labeling 
  const analyses=[{synthetic:true,calculation:{capabilityId:'steward.scientific.procurement-optimization',method:'fixed-charge-all-units-milp',currency:'USD',baselineExternalCents:56200,proposedCostCents:50080,ecosystemBenefitCents:6120,impacts:[{benefitCents:3107,proposedCostCents:25693}],suppliers:[]}}];
  const value={narrative:'Synthetic comparison: USD 562.00 baseline; USD 500.80 proposed; USD 61.20 benefit; entity USD 31.07.',assumptions:['Conditional inputs'],humanDecisions:['Review consent']};
  validateScientificNarrative(value,stage,analyses);
+ const correction=scientificCorrectionEvidence(analyses);assert(correction);assert.deepEqual(correction.displayAmounts,{baseline:'USD 562.00',proposed:'USD 500.80',benefit:'USD 61.20'});assert.equal(correction.entityBenefits[0].displayBenefit,'USD 31.07');assert.equal(scientificCorrectionEvidence([]),null);
  assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('USD 61.20','USD 6120.00')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
  assert.throws(()=>validateScientificNarrative({...value,narrative:value.narrative.replace('Synthetic','Actual')},stage,analyses),/MODEL_EVIDENCE_MISMATCH/);
  assert.throws(()=>validateScientificNarrative(value,{...stage,scenarios:false},analyses),/SCIENTIFIC_PLAN_INCOMPLETE/);
