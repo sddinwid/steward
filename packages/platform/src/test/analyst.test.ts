@@ -33,7 +33,7 @@ test('scientific recommendations require completed planning, synthetic labeling 
 });
 test('scientific model views expose formatted shipping and explicit unused capacity without raw money fields',()=>{
  const terms={currency:'USD',product:'tee',baselineUnitCents:700,baselineShippingCents:1500,transitionCents:200,suppliers:[{id:'s',products:['tee'],capacity:12000,minimumUnits:20,shippingCents:1800,tiers:[{minimumUnits:0,unitCosts:{tee:700}},{minimumUnits:40,unitCosts:{tee:630}}]}]};
- const view=compactScientificConstraints(terms);assert.equal(view.suppliers[0].displayFixedShipping,'USD 18.00');assert.equal(view.suppliers[0].allUnitsPriceTiers.length,2);assert(!JSON.stringify(view).includes('Cents'));
+ const view=compactScientificConstraints(terms);assert(view);assert.equal(view.suppliers[0].displayFixedShipping,'USD 18.00');assert.equal(view.suppliers[0].allUnitsPriceTiers.length,2);assert(!JSON.stringify(view).includes('Cents'));
  const c=compactScientificCalculation({method:'fixed-charge-all-units-milp',currency:'USD',status:'optimal',baselineExternalCents:56200,proposedCostCents:50080,ecosystemBenefitCents:6120,shippingCents:1800,transitionCostCents:400,impacts:[],suppliers:[{id:'s',quantity:76,capacity:12000,unusedCapacity:11924,shippingCents:1800,tier:1}]});
  assert.equal(c.displayFixedShippingTotal,'USD 18.00');assert.equal(c.suppliers[0].fullyUtilized,false);assert.equal(c.suppliers[0].unusedCapacityUnits,11924);assert(!JSON.stringify(c).includes('Cents'));assert(c.financialRule.includes('Do not substitute a dollar sign'));
 });
