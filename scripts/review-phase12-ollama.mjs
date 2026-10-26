@@ -5,7 +5,7 @@ import path from 'node:path';
 import {directory} from './lib.mjs';
 process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.json');process.env.STEWARD_DEMO_RETRY_LOGIN??='1';
 const {api,logins,waitFor,credentials}=await import('./phase4-client.mjs');
-const reportFile='artifacts/phase12-ollama-provider.json',report=JSON.parse(await readFile(reportFile,'utf8'));
+const reportFile=process.env.STEWARD_OLLAMA_REVIEW_REPORT??'artifacts/phase12-ollama-provider.json',report=JSON.parse(await readFile(reportFile,'utf8'));
 assert.equal(report.status,'passed_pending_narrative_review');assert.equal(process.env.STEWARD_REVIEWED_INVESTIGATION_ID,report.investigationId,'Explicitly identify the independently reviewed model investigation');assert(report.configurationRestored&&report.modelUnloaded);await logins();
 const live=(await api('master','/api/v5/analyst/investigations/'+report.investigationId)).value;assert.equal(live.investigation.status,'completed');assert.equal(live.investigation.test_model,false);assert.deepEqual(live.investigation.result,report.result);
 const browser=await(await import('./analyst-browser-session.mjs')).analystBrowserSession();
