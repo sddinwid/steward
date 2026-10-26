@@ -24,7 +24,7 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
   useEffect(()=>{const changed=()=>setRoute(location.hash.slice(1)||'/business/overview');addEventListener('hashchange',changed);return()=>removeEventListener('hashchange',changed);},[]);
   const csrf = useRef('');
   const api: Api = async (path, method = 'GET', body) => {
-    const versioned = /^\/v(?:3|4|5|8)\//.test(path);
+    const versioned = /^\/v(?:3|4|5|8|13)\//.test(path);
     for(let attempt=0;;attempt++){
     const response = await fetch(versioned ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
