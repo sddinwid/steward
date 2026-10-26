@@ -1,7 +1,9 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {phase13ModuleVersion,phase13ReleaseVersions} from './phase13-release-versions.mjs';
 import {PHASE13_GATES,RELEASE13_IMAGE_KINDS,scienceVersionForRelease,scientificSourceVersion,assertBuildSource,validatePhase13Versions,assertPhase13Gates,assertImageBuildEvidence} from './release-contracts.mjs';
 test('science versions and source identities reject historical retagging before any Docker build',async()=>{
  const source=await readFile('services/scientific/steward_science/analysis.py','utf8');assert.equal(scientificSourceVersion(source),'1.1.0');assert.equal(scienceVersionForRelease('0.13.0'),'1.1.0');assert.equal(scienceVersionForRelease('0.12.0'),'1.0.0');assertBuildSource('0.13.0','0.13.0',source);
@@ -11,6 +13,17 @@ test('science versions and source identities reject historical retagging before 
 test('central versions retain independent module distribution and exact release-scoped scientific/simulator identities',async()=>{
  const value=validatePhase13Versions(JSON.parse(await readFile('docs/phase13-module-versions.json','utf8')));assert.equal(Object.keys(value.modules).length,15);assert.equal(value.modules['cee.inventory'],'1.5.0');assert.equal(value.modules['steward.housing.management'],'1.0.1');assert.equal(value.modules['cee.shopify'],'1.2.0');assert.equal(value.modules['cee.printify'],'1.1.2');assert.equal(value.commerceSimulatorTag,'steward-commerce-simulator:0.13.0');
  assert.throws(()=>validatePhase13Versions({...value,scientificVersion:'1.0.0'}));assert.throws(()=>validatePhase13Versions({...value,commerceSimulatorTag:'steward-commerce-simulator:1.0.1'}));
+});
+test('acceptance version selection follows the copied central release map from any working directory',()=>{
+ for(const[id,version]of Object.entries(phase13ReleaseVersions.modules))assert.equal(phase13ModuleVersion(id),version);
+ assert.throws(()=>phase13ModuleVersion('steward.not-selected'));assert.throws(()=>phase13ModuleVersion('constructor'));
+ const moduleUrl=new URL('./phase13-release-versions.mjs',import.meta.url).href;
+ const output=execFileSync(process.execPath,['--input-type=module','-e',`const {phase13ReleaseVersions}=await import(${JSON.stringify(moduleUrl)});process.stdout.write(JSON.stringify(phase13ReleaseVersions));`],{cwd:tmpdir(),encoding:'utf8',stdio:['ignore','pipe','pipe']});
+ assert.deepEqual(JSON.parse(output),phase13ReleaseVersions);
+});
+test('Phase 13 acceptance runners do not retain fixed module/service version literals after a release selection changes',async()=>{
+ const names=(await readdir(new URL('./',import.meta.url))).filter(name=>/^verify-phase13.*\.mjs$/.test(name));assert(names.includes('verify-phase13-participant-food.mjs'));
+ for(const name of names){const source=await readFile(new URL(name,import.meta.url),'utf8');assert(!/(['"])[1-9]\d*\.\d+\.\d+\1/.test(source),name+' must use the central release version map instead of a stale package expectation');}
 });
 test('unverified or partially evidenced Phase 13 gates cannot promote; all mandatory IDs are checked',async()=>{
  const actual=JSON.parse(await readFile('docs/phase13-release-gates.json','utf8'));if(actual.status!=='passed')assert.throws(()=>assertPhase13Gates(actual),/remain open/);assert.throws(()=>assertPhase13Gates({...actual,status:'unverified'}),/remain open/);

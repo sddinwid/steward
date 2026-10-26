@@ -1,3 +1,4 @@
+import {phase13ModuleVersion} from './phase13-release-versions.mjs';
 // Real synthetic Participant -> Housing path through signed, approved SSMA.
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
@@ -13,7 +14,7 @@ const find=async(w,m,url,id)=>(await records(w,m,url)).find(r=>r.id===id);
 async function authCookies(context){for(const w of [source,destination]){const cookie=sessions[w].cookie,at=cookie.indexOf('=');await context.addCookies([{name:cookie.slice(0,at),value:cookie.slice(at+1),url:origin(w),secure:true,httpOnly:true,sameSite:'Strict'}]);}}
 async function housingBrowserAction(page,row,operationId){const contribution=(await installed(destination,housing)).manifest.ui.find(s=>s.screenId==='placements'),operation=contribution.actions.find(a=>a.operationId===operationId);assert(operation);await page.goto(origin(destination)+'/#/business/module/'+housing+'/placements');await page.reload();const view=page.getByTestId('module-screen-'+housing),label=/^[a-f0-9-]{36}$/i.test(row.code)?'Reference · '+row.code.slice(-8):row.code;const tr=view.getByRole('row').filter({hasText:label});const pending=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/'+row.id));await tr.getByRole('button',{name:operation.label,exact:true}).click();const response=await pending;assert.equal(response.status(),200,await response.text());return response.json();}
 try{
- await logins();const targetVersion='1.0.3';await ensureInstalled(source,moduleId,targetVersion,{syntheticOnly:true,integrationsEnabled:true});state.moduleVersion=targetVersion;await persist();
+ await logins();const targetVersion=phase13ModuleVersion(moduleId);await ensureInstalled(source,moduleId,targetVersion,{syntheticOnly:true,integrationsEnabled:true});state.moduleVersion=targetVersion;await persist();
  const program=await seedRecord(source,moduleId,'/programs','P13-SUPPORT',{reference:randomUUID(),code:'P13-SUPPORT',name:'Synthetic Phase 13 Support',currency:'USD'},{keyField:'code'});state.programId=program.id;await persist();
  let relationship=await seedRecord(destination,housing,'/service-sources','P13-PARTICIPANT-SOURCE',{programId:base.housingProgramId,code:'P13-PARTICIPANT-SOURCE',sourceProgramId:program.id,sourceEntityId:entityId(source),sourceInstallationId:workerIdentity(source).installationId,sourceModuleId:moduleId,expiresAt:new Date(Date.now()+7*86400000).toISOString(),reason:'Synthetic human-reviewed support programme housing relationship'});
  if(relationship.status!=='approved')relationship=(await action(destination,housing,'/approve-source',relationship)).record;

@@ -1,3 +1,4 @@
+import {phase13ModuleVersion} from './phase13-release-versions.mjs';
 // Synthetic installed-module acceptance on the selected stack. This does not
 // create real clients or submit any commercial provider transaction.
 import assert from 'node:assert/strict';
@@ -28,19 +29,19 @@ try{
  const core=()=>Object.fromEntries(deployment.instances.filter(i=>i.role==='worker').map(i=>[i.key,JSON.parse(docker(['inspect',compose('ps','-q',i.key+'-api')]))[0].Image]));
  report.coreBefore=core();
  const catalog=JSON.parse(await readFile(path.join(directory,'modules/public/catalog.json'),'utf8')),trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));
- for(const id of [assets,housing]){const p=catalog.packages.find(p=>p.payload.manifest.moduleId===id&&p.payload.manifest.version===(id===assets?'1.1.0':'1.0.1'));assert(p);verifyPackage(p,trust);}
+ for(const id of [assets,housing]){const p=catalog.packages.find(p=>p.payload.manifest.moduleId===id&&p.payload.manifest.version===phase13ModuleVersion(id));assert(p);verifyPackage(p,trust);}
  let assetModule=await installed(destination,assets);
- if(!assetModule){await api(destination,'/api/v3/modules/install','POST',{packageId:assets+'@1.1.0',operationId:randomUUID(),configuration:{currency:'USD',integrationsEnabled:true,authorizedOwnerEntityIds:[destinationEntity],syntheticServiceAuthority:true,serviceAuthorityProgramId:state.assetProgramId,authorizedManagerEntityIds:[sourceEntity]}});assetModule=await installed(destination,assets);}
- assert.equal(assetModule.version,'1.1.0');if(assetModule.state!=='active')await api(destination,'/api/v3/modules/'+assets+'/lifecycle','POST',{action:'activate'});
+ if(!assetModule){await api(destination,'/api/v3/modules/install','POST',{packageId:assets+'@'+phase13ModuleVersion(assets),operationId:randomUUID(),configuration:{currency:'USD',integrationsEnabled:true,authorizedOwnerEntityIds:[destinationEntity],syntheticServiceAuthority:true,serviceAuthorityProgramId:state.assetProgramId,authorizedManagerEntityIds:[sourceEntity]}});assetModule=await installed(destination,assets);}
+ assert.equal(assetModule.version,phase13ModuleVersion(assets));if(assetModule.state!=='active')await api(destination,'/api/v3/modules/'+assets+'/lifecycle','POST',{action:'activate'});
  browser=await chromium.launch({headless:true});const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}}),page=await context.newPage();page.on('dialog',d=>d.accept());
  await page.goto(origin(source)+'/#/administration/modules');await page.getByLabel('Username',{exact:true}).fill(credentials.accounts[source].username);await page.getByLabel('Password',{exact:true}).fill(credentials.accounts[source].password);await page.getByRole('button',{name:'Sign in',exact:true}).click();await page.getByRole('heading',{name:'Module Manager',exact:true}).last().waitFor();
  let housingModule=await installed(source,housing);
  if(!housingModule){assert(!(await api(source,'/api/v3/modules/discovery')).value.modules.some(m=>m.moduleId===housing));
-  const card=page.getByTestId('package-'+housing+'@1.0.1');await card.getByLabel('Integrations Enabled',{exact:true}).check();
+  const card=page.getByTestId('package-'+housing+'@'+phase13ModuleVersion(housing));await card.getByLabel('Integrations Enabled',{exact:true}).check();
   await card.getByRole('button',{name:'Install Housing Management',exact:true}).click();await page.getByTestId('installed-'+housing).waitFor({timeout:65000});
   housingModule=await installed(source,housing);pass('Housing was absent and installed through the running browser Module Manager');
  }
- assert.equal(housingModule.version,'1.0.1');if(housingModule.state!=='active'){await page.getByTestId('installed-'+housing).getByRole('button',{name:'Activate Housing Management',exact:true}).click();await waitFor(async()=> (await installed(source,housing)).state==='active','Housing activation');}
+ assert.equal(housingModule.version,phase13ModuleVersion(housing));if(housingModule.state!=='active'){await page.getByTestId('installed-'+housing).getByRole('button',{name:'Activate Housing Management',exact:true}).click();await waitFor(async()=> (await installed(source,housing)).state==='active','Housing activation');}
  const programme=await create(source,housing,'/programs','P13-HOUSING',{reference:randomUUID(),code:'P13-HOUSING',name:'Synthetic Phase 13 Housing',currency:'USD',assetAuthorityProgramId:state.assetProgramId,assetAuthorityEntityId:destinationEntity,assetAuthorityInstallationId:worker(destination).installationId,assetAuthorityModuleId:assets});state.housingProgramId=programme.id;await persist();
  const ownership={ownerEntityId:destinationEntity,custodianEntityId:destinationEntity,userEntityId:destinationEntity,accessBasis:'owned'};
  await create(destination,assets,'/facilities','P13-RESIDENCE',{code:'P13-RESIDENCE',name:'Synthetic mission property',site:'Synthetic demonstration site',classification:'residential',...ownership});
@@ -57,11 +58,11 @@ try{
  assetModule=await installed(destination,assets);housingModule=await installed(source,housing);
  const packageFor=(id,version)=>catalog.packages.find(p=>p.payload.manifest.moduleId===id&&p.payload.manifest.version===version);
  const existing=(await api(source,'/api/v13/peer-services')).value.grants.find(g=>g.grant_id===state.grantId);
- if(!existing){const payload={version:1,kind:'ssma-peer-grant',grantId:state.grantId,sourceInstallationId:worker(source).installationId,sourceEntityId:sourceEntity,sourceProgramId:programme.id,consumerModuleId:housing,consumerInstallationId:housingModule.operationId,consumerPackageDigest:digest(canonical(packageFor(housing,'1.0.1'))),destinationInstallationId:worker(destination).installationId,destinationEntityId:destinationEntity,destinationProgramId:state.assetProgramId,providerModuleId:assets,providerInstallationId:assetModule.operationId,providerPackageDigest:digest(canonical(packageFor(assets,'1.1.0'))),capabilityId:'property.authority',operations:['catalog','verify'],purpose:'property.authority',maximumSensitivity:'business',disclosureBasis:'documented-authority',authorityReference:authority.id,notBefore:Date.now()-1000,expiresAt:Date.now()+7*86400000};
+ if(!existing){const payload={version:1,kind:'ssma-peer-grant',grantId:state.grantId,sourceInstallationId:worker(source).installationId,sourceEntityId:sourceEntity,sourceProgramId:programme.id,consumerModuleId:housing,consumerInstallationId:housingModule.operationId,consumerPackageDigest:digest(canonical(packageFor(housing,phase13ModuleVersion(housing)))),destinationInstallationId:worker(destination).installationId,destinationEntityId:destinationEntity,destinationProgramId:state.assetProgramId,providerModuleId:assets,providerInstallationId:assetModule.operationId,providerPackageDigest:digest(canonical(packageFor(assets,phase13ModuleVersion(assets)))),capabilityId:'property.authority',operations:['catalog','verify'],purpose:'property.authority',maximumSensitivity:'business',disclosureBasis:'documented-authority',authorityReference:authority.id,notBefore:Date.now()-1000,expiresAt:Date.now()+7*86400000};
   const proposal=(await api(source,'/api/v13/peer-services/grants/propose','POST',payload)).value,signed=(await api(destination,'/api/v13/peer-services/grants/countersign','POST',proposal)).value;await api(source,'/api/v13/peer-services/grants/approve','POST',signed);
  }
  const reason='Synthetic Phase 13 operator-reviewed property authority, programme scopes and immutable provider identity';
- await api(source,'/api/v8/smart-modules/bindings','POST',{bindingId:state.bindingId,consumerId:housing,capabilityId:'property.authority',providerId:assets,packageDigest:digest(canonical(packageFor(assets,'1.1.0'))),reason,peerGrantId:state.grantId,preserveExistingObligations:true});
+ await api(source,'/api/v8/smart-modules/bindings','POST',{bindingId:state.bindingId,consumerId:housing,capabilityId:'property.authority',providerId:assets,packageDigest:digest(canonical(packageFor(assets,phase13ModuleVersion(assets)))),reason,peerGrantId:state.grantId,preserveExistingObligations:true});
  await api(source,'/api/v8/smart-modules/workflows','POST',{workflowId:state.workflowId,name:'P13 Housing property authority',version:1,consumerId:housing,steps:[{bindingId:state.bindingId,operation:'catalog'},{bindingId:state.bindingId,operation:'verify'}],reason});
  let workflow=(await api(source,'/api/v8/smart-modules')).value.workflows.find(w=>w.workflow_id===state.workflowId);
  if(workflow.state==='proposed')await api(source,'/api/v8/smart-modules/workflows/'+state.workflowId+'/lifecycle','POST',{action:'approve',reason});

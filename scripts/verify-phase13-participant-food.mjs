@@ -1,3 +1,4 @@
+import {phase13ModuleVersion} from './phase13-release-versions.mjs';
 // Continue the existing six-case pathway through actual approved local SSMA.
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -16,7 +17,7 @@ async function screen(page,id,screenId){const contribution=(await installed(work
 async function browserAction(page,id,screenId,row,operationId){const{view,contribution}=await screen(page,id,screenId),operation=contribution.actions.find(a=>a.operationId===operationId);assert(operation);const reference=row.code,label=/^[a-f0-9-]{36}$/i.test(reference)?'Reference · '+reference.slice(-8):reference;const tr=view.getByRole('row').filter({hasText:label});const response=page.waitForResponse(r=>r.request().method()==='POST'&&r.url().endsWith('/'+row.id));await tr.getByRole('button',{name:operation.label,exact:true}).click();const r=await response;assert.equal(r.status(),200,await r.text());return r.json();}
 try{
  await logins();assert.equal(participants.cases.length,6);assert(foodState.foodProgramId&&foodState.localDeliveryId);
- assert.equal((await installed(worker,support)).version,'1.0.2');assert.equal((await installed(worker,food)).version,'1.0.0');
+ assert.equal((await installed(worker,support)).version,phase13ModuleVersion(support));assert.equal((await installed(worker,food)).version,phase13ModuleVersion(food));
  const programmeId=foodState.foodProgramId,expiresAt=new Date(Date.now()+7*86400000).toISOString();
  let relationship=await seedRecord(worker,food,'/service-sources','P13-SUPPORT-FOOD',{programId:programmeId,code:'P13-SUPPORT-FOOD',sourceProgramId:participants.programId,sourceEntityId:entityId(worker),sourceInstallationId:workerIdentity(worker).installationId,sourceModuleId:support,expiresAt,reason:'Synthetic reviewed programme-specific minimum necessary Food service sharing basis.'});
  if(relationship.status==='draft')relationship=(await action(worker,food,'/approve-source',relationship)).record;

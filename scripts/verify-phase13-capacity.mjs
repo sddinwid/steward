@@ -1,3 +1,4 @@
+import {phase13ModuleVersion} from './phase13-release-versions.mjs';
 // Independent new-work resource authority. Never retrains participants, rewrites
 // sealed cohorts or transfers a historical case/reservation to another package.
 import assert from 'node:assert/strict';
@@ -16,12 +17,12 @@ const pass=s=>{report.checks.push(s);console.log('PASS '+s);},hash=rows=>digest(
 try{
  await mkdir('artifacts',{recursive:true});await logins();
  const caseBefore=hash(await records(source,employment,'/pathways')),retentionBefore=hash(await records(source,employment,'/retention')),sealedBefore=hash(await records(source,employment,'/published-aggregates'));
- await ensureInstalled(source,employment,'1.1.0',{syntheticOnly:true,integrationsEnabled:true});
+ await ensureInstalled(source,employment,phase13ModuleVersion(employment),{syntheticOnly:true,integrationsEnabled:true});
  const programme=(await records(source,employment,'/programs')).find(p=>p.id===prior.programId);assert(programme);
  browser=await chromium.launch({headless:true});const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:1440,height:1000}});for(const worker of ['worker-1','worker-2','worker-3']){const cookie=sessions[worker].cookie,at=cookie.indexOf('=');await context.addCookies([{name:cookie.slice(0,at),value:cookie.slice(at+1),url:origin(worker),secure:true,httpOnly:true,sameSite:'Strict'}]);}const page=await context.newPage();page.on('dialog',d=>d.accept());state.allocations??={};
  for(const type of ['training','employment']){
   const destination=deployment.instances.find(i=>i.installationId===programme[type+'AuthorityInstallationId'])?.key;assert(destination,'Known independently installed resource authority required');assert.equal(programme[type+'AuthorityModuleId'],workforce,'This controlled acceptance uses the existing Workforce provider');
-  await ensureInstalled(destination,workforce,'1.2.0',{syntheticOnly:true,missionSensitive:true,integrationsEnabled:true});
+  await ensureInstalled(destination,workforce,phase13ModuleVersion(workforce),{syntheticOnly:true,missionSensitive:true,integrationsEnabled:true});
   const resourceProgramme=programme[type+'AuthorityProgramId'],before=hash(await records(destination,workforce,'/mission-enrollments')),jobsBefore=hash(await records(destination,workforce,'/mission-job-referrals'));
   const relationship=(await records(destination,workforce,'/service-sources')).find(r=>r.programId===resourceProgramme&&r.sourceProgramId===programme.id&&r.sourceEntityId===entityId(source)&&r.sourceInstallationId===workerIdentity(source).installationId&&r.sourceModuleId===employment&&r.status==='approved'&&Date.parse(r.expiresAt)>Date.now());assert(relationship,'Explicit current provider-side programme/source relationship is required');
   await seedRecord(destination,workforce,'/skills','P13-CAPACITY',{code:'P13-CAPACITY',name:'Synthetic future programme capacity',classification:'operational'});let resource;if(type==='training'){resource=await seedRecord(destination,workforce,'/programs','P13-CAPACITY-COURSE',{code:'P13-CAPACITY-COURSE',name:'Synthetic future programme dedicated training',skillCode:'P13-CAPACITY',seats:6,site:'Synthetic reviewed capacity site',startsAt:new Date().toISOString(),endsAt:new Date(Date.now()+7*86400000).toISOString()});assert(Date.parse(resource.endsAt)>Date.now(),'Retain elapsed capacity course; explicitly review a new acceptance resource instead of changing its dates');}else resource=await seedRecord(destination,workforce,'/positions','P13-CAPACITY-OPENINGS',{code:'P13-CAPACITY-OPENINGS',title:'Synthetic approved programme openings',requiredSkills:['P13-CAPACITY'],openings:6,site:'Synthetic reviewed capacity site',status:'open'});

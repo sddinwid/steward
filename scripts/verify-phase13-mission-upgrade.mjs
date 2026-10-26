@@ -1,3 +1,4 @@
+import {phase13ModuleVersion} from './phase13-release-versions.mjs';
 // Additive upgrade of already installed mission packages; never reinstall.
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -17,8 +18,8 @@ try{
  const historicalIds=participantState.cases.map(c=>c.invalidHistoricalFollowup?.id??c.housingFollowup?.id).filter(Boolean),legacyRows=oldFollowups.filter(r=>historicalIds.includes(r.id)&&r.milestoneDays===30);assert.equal(legacyRows.length,6,'This upgrade acceptance requires the six preserved premature observations from the prior deployed checkpoint');
  const placementsBefore=await records('worker-1',housing,'/placements');for(const r of legacyRows){const p=placementsBefore.find(p=>p.id===r.placementId);assert(p&&Date.parse(r.observedAt)<Date.parse(p.confirmedAt)+30*86400000,'Verify actual premature chronology rather than infer it from a record label');}
  const providerBefore=await installed('worker-2',assets);
- await ensureInstalled('worker-1',housing,'1.0.1',{syntheticOnly:true,integrationsEnabled:true});
- await ensureInstalled('worker-3',support,'1.0.2',{syntheticOnly:true,integrationsEnabled:true});
+ await ensureInstalled('worker-1',housing,phase13ModuleVersion(housing),{syntheticOnly:true,integrationsEnabled:true});
+ await ensureInstalled('worker-3',support,phase13ModuleVersion(support),{syntheticOnly:true,integrationsEnabled:true});
  for(const endpoint of ['/participants','/plans','/referrals'])assert.deepEqual(hashes(await records('worker-3',support,endpoint)),before['support'+endpoint]);
  for(const endpoint of ['/placements','/units','/buildings'])assert.deepEqual(hashes(await records('worker-1',housing,endpoint)),before['housing'+endpoint]);
  pass('Additive signed upgrades preserved all participant, plan, referral, placement, unit and building records and original provider receipts');
