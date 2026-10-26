@@ -2,6 +2,11 @@ import {StructuredValue} from './presentation.js';
 import type {ModuleField,ReferenceChoices} from './module-fields.js';
 import {unavailableReference} from './module-fields.js';
 
+export function ModuleReferenceValue({value,reference}:{value:unknown;reference:ReferenceChoices|undefined}){
+ const choice=reference?.status==='ready'?reference.choices.find(c=>c.value===value):undefined;
+ return choice?<details><summary>{choice.label}</summary><code>{String(value)}</code></details>:<span className="muted">{reference?.status==='loading'?'Loading related record…':'Related record unavailable'}</span>;
+}
+
 /** Shared field presentation, driven entirely by verified module metadata. */
 export function ModuleFormField({field,value,currency,onChange,reference,onReload}:{field:ModuleField;value:any;currency:string;onChange:(value:any)=>void;reference?:ReferenceChoices|undefined;onReload?:(()=>void)|undefined}){
  const label=field.label.replace(/ Cents$/,'');

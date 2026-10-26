@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.housing.management",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Housing Management",
   "description": "Synthetic programme-scoped housing operations with authoritative property references, reviewed placements, reserved units and sealed aggregate disclosure.",
   "minimumPlatformVersion": "0.13.0",
@@ -47,6 +47,15 @@
       "operationId": "programAuthority",
       "method": "GET",
       "path": "/program-authority",
+      "permission": "steward.housing.management.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
       "permission": "steward.housing.management.admin",
       "query": [
         "q"
@@ -106,6 +115,34 @@
       "operationId": "revokeCaseAssignment",
       "method": "POST",
       "path": "/revoke-case/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listResourceAllocations",
+      "method": "GET",
+      "path": "/resource-allocations",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createResourceAllocation",
+      "method": "POST",
+      "path": "/resource-allocations",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateResourceAllocation",
+      "method": "PUT",
+      "path": "/resource-allocations/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "publishResourceAllocation",
+      "method": "POST",
+      "path": "/publish-resource-allocation/:id",
       "permission": "steward.housing.management.admin"
     },
     {
@@ -712,6 +749,157 @@
           "label": "Revoke case access",
           "operationId": "revokeCaseAssignment",
           "confirmation": "Remove only this case assignment? Programme membership remains unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "resource-allocations",
+      "title": "Approved programme resources",
+      "navigationLabel": "Approved resources",
+      "listOperation": "listResourceAllocations",
+      "createOperation": "createResourceAllocation",
+      "updateOperation": "updateResourceAllocation",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Source programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reference",
+          "label": "Allocation identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Human reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Receiving organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Receiving programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "restriction",
+          "label": "Authorized use",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "program"
+          ]
+        },
+        {
+          "name": "authorityId",
+          "label": "Organizational approval reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "transferId",
+          "label": "Actual transfer reference (when transferred)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "authorizedCents",
+          "label": "Legally authorized amount (cents)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "availableCents",
+          "label": "Available after commitments (cents)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "committedCents",
+          "label": "Committed amount (cents)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "transferredCents",
+          "label": "Transferred amount (cents)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "spentCents",
+          "label": "Spent amount (cents)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "validUntil",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "authorityEvidence",
+          "label": "Private synthetic legal/organizational evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Review state",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "authorizedCents",
+        "availableCents",
+        "committedCents",
+        "transferredCents",
+        "spentCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve and seal resource statement",
+          "operationId": "publishResourceAllocation",
+          "confirmation": "I reviewed the organizational authority, restrictions, exact cash states and fixed reporting period. No external money movement is executed; this statement will become immutable."
         }
       ]
     },
@@ -1728,7 +1916,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "migrations": [
       {
         "version": 1,
@@ -1745,6 +1933,10 @@
       {
         "version": 4,
         "sha256": "915c6445c3185c7c565c5f01187117846f49af50c3123c3f157ea935b3484638"
+      },
+      {
+        "version": 5,
+        "sha256": "72a14bba067047f44c43d60097f9fcfbd0e1c7417d7cbb5a74c2f21cc28eea55"
       }
     ],
     "destructiveRollback": false
@@ -1781,6 +1973,17 @@
       {
         "streamId": "mission_aggregates_v1",
         "table": "mission_aggregate_releases",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "mission_resources_v1",
+        "table": "mission_resource_allocations",
         "idColumn": "id",
         "revisionColumn": "revision",
         "columns": [

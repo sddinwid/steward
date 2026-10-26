@@ -4,10 +4,16 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {moduleFormDefaults,moduleEditValues,referenceOperation,loadReferenceChoices,referenceSelectionValid} from '../packages/ui/dist/module-fields.js';
-import {ModuleFormField} from '../packages/ui/dist/module-field.js';
+import {ModuleFormField,ModuleReferenceValue} from '../packages/ui/dist/module-field.js';
 const field={name:'relatedId',label:'Related record',type:'string',required:true,reference:{operationId:'listRelated',valueField:'id',labelField:'name'}};
 const operation={operationId:'listRelated',method:'GET',path:'/related',permission:'example.service.read',query:['limit','offset']};
 const render=(f,value,reference)=>renderToStaticMarkup(createElement(ModuleFormField,{field:f,value,reference,currency:'USD',onChange:()=>{}}));
+
+test('related table values show only current authorized labels and withhold unavailable choices',()=>{
+ const id='00000000-0000-4000-8000-000000000001',reference={status:'ready',choices:[{value:id,label:'Synthetic residential building'}],truncated:false,message:''};
+ const markup=renderToStaticMarkup(createElement(ModuleReferenceValue,{value:id,reference}));assert(markup.includes('<summary>Synthetic residential building</summary>'));assert(markup.includes('<code>'+id+'</code>'));
+ for(const value of [{...reference,status:'unavailable'},undefined,{...reference,choices:[]}]){const hidden=renderToStaticMarkup(createElement(ModuleReferenceValue,{value:id,reference:value}));assert(hidden.includes('Related record unavailable'));assert(!hidden.includes(id));assert(!hidden.includes('Synthetic residential building'));}
+});
 
 test('creation seeds fresh typed synthetic identities while editing preserves identifiers and converts only declared cent values',()=>{
  let n=0;const uuid=()=>`00000000-0000-4000-8000-${String(++n).padStart(12,'0')}`,fields=[{name:'requestId',label:'Request',type:'string',required:true,generate:'uuid'},{name:'participant',label:'Participant',type:'string',required:true,generate:'synthetic-participant'},{name:'alias',label:'Referral',type:'string',required:true,generate:'synthetic-reference'},{name:'status',label:'Status',type:'string',required:true,default:'draft'}];
