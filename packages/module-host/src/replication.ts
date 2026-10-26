@@ -1,4 +1,4 @@
-import type {ModulePackageManifest} from '@steward/module-sdk';
+import {validateEconomicSummary,validateEconomicSummaryStatus,type ModulePackageManifest} from '@steward/module-sdk';
 
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const object = (value: unknown): value is Record<string, any> => !!value && typeof value === 'object' && !Array.isArray(value);
@@ -19,8 +19,8 @@ export function boundReplicationEvents(manifest: ModulePackageManifest, events: 
     if (!Array.isArray(events) || events.length > 10) deny();
     // Sensitive package declarations cannot fall back to an untrusted module
     // configuration or its self-asserted event identity, even for an empty batch.
-    const trusted = manifest.programServices ? trustedSourceIdentity : undefined;
-    if (manifest.programServices && !publicSource(trusted, installationId)) deny();
+    const trusted = manifest.programServices||manifest.economicServices ? trustedSourceIdentity : undefined;
+    if ((manifest.programServices||manifest.economicServices) && !publicSource(trusted, installationId)) deny();
     for (const value of events) {
         if (!value || typeof value !== 'object' || Array.isArray(value)) deny();
         const event = value as Record<string, any>;
@@ -29,16 +29,17 @@ export function boundReplicationEvents(manifest: ModulePackageManifest, events: 
         const payload = event.payload;
         if (!payload || typeof payload !== 'object' || Array.isArray(payload) || Object.keys(payload).some(key => !stream!.columns.includes(key)) ||
             String(payload[stream!.idColumn]) !== event.recordId || !Number.isSafeInteger(event.recordRevision) || event.recordRevision < 1 || Number(payload[stream!.revisionColumn]) !== event.recordRevision) deny();
-        if (manifest.programServices) {
+        if (manifest.programServices||manifest.economicServices) {
             const identity = trusted as Record<string, any>;
             if (!closed(event, envelopeKeys) || event.envelopeVersion !== 1 || event.payloadVersion !== 1 ||
                 !uuid.test(event.eventId) || !uuid.test(event.recordId) || !uuid.test(event.destinationInstallationId) || event.sequence !== String(event.recordRevision) ||
                 typeof event.occurredAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T[\d:.]+(?:Z|[+-]\d{2}:\d{2})$/.test(event.occurredAt) || !Number.isFinite(Date.parse(event.occurredAt)) ||
                 event.correlationId !== undefined && (typeof event.correlationId !== 'string' || !uuid.test(event.correlationId)) ||
-                !['mission_aggregates_v1','mission_resources_v1'].includes(event.streamId) ||
-                !closed(event.disclosure, ['contractVersion','kind','domain']) || event.disclosure.contractVersion !== 1 || event.disclosure.kind !== 'program-aggregate' || event.disclosure.domain !== manifest.programServices.domain ||
+                !(manifest.economicServices?['economic_summaries_v1','economic_summary_status_v1']:['mission_aggregates_v1','mission_resources_v1']).includes(event.streamId) ||
+                !closed(event.disclosure, ['contractVersion','kind','domain']) || event.disclosure.contractVersion !== 1 || event.disclosure.kind !== (manifest.economicServices?(event.streamId==='economic_summary_status_v1'?'economic-summary-status':'economic-summary'):'program-aggregate') || event.disclosure.domain !== (manifest.economicServices?'economic':manifest.programServices!.domain) ||
                 !publicSource(event.source, installationId) || event.source.entity.entityId !== identity.entity.entityId || event.source.entity.displayName !== identity.entity.displayName ||
                 !closed(payload, ['id','revision','projection'])) deny();
+            if(manifest.economicServices){try{const status=event.streamId==='economic_summary_status_v1',p=(status?validateEconomicSummaryStatus:validateEconomicSummary)(payload.projection,{entityId:identity.entity.entityId,installationId,moduleId:manifest.moduleId});if(p.summaryId!==event.recordId||event.recordRevision!==1||!status&&p.metrics.type!==manifest.economicServices.kind)deny();}catch{deny();}}
         }
     }
     return events;

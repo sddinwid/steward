@@ -126,7 +126,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   await resourcePool.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
   await resourcePool.query(`GRANT CONNECT ON DATABASE ${db} TO ${db}`);
   let sourceIdentity:unknown;
-  if(m.programServices||m.smart&&atLeast(m.minimumPlatformVersion,'0.13.0')){
+  if(m.programServices||m.economicServices||m.smart&&atLeast(m.minimumPlatformVersion,'0.13.0')){
     const coreIdentity=new pg.Client({...adminConnection,database:'steward'});await coreIdentity.connect();
     try{const row=(await coreIdentity.query("SELECT entity_id,entity_name FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];if(!row)failure('ENROLLMENT_REQUIRED');sourceIdentity={installationId:config.installationId,role:'worker',entity:{entityId:row.entity_id,displayName:row.entity_name}};}finally{await coreIdentity.end();}
   }

@@ -8,7 +8,7 @@ import { screenLabel, screenGroup, Money, ReadableValue, ConfigurationFields, hu
 import type { ApiContribution, ModulePackageManifest, ScreenContribution } from '@steward/module-sdk';
 const safeObject=(text:string)=>{try{return JSON.parse(text);}catch{return {};}};
 type Api = <T = any>(path: string, method?: string, body?: unknown) => Promise<T>;
-export interface DiscoveredModule { moduleId: string; version: string; name: string; mode?:'simulator'|'live'; currency?:string; programServices?:{contractVersion:1;domain:string;syntheticOnly:true}; api: ApiContribution[]; ui: ScreenContribution[] }
+export interface DiscoveredModule { moduleId: string; version: string; name: string; mode?:'simulator'|'live'; currency?:string; programServices?:{contractVersion:1;domain:string;syntheticOnly:true}; economicServices?:NonNullable<ModulePackageManifest['economicServices']>; api: ApiContribution[]; ui: ScreenContribution[] }
 export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onNavigate, currency = 'USD' }: { api: Api; administrator: boolean; mode?: 'all' | 'business' | 'administration' | 'developer'; screenKey?: string; onNavigate?: (key:string)=>void; currency?:string }) {
   const [manager, setManager] = useState<any>();
   const [modules, setModules] = useState<DiscoveredModule[]>([]);

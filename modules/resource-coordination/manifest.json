@@ -406,6 +406,34 @@
       "permission": "steward.finance.resource-coordination.admin"
     },
     {
+      "operationId": "listEconomicDisclosureRequest",
+      "method": "GET",
+      "path": "/economic-disclosure-requests",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createEconomicDisclosureRequest",
+      "method": "POST",
+      "path": "/economic-disclosure-requests",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "reviewEconomicSummary",
+      "method": "POST",
+      "path": "/review-economic-summary/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "publishEconomicSummary",
+      "method": "POST",
+      "path": "/publish-economic-summary/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
       "operationId": "financeOptionsPolicy",
       "method": "GET",
       "path": "/finance-options-policy",
@@ -486,6 +514,16 @@
       ]
     },
     {
+      "operationId": "financeOptionsEconomicDisclosureRequest",
+      "method": "GET",
+      "path": "/finance-options-economic-disclosure-request",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
       "operationId": "dispatchAuthority",
       "method": "GET",
       "path": "/dispatch-authority",
@@ -499,6 +537,35 @@
       "method": "GET",
       "path": "/coordination-overview",
       "permission": "steward.finance.resource-coordination.read"
+    },
+    {
+      "operationId": "economicDisclosureAuthority",
+      "method": "GET",
+      "path": "/economic-disclosure-authority",
+      "permission": "steward.finance.resource-coordination.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "publishedEconomicSummaries",
+      "method": "GET",
+      "path": "/published-economic-summaries",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "economicSourceOptions",
+      "method": "GET",
+      "path": "/economic-source-options",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
     }
   ],
   "ui": [
@@ -1802,6 +1869,94 @@
           "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
         }
       ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "economic-disclosure-request",
+      "title": "Economic Disclosure Request",
+      "navigationLabel": "Economic Disclosure Request",
+      "listOperation": "listEconomicDisclosureRequest",
+      "createOperation": "createEconomicDisclosureRequest",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "sourceRecordId",
+          "label": "Source Record Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "economicSourceOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Review Economic Summary",
+          "operationId": "reviewEconomicSummary",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Publish Economic Summary",
+          "operationId": "publishEconomicSummary",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
     }
   ],
   "configurationSchema": {
@@ -1831,9 +1986,36 @@
       }
     }
   },
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "economic_summaries_v1",
+        "table": "economic_summaries",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "economic_summary_status_v1",
+        "table": "economic_summary_revocations",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 3,
+    "schemaVersion": 4,
     "migrations": [
       {
         "version": 1,
@@ -1846,6 +2028,10 @@
       {
         "version": 3,
         "sha256": "6a6ec685c4a4a4516609904a6057708fb335c8d0d605b25761d208c85a5a18c0"
+      },
+      {
+        "version": 4,
+        "sha256": "9612d80920fa670101e4f42fc157e577d4dfec327131f7ac1c00a34f04055b06"
       }
     ],
     "destructiveRollback": false

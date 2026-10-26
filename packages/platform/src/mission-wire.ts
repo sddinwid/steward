@@ -16,7 +16,7 @@ export function validateMissionEvent(e:DataEvent,now=new Date()){
  if(!closed(d,['contractVersion','kind','domain'])||d?.contractVersion!==1||d.kind!=='program-aggregate'||!['housing','participant-services','employment','food'].includes(d.domain))reject();
  if(!closed(e.payload,['id','revision','projection'])||e.payload.id!==e.recordId||e.payload.revision!==1||!e.payload.projection)reject();
  const domain=(missionModuleDomains as Readonly<Record<string,string>>)[e.moduleId];if(domain&&domain!==d!.domain)reject();
- const source={entityId:s.entity.entityId,installationId:s.installationId,moduleId:e.moduleId,domain:d!.domain};
+ if(d?.kind!=='program-aggregate')reject();const source={entityId:s.entity.entityId,installationId:s.installationId,moduleId:e.moduleId,domain:d!.domain as 'housing'|'participant-services'|'employment'|'food'};
  try{
   if(e.streamId==='mission_aggregates_v1'){const p=validateMissionAggregateRelease(e.payload.projection,source,now);if(p.releaseId!==e.recordId)reject();}
   else {const p=validateMissionResourceAllocation(e.payload.projection,source);if(p.allocationId!==e.recordId)reject();}

@@ -18,4 +18,6 @@ Original USD and EUR values use integer minor units, with no implicit conversion
 
 Disputed receiving obligations remain frozen until an immutable evidence-based resolution is separately reviewed and applied by a current receiver. It resumes the same factual original state and terms only. Subsequent execution still requires current source approvals and a fresh receiver permit. Factual callbacks cannot silently remove the dispute.
 
-Remaining gates include deployed/browser recovery UX verification, governed approved summary publication and mission cost-source integration, scientific scenarios, Master presentation, MCP/Qwen, normal-browser demonstration, real deployment/outage/upgrade/clean-install acceptance and release packaging. No source checkpoint establishes Phase 14 completion.
+Reviewed summary publication, named-account Master access, closed signed synchronization and durable invalidation now pass source/API tests. Source records invalidate older sealed copies transactionally; a new reviewed publication is needed before those values can fund another calculation. The Master view distinguishes current-as-of, historical and invalidated evidence.
+
+Remaining gates include deployed/browser recovery and reporting UX, mission cost-source integration, governed scientific scenarios from sealed sources, proposal-to-Worker drafts, MCP/Qwen, normal-browser demonstration, real deployment/outage/upgrade/clean-install acceptance and release packaging. No source checkpoint establishes Phase 14 completion.
