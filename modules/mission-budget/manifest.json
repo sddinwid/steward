@@ -815,6 +815,34 @@
           "readOnly": true
         },
         {
+          "name": "minimumOperatingRemainingCents",
+          "label": "minimum Operating Remaining Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operatingSpentCents",
+          "label": "operating Spent Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operatingEncumberedCents",
+          "label": "operating Encumbered Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expansionAvailableCents",
+          "label": "expansion Available Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
           "name": "conditionalFundedUnits",
           "label": "conditional Funded Units",
           "type": "number",
@@ -1707,6 +1735,12 @@
           "minimum": 1
         },
         {
+          "name": "costType",
+          "label": "Cost Type",
+          "type": "string",
+          "required": false
+        },
+        {
           "name": "policyId",
           "label": "Policy Id",
           "type": "string",
@@ -1827,6 +1861,12 @@
         {
           "name": "encumbranceId",
           "label": "Encumbrance Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "costType",
+          "label": "Cost Type",
           "type": "string",
           "required": false
         },
