@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.services.food",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "programServices": {
     "contractVersion": 1,
     "domain": "food",
@@ -10,7 +10,7 @@
   },
   "name": "Food & Essential Services",
   "description": "Synthetic programme-scoped meal sessions, essential supplies and human-reviewed referrals. Optional Inventory and Procurement obligations remain pinned to their approved provider.",
-  "minimumPlatformVersion": "0.13.0",
+  "minimumPlatformVersion": "0.14.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -1790,8 +1790,25 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 3,
-    "migrations": [],
+    "schemaVersion": 4,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "3f044dacd83ac223e7a1286ae79e4feedc9bd09fa6b5bce6336cc60317853640"
+      },
+      {
+        "version": 2,
+        "sha256": "aabd126de3473185ecc2e8ad845be28641360e4168647231e7b419f2ed6a27a8"
+      },
+      {
+        "version": 3,
+        "sha256": "72a14bba067047f44c43d60097f9fcfbd0e1c7417d7cbb5a74c2f21cc28eea55"
+      },
+      {
+        "version": 4,
+        "sha256": "856a80a59a5be6930af31d1e63661a9379f5296c27195369289ead6b77d43339"
+      }
+    ],
     "destructiveRollback": false
   },
   "integrationEvents": [],
@@ -2174,6 +2191,434 @@
               ]
             },
             "permission": "steward.services.food.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      },
+      {
+        "capabilityId": "mission.cost-evidence",
+        "contract": "steward.sealed-programme-cost",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "mission.cost.observe",
+            "command": "mission.cost.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseRevision": {
+                  "const": 1
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "releaseId",
+                "releaseRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "sealedReleaseId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseRevision": {
+                  "const": 1
+                },
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceInstallationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceModuleId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "domain": {
+                  "enum": [
+                    "housing",
+                    "participant-services",
+                    "employment",
+                    "food"
+                  ]
+                },
+                "periodStart": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "periodEnd": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "releasedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "minimumGroupSize": {
+                  "const": 5
+                },
+                "suppressed": {
+                  "type": "boolean"
+                },
+                "participantCount": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "participantCounts": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enrolledParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "servicePlanParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housingReferredParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housingRetainedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingEnrolledParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingCompletedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentReferredParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentRetainedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "foodServedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "followedUpParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "transitionedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "unresolvedAuthorizedReferralParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    }
+                  },
+                  "required": [
+                    "enrolledParticipants",
+                    "servicePlanParticipants",
+                    "housingReferredParticipants",
+                    "housedParticipants",
+                    "housingRetainedParticipants",
+                    "trainingEnrolledParticipants",
+                    "trainingCompletedParticipants",
+                    "employmentReferredParticipants",
+                    "employedParticipants",
+                    "employmentRetainedParticipants",
+                    "foodServedParticipants",
+                    "followedUpParticipants",
+                    "transitionedParticipants"
+                  ]
+                },
+                "capacity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "housingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "availableHousingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "occupiedHousingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "maintenanceRestrictedUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingSeats": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "availableTrainingSeats": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "plannedMeals": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "deliveredMeals": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "essentialSupplyUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "consumedSupplyUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentOpportunities": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "localSupplyShortages": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    }
+                  },
+                  "required": [
+                    "housingUnits",
+                    "availableHousingUnits",
+                    "occupiedHousingUnits",
+                    "maintenanceRestrictedUnits",
+                    "trainingSeats",
+                    "availableTrainingSeats",
+                    "plannedMeals",
+                    "deliveredMeals",
+                    "essentialSupplyUnits",
+                    "consumedSupplyUnits"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "actualOperatingCostCents": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "estimatedUnitCostCents": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "costBasis": {
+                  "const": "operational-observation-not-financial-expenditure"
+                },
+                "accountingAuthority": {
+                  "const": false
+                }
+              },
+              "required": [
+                "contractVersion",
+                "synthetic",
+                "sealedReleaseId",
+                "releaseRevision",
+                "programId",
+                "sourceProgramId",
+                "sourceEntityId",
+                "sourceInstallationId",
+                "sourceModuleId",
+                "domain",
+                "periodStart",
+                "periodEnd",
+                "releasedAt",
+                "minimumGroupSize",
+                "suppressed",
+                "participantCount",
+                "participantCounts",
+                "capacity",
+                "currency",
+                "actualOperatingCostCents",
+                "estimatedUnitCostCents",
+                "costBasis",
+                "accountingAuthority"
+              ]
+            },
+            "permission": "steward.services.food.admin",
             "mode": "durable",
             "idempotency": "required",
             "retry": "safe"

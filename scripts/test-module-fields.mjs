@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
-import {moduleFormDefaults,moduleEditValues,referenceOperation,loadReferenceChoices,referenceSelectionValid} from '../packages/ui/dist/module-fields.js';
+import {moduleFormDefaults,moduleEditValues,moduleNumericValue,moduleFormCurrency,referenceOperation,loadReferenceChoices,referenceSelectionValid} from '../packages/ui/dist/module-fields.js';
 import {ModuleFormField,ModuleReferenceValue} from '../packages/ui/dist/module-field.js';
 const field={name:'relatedId',label:'Related record',type:'string',required:true,reference:{operationId:'listRelated',valueField:'id',labelField:'name'}};
 const operation={operationId:'listRelated',method:'GET',path:'/related',permission:'example.service.read',query:['limit','offset']};
@@ -56,4 +56,22 @@ test('generated fields stay read-only on edit and legacy amounts/enums preserve 
  const html=render({name:'identity',label:'Synthetic reference',type:'string',required:true,generate:'synthetic-reference'},'SYNREF-'+'A'.repeat(32));assert.match(html,/readOnly=""/);assert.match(html,/Synthetic identifier only/);assert.match(html,/SYNREF-AAAA/);
  const money=render({name:'costCents',label:'Operating cost Cents',type:'number',required:true,minimum:0},123.45);assert.match(money,/aria-label="Operating cost"/);assert.match(money,/step="0.01"/);assert.match(money,/Amount in USD/);
  const legacy=render({name:'state',label:'State',type:'string',required:true,enum:['draft','approved']},'draft');assert.match(legacy,/<select/);assert.match(legacy,/>draft<\/option>/);
+});
+
+
+test('money submission uses exact decimal digits and rejects excess precision instead of rounding',()=>{
+ const money={name:'amountCents',label:'Amount',type:'number',required:true};
+ for(const[text,expected]of[['0.29',29],['123.45',12345],['.5',50],['-0.01',-1],['9999999999.99',999999999999]])assert.equal(moduleNumericValue(money,text),expected);
+ for(const text of['0.001','1.234','1e3','Infinity','NaN','90071992547409.92'])assert.throws(()=>moduleNumericValue(money,text));
+ assert.equal(moduleNumericValue({name:'quantity',label:'Quantity',type:'number',required:true},'2'),2);
+});
+
+test('declared reference currencies are permission-scoped and never replaced with a company display default',async()=>{
+ const currencyField={...field,name:'programId',reference:{...field.reference,currencyField:'currency'}},records=[{id:'euro',name:'Authorized euro programme',currency:'EUR',privateNote:'must not propagate'},{id:'bad',name:'Invalid currency',currency:'eur'}];
+ const choices=await loadReferenceChoices(async()=>({records,nextOffset:null}),'example.service',[operation],currencyField);assert.equal(choices.status,'ready');assert.deepEqual(choices.choices,[{value:'euro',label:'Authorized euro programme',currency:'EUR'}]);
+ const screen={screenId:'money',title:'Money',navigationLabel:'Money',listOperation:'listRelated',currencyReference:'programId',fields:[currencyField],columns:[]};
+ assert.equal(moduleFormCurrency(screen,{programId:'euro',currency:'USD'},{programId:choices},'USD'),'EUR');
+ assert.equal(moduleFormCurrency(screen,{programId:'unknown'},{programId:choices},'USD'),undefined);
+ assert.equal(moduleFormCurrency({...screen,currencyReference:undefined},{currency:'EUR'},{},'USD'),'EUR');
+ const markup=render({name:'amountCents',label:'Amount',type:'number',required:true},'',undefined);assert(markup.includes('Amount in USD'));
 });

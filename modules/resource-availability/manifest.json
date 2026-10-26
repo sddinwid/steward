@@ -748,6 +748,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "policy",
       "title": "Policy",
@@ -764,7 +765,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -793,21 +795,21 @@
         },
         {
           "name": "approvalLimitCents",
-          "label": "Approval Limit (minor units)",
+          "label": "Approval Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "delegationLimitCents",
-          "label": "Delegation Limit (minor units)",
+          "label": "Delegation Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "minimumReserveCents",
-          "label": "Minimum Reserve (minor units)",
+          "label": "Minimum Reserve",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -821,7 +823,7 @@
         },
         {
           "name": "liquidityBufferCents",
-          "label": "Liquidity Buffer (minor units)",
+          "label": "Liquidity Buffer",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -905,6 +907,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "authority-grant",
       "title": "Authority Grant",
@@ -921,7 +924,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -965,7 +969,7 @@
         },
         {
           "name": "limitCents",
-          "label": "Limit (minor units)",
+          "label": "Limit",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1015,6 +1019,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "cash-pool",
       "title": "Cash Pool",
@@ -1031,7 +1036,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1054,7 +1060,7 @@
         },
         {
           "name": "openingCashCents",
-          "label": "Opening Cash (minor units)",
+          "label": "Opening Cash",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1105,6 +1111,7 @@
       "actions": []
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "cash-adjustment",
       "title": "Cash Adjustment",
@@ -1121,7 +1128,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1175,7 +1183,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 1
@@ -1240,6 +1248,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "assessment",
       "title": "Assessment",
@@ -1256,7 +1265,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1298,35 +1308,35 @@
         },
         {
           "name": "obligationsCents",
-          "label": "Obligations (minor units)",
+          "label": "Obligations",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "restrictedCents",
-          "label": "Restricted (minor units)",
+          "label": "Restricted",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "externalCommitmentsCents",
-          "label": "External Commitments (minor units)",
+          "label": "External Commitments",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "dailyOperatingExpenseCents",
-          "label": "Daily Operating Expense (minor units)",
+          "label": "Daily Operating Expense",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "futureCashRequirementCents",
-          "label": "Future Cash Requirement (minor units)",
+          "label": "Future Cash Requirement",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1389,6 +1399,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "noncash",
       "title": "Noncash",
@@ -1405,7 +1416,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1491,7 +1503,7 @@
         },
         {
           "name": "valuationCents",
-          "label": "Valuation (minor units)",
+          "label": "Valuation",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1519,7 +1531,7 @@
         },
         {
           "name": "operatingCostCents",
-          "label": "Operating Cost (minor units)",
+          "label": "Operating Cost",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1579,7 +1591,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1708,23 +1721,23 @@
       },
       {
         "version": 2,
-        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+        "sha256": "d44f82dd1fa5e348d35d0df0163866992be15a9eabd63d61308cdfd016472a2a"
       },
       {
         "version": 3,
-        "sha256": "3db312543e81aeda77dc5c6eb4f29746842d288613c83d8d8494d2a4166295fd"
+        "sha256": "c92f98ddb1a64a25df5dccf39c7829132c50d17fe48af6285979ccaf6155fbf8"
       },
       {
         "version": 4,
-        "sha256": "ba50b7d9a41a1e8a599f635e6d2d8c84f0ba360a621c1a352d665097d9ed87e0"
+        "sha256": "cc4283e4a6e3986f26b998e871c442c35fb0fc1cfa19184ceab01247f3accc46"
       },
       {
         "version": 5,
-        "sha256": "fe10d3e6cbcddc04e358cfe088834cde082f4d9cd7ecfbefda6685acc09e7f14"
+        "sha256": "8c5adb60fdcebb850c9e4bff50536c3db81fe1f807791f8e6f6c37cb7938a615"
       },
       {
         "version": 6,
-        "sha256": "f64a459bc759dcea9647a6afb35e71ce5807aaee237aa927f53ad75ef77cb0f5"
+        "sha256": "abd165de696efe4b67cb6effd3affc2430766c4b6ece3d46096acb70312a19a8"
       }
     ],
     "destructiveRollback": false

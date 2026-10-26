@@ -17,3 +17,8 @@ modules/sales/migrations/005-atomic-financial-projection.sql text eol=crlf
 # Participant 1.0.0 was published with mixed line endings. Preserve its exact
 # applied bytes; neither LF nor CRLF normalization reproduces that checksum.
 modules/participant-services/migrations/001-foundation.sql -text
+
+# Printify 1.1.2 shares the already published CRLF migrations with Shopify.
+# Preserve their recorded applied hashes in fresh checkouts as well.
+modules/printify/migrations/003-operational-conditions.sql text eol=crlf
+modules/printify/migrations/004-publication-gate.sql text eol=crlf

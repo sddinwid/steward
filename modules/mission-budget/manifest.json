@@ -382,6 +382,60 @@
       "permission": "steward.finance.mission-budget.admin"
     },
     {
+      "operationId": "listServiceEvidenceProfile",
+      "method": "GET",
+      "path": "/service-evidence-profiles",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceEvidenceProfile",
+      "method": "POST",
+      "path": "/service-evidence-profiles",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "observeServiceEvidence",
+      "method": "POST",
+      "path": "/observe-service-evidence/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listServiceEvidence",
+      "method": "GET",
+      "path": "/service-evidence",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "listServiceEvidenceApproval",
+      "method": "GET",
+      "path": "/service-evidence-approvals",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceEvidenceApproval",
+      "method": "POST",
+      "path": "/service-evidence-approvals",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "reviewServiceEvidence",
+      "method": "POST",
+      "path": "/review-service-evidence/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
       "operationId": "listEconomicDisclosureRequest",
       "method": "GET",
       "path": "/economic-disclosure-requests",
@@ -490,6 +544,36 @@
       ]
     },
     {
+      "operationId": "financeOptionsServiceEvidenceProfile",
+      "method": "GET",
+      "path": "/finance-options-service-evidence-profile",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsServiceEvidence",
+      "method": "GET",
+      "path": "/finance-options-service-evidence",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsServiceEvidenceApproval",
+      "method": "GET",
+      "path": "/finance-options-service-evidence-approval",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
       "operationId": "financeOptionsEconomicDisclosureRequest",
       "method": "GET",
       "path": "/finance-options-economic-disclosure-request",
@@ -498,6 +582,21 @@
         "limit",
         "offset"
       ]
+    },
+    {
+      "operationId": "dispatchAuthority",
+      "method": "GET",
+      "path": "/dispatch-authority",
+      "permission": "steward.finance.mission-budget.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "serviceCostOverview",
+      "method": "GET",
+      "path": "/service-cost-overview",
+      "permission": "steward.finance.mission-budget.read"
     },
     {
       "operationId": "budgetOverview",
@@ -536,6 +635,94 @@
     }
   ],
   "ui": [
+    {
+      "workspace": "business",
+      "screenId": "service-cost-overview",
+      "title": "Recorded Service Costs",
+      "navigationLabel": "Service costs & evidence",
+      "listOperation": "serviceCostOverview",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "service",
+          "label": "service",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operationalObservedCostCents",
+          "label": "operational Observed Cost Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "financialExpenditureCents",
+          "label": "financial Expenditure Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "externalExpenditureCents",
+          "label": "external Expenditure Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "intercompanyExpenditureCents",
+          "label": "intercompany Expenditure Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordedServiceUnits",
+          "label": "recorded Service Units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "outcomeMetric",
+          "label": "outcome Metric",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "suppressed",
+          "label": "suppressed",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "service",
+        "currency",
+        "operationalObservedCostCents",
+        "financialExpenditureCents",
+        "recordedServiceUnits",
+        "outcomeMetric"
+      ]
+    },
     {
       "workspace": "business",
       "screenId": "budget-overview",
@@ -801,6 +988,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "policy",
       "title": "Policy",
@@ -817,7 +1005,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -846,21 +1035,21 @@
         },
         {
           "name": "approvalLimitCents",
-          "label": "Approval Limit (minor units)",
+          "label": "Approval Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "delegationLimitCents",
-          "label": "Delegation Limit (minor units)",
+          "label": "Delegation Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "minimumReserveCents",
-          "label": "Minimum Reserve (minor units)",
+          "label": "Minimum Reserve",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -874,7 +1063,7 @@
         },
         {
           "name": "liquidityBufferCents",
-          "label": "Liquidity Buffer (minor units)",
+          "label": "Liquidity Buffer",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -958,6 +1147,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "authority-grant",
       "title": "Authority Grant",
@@ -974,7 +1164,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1018,7 +1209,7 @@
         },
         {
           "name": "limitCents",
-          "label": "Limit (minor units)",
+          "label": "Limit",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1084,7 +1275,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1214,6 +1406,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "budget-line",
       "title": "Budget Line",
@@ -1230,7 +1423,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1274,21 +1468,21 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "minimumOperatingCents",
-          "label": "Minimum Operating (minor units)",
+          "label": "Minimum Operating",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "unitCostCents",
-          "label": "Unit Cost (minor units)",
+          "label": "Unit Cost",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1350,6 +1544,7 @@
       "actions": []
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "funding-request",
       "title": "Funding Request",
@@ -1366,7 +1561,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1401,7 +1597,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 1
@@ -1463,6 +1659,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "encumbrance",
       "title": "Encumbrance",
@@ -1479,7 +1676,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1503,7 +1701,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 1
@@ -1568,6 +1766,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "expense",
       "title": "Expense",
@@ -1584,7 +1783,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1619,7 +1819,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 1
@@ -1634,7 +1834,23 @@
           "name": "serviceEvidenceId",
           "label": "Service Evidence Id",
           "type": "string",
-          "required": false
+          "required": false,
+          "reference": {
+            "operationId": "financeOptionsServiceEvidence",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "serviceEvidenceApprovalId",
+          "label": "Service Evidence Approval Id",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "financeOptionsServiceEvidenceApproval",
+            "valueField": "id",
+            "labelField": "name"
+          }
         },
         {
           "name": "sourceDocument",
@@ -1741,7 +1957,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1833,6 +2050,375 @@
       ]
     },
     {
+      "workspace": "administration",
+      "screenId": "service-evidence-profile",
+      "title": "Service Evidence Profile",
+      "navigationLabel": "Service Evidence Profile",
+      "listOperation": "listServiceEvidenceProfile",
+      "createOperation": "createServiceEvidenceProfile",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "budgetId",
+          "label": "Budget Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudget",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Destination Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Destination Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationInstallationId",
+          "label": "Destination Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "providerModuleId",
+          "label": "Provider Module Id",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "releaseId",
+          "label": "Release Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "service",
+          "label": "Service",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "other"
+          ]
+        },
+        {
+          "name": "outcomeMetric",
+          "label": "Outcome Metric",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "participants:enrolledParticipants",
+            "participants:servicePlanParticipants",
+            "participants:housingReferredParticipants",
+            "participants:housedParticipants",
+            "participants:housingRetainedParticipants",
+            "participants:trainingEnrolledParticipants",
+            "participants:trainingCompletedParticipants",
+            "participants:employmentReferredParticipants",
+            "participants:employedParticipants",
+            "participants:employmentRetainedParticipants",
+            "participants:foodServedParticipants",
+            "participants:followedUpParticipants",
+            "participants:transitionedParticipants",
+            "participants:unresolvedAuthorizedReferralParticipants",
+            "capacity:housingUnits",
+            "capacity:availableHousingUnits",
+            "capacity:occupiedHousingUnits",
+            "capacity:maintenanceRestrictedUnits",
+            "capacity:trainingSeats",
+            "capacity:availableTrainingSeats",
+            "capacity:plannedMeals",
+            "capacity:deliveredMeals",
+            "capacity:essentialSupplyUnits",
+            "capacity:consumedSupplyUnits",
+            "capacity:employmentOpportunities",
+            "capacity:localSupplyShortages"
+          ]
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "service",
+        "outcomeMetric",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Observe Service Evidence",
+          "operationId": "observeServiceEvidence",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "currencyReference": "programId",
+      "workspace": "business",
+      "screenId": "service-evidence",
+      "title": "Service Evidence",
+      "navigationLabel": "Service Evidence",
+      "listOperation": "listServiceEvidence",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "service",
+          "label": "Service",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "other"
+          ]
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "periodStart",
+          "label": "Period Start",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "periodEnd",
+          "label": "Period End",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "outcomeMetric",
+          "label": "Outcome Metric",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "actualOperatingCostCents",
+          "label": "Actual Operating Cost",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "service",
+        "currency",
+        "periodStart",
+        "periodEnd",
+        "status"
+      ],
+      "actions": []
+    },
+    {
+      "workspace": "business",
+      "screenId": "service-evidence-approval",
+      "title": "Service Evidence Approval",
+      "navigationLabel": "Service Evidence Approval",
+      "listOperation": "listServiceEvidenceApproval",
+      "createOperation": "createServiceEvidenceApproval",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "evidenceId",
+          "label": "Evidence Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsServiceEvidence",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "budgetLineId",
+          "label": "Budget Line Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudgetLine",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Review Service Evidence",
+          "operationId": "reviewServiceEvidence",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
       "workspace": "business",
       "screenId": "economic-disclosure-request",
       "title": "Economic Disclosure Request",
@@ -1848,7 +2434,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1977,19 +2564,19 @@
       },
       {
         "version": 2,
-        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+        "sha256": "d44f82dd1fa5e348d35d0df0163866992be15a9eabd63d61308cdfd016472a2a"
       },
       {
         "version": 3,
-        "sha256": "783afc99b4032162d172942309cf45597ae37a47407de1f8a091be07da215f54"
+        "sha256": "ed05ecba4bb2c9af183fbd53d15f99cb32e1c7a012f6ede2610c1f70696da9c6"
       },
       {
         "version": 4,
-        "sha256": "019ea9a67bfc7432cb96fc52efba72ea75c739f2714591f4d81b98c50eab9bf3"
+        "sha256": "54c266574de72d623c5217325586f14269b7d80ff8c3879ae308358cfc8ecff9"
       },
       {
         "version": 5,
-        "sha256": "3cc6367ad9c63f76aa68b68a2d57863dd5b5f6d48208771e5a5f187d82b73ab1"
+        "sha256": "478b1be98386d5939f25a517add16c4011349738df3e3bbeb4cf5124b0520cfc"
       }
     ],
     "destructiveRollback": false
@@ -2389,7 +2976,427 @@
         "events": []
       }
     ],
-    "consumes": [],
+    "consumes": [
+      {
+        "capabilityId": "mission.cost-evidence",
+        "contract": "steward.sealed-programme-cost",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "maximumSensitivity": "restricted",
+        "optional": true,
+        "operations": [
+          {
+            "name": "mission.cost.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseRevision": {
+                  "const": 1
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "releaseId",
+                "releaseRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "synthetic": {
+                  "const": true
+                },
+                "sealedReleaseId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "releaseRevision": {
+                  "const": 1
+                },
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceInstallationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceModuleId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80
+                },
+                "domain": {
+                  "enum": [
+                    "housing",
+                    "participant-services",
+                    "employment",
+                    "food"
+                  ]
+                },
+                "periodStart": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "periodEnd": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "releasedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "minimumGroupSize": {
+                  "const": 5
+                },
+                "suppressed": {
+                  "type": "boolean"
+                },
+                "participantCount": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "participantCounts": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "enrolledParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "servicePlanParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housingReferredParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "housingRetainedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingEnrolledParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingCompletedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentReferredParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentRetainedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "foodServedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "followedUpParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "transitionedParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "unresolvedAuthorizedReferralParticipants": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    }
+                  },
+                  "required": [
+                    "enrolledParticipants",
+                    "servicePlanParticipants",
+                    "housingReferredParticipants",
+                    "housedParticipants",
+                    "housingRetainedParticipants",
+                    "trainingEnrolledParticipants",
+                    "trainingCompletedParticipants",
+                    "employmentReferredParticipants",
+                    "employedParticipants",
+                    "employmentRetainedParticipants",
+                    "foodServedParticipants",
+                    "followedUpParticipants",
+                    "transitionedParticipants"
+                  ]
+                },
+                "capacity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "housingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "availableHousingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "occupiedHousingUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "maintenanceRestrictedUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingSeats": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "availableTrainingSeats": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "plannedMeals": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "deliveredMeals": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "essentialSupplyUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "consumedSupplyUnits": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "employmentOpportunities": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "localSupplyShortages": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    }
+                  },
+                  "required": [
+                    "housingUnits",
+                    "availableHousingUnits",
+                    "occupiedHousingUnits",
+                    "maintenanceRestrictedUnits",
+                    "trainingSeats",
+                    "availableTrainingSeats",
+                    "plannedMeals",
+                    "deliveredMeals",
+                    "essentialSupplyUnits",
+                    "consumedSupplyUnits"
+                  ]
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "actualOperatingCostCents": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "estimatedUnitCostCents": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "costBasis": {
+                  "const": "operational-observation-not-financial-expenditure"
+                },
+                "accountingAuthority": {
+                  "const": false
+                }
+              },
+              "required": [
+                "contractVersion",
+                "synthetic",
+                "sealedReleaseId",
+                "releaseRevision",
+                "programId",
+                "sourceProgramId",
+                "sourceEntityId",
+                "sourceInstallationId",
+                "sourceModuleId",
+                "domain",
+                "periodStart",
+                "periodEnd",
+                "releasedAt",
+                "minimumGroupSize",
+                "suppressed",
+                "participantCount",
+                "participantCounts",
+                "capacity",
+                "currency",
+                "actualOperatingCostCents",
+                "estimatedUnitCostCents",
+                "costBasis",
+                "accountingAuthority"
+              ]
+            }
+          }
+        ],
+        "events": []
+      }
+    ],
     "prerequisites": {
       "configuration": {
         "syntheticOnly": true,

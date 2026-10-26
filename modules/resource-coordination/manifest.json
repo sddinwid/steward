@@ -821,6 +821,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "policy",
       "title": "Policy",
@@ -837,7 +838,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -866,21 +868,21 @@
         },
         {
           "name": "approvalLimitCents",
-          "label": "Approval Limit (minor units)",
+          "label": "Approval Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "delegationLimitCents",
-          "label": "Delegation Limit (minor units)",
+          "label": "Delegation Limit",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "minimumReserveCents",
-          "label": "Minimum Reserve (minor units)",
+          "label": "Minimum Reserve",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -894,7 +896,7 @@
         },
         {
           "name": "liquidityBufferCents",
-          "label": "Liquidity Buffer (minor units)",
+          "label": "Liquidity Buffer",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -978,6 +980,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "authority-grant",
       "title": "Authority Grant",
@@ -994,7 +997,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1038,7 +1042,7 @@
         },
         {
           "name": "limitCents",
-          "label": "Limit (minor units)",
+          "label": "Limit",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1088,6 +1092,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "administration",
       "screenId": "resource-profile",
       "title": "Resource Profile",
@@ -1103,7 +1108,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1191,7 +1197,7 @@
         },
         {
           "name": "unitValuationCents",
-          "label": "Unit Valuation (minor units)",
+          "label": "Unit Valuation",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1209,7 +1215,7 @@
         },
         {
           "name": "unitOperatingCostCents",
-          "label": "Unit Operating Cost (minor units)",
+          "label": "Unit Operating Cost",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1275,7 +1281,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1382,7 +1389,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1453,6 +1461,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "commitment",
       "title": "Commitment",
@@ -1469,7 +1478,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1505,7 +1515,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1646,7 +1656,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1725,6 +1736,7 @@
       ]
     },
     {
+      "currencyReference": "programId",
       "workspace": "business",
       "screenId": "incoming-contribution",
       "title": "Incoming Contribution",
@@ -1739,7 +1751,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -1759,7 +1772,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount (minor units)",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1886,7 +1899,8 @@
           "reference": {
             "operationId": "programmeOptions",
             "valueField": "id",
-            "labelField": "name"
+            "labelField": "name",
+            "currencyField": "currency"
           }
         },
         {
@@ -2023,15 +2037,15 @@
       },
       {
         "version": 2,
-        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+        "sha256": "d44f82dd1fa5e348d35d0df0163866992be15a9eabd63d61308cdfd016472a2a"
       },
       {
         "version": 3,
-        "sha256": "6a6ec685c4a4a4516609904a6057708fb335c8d0d605b25761d208c85a5a18c0"
+        "sha256": "2d1ef7d334edc084c1dd181c0ff1e2df7318fed4453aff97bd32d3c47e98bf1d"
       },
       {
         "version": 4,
-        "sha256": "9612d80920fa670101e4f42fc157e577d4dfec327131f7ac1c00a34f04055b06"
+        "sha256": "d022190036adb5624bd3f682a09f4df2cd23f88f58a9053676c1fc1b48adb204"
       }
     ],
     "destructiveRollback": false

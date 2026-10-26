@@ -30,7 +30,7 @@ export const missionCapacityVector=(values:Partial<MissionCapacityVector>={}):Mi
 export const createSyntheticParticipantId=():SyntheticParticipantId=>('SYN-PART-'+randomBytes(16).toString('hex').toUpperCase()) as SyntheticParticipantId;
 /** Persist one alias per authorized receiving Worker/module; never rotate it per referral/programme. */
 export const createScopedSyntheticAlias=():ScopedSyntheticAlias=>('SYNREF-'+randomBytes(16).toString('hex').toUpperCase()) as ScopedSyntheticAlias;
-function sensitiveValues(value:MissionAggregateReleaseInput|MissionAggregateRelease){
+function sensitiveValues(value:Pick<MissionAggregateRelease,'capacity'|'participantCounts'>){
  const c=value.capacity,values=Object.values(value.participantCounts).filter((n):n is number=>n!==null);
  if(c.housingUnits!==null&&c.availableHousingUnits!==null&&c.maintenanceRestrictedUnits!==null){const occupied=c.housingUnits-c.availableHousingUnits-c.maintenanceRestrictedUnits;requireValue(occupied>=0);if(c.occupiedHousingUnits!==null)requireValue(c.occupiedHousingUnits===occupied);values.push(occupied);}
  else if(c.occupiedHousingUnits!==null)values.push(c.occupiedHousingUnits);
@@ -40,7 +40,7 @@ function sensitiveValues(value:MissionAggregateReleaseInput|MissionAggregateRele
  return values;
 }
 function validateCommon(value:MissionAggregateReleaseInput|MissionAggregateRelease,now:Date,source?:MissionSourceIdentity){const p=period(value),builtin=missionModuleDomains[value.sourceModuleId];if(builtin)requireValue(builtin===value.domain);else requireValue(source?.moduleId===value.sourceModuleId&&source.domain===value.domain,'Verified provider domain declaration required',403);if(source)requireValue(source.entityId===value.sourceEntityId&&source.installationId===value.sourceInstallationId&&(!source.moduleId||source.moduleId===value.sourceModuleId)&&(!source.domain||source.domain===value.domain),'Mission source identity or domain mismatch',403);requireValue(time(value.releasedAt)>=p.end&&time(value.review.reviewedAt)>=p.end&&time(value.review.reviewedAt)<=time(value.releasedAt)&&time(value.releasedAt)<=now.getTime()+300000);}
-function mustSuppress(value:MissionAggregateReleaseInput){requireValue(Object.values(value.participantCounts).every(n=>n===null||n<=value.participantCount));const counts=sensitiveValues(value);requireValue(counts.every(n=>n<=value.participantCount),'Reported outcomes must belong to the reviewed cohort');const correlated=[value.participantCount,...counts];return value.participantCount<5||counts.some(n=>n>0&&n<5)||correlated.some((n,i)=>correlated.slice(i+1).some(m=>Math.abs(n-m)>0&&Math.abs(n-m)<5));}
+function mustSuppress(value:Pick<MissionAggregateReleaseInput,'participantCount'|'participantCounts'|'capacity'>){requireValue(Object.values(value.participantCounts).every(n=>n===null||n<=value.participantCount));const counts=sensitiveValues(value);requireValue(counts.every(n=>n<=value.participantCount),'Reported outcomes must belong to the reviewed cohort');const correlated=[value.participantCount,...counts];return value.participantCount<5||counts.some(n=>n>0&&n<5)||correlated.some((n,i)=>correlated.slice(i+1).some(m=>Math.abs(n-m)>0&&Math.abs(n-m)<5));}
 /** No member aliases, dimensions, case text, arbitrary periods or private counts leave this helper. */
 export function prepareMissionAggregateRelease(raw:unknown,now=new Date(),source?:MissionSourceIdentity):MissionAggregateRelease{
  requireValue(inputValidator(raw));const input=structuredClone(raw) as MissionAggregateReleaseInput;validateCommon(input,now,source);const suppressed=mustSuppress(input);
@@ -49,6 +49,8 @@ export function prepareMissionAggregateRelease(raw:unknown,now=new Date(),source
   financials:suppressed?{currency:input.financials.currency,actualOperatingCostCents:null,estimatedUnitCostCents:null,approvedAvailableCents:null}:input.financials} as MissionAggregateRelease;
  return validateMissionAggregateRelease(result,source,now);
 }
+/** Reuse the sealed-cohort suppression rules for scoped derived cost evidence. */
+export function assertProtectedMissionCounts(value:{participantCount:number|null;participantCounts:MissionParticipantVector;capacity:MissionCapacityVector;suppressed:boolean}){if(value.suppressed)requireValue(value.participantCount===null&&Object.values(value.participantCounts).every(v=>v===null)&&Object.values(value.capacity).every(v=>v===null));else{requireValue(value.participantCount!==null);requireValue(!mustSuppress({...value,participantCount:value.participantCount!}));}}
 export interface MissionSourceIdentity {entityId:string;installationId:string;moduleId?:string;domain?:MissionAggregateRelease['domain']}
 export function validateMissionAggregateRelease(raw:unknown,source?:MissionSourceIdentity,now=new Date()):MissionAggregateRelease{
  requireValue(aggregateValidator(raw));const value=raw as unknown as MissionAggregateRelease;validateCommon(value,now,source);
@@ -107,3 +109,5 @@ export * from './programs.js';
 
 
 export * from './finance.js';
+
+export * from './cost-evidence.js';

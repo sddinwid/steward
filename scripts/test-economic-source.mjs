@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {validateManifest} from '../packages/module-sdk/dist/index.js';
+const baseline=JSON.parse(await readFile('docs/phase13-migration-checksums.json','utf8')),hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+test('all 54 previously published migration byte sequences remain unchanged, including historical mixed/CRLF files',async()=>{assert.equal(Object.keys(baseline.sha256).length,54);for(const[file,expected]of Object.entries(baseline.sha256))assert.equal(hash(await readFile(file)),expected,file);});
+test('unpublished financial and cost-provider packages hash their canonical repository SQL bytes',async()=>{for(const name of ['resource-availability','mission-budget','resource-coordination','housing-management','participant-services','employment-pathways','services-food']){const root='modules/'+name,manifest=JSON.parse(await readFile(root+'/manifest.json','utf8'));validateManifest(manifest);const files=(await readdir(root+'/migrations')).filter(f=>/^\d{3}-.+\.sql$/.test(f)).sort();assert.equal(manifest.persistence.schemaVersion,files.length);assert.equal(manifest.persistence.migrations.length,files.length);for(const[i,file]of files.entries()){const path=root+'/migrations/'+file,bytes=await readFile(path);assert.equal(manifest.persistence.migrations[i].version,i+1);assert.equal(hash(bytes),manifest.persistence.migrations[i].sha256,path);if(!Object.hasOwn(baseline.sha256,path))assert.equal(bytes.includes(Buffer.from('\r\n')),false,'New migration must retain repository LF bytes: '+path);}}});

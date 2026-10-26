@@ -1,7 +1,7 @@
 import type {ApiContribution,ScreenContribution} from '@steward/module-sdk';
 export type ModuleField=ScreenContribution['fields'][number];
 export type ReferenceApi=(path:string,method?:string)=>Promise<any>;
-export interface ReferenceChoice {value:string;label:string}
+export interface ReferenceChoice {value:string;label:string;currency?:string}
 export interface ReferenceChoices {status:'loading'|'ready'|'unavailable';choices:ReferenceChoice[];truncated:boolean;message:string}
 export const MAX_REFERENCE_CHOICES=200;
 export const REFERENCE_PAGE_SIZE=20;
@@ -9,7 +9,7 @@ const MAX_REFERENCE_PAGES=10;
 const safeField=(name:string)=>typeof name==='string'&&/^[a-z][a-zA-Z0-9_]{0,49}$/.test(name)&&!['constructor','prototype','__proto__'].includes(name);
 export const unavailableReference=():ReferenceChoices=>({status:'unavailable',choices:[],truncated:false,message:'Choices are unavailable. You may need permission to read the related records.'});
 export function referenceOperation(moduleId:string,operations:ApiContribution[],field:ModuleField):ApiContribution|null{
- const ref=field.reference;if(!ref||field.type!=='string'||!safeField(ref.valueField)||!safeField(ref.labelField)||!(/^[a-z][a-z0-9.-]{0,79}$/.test(moduleId)))return null;
+ const ref=field.reference;if(!ref||field.type!=='string'||!safeField(ref.valueField)||!safeField(ref.labelField)||ref.currencyField!==undefined&&!safeField(ref.currencyField)||!(/^[a-z][a-z0-9.-]{0,79}$/.test(moduleId)))return null;
  const op=operations.find(o=>o.operationId===ref.operationId);
  return op?.method==='GET'&&/^\/[a-z][a-z0-9-]*$/.test(op.path)&&typeof op.permission==='string'&&op.permission.startsWith(moduleId+'.')?op:null;
 }
@@ -23,7 +23,8 @@ function choice(record:any,field:ModuleField):ReferenceChoice|null{
  const ref=field.reference!;if(!record||typeof record!=='object'||!Object.hasOwn(record,ref.valueField)||!Object.hasOwn(record,ref.labelField))return null;
  const value=record[ref.valueField],name=record[ref.labelField];if(typeof value!=='string'||!value.length||value.length>200||!['string','number'].includes(typeof name)||typeof name==='number'&&!Number.isFinite(name))return null;
  let label=String(name).replace(/[\u0000-\u001f]/g,' ').trim().slice(0,240);if(!label)return null;
- const synthetic=record.synthetic===true||/^(SYN-PART-|SYNREF-)/.test(value);if(synthetic&&!/synthetic/i.test(label))label+=' · Synthetic';return{value,label};
+ const currency=ref.currencyField?record[ref.currencyField]:undefined;if(ref.currencyField&&(typeof currency!=='string'||! /^[A-Z]{3}$/.test(currency)))return null;
+ const synthetic=record.synthetic===true||/^(SYN-PART-|SYNREF-)/.test(value);if(synthetic&&!/synthetic/i.test(label))label+=' · Synthetic';return{value,label,...(currency?{currency}:{})};
 }
 /** Read only same-module operations in the permission-filtered discovery result.
  * Backend pagination stays authoritative; only value/label pairs are retained. */
@@ -46,4 +47,17 @@ export async function loadReferenceChoices(api:ReferenceApi,moduleId:string,oper
 export function referenceSelectionValid(field:ModuleField,value:unknown,state:ReferenceChoices|undefined,existingValue?:unknown):boolean{
  if(!field.reference)return true;if(existingValue!==undefined&&existingValue!==''&&value===existingValue)return true;if((value===undefined||value===null||value==='')&&!field.required)return true;
  return state?.status==='ready'&&state.choices.some(c=>c.value===value);
+}
+
+/** Parse display money using exact decimal digits; never round a submitted amount. */
+export function moduleNumericValue(field:ModuleField,raw:unknown):number{
+ if(!/Cents$/.test(field.name)){const value=Number(raw);if(!Number.isFinite(value))throw Error('Enter a finite number for '+field.label);return value;}
+ let text=String(raw);if(text.startsWith('.'))text='0'+text;if(text.startsWith('-.'))text='-0'+text;
+ if(!/^-?(?:0|[1-9][0-9]*)(?:\.[0-9]{1,2})?$/.test(text))throw Error('Enter '+field.label+' as an exact amount with at most two decimal places.');
+ const negative=text.startsWith('-'),[whole,fraction='']=(negative?text.slice(1):text).split('.'),minor=(BigInt(whole!)*100n+BigInt(fraction.padEnd(2,'0')))*(negative?-1n:1n);
+ if(minor>BigInt(Number.MAX_SAFE_INTEGER)||minor<BigInt(Number.MIN_SAFE_INTEGER))throw Error('Amount exceeds exact integer bounds.');return Number(minor);
+}
+export function moduleFormCurrency(screen:ScreenContribution,values:Record<string,any>,choices:Record<string,ReferenceChoices>,fallback:string):string|undefined{
+ if(!screen.currencyReference)return typeof values.currency==='string'?values.currency:fallback;
+ return choices[screen.currencyReference]?.choices.find(c=>c.value===values[screen.currencyReference!])?.currency;
 }
