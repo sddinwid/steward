@@ -1,0 +1,1771 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.finance.resource-availability",
+  "version": "1.0.0",
+  "name": "Business Resource Availability",
+  "description": "Synthetic entity-owned economic authority, immutable financial evidence and governed resource coordination. No external payments.",
+  "minimumPlatformVersion": "0.14.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.finance.resource-availability.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "steward.finance.resource-availability.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.finance.resource-availability.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.finance.resource-availability.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.finance.resource-availability.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listPolicy",
+      "method": "GET",
+      "path": "/policies",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createPolicy",
+      "method": "POST",
+      "path": "/policies",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updatePolicy",
+      "method": "PUT",
+      "path": "/policies/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "activatePolicy",
+      "method": "POST",
+      "path": "/activate-policy/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "revokePolicy",
+      "method": "POST",
+      "path": "/revoke-policy/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "listAuthorityGrant",
+      "method": "GET",
+      "path": "/authority-grants",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createAuthorityGrant",
+      "method": "POST",
+      "path": "/authority-grants",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updateAuthorityGrant",
+      "method": "PUT",
+      "path": "/authority-grants/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "revokeFinancialGrant",
+      "method": "POST",
+      "path": "/revoke-financial-grant/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "listCashPool",
+      "method": "GET",
+      "path": "/cash-pools",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCashPool",
+      "method": "POST",
+      "path": "/cash-pools",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updateCashPool",
+      "method": "PUT",
+      "path": "/cash-pools/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "listCashAdjustment",
+      "method": "GET",
+      "path": "/cash-adjustments",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCashAdjustment",
+      "method": "POST",
+      "path": "/cash-adjustments",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updateCashAdjustment",
+      "method": "PUT",
+      "path": "/cash-adjustments/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "approveCashAdjustment",
+      "method": "POST",
+      "path": "/approve-cash-adjustment/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "listAssessment",
+      "method": "GET",
+      "path": "/assessments",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createAssessment",
+      "method": "POST",
+      "path": "/assessments",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updateAssessment",
+      "method": "PUT",
+      "path": "/assessments/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "approveAssessment",
+      "method": "POST",
+      "path": "/approve-assessment/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "revokeAssessment",
+      "method": "POST",
+      "path": "/revoke-assessment/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "listNoncash",
+      "method": "GET",
+      "path": "/noncash-resources",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createNoncash",
+      "method": "POST",
+      "path": "/noncash-resources",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "updateNoncash",
+      "method": "PUT",
+      "path": "/noncash-resources/:id",
+      "permission": "steward.finance.resource-availability.admin"
+    },
+    {
+      "operationId": "financeOptionsPolicy",
+      "method": "GET",
+      "path": "/finance-options-policy",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsAuthorityGrant",
+      "method": "GET",
+      "path": "/finance-options-authority-grant",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsCashPool",
+      "method": "GET",
+      "path": "/finance-options-cash-pool",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsCashAdjustment",
+      "method": "GET",
+      "path": "/finance-options-cash-adjustment",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsAssessment",
+      "method": "GET",
+      "path": "/finance-options-assessment",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsNoncash",
+      "method": "GET",
+      "path": "/finance-options-noncash",
+      "permission": "steward.finance.resource-availability.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "availabilityOverview",
+      "method": "GET",
+      "path": "/availability-overview",
+      "permission": "steward.finance.resource-availability.read"
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "business",
+      "screenId": "availability-overview",
+      "title": "Resource Availability Overview",
+      "navigationLabel": "Resource availability",
+      "listOperation": "availabilityOverview",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "potentiallyAvailableCents",
+          "label": "potentially Available Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reserveCents",
+          "label": "reserve Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shortfallCents",
+          "label": "shortfall Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "warning",
+          "label": "warning",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "potentiallyAvailableCents",
+        "reserveCents",
+        "shortfallCents",
+        "warning"
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: none. Existing case/team grants and intentionally removed rights remain unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "controller",
+            "requester",
+            "reviewer",
+            "executor",
+            "receiver",
+            "reporter"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "policy",
+      "title": "Policy",
+      "navigationLabel": "Policy",
+      "listOperation": "listPolicy",
+      "createOperation": "createPolicy",
+      "updateOperation": "updatePolicy",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "approvalLimitCents",
+          "label": "Approval Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "delegationLimitCents",
+          "label": "Delegation Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "minimumReserveCents",
+          "label": "Minimum Reserve (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "reserveCoverageDays",
+          "label": "Reserve Coverage Days",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "liquidityBufferCents",
+          "label": "Liquidity Buffer (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "cashHorizonDays",
+          "label": "Cash Horizon Days",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "observationMaxAgeHours",
+          "label": "Observation Max Age Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "requiredApprovals",
+          "label": "Required Approvals",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "approvalLifetimeHours",
+          "label": "Approval Lifetime Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "validUntil",
+          "label": "Valid Until",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "approvalLimitCents",
+        "delegationLimitCents",
+        "minimumReserveCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Activate Policy",
+          "operationId": "activatePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Revoke Policy",
+          "operationId": "revokePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "authority-grant",
+      "title": "Authority Grant",
+      "navigationLabel": "Authority Grant",
+      "listOperation": "listAuthorityGrant",
+      "createOperation": "createAuthorityGrant",
+      "updateOperation": "updateAuthorityGrant",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Actor Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "role",
+          "label": "Role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "requester",
+            "approver",
+            "controller",
+            "executor",
+            "receiver",
+            "discloser"
+          ]
+        },
+        {
+          "name": "limitCents",
+          "label": "Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "role",
+        "limitCents",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke Financial Grant",
+          "operationId": "revokeFinancialGrant",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "cash-pool",
+      "title": "Cash Pool",
+      "navigationLabel": "Cash Pool",
+      "listOperation": "listCashPool",
+      "createOperation": "createCashPool",
+      "updateOperation": "updateCashPool",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "openingCashCents",
+          "label": "Opening Cash (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "openingObservedAt",
+          "label": "Opening Observed At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "evidence",
+          "label": "Evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "openingCashCents",
+        "openingObservedAt",
+        "status"
+      ],
+      "actions": []
+    },
+    {
+      "workspace": "business",
+      "screenId": "cash-adjustment",
+      "title": "Cash Adjustment",
+      "navigationLabel": "Cash Adjustment",
+      "listOperation": "listCashAdjustment",
+      "createOperation": "createCashAdjustment",
+      "updateOperation": "updateCashAdjustment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "cashPoolId",
+          "label": "Cash Pool Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsCashPool",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "kind",
+          "label": "Kind",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "external-cash-receipt",
+            "operating-cash-payment",
+            "correction-increase",
+            "correction-decrease"
+          ]
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "sourceDocument",
+          "label": "Source Document",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "kind",
+        "amountCents",
+        "observedAt",
+        "sourceDocument",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Cash Adjustment",
+          "operationId": "approveCashAdjustment",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "assessment",
+      "title": "Assessment",
+      "navigationLabel": "Assessment",
+      "listOperation": "listAssessment",
+      "createOperation": "createAssessment",
+      "updateOperation": "updateAssessment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "cashPoolId",
+          "label": "Cash Pool Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsCashPool",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "obligationsCents",
+          "label": "Obligations (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "restrictedCents",
+          "label": "Restricted (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "externalCommitmentsCents",
+          "label": "External Commitments (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "dailyOperatingExpenseCents",
+          "label": "Daily Operating Expense (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "futureCashRequirementCents",
+          "label": "Future Cash Requirement (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "evidence",
+          "label": "Evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "observedAt",
+        "obligationsCents",
+        "restrictedCents",
+        "externalCommitmentsCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Assessment",
+          "operationId": "approveAssessment",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Revoke Assessment",
+          "operationId": "revokeAssessment",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "noncash",
+      "title": "Noncash",
+      "navigationLabel": "Noncash",
+      "listOperation": "listNoncash",
+      "createOperation": "createNoncash",
+      "updateOperation": "updateNoncash",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "resourceKind",
+          "label": "Resource Kind",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "facility",
+            "inventory",
+            "equipment",
+            "staff-time",
+            "transport",
+            "service"
+          ]
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "operationalPriorityQuantity",
+          "label": "Operational Priority Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "unit",
+          "label": "Unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "availableFrom",
+          "label": "Available From",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "availableUntil",
+          "label": "Available Until",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "valuationCents",
+          "label": "Valuation (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "valuationKnown",
+          "label": "Valuation Known",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "known",
+            "unknown"
+          ]
+        },
+        {
+          "name": "valuationBasis",
+          "label": "Valuation Basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "documented-unit-cost",
+            "documented-replacement-estimate",
+            "unknown"
+          ]
+        },
+        {
+          "name": "operatingCostCents",
+          "label": "Operating Cost (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "evidence",
+          "label": "Evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "resourceKind",
+        "quantity",
+        "operationalPriorityQuantity",
+        "status"
+      ],
+      "actions": []
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "approved-economic-summaries",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "finance.resources",
+        "contract": "steward.financial-resources",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "finance.resource.reserve",
+            "command": "finance.resource.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assessmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "policyVersion": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "resourceKind": {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "facility",
+                    "inventory",
+                    "equipment",
+                    "staff-time",
+                    "transport",
+                    "service"
+                  ]
+                },
+                "resourceId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "assessmentId",
+                "policyVersion",
+                "currency",
+                "amountCents",
+                "resourceKind",
+                "resourceId",
+                "quantity",
+                "restriction",
+                "termsDigest",
+                "expiresAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-availability.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.resource.consume",
+            "command": "finance.resource.consume",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-availability.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.resource.release",
+            "command": "finance.resource.release",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-availability.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.resource.status",
+            "command": "finance.resource.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-availability.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true,
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

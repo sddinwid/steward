@@ -1,1 +1,29 @@
-{"name":"@steward/economy-kit","version":"1.0.0","private":true,"type":"module","exports":{".":{"types":"./dist/index.d.ts","default":"./dist/index.js"}},"scripts":{"build":"tsc -p tsconfig.json","test":"node --test dist/test/*.test.js"},"dependencies":{"@steward/contracts":"0.1.0","@steward/business-kit":"1.3.0","@steward/module-sdk":"1.4.0"},"devDependencies":{"@types/pg":"8.23.1"}}
+{
+  "name": "@steward/economy-kit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./module": {
+      "types": "./dist/module.d.ts",
+      "default": "./dist/module.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "@steward/contracts": "0.1.0",
+    "@steward/business-kit": "1.3.0",
+    "@steward/module-sdk": "1.4.0",
+    "@steward/mission-kit": "1.0.0"
+  },
+  "devDependencies": {
+    "@types/pg": "8.23.1"
+  }
+}

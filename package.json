@@ -12,7 +12,7 @@
     "npm": ">=10"
   },
   "scripts": {
-    "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/business-kit && npm run build -w @steward/commerce-kit && npm run build -w @steward/simulation-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/mission-kit && npm run build -w @steward/economy-kit && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build -w @steward/commerce-simulator && npm run build:business && npm run build:mission",
+    "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/business-kit && npm run build -w @steward/commerce-kit && npm run build -w @steward/simulation-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/mission-kit && npm run build -w @steward/economy-kit && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build -w @steward/commerce-simulator && npm run build:business && npm run build:mission && npm run build:finance",
     "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business && npm run test:smart && npm run test:commerce && npm run test:shopify-live && npm run test:presentation && npm run test:compose && npm run test:simulation && npm run test:mission:contracts && npm run test:program-access && npm run test:mission:modules && npm run test:mission:analytics && npm run test:release:contracts",
     "test:smart": "node scripts/test-smart-modules.mjs",
     "test:smart:browser": "node scripts/test-smart-modules.mjs --browser",
@@ -57,7 +57,9 @@
     "test:mission:analytics": "node --test scripts/test-mission-operational.mjs && node scripts/test-mission-analytics.mjs",
     "test:release:contracts": "node --test scripts/test-phase13-release.mjs scripts/test-phase13-governance.mjs",
     "mission:provision": "node tools/installer/dist/mission-cli.js",
-    "test:economy:contracts": "npm test -w @steward/economy-kit"
+    "test:economy:contracts": "npm test -w @steward/economy-kit",
+    "build:finance": "npm run build --prefix modules/resource-availability",
+    "test:economy:resources": "node scripts/test-economic-resources.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

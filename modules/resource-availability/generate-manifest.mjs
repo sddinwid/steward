@@ -1,0 +1,10 @@
+import {writeFile,access} from 'node:fs/promises';
+import {businessSql} from '@steward/business-kit';
+import {missionAccessSql} from '@steward/mission-kit';
+import {financeSql,financeManifest} from '@steward/economy-kit/module';
+import {resourceAvailability,moduleId,resourceCapability} from './dist/definition.js';
+const definition=resourceAvailability({});
+const manifest=financeManifest(moduleId,'Business Resource Availability',definition,{provides:[resourceCapability],queries:[{operationId:'availabilityOverview',method:'GET',path:'/availability-overview',permission:moduleId+'.read'}]});
+manifest.ui.unshift({workspace:'business',screenId:'availability-overview',title:'Resource Availability Overview',navigationLabel:'Resource availability',listOperation:'availabilityOverview',fields:['code','currency','status','potentiallyAvailableCents','reserveCents','shortfallCents','warning'].map(name=>({name,label:name.replace(/([a-z])([A-Z])/g,'$1 $2'),type:name.endsWith('Cents')?'number':'string',required:false,readOnly:true})),columns:['code','currency','potentiallyAvailableCents','reserveCents','shortfallCents','warning']});
+await writeFile(new URL('./manifest.json',import.meta.url),JSON.stringify(manifest,null,2)+'\n');
+if(process.argv.includes('--initial-migration')){try{await access(new URL('./migrations/001-foundation.sql',import.meta.url));throw Error('Existing migrations are immutable; append a new migration');}catch(e){if(e.code!=='ENOENT')throw e;}await writeFile(new URL('./migrations/001-foundation.sql',import.meta.url),businessSql+'\n'+missionAccessSql+'\n'+financeSql+`\nCREATE TABLE resource_holds(commitment_id uuid PRIMARY KEY,program_id uuid NOT NULL,cash_pool_id uuid NOT NULL,assessment_id uuid NOT NULL,policy_version integer NOT NULL,resource_id uuid,amount_cents bigint NOT NULL CHECK(amount_cents>=0),quantity integer NOT NULL CHECK(quantity>=0),terms_digest text NOT NULL,request_digest text NOT NULL,request jsonb NOT NULL,consumer_installation_id uuid NOT NULL,consumer_program_id uuid NOT NULL,state text NOT NULL CHECK(state IN ('held','consumed','released')));\n`);}

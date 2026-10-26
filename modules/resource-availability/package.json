@@ -1,0 +1,21 @@
+{
+  "name": "@steward/resource-availability",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@steward/business-kit": "file:../../packages/business-kit",
+    "@steward/contracts": "file:../../packages/contracts",
+    "@steward/economy-kit": "file:../../packages/economy-kit",
+    "@steward/mission-kit": "file:../../packages/mission-kit",
+    "@steward/module-sdk": "file:../../packages/module-sdk",
+    "steward-platform": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}
