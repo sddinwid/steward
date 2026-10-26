@@ -584,6 +584,16 @@
       ]
     },
     {
+      "operationId": "financialReviewHistory",
+      "method": "GET",
+      "path": "/financial-review-history",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
       "operationId": "dispatchAuthority",
       "method": "GET",
       "path": "/dispatch-authority",
@@ -859,6 +869,102 @@
         "spentCents",
         "spendableCents",
         "fundingGapCents"
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "financial-review-history",
+      "title": "Recorded Financial Reviews",
+      "navigationLabel": "Financial review history",
+      "listOperation": "financialReviewHistory",
+      "fields": [
+        {
+          "name": "programmeName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordCode",
+          "label": "Reviewed record",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordKind",
+          "label": "Record type",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "actorAccountId",
+          "label": "Reviewer account",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedAt",
+          "label": "Review recorded at",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "Recorded review expires",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "Original currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "amountCents",
+          "label": "Reviewed amount",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "policyVersion",
+          "label": "Policy version at review",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requiredApprovals",
+          "label": "Required reviewers at review",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "notice",
+          "label": "Review interpretation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programmeName",
+        "recordCode",
+        "actorAccountId",
+        "reviewedAt",
+        "amountCents",
+        "currency",
+        "requiredApprovals",
+        "expiresAt"
       ]
     },
     {

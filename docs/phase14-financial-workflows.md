@@ -48,3 +48,7 @@ Choose **Economic sustainability and mission funding** in the AI Analyst. The si
 Current financial plans start on the UTC review day and the active source budget must cover the first full planning period. Create a new reviewed scenario after the date/source changes; do not backdate plans or skip intervening operating requirements. Future periods recur declared assumptions only as hypothetical projections.
 
 `npm run test:economy:planning` runs 12 materialization tests and 8 isolated integration tests, including the test-provider TLS/MCP loop and four failure modes. `npm run test:economy:planning:browser` adds actual Chromium form verification. Tests build the scientific test image, create private temporary credentials/certificates, use an ephemeral database and bind the native test API to loopback port 3443; that port must be free. The fixture provider never represents a real language model. A genuine deployed Qwen run remains a distinct release gate.
+
+### Recorded financial reviews
+
+Each financial module contributes Financial Review History through its signed package metadata. Reviewers can inspect only their authorized programmes' recorded decisions, distinct account references, original amount/currency, policy/quorum and expiration. This is historical audit evidence, not a promise that an old approval is currently executable. Revoked accounts/grants, expired reviews, policy changes and changed source terms remain enforced when an action runs. No review record can be edited or deleted through the view.
