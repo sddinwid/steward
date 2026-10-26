@@ -98,3 +98,4 @@ export * from './scientific.js';
 export const PLATFORM_RELEASE='0.13.0';
 
 export * from './mission.js';
+export * from './economy.js';
