@@ -30,3 +30,13 @@ All monetary form inputs use display currency and exact two-decimal parsing. Sig
 ### Operating versus service costs
 
 Expense and encumbrance cost classification is immutable: `operating`, `incremental-service` or `unclassified` (the default for omitted legacy inputs). An expense against a reservation inherits its classification. Only net posted operating expense and the remaining operating reservation satisfy the fixed operating requirement. All classifications reduce spendable cash once. Unclassified/service costs cannot inflate expansion capacity by satisfying fixed costs. Correct a posted classification with a separately approved referenced reversal and a new correctly classified expense; retain the original journal.
+
+### Master economic scenario workflow
+
+In Economic Resources & Mission Funding, accept only disclosures intended for the signed-in named account. Select current sealed resource and budget summaries from the displayed page, preserving one original currency. Choose a single authoritative pool per contributing entity and one budget category per programme. Configure exact service priorities, integer unit limits and noncash requirements. Purpose restrictions must match exactly; a model cannot relax them.
+
+Review hypothetical generation, previously protected operating coverage, service-unit meaning and recurrence of future budget/cost/capacity projections. The first period uses remaining current appropriation, confirmed receipts and remaining operating costs; later periods are projections. Explicitly confirm that incremental costs exclude shared resource operating costs before adding those costs through resource rates. Resource valuation is never funding. Calculate conservative, baseline, expansion and sensitivity alternatives through the existing Python service. Review partial/infeasible cases as failures to establish a recommendation, not as zero needs.
+
+A second explicit human review creates an affected-only durable finding. It does not create contribution authority, reservations, synthetic settlements or services. Each source and recipient still uses Worker-local profiles, policies, approvals and original-provider reconciliation. Current source changes prevent a new recommendation; historical calculations remain retained while current disclosure permits reading them. Revoking disclosure removes access without deleting evidence.
+
+Source/API integration checks: `npm run test:economy:planning` builds the isolated scientific test image and runs eleven materialization plus six real PostgreSQL/Python governance tests. `npm run test:economy:planning:browser` also exercises the built Master UI through Chromium. Build the monorepo first. These isolated checks do not replace the release's deployed demonstration.

@@ -1,0 +1,23 @@
+# ADR 0035: Source-derived, governed economic planning
+
+Status: accepted for Phase 14 implementation; release acceptance pending.
+
+## Decision
+
+Reuse the existing source-signed named-account disclosure leases, immutable `mission_scenarios` and `mission_calculations`, scientific service and durable finding delivery. Economic requests carry the explicit `economic-scenario-v1` marker and a distinct calculation capability. Legacy mission routes reject them instead of interpreting a financial snapshot as a mission release. A shared disclosure access helper preserves the existing proof verification and authorization rules.
+
+Human scenario review selects complete source references, an original currency, explicit service priorities, integer service limits, units, bounded forecast vectors, resource conversion rates and hypothetical scenario factors. The model cannot supply cash balances, reserve values, restrictions, financial approvals or replacement provider bindings. Materialization obtains current sealed source values through the named account's `calculate` permission. Only one authoritative cash pool per entity and one category per programme are admitted per model; ambiguous combinations are rejected rather than consolidated.
+
+Resource assessments now disclose their configured purpose restriction and daily operating requirement. Eligibility matches exact configured purpose labels and excludes same-entity intercompany allocation. Current cash already reflects consumed settlements; pending holds, disjoint obligations, restricted cash, reserve and future requirements remain protected. Explicit already-protected operating coverage cannot exceed the source future requirement or its period operating forecast. Future generation is a reviewed hypothetical vector, never current cash.
+
+Budget planning starts from confirmed spendable receipts, remaining fixed operating requirement and unspent/unencumbered appropriation. Only classified operating expense/reservations satisfy fixed costs. Later periods recur declared budget, base cost and capacity as explicitly reviewed projections, not renewed budgets, new cash or authority. Service quantities are conditional unit-periods; they are never participant identities, unique-person totals or observed outcomes. Unknown costs remain unknown.
+
+Noncash uses original owner, restriction, interval, mode and net available quantity. A resource must cover a whole period; partial periods conservatively provide zero. Consumable resources have one horizon budget; reusable physical units have bounded period capacity. Declared units-per-service add the resource's operating cost to incremental service cost, after explicit review that the programme unit cost excludes that component. Valuations do not create cash.
+
+Actual bounded Python/scientific execution is independently reconciled with TypeScript. Current source authority and freshness are checked before execution and before retention. A process-wide PostgreSQL advisory lock serializes each calculation identity across API processes. Failed execution and altered responses retain no successful calculation. Successful retries return the immutable retained result. Outages produce a safe, understandable service message without interrupting Worker financial administration.
+
+A separate human review publishes only fully completed alternatives. A finding is a recommendation, never a contribution instruction. Delivery derives scopes from the original retained financial evidence, pins them to original source installations/programmes and uses the existing outbox, finding delivery and acknowledgment tables. Worker reads/acknowledgments require current module-owned economic disclosure authority. Master history reads recheck current disclosure, original scenario ancestry and the exact scientific output. Revocation removes visibility, not retained source evidence. Ordinary business tools and legacy mission findings cannot bypass the economic workflow.
+
+## Validation and limits
+
+The source checkpoint has real PostgreSQL/session/CSRF/signed-exchange integration tests, real Python calculations in isolated containers, and a Chromium form-to-calculation-to-reviewed-finding check. That browser uses Fastify injection for its application transport; it is not a full deployed-stack acceptance claim. Deployed HTTP scientific transport, module installation, real Qwen/MCP, the full funded-service pathway and release packaging remain separate mandatory gates. Planning currently supports the documented single-pool/single-category bounds and original USD/EUR without FX. No banking, automatic financial authority, commercial accounting compliance or causal mission impact is implied.
