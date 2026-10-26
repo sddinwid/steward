@@ -48,9 +48,29 @@ Automated verification uses `node scripts/test-mission-analytics.mjs` for real
 PostgreSQL/session/MCP checks (the scientific client there is an explicit fixture)
 and `node scripts/test-mission-analyst-presentation.mjs` for Chromium presentation
 fixtures. Neither establishes live Qwen acceptance. The existing real-provider
-verifier supports `STEWARD_OLLAMA_MISSION_COMPARE=1` together with
-`STEWARD_ANALYST_CAPABILITY=mission-sustainability` and an explicit comparison
-prompt. It writes a separate `artifacts/phase13-mission-ollama-comparison.json`
+wrapper supports `STEWARD_OLLAMA_MISSION_COMPARE=1`:
+
+```powershell
+$env:STEWARD_SEED_CREDENTIALS_FILE='<same private named-account file used for G>'
+node scripts/verify-phase13-comparison.mjs .steward/phase8-upgrade-regressions
+$env:STEWARD_OLLAMA_MISSION_COMPARE='1'
+node scripts/verify-phase13-mission-ollama.mjs .steward/phase8-upgrade-regressions
+```
+
+The wrapper selects the actual reviewed IDs and removes a stale scalar prompt.
+It writes a separate `artifacts/phase13-mission-ollama-comparison.json`
 by default and recomputes each retained child and scientific result. Preserve the
 reviewed single-scenario evidence. Renew source-issued named-account leases via
 their existing explicit review flow when expired; never bypass them for a demo.
+
+Two comparative live runs returned HTTP200/`done:true` with no content or native
+tool calls: one after aggregate discovery, another at the first tool stage. The
+provider did not expose raw generated text explaining this. Tool-prompt
+interference is a hypothesis, not a proven Ollama parser defect or context-limit
+failure. The profile now keeps only current-step guidance in the tool phase.
+One genuinely empty tool-phase response may receive logged protocol feedback and
+another model turn within the existing step/time budget. No call is manufactured,
+no tool executes during repair, and a new valid native call remains required.
+A second empty response fails `MODEL_OUTPUT_INVALID`; malformed nonempty output
+and final responses receive no protocol repair. This does not establish live
+comparison success: the acceptance gate remains open until an actual rerun passes.

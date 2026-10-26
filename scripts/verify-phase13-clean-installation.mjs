@@ -49,6 +49,7 @@ try{
    cleanup('Restore selected Compose services',()=>run('scripts/release.mjs',['start','--directory',path.resolve(selected.directory)]));
   }else{report.cleanupErrors.push('Temporary stack could not be stopped; do not run two operator stacks concurrently. Manual Docker recovery is required.');report.status='failed';process.exitCode=1;}
   cleanup('Verify original container restoration',()=>{report.operatorRestored=running(selected.project).length>=operatorIds.length;assert(report.operatorRestored);});
+  cleanup('Verify restored operator API and frontend readiness',()=>run('scripts/smoke.mjs',[path.resolve(selected.directory)]));
   cleanup('Verify single selected stack',()=>execFileSync(process.execPath,['scripts/verify-single-stack.mjs'],{stdio:'inherit',timeout:60000}));
  }finally{report.finishedAt=new Date().toISOString();await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase13-clean-installation.json',JSON.stringify(report,null,2)+'\n');}
 }

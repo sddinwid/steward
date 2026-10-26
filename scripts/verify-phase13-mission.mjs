@@ -60,7 +60,7 @@ try{
   await seedRecord(sources[3].worker,food,'/supplies','P13-G-LOCAL-SHORTAGE',{programId:e.foodProgramId,code:'P13-G-LOCAL-SHORTAGE',name:'Synthetic known local essential stock shortage',category:'essential-supplies',mode:'local',quantity:0,minStock:2});
   const employmentManifest=(await installed('worker-2',employment)).manifest;
   if(employmentManifest.api.some(a=>a.path==='/refresh-training-capacity/:id')){
-   for(const prefix of ['training','employment']){await action('worker-2',employment,'/refresh-'+prefix+'-capacity',await get(sources[1]));await waitFor(async()=>{const p=await get(sources[1]);return p[prefix+'CapacityState']==='ready'?p:null;},'fresh approved '+prefix+' quota before fixed cutoff');}
+   for(const prefix of ['training','employment']){const request=await action('worker-2',employment,'/refresh-'+prefix+'-capacity',await get(sources[1]));await waitFor(async()=>{const p=await get(sources[1]);if(p[prefix+'CapacityState']==='unavailable')throw Error(p.lastCapacityFailure);return p[prefix+'CapacityState']==='ready'&&p[prefix+'CapacityEvidence']?.commandId===request.commandId?p:null;},'fresh approved '+prefix+' quota before fixed cutoff');}
    report.freshProgrammeCapacityObserved=true;
   }
   report.localShortagePreparedBeforeCutoff=true;

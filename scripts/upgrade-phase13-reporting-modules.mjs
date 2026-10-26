@@ -1,6 +1,8 @@
 // Upgrade reporting capabilities without rewriting cases, original obligations or sealed releases.
 import assert from 'node:assert/strict';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,rename} from 'node:fs/promises';
+import {openSync,closeSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {digest,canonical} from '../packages/module-sdk/dist/index.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
@@ -9,12 +11,14 @@ const versions=JSON.parse(await readFile('docs/phase13-module-versions.json','ut
 const targets=[['worker-3','cee.workforce'],['worker-2','steward.employment.pathways'],['worker-3','steward.housing.services'],['worker-3','steward.services.food']];
 const report={startedAt:new Date().toISOString(),checks:[],modules:[]};
 const core=()=>Object.fromEntries(deployment.instances.filter(i=>i.role==='worker').map(i=>[i.key,JSON.parse(docker(['inspect',compose('ps','-q',i.key+'-api')]))[0].Image]));
-const query=(worker,db,statement)=>compose('exec','-T',worker+'-db','psql','-U','postgres','-d',db,'-At','-v','ON_ERROR_STOP=1','-c',statement);
+const databaseContainer=worker=>{const id=compose('ps','-q',worker+'-db');assert(/^[a-f0-9]{12,64}$/.test(id));return id;};
+const query=(worker,db,statement)=>execFileSync('docker',['exec',databaseContainer(worker),'psql','-U','postgres','-d',db,'-At','-v','ON_ERROR_STOP=1','-c',statement],{encoding:'utf8',maxBuffer:64*1024*1024,timeout:240000,stdio:['ignore','pipe','pipe']}).trim();
+async function backupDatabase(worker,db,file){const temporary=file+'.partial',fd=openSync(temporary,'wx',0o600);try{execFileSync('docker',['exec',databaseContainer(worker),'pg_dump','-U','postgres',db],{timeout:240000,stdio:['ignore',fd,'pipe']});}finally{closeSync(fd);}await rename(temporary,file);}
 try{
  await logins();const beforeCore=core(),backup=path.join(directory,'backups','phase13-reporting-'+Date.now());await mkdir(backup,{recursive:true});privateDirectory(backup);
  for(const[worker,id]of targets){const current=await installed(worker,id);assert(current?.state==='active','Existing active module required; no reinstall');const db='m_'+digest(id).slice(0,20);
   const before=JSON.parse(query(worker,db,"SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY id),'[]') FROM business_records t"));
-  const snapshot=compose('exec','-T',worker+'-db','pg_dump','-U','postgres',db);await writeFile(path.join(backup,worker+'-'+id+'.sql'),snapshot+'\n',{mode:0o600});
+  await backupDatabase(worker,db,path.join(backup,worker+'-'+id+'.sql'));
   await writeFile(path.join(backup,worker+'-'+id+'.json'),JSON.stringify(current,null,2)+'\n',{mode:0o600});
   const after=await ensureInstalled(worker,id,versions[id],{});assert.equal(canonical(after.configuration),canonical(current.configuration));
   const afterRows=JSON.parse(query(worker,db,"SELECT coalesce(jsonb_agg(to_jsonb(t) ORDER BY id),'[]') FROM business_records t"));assert.deepEqual(afterRows,before,'Upgrade must preserve every existing business record exactly');

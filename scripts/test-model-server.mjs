@@ -4,11 +4,14 @@ import {createServer} from 'node:https';
 import {readFileSync} from 'node:fs';
 const key=readFileSync('/etc/steward/analyst/api-key.txt','utf8').trim();
 const ref=r=>({entityId:r.entity_id,moduleId:r.module_id,streamId:r.stream_id,recordId:r.record_id,revision:Number(r.revision)});
+const emptyAttempts=new Map();
 const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFileSync('/run/secrets/tls_cert')},(req,res)=>{
  if(req.headers.authorization!=='Bearer '+key){res.writeHead(401);return res.end('{}');}
  let raw='';req.on('data',c=>{raw+=c;if(raw.length>1000000)req.destroy();});req.on('end',()=>{
   try{
    const b=JSON.parse(raw),prompt=b.input.filter(v=>v.role==='user').at(-1).content;const results=b.input.filter(v=>v.type==='function_call_output').map(v=>JSON.parse(v.output).result);
+   if(prompt.includes('[fixture:empty-always]'))return respond([]);
+   if(prompt.includes('[fixture:empty-once]')){const count=(emptyAttempts.get(prompt)??0)+1;emptyAttempts.set(prompt,count);if(count===1)return respond([]);}
    if(prompt.includes('[fixture:timeout]'))return;
    if(prompt.includes('[fixture:tool-error]'))return calls([{name:'get_entity_summary',arguments:{entityId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}]);
    if(prompt.includes('[fixture:model-error]')){res.writeHead(503);return res.end('{}');}
@@ -16,14 +19,15 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
-   if(b.instructions?.includes('query_mission_programmes')){
+   if(b.tools?.some(t=>/^(?:query_mission_|analyze_mission_|compare_mission_|get_mission_)/.test(t.name))||results.some(r=>r.structuredContent?.data?.missionCalculationId)){
     const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
     if(!rows.some(d=>d.records?.some(r=>r.programId&&r.moduleId)))return calls([{name:'query_mission_programmes',arguments:{}}]);
+    if(!rows.some(d=>d.records?.some(r=>r.reference?.streamId==='mission_aggregates_v1')))return calls([{name:'query_mission_aggregates',arguments:{}}]);
     const scenario=rows.find(d=>d.records?.some(r=>r.scenarioId))?.records[0];
     if(!scenario)return calls([{name:'query_mission_scenarios',arguments:{}}]);
     const analysis=rows.find(d=>d.missionCalculationId);
-    if(!analysis)return calls([{name:'analyze_mission_sustainability',arguments:{scenarioId:scenario.scenarioId}}]);
-    const c=analysis.calculation;return final({narrative:'TEST MODEL: synthetic fixed-cohort programme evidence. Approved available resources '+c.displayAmounts.available+', observed programme cost '+c.displayAmounts.cost+', period funding gap '+(prompt.includes('[fixture:wrong-amount]')?'USD 999999.00':c.displayAmounts.gap)+'. '+(c.status==='completed'?'Conditional maximum additional service units '+c.planning.maximumAdditionalUnits+'.':'Partial investigation: insufficient or suppressed information; no expansion conclusion.')+' Source programme attribution is separate; no eligibility, funding transfer, reservation or business decision was executed.',assumptions:['Human-reviewed fixed scenario capacity and incremental service unit costs; explicit approved resource restrictions.'],humanDecisions:['Review each programme authority, resource restrictions, current source freshness and service assumptions before any commitment.']});
+    if(!analysis){const alternatives=rows.find(d=>d.records?.some(r=>r.scenarioId))?.records;if(/compare|alternatives/i.test(prompt)&&alternatives.length>=2&&b.tools.some(t=>t.name==='compare_mission_scenarios'))return calls([{name:'compare_mission_scenarios',arguments:{scenarioIds:alternatives.slice(0,2).map(r=>r.scenarioId)}}]);return calls([{name:'analyze_mission_sustainability',arguments:{scenarioId:scenario.scenarioId}}]);}
+    const c=analysis.calculation,children=c.comparisons??[{calculation:c}];return final({narrative:'TEST MODEL: synthetic fixed-cohort programme evidence. '+children.map(row=>{const value=row.calculation;return(row.scenarioId?'Scenario '+row.scenarioId+'. ':'')+'Approved available '+value.displayAmounts.available+', observed cost '+value.displayAmounts.cost+', gap '+(prompt.includes('[fixture:wrong-amount]')?'USD 999999.00':value.displayAmounts.gap)+', incremental unit cost '+value.displayAmounts.incrementalUnitCost+', conditional cost '+value.displayAmounts.additionalCost+'. '+(value.status==='completed'?'Conditional maximum '+value.planning.maximumAdditionalUnits+' service units.':'Partial: insufficient/unknown evidence.');}).join(' ')+' Source attribution is separate; no eligibility, transfer, reservation or decision executed.',assumptions:['Human-reviewed fixed assumptions; explicit resource restrictions.'],humanDecisions:['Review programme authority, resource restrictions, freshness and assumptions before commitment.']});
    }
    if(b.instructions?.includes('query_scientific_datasets')){
     const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
