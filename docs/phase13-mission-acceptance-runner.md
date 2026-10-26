@@ -8,8 +8,10 @@ Housing, Employment, Support and Food each need at least five distinct actual
 synthetic source subjects. Missing prerequisites fail before publication.
 
 ```powershell
-node scripts/verify-phase13-mission.mjs
-node scripts/verify-phase13-mission-ollama.mjs
+$selected = (Get-Content .steward/operator/selection.json | ConvertFrom-Json).directory
+$env:STEWARD_SEED_CREDENTIALS_FILE = (Resolve-Path (Join-Path $selected 'demo/presenter.json')).Path
+node scripts/verify-phase13-mission.mjs $selected --prove-master-outage
+node scripts/verify-phase13-mission-ollama.mjs $selected
 ```
 
 The first command retains its own private `demo/phase13-mission.json`; it never
@@ -73,3 +75,5 @@ node scripts/review-phase13-mission-ollama.mjs $selected
 This review is separate from the deterministic Mission workspace finding. The
 reviewer checks the saved investigation and evidence again; it does not rerun
 the model or silently replace its sources. No business operation is authorized.
+
+The credential file must identify the same actual named Master account for scenario creation, source disclosure, model investigation and final human review. Use the appropriate existing account file for a clean installation; do not replace operator passwords. With `--prove-master-outage`, first-time aggregate publication stops Master briefly, proves the sealed records remain in each dedicated module database outbox, restores Master, then verifies authorized synchronization. Reruns cannot claim a new outage publication for already sealed releases.
