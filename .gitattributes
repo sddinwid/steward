@@ -13,3 +13,7 @@ modules/shopify/migrations/004-publication-gate.sql text eol=crlf
 # Preserve bytes of existing Sales 1.2.x applied migrations.
 modules/sales/migrations/004-financial-evidence.sql text eol=crlf
 modules/sales/migrations/005-atomic-financial-projection.sql text eol=crlf
+
+# Participant 1.0.0 was published with mixed line endings. Preserve its exact
+# applied bytes; neither LF nor CRLF normalization reproduces that checksum.
+modules/participant-services/migrations/001-foundation.sql -text

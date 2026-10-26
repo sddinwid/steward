@@ -32,7 +32,7 @@ async function sourceStatus(referral){await action(supportWorker,support,'/refre
 
 try{
  await mkdir('artifacts',{recursive:true});await logins();for(const w of ['worker-1','worker-2','worker-3'])assert(Number(sql(w,'SELECT COALESCE(max(version),0) FROM platform_migrations'))>=18,'Upgrade the selected core to verified schema18 before deployed Phase13D acceptance');
- const participantState=JSON.parse(await readFile(path.join(directory,'demo/phase13-participants.json'),'utf8'));assert(participantState.programId,'Complete the real Participant Services setup first');assert.equal((await installed(supportWorker,support))?.version,'1.0.1','The approved destination-picker Participant package must be installed by the release operator');
+ const participantState=JSON.parse(await readFile(path.join(directory,'demo/phase13-participants.json'),'utf8'));assert(participantState.programId,'Complete the real Participant Services setup first');assert.equal((await installed(supportWorker,support))?.version,'1.0.2','The approved destination-picker Participant package must be installed by the release operator');
  if(state.sourceProgramId)assert.equal(state.sourceProgramId,participantState.programId,'Existing approvals cannot be silently transferred to another support programme');state.sourceProgramId=participantState.programId;
  if(!state.workforceWorker)state.workforceWorker=!(await installed('worker-3',workforce))?'worker-3':'worker-1';const w=state.workforceWorker;assert(w!==employmentWorker);await persist();
  report.employmentWorker=employmentWorker;report.workforceWorker=w;report.coreImagesBefore=coreImages();

@@ -18,7 +18,7 @@ try{
  const placementsBefore=await records('worker-1',housing,'/placements');for(const r of legacyRows){const p=placementsBefore.find(p=>p.id===r.placementId);assert(p&&Date.parse(r.observedAt)<Date.parse(p.confirmedAt)+30*86400000,'Verify actual premature chronology rather than infer it from a record label');}
  const providerBefore=await installed('worker-2',assets);
  await ensureInstalled('worker-1',housing,'1.0.1',{syntheticOnly:true,integrationsEnabled:true});
- await ensureInstalled('worker-3',support,'1.0.1',{syntheticOnly:true,integrationsEnabled:true});
+ await ensureInstalled('worker-3',support,'1.0.2',{syntheticOnly:true,integrationsEnabled:true});
  for(const endpoint of ['/participants','/plans','/referrals'])assert.deepEqual(hashes(await records('worker-3',support,endpoint)),before['support'+endpoint]);
  for(const endpoint of ['/placements','/units','/buildings'])assert.deepEqual(hashes(await records('worker-1',housing,endpoint)),before['housing'+endpoint]);
  pass('Additive signed upgrades preserved all participant, plan, referral, placement, unit and building records and original provider receipts');
