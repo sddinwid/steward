@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.employment.pathways",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "Employment Pathways",
   "description": "Synthetic authorized training and employment referrals, deterministic qualification comparisons, human-reviewed placement and retention.",
   "minimumPlatformVersion": "0.13.0",
