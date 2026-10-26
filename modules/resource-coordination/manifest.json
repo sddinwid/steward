@@ -326,6 +326,34 @@
       "permission": "steward.finance.resource-coordination.admin"
     },
     {
+      "operationId": "listDisputeResolution",
+      "method": "GET",
+      "path": "/dispute-resolutions",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createDisputeResolution",
+      "method": "POST",
+      "path": "/dispute-resolutions",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "reviewDisputeResolution",
+      "method": "POST",
+      "path": "/review-dispute-resolution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "applyDisputeResolution",
+      "method": "POST",
+      "path": "/apply-dispute-resolution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
       "operationId": "listIncomingContribution",
       "method": "GET",
       "path": "/incoming-contributions",
@@ -431,6 +459,16 @@
       "operationId": "financeOptionsCommitment",
       "method": "GET",
       "path": "/finance-options-commitment",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsDisputeResolution",
+      "method": "GET",
+      "path": "/finance-options-dispute-resolution",
       "permission": "steward.finance.resource-coordination.read",
       "query": [
         "limit",
@@ -1521,6 +1559,100 @@
         {
           "label": "Cancel Contribution",
           "operationId": "cancelContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "dispute-resolution",
+      "title": "Dispute Resolution",
+      "navigationLabel": "Dispute Resolution",
+      "listOperation": "listDisputeResolution",
+      "createOperation": "createDisputeResolution",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "incomingContributionId",
+          "label": "Incoming Contribution Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsIncomingContribution",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "resolution",
+          "label": "Resolution",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "resume-original-obligation"
+          ]
+        },
+        {
+          "name": "evidence",
+          "label": "Evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "resolution",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Review Dispute Resolution",
+          "operationId": "reviewDisputeResolution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Apply Dispute Resolution",
+          "operationId": "applyDisputeResolution",
           "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
         }
       ]

@@ -16,4 +16,6 @@ Cancellation after acceptance requires receiver approval and cancellation of the
 
 Original USD and EUR values use integer minor units, with no implicit conversion. Private balanced journals retain entity gross activity and classify internal/intercompany movements separately. They are bounded transaction evidence, not a production general ledger. No participant identifiers, private banking details or live commercial transactions belong in these synthetic records.
 
-Remaining gates include full dispute-resolution/recovery UX, governed approved summary publication and mission cost-source integration, scientific scenarios, Master presentation, MCP/Qwen, normal-browser demonstration, real deployment/outage/upgrade/clean-install acceptance and release packaging. No source checkpoint establishes Phase 14 completion.
+Disputed receiving obligations remain frozen until an immutable evidence-based resolution is separately reviewed and applied by a current receiver. It resumes the same factual original state and terms only. Subsequent execution still requires current source approvals and a fresh receiver permit. Factual callbacks cannot silently remove the dispute.
+
+Remaining gates include deployed/browser recovery UX verification, governed approved summary publication and mission cost-source integration, scientific scenarios, Master presentation, MCP/Qwen, normal-browser demonstration, real deployment/outage/upgrade/clean-install acceptance and release packaging. No source checkpoint establishes Phase 14 completion.
