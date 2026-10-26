@@ -1,3 +1,4 @@
+import {economicAuthorization} from './economic-authorization.js';
 import {canonical} from '@steward/module-sdk';
 import {randomUUID} from 'node:crypto';
 import {scientificToolEvidence} from './scientific-context.js';
@@ -92,6 +93,14 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
       }
       if (installation.role === 'master') {
         if (!['registry_admin','enrollment_admin'].includes(actor.role)) fail(403, 'Analytical administrator required');
+        const economicSources=(await economicAuthorization(pool,installation.installationId).page(actor.account_id,1,0)).records;
+        if(economicSources.length){
+          tool('query_economic_summaries','Discover a bounded page of current/historical source-approved financial and noncash summaries shared explicitly with this named account. Potential cash availability is not approval, profit, settlement or funding. No participant cases or bank data.',z.object({limit:z.number().int().min(1).max(4).default(3),offset:z.number().int().min(0).max(1000).default(0)}).strict(),async i=>api('/api/v14/economy/summaries?limit='+i.limit+'&offset='+i.offset));
+          tool('query_economic_scenarios','Discover existing human-reviewed economic scenarios. Copy an actual scenarioId; all balances, reserves, restrictions, priorities, capacity and forecast assumptions are fixed by reviewed source evidence. Never invent or modify a scenario.',z.object({limit:z.number().int().min(1).max(3).default(3),offset:z.number().int().min(0).max(30).default(0)}).strict(),async i=>{const rows=(await api('/api/v14/economy/scenarios')).records;return{records:rows.slice(i.offset,i.offset+i.limit).map((r:any)=>({scenarioId:r.scenario_id,currency:r.request.currency,horizon:r.request.horizon,startDate:r.request.startDate,priorities:r.request.priorities,assumption:r.request.assumption,financialReferences:r.request.financialReferences})),nextOffset:i.offset+i.limit<rows.length?i.offset+i.limit:null,authoritative:false};});
+          const economicResult=(c:any)=>({economicCalculationId:c.calculation_id,calculation:c.result,sourceEvidence:c.input.evidence,supportingReferences:c.source_references,affectedEntities:[...new Set(c.source_references.map((r:any)=>r.entityId))],decisionExecuted:false});
+          tool('analyze_economic_sustainability','Invoke the existing bounded Python reserve-aware optimizer and exact reconciliation for one actual human-reviewed economic scenarioId. Compares conservative, baseline, expansion and sensitivity assumptions. No model-supplied balances, authority, transfers, service decisions or changed restrictions.',z.object({scenarioId:entity}).strict(),async i=>economicResult((await api('/api/v14/economy/calculations','POST',{scenarioId:i.scenarioId,calculationId:randomUUID()})).calculation));
+          tool('get_economic_result','Read a retained economic calculation and exact original source evidence only while all named-account disclosures remain authorized. Historical evidence never grants current funding authority.',z.object({calculationId:entity}).strict(),async i=>economicResult((await api('/api/v14/economy/calculations/'+i.calculationId)).calculation));
+        }
         const missionProgrammes=(await api('/api/v13/mission/programmes')).records;
         if(missionProgrammes.length){
           tool('query_mission_programmes','Discover only current source-issued and explicitly accepted programme aggregate permissions. No cases or participant identities.',empty,async()=>api('/api/v13/mission/programmes'));

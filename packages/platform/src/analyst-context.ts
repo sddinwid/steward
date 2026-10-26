@@ -1,3 +1,4 @@
+import {compactEconomicCalculation,compactEconomicSummaries} from './economic-context.js';
 import { z } from 'zod';
 import {compactScientificCalculation,compactScientificConstraints} from './scientific-context.js';
 import {formatMoneyCents} from './business-analysis.js';
@@ -46,6 +47,8 @@ export function resourcePage(records:any[], raw:unknown) {
 export function modelToolResult(name:string,result:any,compact=false) {
   if(!result.structuredContent)return result;
   let data=result.structuredContent.data;
+  if(name==='query_economic_summaries'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicSummaries(data)}};
+  if(data?.economicCalculationId)return{structuredContent:{...result.structuredContent,data:{economicCalculationId:data.economicCalculationId,calculation:compactEconomicCalculation(data.calculation),supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,decisionExecuted:false}}};
   if(name==='query_mission_aggregates'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactMissionAggregates(data)}};
   if(name==='query_mission_scenarios'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:{...data,records:data.records.map((r:any)=>({...r,scenario:compactMissionScenario(r.scenario)})),financialRule:'All money is already formatted in major currency units. Copy the currency prefix and decimals exactly; do not convert, rescale or replace with dollar signs.'}}};
   if(data?.missionCalculationId)return{structuredContent:{...result.structuredContent,data:{missionCalculationId:data.missionCalculationId,calculation:compactMissionCalculation(data.calculation),supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,decisionExecuted:false,evidenceRule:'Complete fixed-cohort evidence retained in missionCalculationId, current programme leases required on every read. UNKNOWN is never zero; units are conditional services, never unique people. All money is already formatted in major currency units: copy the currency prefix/decimals exactly; never rescale or replace with dollar signs.'}}};

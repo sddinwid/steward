@@ -1,0 +1,23 @@
+# ADR 0036: Economic MCP investigations retain financial authority locally
+
+Status: accepted for source implementation; real Qwen and deployed release gates pending.
+
+## Decision
+
+Use the existing authenticated MCP transport, provider abstraction, Analyst budgets, model activity history and human finding lifecycle. Add a separate `economic-sustainability` profile with four read-only analytical tools: bounded disclosed financial summary discovery, discovery of existing human-reviewed scenarios, execution of the existing bounded Python calculation for an exact reviewed scenario ID, and retained-result reads. Discovery requires an accepted source-signed financial disclosure; broad registry authority alone offers no economic tools.
+
+The profile offers only the next discovered read tool, then removes all tools during finalization. The model chooses each native call and its actual arguments. It cannot submit financial assumptions, change restrictions or authority, create a scenario, install a provider, reserve a resource, approve a contribution, transfer money, authorize production or publish a finding. Economic investigations do not automatically call general entity discovery. Activity records accurately distinguish this absence from a tool execution.
+
+Full original summaries, all period-level scientific inputs/results and complete source references remain retained. Compact model views contain formatted major-currency amounts, source restrictions/reserves, reviewed scenario IDs and exact programme unit-period summaries. They never turn resource valuations or forecast generation into cash. Alternatives are never added together; unit-periods are conditional services, not unique people or recorded outcomes.
+
+Structured economic evidence extends the existing protected-evidence scanner. It requires complete entity/installation/module/stream/record/revision identities, current named-account disclosure and retained calculation ancestry. History, follow-ups and per-turn context revalidate the same source authority. Revocation hides current and historical investigations without deleting evidence. Ordinary business findings/tools continue to exclude protected economic evidence. Disclosure authority proofs and invalidation streams are not model evidence.
+
+Final narrative validation requires the exact calculated contribution for each named alternative and baseline unit quantities, units, base operating cost and incremental cost. Unsupported currency amounts, rescaling, missing synthetic/conditional/review qualifications, and favorable claims about incomplete calculations fail. One bounded correction is allowed; it grants no extra tools or execution budget. This mechanical check is a guard, not proof that every natural-language claim is sound: genuine Qwen output must also be reviewed against the retained evidence before release acceptance.
+
+Publishing an economic finding through the Analyst requires an explicit `reviewed:true` request by the authorized human administrator after completion. It reuses the economic calculation finding endpoint, current source `publish` disclosure and freshness checks. Partial investigations cannot publish a successful recommendation. The model never receives this publication operation as an MCP tool. Bilateral Worker approvals and reconciliation remain independently required for actual synthetic contributions.
+
+## Validation approach and limitations
+
+Keep the reproducible test provider clearly labelled `testModel:true`, use actual TLS/MCP and real isolated Python, and exercise provider failures, malformed output, call timeouts, tool budgets and revoked history. The protocol fixture uses only returned reviewed scenario IDs and actual calculated formatted values. Its optional credential/certificate/port environment variables apply solely to the explicit test server and preserve historical verification defaults.
+
+A separate genuine local Qwen run against the deployed financial modules remains mandatory. Protocol fixtures, signed source test fixtures and direct Python adapters do not establish that acceptance gate. Current planning starts on the UTC review day and requires the active budget to cover the whole first period; past plans, skipped operating days and expired budget authority are rejected. All later budget/capacity recurrence is explicitly hypothetical. No production accounting, payment execution or causal mission impact is implied.

@@ -2,10 +2,10 @@
 // Run explicitly during verification inside Master, then kill it and restore config.
 import {createServer} from 'node:https';
 import {readFileSync} from 'node:fs';
-const key=readFileSync('/etc/steward/analyst/api-key.txt','utf8').trim();
+const key=readFileSync(process.env.STEWARD_FIXTURE_API_KEY_FILE??'/etc/steward/analyst/api-key.txt','utf8').trim();
 const ref=r=>({entityId:r.entity_id,moduleId:r.module_id,streamId:r.stream_id,recordId:r.record_id,revision:Number(r.revision)});
 const emptyAttempts=new Map();
-const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFileSync('/run/secrets/tls_cert')},(req,res)=>{
+export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_TLS_KEY_FILE??'/run/secrets/tls_key'),cert:readFileSync(process.env.STEWARD_FIXTURE_TLS_CERT_FILE??'/run/secrets/tls_cert')},(req,res)=>{
  if(req.headers.authorization!=='Bearer '+key){res.writeHead(401);return res.end('{}');}
  let raw='';req.on('data',c=>{raw+=c;if(raw.length>1000000)req.destroy();});req.on('end',()=>{
   try{
@@ -19,6 +19,14 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   if(b.tools?.some(t=>/economic/.test(t.name))||results.some(r=>r.structuredContent?.data?.economicCalculationId)){
+    const rows=results.map(r=>r.structuredContent?.data).filter(Boolean),analysis=rows.find(d=>d.economicCalculationId);
+    if(analysis){const c=analysis.calculation;return final({narrative:'TEST MODEL: synthetic conditional economic alternatives require separate source and recipient approval. '+c.scenarios.map(s=>s.name+': '+(s.displayProposedContribution??'partial unknown')).join('; ')+'. '+(c.scenarios.find(s=>s.name==='baseline')?.programmes??[]).map(p=>'Baseline '+p.conditionalUnitPeriods+' conditional '+p.unit+', base costs '+p.displayBaseOperatingCost+', incremental services '+p.displayIncrementalServiceCost).join('; ')+'. No financial or service decision executed.',assumptions:['Explicit human-reviewed synthetic forecasts; resource valuation creates no cash.'],humanDecisions:['Review source freshness, restrictions, reserves, separate bilateral approvals and reconciliation.']});}
+    if(b.tools.some(t=>t.name==='query_economic_summaries'))return calls([{name:'query_economic_summaries',arguments:{}}]);
+    if(b.tools.some(t=>t.name==='query_economic_scenarios'))return calls([{name:'query_economic_scenarios',arguments:{}}]);
+    const scenario=rows.find(d=>d.records?.some(r=>r.scenarioId))?.records[0];if(scenario)return calls([{name:'analyze_economic_sustainability',arguments:{scenarioId:scenario.scenarioId}}]);
+    throw Error('Reviewed economic fixture evidence missing');
+   }
    if(b.tools?.some(t=>/^(?:query_mission_|analyze_mission_|compare_mission_|get_mission_)/.test(t.name))||results.some(r=>r.structuredContent?.data?.missionCalculationId)){
     const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
     if(!rows.some(d=>d.records?.some(r=>r.programId&&r.moduleId)))return calls([{name:'query_mission_programmes',arguments:{}}]);
@@ -97,4 +105,4 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
   }catch{res.writeHead(500);res.end('{}');}
  });
 });
-server.listen(9443,'127.0.0.1');
+server.listen(Number(process.env.STEWARD_FIXTURE_PORT??9443),'127.0.0.1');
