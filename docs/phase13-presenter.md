@@ -39,7 +39,7 @@ The prepared layout is:
 | Worker 3 | Participant Services | Intake, plans, consent and coordinated referrals |
 | Worker 3 | Food & Essential Services | Sessions, actual deliveries and private supplies |
 | Worker 2 | Employment Pathways | Training referrals, employer responses and local placement observations |
-| Worker 1, unless the accepted evidence records another compatible Worker | Workforce | Skills, training capacity/completion and employer decisions |
+| Worker 3 in the retained operator scenario; see acceptance evidence for a clean installation | Workforce | Skills, training capacity/completion and employer decisions |
 | Worker 2, unless compatibility checks selected Worker 1 | Inventory / Procurement | Private stock obligations and private draft supply requirements |
 | Master | Mission Impact / Scientific Analytics / AI Analyst | Approved aggregate evidence and advisory investigations |
 
