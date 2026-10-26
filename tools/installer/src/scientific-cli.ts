@@ -14,7 +14,7 @@ try{
  const master=manifest.instances.find((i:any)=>i.role==='master');if(!master||!existsSync(path.join(directory,'security/manifest.json')))throw Error('Secure Master installation required');
  await mkdir(lock);locked=true;
  if(existsSync(target)){
-  const saved=JSON.parse(await readFile(path.join(target,'manifest.json'),'utf8'));if(saved.version!==1||saved.installationId!==master.installationId||!['1.0.0','1.1.0'].includes(saved.serviceVersion))throw Error('Scientific installation identity or service version mismatch');
+  const saved=JSON.parse(await readFile(path.join(target,'manifest.json'),'utf8'));if(saved.version!==1||saved.installationId!==master.installationId||!['1.0.0','1.1.0','1.2.0'].includes(saved.serviceVersion))throw Error('Scientific installation identity or service version mismatch');
   for(const file of ['config.json','key.txt','compose.yaml'])if(!existsSync(path.join(target,file)))throw Error('Existing scientific setup is incomplete; restore its private backup');
   const overlayFile=path.join(target,'compose.yaml'),overlay=await readFile(overlayFile,'utf8');
   // Narrow repair for the initial generated flow-list quoting defect. Never

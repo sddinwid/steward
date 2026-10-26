@@ -32,3 +32,50 @@ Only the reviewed economic scenario route accepts up to 64 KiB. The core request
 ## Pending deployment verification
 
 No operator routing overlay has been provisioned or applied by this checkpoint. Before upgrading the selected operator: prepare verified clean-source image evidence, back up configuration and all databases, preserve exact original account/identity/module/business records, and use the in-place upgrade path. Real Shopify/Printify settings and records must remain unchanged. A separate temporary full-stack acceptance environment requires stopping the selected stack including managed modules, retaining its volumes, and restoring it in cleanup. Run `node scripts/verify-single-stack.mjs` after deployment acceptance.
+
+
+## Candidate release tooling (execution not yet accepted)
+
+The source is a v0.14.0 candidate. The version map is `docs/phase14-module-versions.json`; all 17 acceptance gates in `docs/phase14-release-gates.json` currently remain unverified. The following is the supported build/install procedure, not evidence that the artifacts or upgrade already exist.
+
+From clean committed matching source:
+
+```powershell
+node scripts/build-release-images.mjs 0.14.0
+node --test scripts/test-phase13-release.mjs scripts/test-phase14-release.mjs
+```
+
+Build and sign only the seven new package versions after verifying their source and migrations. Use an explicitly selected publisher deployment directory; retain all old catalog entries and publisher identity. Do not rebuild the unchanged Shopify/Printify or earlier business package versions from newer shared source.
+
+```powershell
+$deployment = (Get-Content .steward/operator/selection.json | ConvertFrom-Json).directory
+node scripts/publish-module.mjs modules/housing-management "$deployment"
+node scripts/publish-module.mjs modules/participant-services "$deployment"
+node scripts/publish-module.mjs modules/employment-pathways "$deployment"
+node scripts/publish-module.mjs modules/services-food "$deployment"
+node scripts/publish-module.mjs modules/resource-availability "$deployment"
+node scripts/publish-module.mjs modules/mission-budget "$deployment"
+node scripts/publish-module.mjs modules/resource-coordination "$deployment"
+node scripts/release.mjs pack --version 0.14.0 --directory "$deployment" --bundle artifacts/releases/steward-0.14.0-rc1 --candidate
+node scripts/release.mjs verify --bundle artifacts/releases/steward-0.14.0-rc1
+```
+
+A source commit or package change after building requires new clean-source image proof and a new candidate directory. Existing signed versions and accepted historical artifacts remain immutable. A complete private configuration/database backup and explicit before/after identity, account, business/module-record and connector-state comparison are mandatory before upgrading the selected operator. The release upgrade command also performs a private configuration copy and `pg_dumpall` for each operational PostgreSQL instance before changing selected image pins.
+
+```powershell
+node scripts/release.mjs upgrade --version 0.14.0 --bundle artifacts/releases/steward-0.14.0-rc1 --directory "$deployment" --trust-bundled-modules
+node scripts/release.mjs start --bundle artifacts/releases/steward-0.14.0-rc1 --directory "$deployment"
+node scripts/verify-single-stack.mjs
+```
+
+The release installs available module packages separately and does not enroll Workers, install financial modules, invent programme authority or change an existing module's configuration. Module upgrades require the ordinary explicit Module Manager operation and original migration compatibility. The selected existing operator's Compose selection is refreshed in place after a v0.14 upgrade; an unrelated temporary deployment is not selected. Routine `docker compose` operations continue to target that same operator.
+
+Earlier-phase acceptance runners retain their default v0.13 package map. To test compatible new packages explicitly in the candidate deployment:
+
+```powershell
+$env:STEWARD_ACCEPTANCE_RELEASE='0.14.0'
+# Run the relevant acceptance scripts with the explicit deployment directory.
+Remove-Item Env:STEWARD_ACCEPTANCE_RELEASE
+```
+
+No promotion or v0.14.0 tag is allowed until actual full installation, UI, financial coordination, outage, privacy, Qwen, live read-only catalog preservation and release redeployment gates pass. Credentials and backups stay private under `.steward`; never include them in an artifact or verification archive.

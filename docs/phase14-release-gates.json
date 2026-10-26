@@ -1,0 +1,108 @@
+{
+  "version": "0.14.0",
+  "status": "in-progress",
+  "gates": [
+    {
+      "id": "contracts",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "resources",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "budgets",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "coordination",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "governance",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "science",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "intelligence",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "mcp",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "ollama",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "browser",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "outage",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "privacy",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "installation",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "upgrade",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "regressions",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "live-catalog",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "release",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    }
+  ]
+}

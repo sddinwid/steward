@@ -6,9 +6,10 @@ import {tmpdir} from 'node:os';
 import {phase13ModuleVersion,phase13ReleaseVersions} from './phase13-release-versions.mjs';
 import {PHASE13_GATES,RELEASE13_IMAGE_KINDS,scienceVersionForRelease,scientificSourceVersion,assertBuildSource,validatePhase13Versions,assertPhase13Gates,assertImageBuildEvidence} from './release-contracts.mjs';
 test('science versions and source identities reject historical retagging before any Docker build',async()=>{
- const source=await readFile('services/scientific/steward_science/analysis.py','utf8');assert.equal(scientificSourceVersion(source),'1.1.0');assert.equal(scienceVersionForRelease('0.13.0'),'1.1.0');assert.equal(scienceVersionForRelease('0.12.0'),'1.0.0');assertBuildSource('0.13.0','0.13.0',source);
- assert.throws(()=>assertBuildSource('0.12.0','0.12.0',source),/immutable release tag/);assert.throws(()=>assertBuildSource('0.12.0','0.13.0',source),/matching preserved release source/);assert.throws(()=>scienceVersionForRelease('0.14.0'));
+ const source=await readFile('services/scientific/steward_science/analysis.py','utf8'),current=JSON.parse(await readFile('package.json','utf8')).version;assert.equal(scientificSourceVersion(source),scienceVersionForRelease(current));assert.equal(scienceVersionForRelease('0.13.0'),'1.1.0');assert.equal(scienceVersionForRelease('0.12.0'),'1.0.0');assert.equal(scienceVersionForRelease('0.14.0'),'1.2.0');assertBuildSource(current,current,source);
+ assertBuildSource('0.13.0','0.13.0',"{'service':'steward-scientific','version':'1.1.0'}");assert.throws(()=>assertBuildSource('0.12.0','0.12.0',source),/immutable release tag/);assert.throws(()=>assertBuildSource('0.13.0',current,source),/matching preserved release source/);assert.throws(()=>scienceVersionForRelease('0.15.0'));
  assert.throws(()=>execFileSync(process.execPath,['scripts/build-release-images.mjs','0.12.0'],{stdio:'pipe'}),e=>e.status!==0&&String(e.stderr).includes('matching preserved release source'));
+
 });
 test('central versions retain independent module distribution and exact release-scoped scientific/simulator identities',async()=>{
  const value=validatePhase13Versions(JSON.parse(await readFile('docs/phase13-module-versions.json','utf8')));assert.equal(Object.keys(value.modules).length,15);assert.equal(value.modules['cee.inventory'],'1.5.0');assert.equal(value.modules['steward.housing.management'],'1.0.1');assert.equal(value.modules['cee.shopify'],'1.2.0');assert.equal(value.modules['cee.printify'],'1.1.2');assert.equal(value.commerceSimulatorTag,'steward-commerce-simulator:0.13.0');
