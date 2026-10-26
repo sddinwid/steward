@@ -21,5 +21,5 @@ COPY modules/simulation-commerce/package.json modules/simulation-commerce/manife
 COPY modules/simulation-commerce/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="steward.simulation.commerce" steward.module.version="1.1.2" steward.module.sdk="1"
+LABEL steward.module.id="steward.simulation.commerce" steward.module.version="1.1.3" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

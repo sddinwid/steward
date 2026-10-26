@@ -116,7 +116,7 @@ try{
   await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','500') WHERE id=$1",[order.id]);const changed=await observeSimulationSales(ctx,true);assert.equal(changed.contributionCents,complete.contributionCents-500);
   await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','null') WHERE id=$1",[order.id]);const missing=await observeSimulationSales(ctx,true);assert.equal(missing.contributionCents,null);assert.equal(missing.reconciliationComplete,false);assert.equal(missing.series[0].feesCents,null);
   await sales.pool.query("UPDATE business_records SET data=jsonb_set(data,'{financials,channelFeeCents}','0') WHERE id=$1",[order.id]);
-  await until(async()=>(await read(engineId,'run'))[0].data.lastSummary?.reconciliationComplete===true,'financial receipt');
+  await until(async()=>{const r=(await read(engineId,'run'))[0];return r.data.lastSummary?.reconciliationComplete===true&&r.data.lastSummary.orderCount===1&&r.data.lastSummary.completedOrders===1&&!r.data.needsFinalObservation;},'fresh final financial receipt');
   const report=await modules.get(engineId).api('GET','/dashboard');assert(report.groups[0].navigation.includes('control-center'));assert(report.groups[1].metrics.some(m=>m.label==='Transaction fees (completed)'&&m.value!==null));assert.equal(report.groups[1].series.length,6);
  });
  await check('actual owner projections pass private-field validation and Master financial reconciliation',async()=>{
