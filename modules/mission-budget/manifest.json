@@ -1,0 +1,1822 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.finance.mission-budget",
+  "version": "1.0.0",
+  "name": "Mission Budget & Funding",
+  "description": "Synthetic entity-owned economic authority, immutable financial evidence and governed resource coordination. No external payments.",
+  "minimumPlatformVersion": "0.14.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.finance.mission-budget.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "steward.finance.mission-budget.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.finance.mission-budget.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.finance.mission-budget.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.finance.mission-budget.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listPolicy",
+      "method": "GET",
+      "path": "/policies",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createPolicy",
+      "method": "POST",
+      "path": "/policies",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updatePolicy",
+      "method": "PUT",
+      "path": "/policies/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "activatePolicy",
+      "method": "POST",
+      "path": "/activate-policy/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "revokePolicy",
+      "method": "POST",
+      "path": "/revoke-policy/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listAuthorityGrant",
+      "method": "GET",
+      "path": "/authority-grants",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createAuthorityGrant",
+      "method": "POST",
+      "path": "/authority-grants",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateAuthorityGrant",
+      "method": "PUT",
+      "path": "/authority-grants/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "revokeFinancialGrant",
+      "method": "POST",
+      "path": "/revoke-financial-grant/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listBudget",
+      "method": "GET",
+      "path": "/budgets",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createBudget",
+      "method": "POST",
+      "path": "/budgets",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateBudget",
+      "method": "PUT",
+      "path": "/budgets/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "submitBudget",
+      "method": "POST",
+      "path": "/submit-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "reviewBudget",
+      "method": "POST",
+      "path": "/review-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "approveBudget",
+      "method": "POST",
+      "path": "/approve-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "activateBudget",
+      "method": "POST",
+      "path": "/activate-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "closeBudget",
+      "method": "POST",
+      "path": "/close-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listBudgetLine",
+      "method": "GET",
+      "path": "/budget-lines",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createBudgetLine",
+      "method": "POST",
+      "path": "/budget-lines",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateBudgetLine",
+      "method": "PUT",
+      "path": "/budget-lines/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listFundingRequest",
+      "method": "GET",
+      "path": "/funding-requests",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createFundingRequest",
+      "method": "POST",
+      "path": "/funding-requests",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateFundingRequest",
+      "method": "PUT",
+      "path": "/funding-requests/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "approveFundingRequest",
+      "method": "POST",
+      "path": "/approve-funding-request/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "cancelFundingRequest",
+      "method": "POST",
+      "path": "/cancel-funding-request/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listEncumbrance",
+      "method": "GET",
+      "path": "/encumbrances",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createEncumbrance",
+      "method": "POST",
+      "path": "/encumbrances",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateEncumbrance",
+      "method": "PUT",
+      "path": "/encumbrances/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "reserveBudget",
+      "method": "POST",
+      "path": "/reserve-budget/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "releaseEncumbrance",
+      "method": "POST",
+      "path": "/release-encumbrance/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "listExpense",
+      "method": "GET",
+      "path": "/expenses",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createExpense",
+      "method": "POST",
+      "path": "/expenses",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateExpense",
+      "method": "PUT",
+      "path": "/expenses/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "approveExpense",
+      "method": "POST",
+      "path": "/approve-expense/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "postExpense",
+      "method": "POST",
+      "path": "/post-expense/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "financeOptionsPolicy",
+      "method": "GET",
+      "path": "/finance-options-policy",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsAuthorityGrant",
+      "method": "GET",
+      "path": "/finance-options-authority-grant",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsBudget",
+      "method": "GET",
+      "path": "/finance-options-budget",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsBudgetLine",
+      "method": "GET",
+      "path": "/finance-options-budget-line",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsFundingRequest",
+      "method": "GET",
+      "path": "/finance-options-funding-request",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsEncumbrance",
+      "method": "GET",
+      "path": "/finance-options-encumbrance",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsExpense",
+      "method": "GET",
+      "path": "/finance-options-expense",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "budgetOverview",
+      "method": "GET",
+      "path": "/budget-overview",
+      "permission": "steward.finance.mission-budget.read"
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "business",
+      "screenId": "budget-overview",
+      "title": "Mission Budget Overview",
+      "navigationLabel": "Budget overview",
+      "listOperation": "budgetOverview",
+      "fields": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "budgetVersion",
+          "label": "budget Version",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "approvedBudgetCents",
+          "label": "approved Budget Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "committedCents",
+          "label": "committed Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "receivedCents",
+          "label": "received Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "encumberedCents",
+          "label": "encumbered Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "spentCents",
+          "label": "spent Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "spendableCents",
+          "label": "spendable Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "fundingGapCents",
+          "label": "funding Gap Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "budgetVarianceCents",
+          "label": "budget Variance Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "conditionalFundedUnits",
+          "label": "conditional Funded Units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "currency",
+        "approvedBudgetCents",
+        "committedCents",
+        "receivedCents",
+        "spentCents",
+        "spendableCents",
+        "fundingGapCents"
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: none. Existing case/team grants and intentionally removed rights remain unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "controller",
+            "requester",
+            "reviewer",
+            "executor",
+            "receiver",
+            "reporter"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "policy",
+      "title": "Policy",
+      "navigationLabel": "Policy",
+      "listOperation": "listPolicy",
+      "createOperation": "createPolicy",
+      "updateOperation": "updatePolicy",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "approvalLimitCents",
+          "label": "Approval Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "delegationLimitCents",
+          "label": "Delegation Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "minimumReserveCents",
+          "label": "Minimum Reserve (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "reserveCoverageDays",
+          "label": "Reserve Coverage Days",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "liquidityBufferCents",
+          "label": "Liquidity Buffer (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "cashHorizonDays",
+          "label": "Cash Horizon Days",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "observationMaxAgeHours",
+          "label": "Observation Max Age Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "requiredApprovals",
+          "label": "Required Approvals",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "approvalLifetimeHours",
+          "label": "Approval Lifetime Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "validUntil",
+          "label": "Valid Until",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "approvalLimitCents",
+        "delegationLimitCents",
+        "minimumReserveCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Activate Policy",
+          "operationId": "activatePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Revoke Policy",
+          "operationId": "revokePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "authority-grant",
+      "title": "Authority Grant",
+      "navigationLabel": "Authority Grant",
+      "listOperation": "listAuthorityGrant",
+      "createOperation": "createAuthorityGrant",
+      "updateOperation": "updateAuthorityGrant",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Actor Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "role",
+          "label": "Role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "requester",
+            "approver",
+            "controller",
+            "executor",
+            "receiver",
+            "discloser"
+          ]
+        },
+        {
+          "name": "limitCents",
+          "label": "Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "role",
+        "limitCents",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke Financial Grant",
+          "operationId": "revokeFinancialGrant",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "budget",
+      "title": "Budget",
+      "navigationLabel": "Budget",
+      "listOperation": "listBudget",
+      "createOperation": "createBudget",
+      "updateOperation": "updateBudget",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "periodStart",
+          "label": "Period Start",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "periodEnd",
+          "label": "Period End",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "revisesBudgetId",
+          "label": "Revises Budget Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "varianceExplanation",
+          "label": "Variance Explanation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "currency",
+        "periodStart",
+        "periodEnd",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Submit Budget",
+          "operationId": "submitBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Review Budget",
+          "operationId": "reviewBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Approve Budget",
+          "operationId": "approveBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Activate Budget",
+          "operationId": "activateBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Close Budget",
+          "operationId": "closeBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "budget-line",
+      "title": "Budget Line",
+      "navigationLabel": "Budget Line",
+      "listOperation": "listBudgetLine",
+      "createOperation": "createBudgetLine",
+      "updateOperation": "updateBudgetLine",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "budgetId",
+          "label": "Budget Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudget",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "service",
+          "label": "Service",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "other"
+          ]
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "minimumOperatingCents",
+          "label": "Minimum Operating (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "unitCostCents",
+          "label": "Unit Cost (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "unitCostKnown",
+          "label": "Unit Cost Known",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "known",
+            "unknown"
+          ]
+        },
+        {
+          "name": "serviceCapacity",
+          "label": "Service Capacity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "category",
+        "service",
+        "amountCents",
+        "minimumOperatingCents",
+        "status"
+      ],
+      "actions": []
+    },
+    {
+      "workspace": "business",
+      "screenId": "funding-request",
+      "title": "Funding Request",
+      "navigationLabel": "Funding Request",
+      "listOperation": "listFundingRequest",
+      "createOperation": "createFundingRequest",
+      "updateOperation": "updateFundingRequest",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "budgetLineId",
+          "label": "Budget Line Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudgetLine",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "amountCents",
+        "purpose",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Funding Request",
+          "operationId": "approveFundingRequest",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Cancel Funding Request",
+          "operationId": "cancelFundingRequest",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "encumbrance",
+      "title": "Encumbrance",
+      "navigationLabel": "Encumbrance",
+      "listOperation": "listEncumbrance",
+      "createOperation": "createEncumbrance",
+      "updateOperation": "updateEncumbrance",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "budgetLineId",
+          "label": "Budget Line Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudgetLine",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "amountCents",
+        "purpose",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Reserve Budget",
+          "operationId": "reserveBudget",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Release Encumbrance",
+          "operationId": "releaseEncumbrance",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "expense",
+      "title": "Expense",
+      "navigationLabel": "Expense",
+      "listOperation": "listExpense",
+      "createOperation": "createExpense",
+      "updateOperation": "updateExpense",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "budgetLineId",
+          "label": "Budget Line Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsBudgetLine",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "encumbranceId",
+          "label": "Encumbrance Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "serviceEvidenceId",
+          "label": "Service Evidence Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceDocument",
+          "label": "Source Document",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "incurredAt",
+          "label": "Incurred At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "varianceExplanation",
+          "label": "Variance Explanation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "amountCents",
+        "sourceDocument",
+        "description",
+        "incurredAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Expense",
+          "operationId": "approveExpense",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Post Expense",
+          "operationId": "postExpense",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "approved-economic-summaries",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "finance.budgets",
+        "contract": "steward.programme-funding",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "finance.budget.accept",
+            "command": "finance.budget.accept",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.mission-budget.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.budget.receipt",
+            "command": "finance.budget.receipt",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "receivedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest",
+                "settlementId",
+                "receivedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.mission-budget.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true,
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}
