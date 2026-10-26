@@ -1,4 +1,4 @@
-import {compactEconomicCalculation,compactEconomicSummaries} from './economic-context.js';
+import {compactEconomicCalculation,compactEconomicSummaries,compactEconomicOutcomes} from './economic-context.js';
 import { z } from 'zod';
 import {compactScientificCalculation,compactScientificConstraints} from './scientific-context.js';
 import {formatMoneyCents} from './business-analysis.js';
@@ -47,6 +47,7 @@ export function resourcePage(records:any[], raw:unknown) {
 export function modelToolResult(name:string,result:any,compact=false) {
   if(!result.structuredContent)return result;
   let data=result.structuredContent.data;
+  if(name==='query_economic_outcomes'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicOutcomes(data)}};
   if(name==='query_economic_summaries'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicSummaries(data)}};
   if(data?.economicCalculationId)return{structuredContent:{...result.structuredContent,data:{economicCalculationId:data.economicCalculationId,calculation:compactEconomicCalculation(data.calculation),supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,decisionExecuted:false}}};
   if(name==='query_mission_aggregates'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactMissionAggregates(data)}};
