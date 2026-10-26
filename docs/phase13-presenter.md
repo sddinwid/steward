@@ -1,12 +1,12 @@
 # Phase 13 mission demonstration — presenter guide
 
-**Prepared instructions, not a passing acceptance report.** The final Phase 13
-candidate, clean installation, complete browser pathway, mission financial UI,
-real Qwen investigation and release gates must be exercised and recorded before
-claiming completion. Check [release gates](phase13-release-gates.json) and the
-latest verification report first. Historical checkpoint evidence does not prove
-the final candidate. All participants and service observations in this demo are
-synthetic; this is not an HMIS-certified or production case-management system.
+**Verified synthetic MVP demonstration.** See [final acceptance](phase13-final-acceptance.md)
+and [release gates](phase13-release-gates.json) for exact evidence and limitations.
+All participant records are synthetic. Immediate follow-ups are not elapsed
+30/90-day retention. Existing sealed operator reports retain unknown historical
+capacity values; fresh-cohort acceptance separately verifies the newer optional
+training and opportunity measures. This is not an HMIS-certified or production
+case-management system.
 
 ## Before inviting the audience
 

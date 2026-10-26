@@ -1,10 +1,11 @@
 # Steward 0.13.0 candidate installation and release gates
 
-**Not yet accepted.** The mandatory gates in
-[phase13-release-gates.json](phase13-release-gates.json) start unverified. This
-document describes the procedure; commands and examples are not acceptance
-evidence. Only actual recorded results may close gates. Passing a synthetic MVP
-does not establish HMIS certification or commercial production readiness.
+**Mandatory acceptance gates passed.** The verified bundle is
+`artifacts/releases/steward-0.13.0-rc4`; see [artifact identities](phase13-release-artifacts.json),
+[gate evidence](phase13-release-gates.json), and [final acceptance](phase13-final-acceptance.md).
+Older candidate directories are retained historical attempts, not the final distribution.
+The examples below describe reproducible installation/build procedures. Passing this
+synthetic MVP does not establish HMIS certification or commercial production readiness.
 
 ## Source, module and image identities
 
@@ -190,3 +191,17 @@ node scripts/release.mjs start --directory $deployment
 ```
 
 For the full clean acceptance runner, set `$env:STEWARD_TEST_NETWORK_PREFIX='10.241'` before invoking it (after checking host routes). The runner configures only its new test deployment, including the Scientific network. Existing operator addresses, databases and credentials remain unchanged. A failed startup still runs operator restoration and single-stack health checks; retain its failed report rather than presenting it as a passing installation.
+
+## Exact commands for the verified local distribution
+
+From this checkout, the retained operator remains selected at `.steward/phase8-upgrade-regressions`:
+
+```powershell
+node scripts/release.mjs verify --bundle artifacts/releases/steward-0.13.0-rc4
+node scripts/release.mjs start --directory .steward/phase8-upgrade-regressions
+node scripts/smoke.mjs .steward/phase8-upgrade-regressions
+node scripts/verify-single-stack.mjs
+node scripts/release.mjs stop --directory .steward/phase8-upgrade-regressions
+```
+
+For another clean host, copy the complete rc4 directory, build its toolkit as above, and use `--bundle ..` from that toolkit with a new private deployment directory. Approve bundled module provenance with `--trust-bundled-modules`; add `--simulators` only for the synthetic demonstration. Never point a clean-installation/reset command at the retained operator directory. Existing operator passwords remain in its private account files; this release did not reset them.

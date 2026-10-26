@@ -1,120 +1,192 @@
 {
   "version": "0.13.0",
-  "status": "unverified",
-  "sourceCommit": null,
-  "verifiedCandidateManifestSha256": null,
+  "status": "passed",
+  "sourceCommit": "f998794641bd9b8f358d0a600cf310571ff13669",
+  "verifiedCandidateManifestSha256": "1a74d639f73317e056f9a28dea8f89f2b3d4f904e66af5267a60891db73fc702",
   "gates": [
     {
       "id": "foundation",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-rc4-release-images.log",
+        "artifacts/phase13-final-installation-contracts.log"
+      ]
     },
     {
       "id": "housing",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-housing-deployment.json",
+        "artifacts/phase13-final-clean/phase13-participant-deployment.json"
+      ]
     },
     {
       "id": "participants",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-participant-deployment.json",
+        "artifacts/phase13-protocol-full-regressions.log",
+        "artifacts/phase13-participant-deployment.json"
+      ]
     },
     {
       "id": "employment",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-employment-deployment.json",
+        "artifacts/phase13-final-clean/phase13-capacity-verification.json"
+      ]
     },
     {
       "id": "food",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-food-deployment.json",
+        "artifacts/phase13-final-clean/phase13-essential-services.json",
+        "artifacts/phase13-final-clean/phase13-participant-food-deployment.json"
+      ]
     },
     {
       "id": "coordination",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-employment-deployment.json",
+        "artifacts/phase13-final-clean/phase13-food-deployment.json",
+        "artifacts/phase13-final-clean/phase13-participant-food-deployment.json"
+      ]
     },
     {
       "id": "privacy",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-protocol-full-regressions.log",
+        "artifacts/phase13-final-clean/phase13-mission-verification.json",
+        "artifacts/phase13-final-clean/phase13-operational-alerts.json"
+      ]
     },
     {
       "id": "analytics",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-mission-verification.json",
+        "artifacts/phase13-final-clean/phase13-comparison-verification.json",
+        "artifacts/phase13-final-clean/phase13-operational-alerts.json",
+        "artifacts/phase13-final-scientific-service.log"
+      ]
     },
     {
       "id": "mcp",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase5-results.json",
+        "artifacts/phase13-final-clean/phase12-test-model.json",
+        "artifacts/phase13-protocol-full-regressions.log",
+        "artifacts/phase13-mission-ollama-comparison.json"
+      ]
     },
     {
       "id": "ollama",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-mission-ollama-comparison.json",
+        "artifacts/phase13-protocol-ollama-comparison.log",
+        "artifacts/phase13-protocol-ollama-review.log"
+      ]
     },
     {
       "id": "browser",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-final-clean/phase13-housing-deployment.json",
+        "artifacts/phase13-final-clean/phase13-employment-deployment.json",
+        "artifacts/phase13-final-clean/phase13-mission-verification.json",
+        "artifacts/phase13-final-clean/phase13-operational-alerts.json",
+        "artifacts/phase13-final-clean/phase13-comparison-verification.json",
+        "artifacts/phase13-protocol-browser.log"
+      ]
     },
     {
       "id": "outage",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-operational-recovery.json",
+        "artifacts/phase13-clean-installation.json",
+        "artifacts/phase13-final-clean/phase13-employment-deployment.json"
+      ]
     },
     {
       "id": "installation",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-clean-installation.json",
+        "artifacts/phase13-rc4-clean-installation.log"
+      ]
     },
     {
       "id": "upgrade",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-rc4-selected-upgrade.log",
+        "artifacts/phase13-reporting-module-upgrade.json",
+        "artifacts/phase13-clean-installation.json",
+        "artifacts/phase13-final-live-isolation.json"
+      ]
     },
     {
       "id": "regressions",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-protocol-full-regressions.log",
+        "artifacts/phase13-final-installation-contracts.log",
+        "artifacts/phase13-final-scientific-service.log",
+        "artifacts/phase13-final-scientific-governance.log",
+        "artifacts/phase13-final-scientific-presentation.log",
+        "artifacts/phase13-final-ssma-browser.log",
+        "artifacts/phase13-clean-installation.json"
+      ]
     },
     {
       "id": "release",
       "mandatory": true,
-      "status": "unverified",
-      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
-      "evidence": []
+      "status": "passed",
+      "result": "Actual verification passed; see evidence and docs/phase13-final-acceptance.md for scope, failed historical attempts and limitations.",
+      "evidence": [
+        "artifacts/phase13-rc4-verify.log",
+        "artifacts/core-images-0.13.0.json",
+        "artifacts/phase13-final-single-stack.log",
+        "artifacts/phase13-final-operator-smoke.log",
+        "artifacts/phase13-final-resources.json"
+      ]
     }
   ]
 }

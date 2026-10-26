@@ -1,0 +1,66 @@
+{
+  "version": "0.13.0",
+  "acceptanceStatus": "verified-pending-promotion",
+  "sourceCommit": "f998794641bd9b8f358d0a600cf310571ff13669",
+  "bundle": "artifacts/releases/steward-0.13.0-rc4",
+  "candidateManifestSha256": "1a74d639f73317e056f9a28dea8f89f2b3d4f904e66af5267a60891db73fc702",
+  "images": {
+    "master-api": {
+      "tag": "steward-master-api:0.13.0",
+      "id": "sha256:9e01352990ea08bbce8454d91d881141b2a1b0500a4fa9312e71c3d33d4841a5",
+      "platform": "linux/amd64"
+    },
+    "master-web": {
+      "tag": "steward-master-web:0.13.0",
+      "id": "sha256:33f1e206c43f1cb93319353b949f50973fc2b6a463e26f86bfc8a36115e5062e",
+      "platform": "linux/amd64"
+    },
+    "worker-api": {
+      "tag": "steward-worker-api:0.13.0",
+      "id": "sha256:a7d878fbca88da1a62af8cf5e99491e02124fa855eaf4cc586eb3cd1776565de",
+      "platform": "linux/amd64"
+    },
+    "worker-web": {
+      "tag": "steward-worker-web:0.13.0",
+      "id": "sha256:2968d3b2de031d147634c7ca4d417911e50b9fccfd1f5fc418d489dfdb5bbbf1",
+      "platform": "linux/amd64"
+    },
+    "module-host": {
+      "tag": "steward-module-host:0.13.0",
+      "id": "sha256:fc414ec8b300fcb4bf0b988692086b416c653999c9dc5d81235813f403a80044",
+      "platform": "linux/amd64"
+    },
+    "postgres": {
+      "tag": "postgres:17.9-alpine",
+      "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+    },
+    "commerce-simulator": {
+      "tag": "steward-commerce-simulator:0.13.0",
+      "id": "sha256:9f318ca73209b9b787b8cde4c3b74b7ffcefcd3f961b755c4bcef429b73460f2",
+      "platform": "linux/amd64"
+    },
+    "scientific": {
+      "tag": "steward-scientific:1.1.0",
+      "id": "sha256:3ec966b54ecf7ce8321617b9db055ef5d9a81e4677fc6e4149155fa82a6877e0",
+      "platform": "linux/amd64"
+    }
+  },
+  "moduleVersions": {
+    "cee.assets": "1.1.0",
+    "cee.inventory": "1.5.0",
+    "cee.operations": "1.0.0",
+    "cee.procurement": "1.1.0",
+    "cee.sales": "1.3.2",
+    "cee.workforce": "1.2.0",
+    "cee.shopify": "1.2.0",
+    "cee.printify": "1.1.2",
+    "cee.stock-ledger": "1.1.0",
+    "steward.simulation.commerce": "1.1.3",
+    "steward.simulation.fulfillment": "1.0.1",
+    "steward.housing.management": "1.0.1",
+    "steward.housing.services": "1.0.3",
+    "steward.employment.pathways": "1.1.0",
+    "steward.services.food": "1.0.1"
+  },
+  "note": "All mandatory gates passed. Immutable candidate payloads verified; promotion follows the evidence commit."
+}

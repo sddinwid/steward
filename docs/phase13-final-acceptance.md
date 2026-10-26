@@ -1,9 +1,13 @@
 # Phase 13 acceptance — verified results and remaining gates
 
-**Draft; release acceptance remains open.** Source checkpoint:
-`df4fd0a42773df2dc2fd1076c5f7825aa1e72210`. Final clean-installation acceptance is pending the explicit private-network
-configuration after Docker exhausted its default address pools. This report does not declare Phase 13 complete, promote an
-archive, or authorize a `v0.13.0` tag.
+**All mandatory acceptance gates passed.** Built source:
+`f998794641bd9b8f358d0a600cf310571ff13669`. The corrected rc4 copied-toolkit
+clean installation, full pathway, repeated upgrade/redeployment and cleanup
+passed on 2026-10-26. The selected operator is restored with 44 containers and
+no unexpected running stack. Promotion metadata is recorded separately in
+[release artifacts](phase13-release-artifacts.json) and
+[release gates](phase13-release-gates.json). This is a synthetic MVP acceptance,
+not a commercial production-readiness claim.
 
 ## Independently packaged modules
 
@@ -102,7 +106,7 @@ service, hiring, funding or reservation decisions.
 | Full checkpoint Node regressions | 354 passed | `phase13-protocol-full-regressions.log` |
 | Programme/privacy PostgreSQL checks | 26 passed | Same log, programme-access result |
 | Mission API/security/MCP checks | 78 passed | Same log, authenticated mission result |
-| Final release/governance contracts | 9 passed | `phase13-final-release-contracts.log` |
+| Final installation/release/governance contracts | 10 passed | `phase13-final-installation-contracts.log` |
 | Scientific Python tests and isolated authenticated HTTP service | 74 passed; one warning; HTTP passed | `phase13-final-scientific-service.log` |
 | Scientific governance | 28 passed | `phase13-final-scientific-governance.log` |
 | Scientific Chromium fixtures | 8 passed | `phase13-final-scientific-presentation.log` |
@@ -110,23 +114,47 @@ service, hiring, funding or reservation decisions.
 
 Logs are under `artifacts/`. Fixture checks are not deployment/provider evidence;
 the actual browser, operational and real-model reports above provide that
-separate evidence. These checkpoint counts are not a claim that final clean
-acceptance or post-restoration verification has finished.
+separate evidence. The final copied toolkit ran the complete clean deployment
+suite; its ten stage summaries and all 44 mission operational/browser check
+statements passed. Detailed reports/screenshots are preserved in
+`artifacts/phase13-final-clean/`; `phase13-rc4-clean-installation.log` records
+the complete run.
 
-## Pending final acceptance
+## Final installation, recovery and preservation
 
-- Finish the complete corrected clean installation from the committed copied toolkit,
-  including repeated provisioning, independent installs, all operational paths,
-  fresh quota/optional-field first seals, positive alert review and comparison.
-- Stop temporary acceptance services in cleanup; restore the selected operator,
-  then verify health/readiness, retained identities/configuration/business data,
-  and `node scripts/verify-single-stack.mjs`.
-- Verify the final source-bound archive, checksums, signed packages, image IDs,
-  redeployment/upgrade preservation and the exact candidate's required gates.
-  Record actual gate evidence before any promotion or release tag.
+The fresh cohort expressly reported six available training seats, six employment
+opportunities and one known local stock shortage. The positive Food and
+Employment signals were separately reviewed in the browser; only Workers 2 and
+3 received and acknowledged that operational finding. Housing sustainability
+and comparison findings reached only Workers 1 and 2. Old sealed operator
+snapshots were not rewritten to manufacture these new optional observations.
 
-The earlier rc2 run failed stale verifier version expectations; its failure and
-successful cleanup remain retained. The rc3 run subsequently encountered host network-pool exhaustion before creating containers; its cleanup also restored the operator. Final acceptance must stand on its own.
+The final clean run used 14 explicit `10.241.x.0/24` test networks after checking
+host routes and Docker overlap. No networks or volumes were pruned. Repeated
+provisioning preserved configuration/secret bytes; backed-up repeated upgrade,
+pinned-image redeployment and four isolated database volumes passed. Cleanup
+stopped the test stack, restored the operator, and passed smoke/single-stack
+checks with no cleanup errors. Earlier rc2 stale-verifier and rc3 host-pool
+failures remain recorded; neither was retrospectively labelled a pass.
+
+Final operator recovery passed six checks with four actual container
+interruptions. Existing private records, configurations, identities, module
+versions and reviewed findings survived. Original scenario reuse did not create
+another calculation or duplicate finding. The Ollama outage check uses a
+controlled unavailable endpoint; it is distinct from the genuine Qwen run.
+
+Live **read-only** connector revalidation passed: Shopify 17 products/26 variants
+and Printify 5 products/625 variants. Connector secrets/configuration/images and
+commercial data were preserved; no live order or paid production operation ran.
+One historical Printify profile remains unavailable; the active verified profile
+is available. Evidence: `phase13-final-live-isolation.json`.
+
+Resource snapshot: 44 running containers, summed container memory 2473.10 MiB,
+summed instantaneous CPU 105.25% (approximately one CPU core), and zero loaded
+Ollama models. These measurements exclude Docker VM/host overhead and are not
+performance guarantees (`phase13-final-resources.json`). Operator URLs remain
+Master `https://master.localhost:26100` and Workers `https://worker-1.localhost:26201`,
+`https://worker-2.localhost:26202`, `https://worker-3.localhost:26203`.
 
 ## Production limitations
 
