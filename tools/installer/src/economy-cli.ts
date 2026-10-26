@@ -1,0 +1,2 @@
+import {provisionEconomyRouting} from './economy.js';
+try{if(!process.argv[2])throw Error('Usage: node tools/installer/dist/economy-cli.js EXISTING_DEPLOYMENT_DIRECTORY');const result=await provisionEconomyRouting(process.argv[2]);console.log('Economic secure API routing '+result.status+' for '+result.installations+' existing installations. No accounts, secrets, databases, policies or module configuration changed.');}catch(error){console.error('Economic routing provisioning failed: '+(error as Error).message);process.exitCode=1;}

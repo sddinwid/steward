@@ -15,6 +15,7 @@ if (existsSync(path.join(directory, 'analyst/compose.yaml'))) files.push('-f', p
 if (existsSync(path.join(directory, 'scientific/compose.yaml'))) files.push('-f', path.join(directory, 'scientific/compose.yaml'));
   if (existsSync(path.join(directory, 'commerce/compose.yaml'))) files.push('-f', path.join(directory, 'commerce/compose.yaml'));
   if (existsSync(path.join(directory, 'mission/compose.yaml'))) files.push('-f', path.join(directory, 'mission/compose.yaml'));
+  if (existsSync(path.join(directory, 'economy/compose.yaml'))) files.push('-f', path.join(directory, 'economy/compose.yaml'));
   if (existsSync(path.join(directory, 'release/compose.yaml'))) files.push('-f', path.join(directory, 'release/compose.yaml'));
   if(process.env.STEWARD_COMPOSE_OVERRIDE_FILE){const override=path.resolve(directory,process.env.STEWARD_COMPOSE_OVERRIDE_FILE);const relative=path.relative(directory,override);if(relative.startsWith('..')||path.isAbsolute(relative)||!existsSync(override))throw new Error('Compose override must be an existing file inside the selected deployment');files.push('-f',override);}
   return docker(['compose', ...files, ...args]);

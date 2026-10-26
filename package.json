@@ -69,7 +69,8 @@
     "test:economy:costs": "node scripts/test-mission-cost-providers.mjs",
     "test:economy:source": "node --test scripts/test-economic-source.mjs",
     "test:economy:planning": "node --test scripts/test-economic-planning.mjs && node scripts/test-economic-planning-master.mjs --analyst",
-    "test:economy:planning:browser": "node scripts/test-economic-planning-master.mjs --browser --analyst"
+    "test:economy:planning:browser": "node scripts/test-economic-planning-master.mjs --browser --analyst",
+    "economy:provision": "node tools/installer/dist/economy-cli.js"
   },
   "devDependencies": {
     "typescript": "5.9.3",
