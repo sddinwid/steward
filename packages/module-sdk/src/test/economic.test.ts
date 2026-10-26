@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {validateManifest,type ModulePackageManifest} from '../index.js';
+const original=JSON.parse(await readFile(new URL('../../../../modules/resource-availability/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
+const fixture=()=>structuredClone(original);
+
+test('signed economic metadata is optional for legacy packages and restricted to versioned synthetic providers',()=>{validateManifest(fixture());const legacy=fixture();delete legacy.economicServices;validateManifest(legacy);for(const patch of [{minimumPlatformVersion:'0.13.0'},{economicServices:{contractVersion:1,kind:'invented',syntheticOnly:true}},{economicServices:{contractVersion:1,kind:'resource-availability',syntheticOnly:false}}])assert.throws(()=>validateManifest({...fixture(),...patch} as ModulePackageManifest),/Economic services/);});
+test('economic manifests cannot publish raw financial tables or expose private operational APIs as MCP tools',()=>{const raw=fixture();raw.replication={contractVersion:1,streams:[{streamId:'private_bank_accounts',table:'bank_accounts',idColumn:'id',revisionColumn:'revision',columns:['id','revision','account_number']}]};assert.throws(()=>validateManifest(raw),/Economic services/);const unsafe=fixture();unsafe.mcpTools=[{name:'unsafe_cash',description:'Test-only unsafe private source',operationId:'listCashPool'}];assert.throws(()=>validateManifest(unsafe),/Economic MCP/);const valid=fixture();valid.api.push({operationId:'publishedEconomicSummaries',method:'GET',path:'/published-economic-summaries',permission:valid.moduleId+'.read',query:['limit','offset']});valid.mcpTools=[{name:'approved_economic_summaries',description:'Test-only signed metadata validation',operationId:'publishedEconomicSummaries'}];validateManifest(valid);});

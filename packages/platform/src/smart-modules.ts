@@ -89,7 +89,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       sourceProgram=g.sourceProgramId;destinationProgram=g.destinationProgramId;purpose=g.purpose;expiry=new Date(g.expiresAt).toISOString();peerId=g.destinationInstallationId;targetEntity=g.destinationEntityId;
       const p=v.destination.providers.find(p=>p.moduleId===g.providerModuleId)!,capability=p.manifest.smart!.provides.find(c=>c.capabilityId===g.capabilityId)!;
       candidates=[{moduleId:p.moduleId,moduleVersion:p.manifest.version,installationId:p.providerInstallationId,entityId:targetEntity,packageDigest:p.packageDigest,state:p.state,configured:p.configuredCapabilities.includes(g.capabilityId),capability}];
-    }else if(sourceProgram||destinationProgram||purpose||expiry||rows.find(row=>row.module_id===b.consumerId)?.manifest?.programServices){
+    }else if(sourceProgram||destinationProgram||purpose||expiry||(rows.find(row=>row.module_id===b.consumerId)?.manifest?.programServices||rows.find(row=>row.module_id===b.consumerId)?.manifest?.economicServices)){
       if(!governance||!sourceProgram||!destinationProgram||!purpose||!expiry||Date.parse(expiry)<=Date.now()||Date.parse(expiry)>Date.now()+31*86400000)fail(403,'Explicit programme scopes, purpose and bounded approval expiry are required');
       await governance.assertProgram(actor.account_id,b.consumerId,sourceProgram);await governance.assertProgram(actor.account_id,b.providerId,destinationProgram);
     }

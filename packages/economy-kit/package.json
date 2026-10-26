@@ -11,6 +11,10 @@
     "./module": {
       "types": "./dist/module.d.ts",
       "default": "./dist/module.js"
+    },
+    "./coordination-contracts": {
+      "types": "./dist/coordination-contracts.d.ts",
+      "default": "./dist/coordination-contracts.js"
     }
   },
   "scripts": {

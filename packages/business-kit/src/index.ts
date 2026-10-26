@@ -35,6 +35,8 @@ export interface Context {
     moduleId: string;
     /** Enrolled identity from the trusted runtime file, never module settings. */
     readonly entityId?: string;
+    /** Fresh, private Worker authentication context; never accepted from module API bodies. */
+    readonly financialPrincipals?: {readonly issuedAt:number;readonly actors:readonly string[]};
 }
 /** Optional module-owned data policy. Platform permission is checked separately. */
 export interface AccessRequest {
@@ -224,9 +226,11 @@ async function resourceKey(resource: Resource, c: Context, input: Data) {
     ensure(typeof key === 'string' && key.length > 0 && key.length <= 512, 'Invalid module record identity', 500);
     return key;
 }
+const financialContext=(request?:FastifyRequest)=>{const raw=request?.headers['x-steward-financial-principals'];if(raw===undefined)return{};let value:any;try{ensure(typeof raw==='string'&&raw.length<=12000,'Financial authentication context unavailable',403);value=JSON.parse(raw);}catch{throw new BusinessError(403,'Financial authentication context unavailable');}ensure(value&&Object.keys(value).length===2&&Object.keys(value).every(k=>['issuedAt','actors'].includes(k))&&Number.isSafeInteger(value.issuedAt)&&Array.isArray(value.actors)&&value.actors.length<=256&&new Set(value.actors).size===value.actors.length&&value.actors.every((id:unknown)=>typeof id==='string'&&new RegExp(uuidPattern).test(id)),'Financial authentication context unavailable',403);return{financialPrincipals:Object.freeze({issuedAt:value.issuedAt,actors:Object.freeze(value.actors)})};};
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
-    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
+
+    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...financialContext(request) });
     const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
     const audited = new WeakSet<FastifyRequest>();
     const identifyRecord = (request: FastifyRequest, kind: string, id?: string) => {
@@ -395,7 +399,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
     return app;
 }
 export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, runtime: Data, definition: Definition) {
-    const ctx = (db: pg.PoolClient, request?:FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime',peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
+    const ctx = (db: pg.PoolClient, request?:FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime',peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...financialContext(request) });
     app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,(envelope->>'sequence')::bigint,command_id LIMIT 4")).rows.map(r => r.envelope) }));
     app.post<{
         Body: IntegrationCommand;
@@ -426,12 +430,12 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
         ensure(b && ['retry', 'delivered', 'rejected'].includes(b.status) && typeof b.commandId === 'string', 'Invalid acknowledgment', 400);
         const row = (await db.query('SELECT * FROM integration_outbox WHERE command_id=$1 FOR UPDATE', [b.commandId])).rows[0];
         ensure(row && validateCommand(row.envelope) === b.digest, 'Acknowledgment digest mismatch', 409);
-        await authorizeAccess(definition, undefined, ctx(db), { operation: 'integration-ack', path: '/integration-ack', command: row.envelope, input: b });
+        await authorizeAccess(definition, undefined, ctx(db,req), { operation: 'integration-ack', path: '/integration-ack', command: row.envelope, input: b });
         if (row.status !== 'pending') {
             ensure(b.status === row.status || b.status === 'retry', 'Terminal acknowledgment conflict', 409);
             return { status: row.status };
         }
-        const acknowledgmentContext=ctx(db);if(row.envelope.simulation)setSimulationContext(acknowledgmentContext,row.envelope.simulation);
+        const acknowledgmentContext={...ctx(db,req),actor:'module-runtime',permissions:[] as string[]};if(row.envelope.simulation)setSimulationContext(acknowledgmentContext,row.envelope.simulation);
         const domainReceipt={...(b.result??{}),...(b.status==='rejected'&&b.result?.error===undefined&&typeof b.error==='string'?{error:b.error.slice(0,160)}:{})};
         if (b.status !== 'retry'&&(!acknowledgmentContext.simulation||await simulationEpoch(acknowledgmentContext)))
             await definition.acknowledge?.(row.envelope, b.status, domainReceipt, acknowledgmentContext);

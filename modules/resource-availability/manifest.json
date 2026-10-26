@@ -6,6 +6,11 @@
   "name": "Business Resource Availability",
   "description": "Synthetic entity-owned economic authority, immutable financial evidence and governed resource coordination. No external payments.",
   "minimumPlatformVersion": "0.14.0",
+  "economicServices": {
+    "contractVersion": 1,
+    "kind": "resource-availability",
+    "syntheticOnly": true
+  },
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -333,6 +338,12 @@
       ]
     },
     {
+      "operationId": "noncashOverview",
+      "method": "GET",
+      "path": "/noncash-overview",
+      "permission": "steward.finance.resource-availability.read"
+    },
+    {
       "operationId": "availabilityOverview",
       "method": "GET",
       "path": "/availability-overview",
@@ -340,6 +351,115 @@
     }
   ],
   "ui": [
+    {
+      "workspace": "business",
+      "screenId": "noncash-overview",
+      "title": "Available Shared Resources",
+      "navigationLabel": "Shared resource capacity",
+      "listOperation": "noncashOverview",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "resourceKind",
+          "label": "resource Kind",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "capacityMode",
+          "label": "capacity Mode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "quantity",
+          "label": "quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operationalPriorityQuantity",
+          "label": "operational Priority Quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "heldQuantity",
+          "label": "held Quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "usedQuantity",
+          "label": "used Quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "availableQuantity",
+          "label": "available Quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "unit",
+          "label": "unit",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "valuationCents",
+          "label": "valuation Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "valuationBasis",
+          "label": "valuation Basis",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operatingCostCents",
+          "label": "operating Cost Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "capacityMode",
+        "availableQuantity",
+        "heldQuantity",
+        "usedQuantity",
+        "unit",
+        "valuationBasis"
+      ]
+    },
     {
       "workspace": "business",
       "screenId": "availability-overview",
@@ -589,6 +709,12 @@
           "generate": "uuid"
         },
         {
+          "name": "managerEntityId",
+          "label": "Manager Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
           "name": "currency",
           "label": "Currency",
           "type": "string",
@@ -678,6 +804,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -790,6 +923,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -879,6 +1019,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -949,8 +1096,15 @@
             "external-cash-receipt",
             "operating-cash-payment",
             "correction-increase",
-            "correction-decrease"
+            "correction-decrease",
+            "reversal"
           ]
+        },
+        {
+          "name": "correctsAdjustmentId",
+          "label": "Corrects Adjustment Id",
+          "type": "string",
+          "required": false
         },
         {
           "name": "amountCents",
@@ -990,6 +1144,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -1130,6 +1291,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -1200,6 +1368,16 @@
             "staff-time",
             "transport",
             "service"
+          ]
+        },
+        {
+          "name": "capacityMode",
+          "label": "Capacity Mode",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "consumable",
+            "reusable"
           ]
         },
         {
@@ -1299,14 +1477,21 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
         "code",
         "name",
         "resourceKind",
+        "capacityMode",
         "quantity",
-        "operationalPriorityQuantity",
         "status"
       ],
       "actions": []
@@ -1333,8 +1518,29 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
-    "migrations": [],
+    "schemaVersion": 5,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "294519e427233902b4b45b34e47858f9e0f11a08f2c4c390c4dbbfe4b14a43a8"
+      },
+      {
+        "version": 2,
+        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+      },
+      {
+        "version": 3,
+        "sha256": "3db312543e81aeda77dc5c6eb4f29746842d288613c83d8d8494d2a4166295fd"
+      },
+      {
+        "version": 4,
+        "sha256": "ba50b7d9a41a1e8a599f635e6d2d8c84f0ba360a621c1a352d665097d9ed87e0"
+      },
+      {
+        "version": 5,
+        "sha256": "fe10d3e6cbcddc04e358cfe088834cde082f4d9cd7ecfbefda6685acc09e7f14"
+      }
+    ],
     "destructiveRollback": false
   },
   "integrationEvents": [],
@@ -1417,6 +1623,14 @@
                     "service"
                   ]
                 },
+                "capacityMode": {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "consumable",
+                    "reusable"
+                  ]
+                },
                 "resourceId": {
                   "anyOf": [
                     {
@@ -1432,6 +1646,37 @@
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "valuationCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "valuationBasis": {
+                  "type": "string",
+                  "enum": [
+                    "documented-unit-cost",
+                    "documented-replacement-estimate",
+                    "unknown"
+                  ]
+                },
+                "operatingCostCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
                 },
                 "restriction": {
                   "type": "string",
@@ -1458,8 +1703,13 @@
                 "currency",
                 "amountCents",
                 "resourceKind",
+                "capacityMode",
                 "resourceId",
                 "quantity",
+                "unit",
+                "valuationCents",
+                "valuationBasis",
+                "operatingCostCents",
                 "restriction",
                 "termsDigest",
                 "expiresAt"
@@ -1478,7 +1728,9 @@
                   "enum": [
                     "held",
                     "consumed",
-                    "released"
+                    "released",
+                    "returned",
+                    "absent"
                   ]
                 },
                 "amountCents": {
@@ -1495,6 +1747,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1506,6 +1769,7 @@
                 "amountCents",
                 "quantity",
                 "termsDigest",
+                "journalId",
                 "synthetic"
               ]
             },
@@ -1536,13 +1800,24 @@
                 "termsDigest": {
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiverPermitId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "receiverPermitExpiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
                 }
               },
               "required": [
                 "programId",
                 "sourceProgramId",
                 "commitmentId",
-                "termsDigest"
+                "termsDigest",
+                "receiverPermitId",
+                "receiverPermitExpiresAt"
               ]
             },
             "output": {
@@ -1558,7 +1833,9 @@
                   "enum": [
                     "held",
                     "consumed",
-                    "released"
+                    "released",
+                    "returned",
+                    "absent"
                   ]
                 },
                 "amountCents": {
@@ -1575,6 +1852,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1586,6 +1874,7 @@
                 "amountCents",
                 "quantity",
                 "termsDigest",
+                "journalId",
                 "synthetic"
               ]
             },
@@ -1638,7 +1927,9 @@
                   "enum": [
                     "held",
                     "consumed",
-                    "released"
+                    "released",
+                    "returned",
+                    "absent"
                   ]
                 },
                 "amountCents": {
@@ -1655,6 +1946,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1666,6 +1968,7 @@
                 "amountCents",
                 "quantity",
                 "termsDigest",
+                "journalId",
                 "synthetic"
               ]
             },
@@ -1718,7 +2021,9 @@
                   "enum": [
                     "held",
                     "consumed",
-                    "released"
+                    "released",
+                    "returned",
+                    "absent"
                   ]
                 },
                 "amountCents": {
@@ -1735,6 +2040,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1746,6 +2062,112 @@
                 "amountCents",
                 "quantity",
                 "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-availability.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.resource.return",
+            "command": "finance.resource.return",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "returnEvidenceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "returnEvidenceId",
+                "observedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
                 "synthetic"
               ]
             },

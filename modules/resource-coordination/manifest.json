@@ -1,0 +1,4956 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.finance.resource-coordination",
+  "version": "1.0.0",
+  "name": "Resource Coordination",
+  "description": "Synthetic entity-owned economic authority, immutable financial evidence and governed resource coordination. No external payments.",
+  "minimumPlatformVersion": "0.14.0",
+  "economicServices": {
+    "contractVersion": 1,
+    "kind": "resource-coordination",
+    "syntheticOnly": true
+  },
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.finance.resource-coordination.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "steward.finance.resource-coordination.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.finance.resource-coordination.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.finance.resource-coordination.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.finance.resource-coordination.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listPolicy",
+      "method": "GET",
+      "path": "/policies",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createPolicy",
+      "method": "POST",
+      "path": "/policies",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "updatePolicy",
+      "method": "PUT",
+      "path": "/policies/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "activatePolicy",
+      "method": "POST",
+      "path": "/activate-policy/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "revokePolicy",
+      "method": "POST",
+      "path": "/revoke-policy/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listAuthorityGrant",
+      "method": "GET",
+      "path": "/authority-grants",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createAuthorityGrant",
+      "method": "POST",
+      "path": "/authority-grants",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "updateAuthorityGrant",
+      "method": "PUT",
+      "path": "/authority-grants/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "revokeFinancialGrant",
+      "method": "POST",
+      "path": "/revoke-financial-grant/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listResourceProfile",
+      "method": "GET",
+      "path": "/resource-profiles",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createResourceProfile",
+      "method": "POST",
+      "path": "/resource-profiles",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "deactivateResourceProfile",
+      "method": "POST",
+      "path": "/deactivate-resource-profile/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listRecipient",
+      "method": "GET",
+      "path": "/recipients",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createRecipient",
+      "method": "POST",
+      "path": "/recipients",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "deactivateRecipient",
+      "method": "POST",
+      "path": "/deactivate-recipient/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listBudgetProfile",
+      "method": "GET",
+      "path": "/budget-profiles",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createBudgetProfile",
+      "method": "POST",
+      "path": "/budget-profiles",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "deactivateBudgetProfile",
+      "method": "POST",
+      "path": "/deactivate-budget-profile/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listCommitment",
+      "method": "GET",
+      "path": "/commitments",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCommitment",
+      "method": "POST",
+      "path": "/commitments",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "updateCommitment",
+      "method": "PUT",
+      "path": "/commitments/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "reserveContribution",
+      "method": "POST",
+      "path": "/reserve-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "approveContribution",
+      "method": "POST",
+      "path": "/approve-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "submitContribution",
+      "method": "POST",
+      "path": "/submit-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "refreshContribution",
+      "method": "POST",
+      "path": "/refresh-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "executeSyntheticSettlement",
+      "method": "POST",
+      "path": "/execute-synthetic-settlement/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "authorizeResourceUse",
+      "method": "POST",
+      "path": "/authorize-resource-use/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "announceResourceDelivery",
+      "method": "POST",
+      "path": "/announce-resource-delivery/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "confirmResourceReturn",
+      "method": "POST",
+      "path": "/confirm-resource-return/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "announceSettlement",
+      "method": "POST",
+      "path": "/announce-settlement/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "reconcileContribution",
+      "method": "POST",
+      "path": "/reconcile-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "cancelContribution",
+      "method": "POST",
+      "path": "/cancel-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "listIncomingContribution",
+      "method": "GET",
+      "path": "/incoming-contributions",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "acceptContribution",
+      "method": "POST",
+      "path": "/accept-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "rejectContribution",
+      "method": "POST",
+      "path": "/reject-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "confirmResourceDelivery",
+      "method": "POST",
+      "path": "/confirm-resource-delivery/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "recordResourceReturn",
+      "method": "POST",
+      "path": "/record-resource-return/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "confirmFundingReceipt",
+      "method": "POST",
+      "path": "/confirm-funding-receipt/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "approveContributionCancellation",
+      "method": "POST",
+      "path": "/approve-contribution-cancellation/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "disputeContribution",
+      "method": "POST",
+      "path": "/dispute-contribution/:id",
+      "permission": "steward.finance.resource-coordination.admin"
+    },
+    {
+      "operationId": "financeOptionsPolicy",
+      "method": "GET",
+      "path": "/finance-options-policy",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsAuthorityGrant",
+      "method": "GET",
+      "path": "/finance-options-authority-grant",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsResourceProfile",
+      "method": "GET",
+      "path": "/finance-options-resource-profile",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsRecipient",
+      "method": "GET",
+      "path": "/finance-options-recipient",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsBudgetProfile",
+      "method": "GET",
+      "path": "/finance-options-budget-profile",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsCommitment",
+      "method": "GET",
+      "path": "/finance-options-commitment",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsIncomingContribution",
+      "method": "GET",
+      "path": "/finance-options-incoming-contribution",
+      "permission": "steward.finance.resource-coordination.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "dispatchAuthority",
+      "method": "GET",
+      "path": "/dispatch-authority",
+      "permission": "steward.finance.resource-coordination.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "coordinationOverview",
+      "method": "GET",
+      "path": "/coordination-overview",
+      "permission": "steward.finance.resource-coordination.read"
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "business",
+      "screenId": "coordination-overview",
+      "title": "Contributions & Reconciliation",
+      "navigationLabel": "Coordination overview",
+      "listOperation": "coordinationOverview",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "direction",
+          "label": "direction",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "amountCents",
+          "label": "amount Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "resourceKind",
+          "label": "resource Kind",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "quantity",
+          "label": "quantity",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "unit",
+          "label": "unit",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "restriction",
+          "label": "restriction",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "settlementId",
+          "label": "settlement Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lastFailure",
+          "label": "last Failure",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "direction",
+        "status",
+        "currency",
+        "amountCents",
+        "resourceKind",
+        "quantity",
+        "unit",
+        "lastFailure"
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: none. Existing case/team grants and intentionally removed rights remain unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "controller",
+            "requester",
+            "reviewer",
+            "executor",
+            "receiver",
+            "reporter"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "policy",
+      "title": "Policy",
+      "navigationLabel": "Policy",
+      "listOperation": "listPolicy",
+      "createOperation": "createPolicy",
+      "updateOperation": "updatePolicy",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "managerEntityId",
+          "label": "Manager Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "approvalLimitCents",
+          "label": "Approval Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "delegationLimitCents",
+          "label": "Delegation Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "minimumReserveCents",
+          "label": "Minimum Reserve (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "reserveCoverageDays",
+          "label": "Reserve Coverage Days",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "liquidityBufferCents",
+          "label": "Liquidity Buffer (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "cashHorizonDays",
+          "label": "Cash Horizon Days",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "observationMaxAgeHours",
+          "label": "Observation Max Age Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "requiredApprovals",
+          "label": "Required Approvals",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "approvalLifetimeHours",
+          "label": "Approval Lifetime Hours",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "validUntil",
+          "label": "Valid Until",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "approvalLimitCents",
+        "delegationLimitCents",
+        "minimumReserveCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Activate Policy",
+          "operationId": "activatePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Revoke Policy",
+          "operationId": "revokePolicy",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "authority-grant",
+      "title": "Authority Grant",
+      "navigationLabel": "Authority Grant",
+      "listOperation": "listAuthorityGrant",
+      "createOperation": "createAuthorityGrant",
+      "updateOperation": "updateAuthorityGrant",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Actor Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "role",
+          "label": "Role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "requester",
+            "approver",
+            "controller",
+            "executor",
+            "receiver",
+            "discloser"
+          ]
+        },
+        {
+          "name": "limitCents",
+          "label": "Limit (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "role",
+        "limitCents",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke Financial Grant",
+          "operationId": "revokeFinancialGrant",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "resource-profile",
+      "title": "Resource Profile",
+      "navigationLabel": "Resource Profile",
+      "listOperation": "listResourceProfile",
+      "createOperation": "createResourceProfile",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "resourceProgramId",
+          "label": "Resource Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "assessmentId",
+          "label": "Assessment Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "resourcePolicyVersion",
+          "label": "Resource Policy Version",
+          "type": "number",
+          "required": true,
+          "minimum": 1
+        },
+        {
+          "name": "resourceKind",
+          "label": "Resource Kind",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "cash",
+            "facility",
+            "inventory",
+            "equipment",
+            "staff-time",
+            "transport",
+            "service"
+          ]
+        },
+        {
+          "name": "capacityMode",
+          "label": "Capacity Mode",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "cash",
+            "consumable",
+            "reusable"
+          ]
+        },
+        {
+          "name": "resourceId",
+          "label": "Resource Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "unit",
+          "label": "Unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "valuationKnown",
+          "label": "Valuation Known",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "known",
+            "unknown"
+          ]
+        },
+        {
+          "name": "unitValuationCents",
+          "label": "Unit Valuation (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "valuationBasis",
+          "label": "Valuation Basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "documented-unit-cost",
+            "documented-replacement-estimate",
+            "unknown"
+          ]
+        },
+        {
+          "name": "unitOperatingCostCents",
+          "label": "Unit Operating Cost (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "resourcePolicyVersion",
+        "resourceKind",
+        "capacityMode",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Deactivate Resource Profile",
+          "operationId": "deactivateResourceProfile",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "recipient",
+      "title": "Recipient",
+      "navigationLabel": "Recipient",
+      "listOperation": "listRecipient",
+      "createOperation": "createRecipient",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Destination Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationInstallationId",
+          "label": "Destination Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Destination Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationBudgetProgramId",
+          "label": "Destination Budget Program Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "fundingRequestId",
+          "label": "Funding Request Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "restriction",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Deactivate Recipient",
+          "operationId": "deactivateRecipient",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "budget-profile",
+      "title": "Budget Profile",
+      "navigationLabel": "Budget Profile",
+      "listOperation": "listBudgetProfile",
+      "createOperation": "createBudgetProfile",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "budgetProgramId",
+          "label": "Budget Program Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Deactivate Budget Profile",
+          "operationId": "deactivateBudgetProfile",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "commitment",
+      "title": "Commitment",
+      "navigationLabel": "Commitment",
+      "listOperation": "listCommitment",
+      "createOperation": "createCommitment",
+      "updateOperation": "updateCommitment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "resourceProfileId",
+          "label": "Resource Profile Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "recipientId",
+          "label": "Recipient Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "purpose",
+          "label": "Purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        },
+        {
+          "name": "amendsCommitmentId",
+          "label": "Amends Commitment Id",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "financeOptionsCommitment",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "amountCents",
+        "quantity",
+        "expiresAt",
+        "purpose",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Reserve Contribution",
+          "operationId": "reserveContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Approve Contribution",
+          "operationId": "approveContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Submit Contribution",
+          "operationId": "submitContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Refresh Contribution",
+          "operationId": "refreshContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Execute Synthetic Settlement",
+          "operationId": "executeSyntheticSettlement",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Authorize Resource Use",
+          "operationId": "authorizeResourceUse",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Announce Resource Delivery",
+          "operationId": "announceResourceDelivery",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Confirm Resource Return",
+          "operationId": "confirmResourceReturn",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Announce Settlement",
+          "operationId": "announceSettlement",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Reconcile Contribution",
+          "operationId": "reconcileContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Cancel Contribution",
+          "operationId": "cancelContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "incoming-contribution",
+      "title": "Incoming Contribution",
+      "navigationLabel": "Incoming Contribution",
+      "listOperation": "listIncomingContribution",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount (minor units)",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR"
+          ]
+        },
+        {
+          "name": "resourceKind",
+          "label": "Resource Kind",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "unit",
+          "label": "Unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "restriction",
+          "label": "Restriction",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "amountCents",
+        "currency",
+        "resourceKind",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Accept Contribution",
+          "operationId": "acceptContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Reject Contribution",
+          "operationId": "rejectContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Confirm Resource Delivery",
+          "operationId": "confirmResourceDelivery",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Record Resource Return",
+          "operationId": "recordResourceReturn",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Confirm Funding Receipt",
+          "operationId": "confirmFundingReceipt",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Approve Contribution Cancellation",
+          "operationId": "approveContributionCancellation",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Dispute Contribution",
+          "operationId": "disputeContribution",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled",
+      "settlementProvider"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      },
+      "settlementProvider": {
+        "type": "string",
+        "enum": [
+          "steward.synthetic-settlement"
+        ],
+        "default": "steward.synthetic-settlement"
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 3,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "a537e191d3a8618ca669ff70fbde0d93b8bf76cb090fad866fbc7b4599ac6850"
+      },
+      {
+        "version": 2,
+        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+      },
+      {
+        "version": 3,
+        "sha256": "6a6ec685c4a4a4516609904a6057708fb335c8d0d605b25761d208c85a5a18c0"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "approved-economic-summaries",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "finance.coordination",
+        "contract": "steward.resource-coordination",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "finance.contribution.propose",
+            "command": "finance.contribution.propose",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "terms": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "type": "integer",
+                      "const": 1
+                    },
+                    "commitmentId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "sourceEntityId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "sourceInstallationId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationEntityId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationInstallationId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "sourceProgramId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationProgramId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "USD",
+                        "EUR"
+                      ]
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "resourceKind": {
+                      "type": "string",
+                      "enum": [
+                        "cash",
+                        "facility",
+                        "inventory",
+                        "equipment",
+                        "staff-time",
+                        "transport",
+                        "service"
+                      ]
+                    },
+                    "capacityMode": {
+                      "type": "string",
+                      "enum": [
+                        "cash",
+                        "consumable",
+                        "reusable"
+                      ]
+                    },
+                    "resourceId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40,
+                      "pattern": "\\S"
+                    },
+                    "valuationCents": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000000000000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "valuationBasis": {
+                      "type": "string",
+                      "enum": [
+                        "documented-unit-cost",
+                        "documented-replacement-estimate",
+                        "unknown"
+                      ]
+                    },
+                    "operatingCostCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "restriction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "\\S"
+                    },
+                    "purpose": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300,
+                      "pattern": "\\S"
+                    },
+                    "policyId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "policyVersion": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "assessmentId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    "synthetic": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "resourceAudience": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "sourceProgramId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationProgramId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationEntityId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationInstallationId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "providerModuleId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "\\S"
+                        }
+                      },
+                      "required": [
+                        "sourceProgramId",
+                        "destinationProgramId",
+                        "destinationEntityId",
+                        "destinationInstallationId",
+                        "providerModuleId"
+                      ]
+                    },
+                    "resourcePolicyVersion": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "fundingRequestId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "destinationBudgetProgramId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "commitmentId",
+                    "version",
+                    "sourceEntityId",
+                    "sourceInstallationId",
+                    "destinationEntityId",
+                    "destinationInstallationId",
+                    "sourceProgramId",
+                    "destinationProgramId",
+                    "currency",
+                    "amountCents",
+                    "resourceKind",
+                    "capacityMode",
+                    "resourceId",
+                    "quantity",
+                    "unit",
+                    "valuationCents",
+                    "valuationBasis",
+                    "operatingCostCents",
+                    "restriction",
+                    "purpose",
+                    "policyId",
+                    "policyVersion",
+                    "assessmentId",
+                    "expiresAt",
+                    "synthetic",
+                    "resourceAudience",
+                    "resourcePolicyVersion",
+                    "fundingRequestId",
+                    "destinationBudgetProgramId"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "terms"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.contribution.status",
+            "command": "finance.contribution.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.contribution.authorize",
+            "command": "finance.contribution.authorize",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.contribution.settlement",
+            "command": "finance.contribution.settlement",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "executedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "settlementId",
+                "executedAt",
+                "amountCents",
+                "currency"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.contribution.cancel",
+            "command": "finance.contribution.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.contribution.delivery",
+            "command": "finance.contribution.delivery",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "deliveryId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "deliveryId",
+                "quantity",
+                "unit",
+                "observedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.resource-coordination.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "finance.resources",
+        "contract": "steward.financial-resources",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "maximumSensitivity": "restricted",
+        "optional": true,
+        "events": [],
+        "operations": [
+          {
+            "name": "finance.resource.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assessmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "policyVersion": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "resourceKind": {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "facility",
+                    "inventory",
+                    "equipment",
+                    "staff-time",
+                    "transport",
+                    "service"
+                  ]
+                },
+                "capacityMode": {
+                  "type": "string",
+                  "enum": [
+                    "cash",
+                    "consumable",
+                    "reusable"
+                  ]
+                },
+                "resourceId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "valuationCents": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "valuationBasis": {
+                  "type": "string",
+                  "enum": [
+                    "documented-unit-cost",
+                    "documented-replacement-estimate",
+                    "unknown"
+                  ]
+                },
+                "operatingCostCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "assessmentId",
+                "policyVersion",
+                "currency",
+                "amountCents",
+                "resourceKind",
+                "capacityMode",
+                "resourceId",
+                "quantity",
+                "unit",
+                "valuationCents",
+                "valuationBasis",
+                "operatingCostCents",
+                "restriction",
+                "termsDigest",
+                "expiresAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.resource.consume",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiverPermitId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "receiverPermitExpiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "receiverPermitId",
+                "receiverPermitExpiresAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.resource.release",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.resource.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.resource.return",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "returnEvidenceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "returnEvidenceId",
+                "observedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "held",
+                    "consumed",
+                    "released",
+                    "returned",
+                    "absent"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "journalId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "quantity",
+                "termsDigest",
+                "journalId",
+                "synthetic"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "capabilityId": "finance.budgets",
+        "contract": "steward.programme-funding",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "maximumSensitivity": "restricted",
+        "optional": true,
+        "events": [],
+        "operations": [
+          {
+            "name": "finance.budget.accept",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received",
+                    "cancelled"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "receiptId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.budget.receipt",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "receivedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest",
+                "settlementId",
+                "receivedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received",
+                    "cancelled"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "receiptId",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.budget.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received",
+                    "cancelled"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "receiptId",
+                "synthetic"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "capabilityId": "finance.coordination",
+        "contract": "steward.resource-coordination",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "maximumSensitivity": "restricted",
+        "optional": true,
+        "events": [],
+        "operations": [
+          {
+            "name": "finance.contribution.propose",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "terms": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "type": "integer",
+                      "const": 1
+                    },
+                    "commitmentId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "version": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "sourceEntityId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "sourceInstallationId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationEntityId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationInstallationId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "sourceProgramId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "destinationProgramId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "enum": [
+                        "USD",
+                        "EUR"
+                      ]
+                    },
+                    "amountCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "resourceKind": {
+                      "type": "string",
+                      "enum": [
+                        "cash",
+                        "facility",
+                        "inventory",
+                        "equipment",
+                        "staff-time",
+                        "transport",
+                        "service"
+                      ]
+                    },
+                    "capacityMode": {
+                      "type": "string",
+                      "enum": [
+                        "cash",
+                        "consumable",
+                        "reusable"
+                      ]
+                    },
+                    "resourceId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "unit": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40,
+                      "pattern": "\\S"
+                    },
+                    "valuationCents": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000000000000
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "valuationBasis": {
+                      "type": "string",
+                      "enum": [
+                        "documented-unit-cost",
+                        "documented-replacement-estimate",
+                        "unknown"
+                      ]
+                    },
+                    "operatingCostCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "restriction": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "\\S"
+                    },
+                    "purpose": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 300,
+                      "pattern": "\\S"
+                    },
+                    "policyId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "policyVersion": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "assessmentId": {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    "synthetic": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "resourceAudience": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "sourceProgramId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationProgramId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationEntityId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "destinationInstallationId": {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        "providerModuleId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "\\S"
+                        }
+                      },
+                      "required": [
+                        "sourceProgramId",
+                        "destinationProgramId",
+                        "destinationEntityId",
+                        "destinationInstallationId",
+                        "providerModuleId"
+                      ]
+                    },
+                    "resourcePolicyVersion": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "fundingRequestId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "destinationBudgetProgramId": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "commitmentId",
+                    "version",
+                    "sourceEntityId",
+                    "sourceInstallationId",
+                    "destinationEntityId",
+                    "destinationInstallationId",
+                    "sourceProgramId",
+                    "destinationProgramId",
+                    "currency",
+                    "amountCents",
+                    "resourceKind",
+                    "capacityMode",
+                    "resourceId",
+                    "quantity",
+                    "unit",
+                    "valuationCents",
+                    "valuationBasis",
+                    "operatingCostCents",
+                    "restriction",
+                    "purpose",
+                    "policyId",
+                    "policyVersion",
+                    "assessmentId",
+                    "expiresAt",
+                    "synthetic",
+                    "resourceAudience",
+                    "resourcePolicyVersion",
+                    "fundingRequestId",
+                    "destinationBudgetProgramId"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "terms"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.contribution.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.contribution.authorize",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.contribution.settlement",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "executedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "settlementId",
+                "executedAt",
+                "amountCents",
+                "currency"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.contribution.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "finance.contribution.delivery",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "deliveryId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unit": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "termsDigest",
+                "deliveryId",
+                "quantity",
+                "unit",
+                "observedAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending",
+                    "accepted",
+                    "approval-unavailable",
+                    "settlement-observed",
+                    "received",
+                    "cancelled",
+                    "cancellation-pending",
+                    "rejected",
+                    "disputed",
+                    "delivered",
+                    "returned"
+                  ]
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "settlementId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receiverPermitExpiresAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "termsDigest",
+                "settlementId",
+                "receiptId",
+                "receiverPermitId",
+                "receiverPermitExpiresAt",
+                "amountCents",
+                "currency",
+                "synthetic"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true,
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

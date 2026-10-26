@@ -23,7 +23,7 @@ export function programAuthority(pool:pg.Pool,broker:Awaited<ReturnType<typeof c
 export function dispatchAuthority(pool:pg.Pool,broker:Awaited<ReturnType<typeof createModuleBroker>>,trust:()=>Promise<PublisherTrust>){
  return async(actorId:string,command:IntegrationCommand,audience:{sourceProgramId:string;destinationProgramId:string;destinationInstallationId:string;destinationEntityId:string;providerModuleId:string})=>{
   const row=(await pool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[command.sourceModuleId])).rows[0];if(!row)fail(403,'Service dispatch is unavailable');
-  const manifest=verifyPackage(row.descriptor,await trust()).manifest;if(!manifest.programServices)return;
+  const manifest=verifyPackage(row.descriptor,await trust()).manifest;if(!manifest.programServices&&!manifest.economicServices)return;
   const path='/dispatch-authority?q='+encodeURIComponent(command.commandId),operation=operationFor(manifest,'GET',path);
   if(!operation||operation.operationId!=='dispatchAuthority')fail(403,'Module-owned dispatch authority is required');
   const response=await broker('proxy',row.descriptor,row.configuration,{method:'GET',path,permissions:[...new Set(manifest.api.map(o=>o.permission))],actorId}),r=response.value;

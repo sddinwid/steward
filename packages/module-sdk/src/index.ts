@@ -24,6 +24,8 @@ export interface ScreenContribution {
 export interface ModulePackageManifest {
   /** Closed disclosure streams only; private programme/case records never replicate. */
   programServices?:{contractVersion:1;domain:'housing'|'participant-services'|'employment'|'food';syntheticOnly:true};
+  /** Optional signed economic metadata. It does not itself authorize any operation. */
+  economicServices?:{contractVersion:1;kind:'resource-availability'|'mission-budget'|'resource-coordination';syntheticOnly:true};
   simulation?:SimulationDeclaration;
   manifestVersion: 1; sdkVersion: 1; moduleId: string; version: string; name: string; description: string;
   minimumPlatformVersion: string;
@@ -86,8 +88,9 @@ function onlyKeys(object: object, keys: string[]): boolean { return Object.keys(
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector','simulation','programServices'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector','simulation','programServices','economicServices'])) reject('Unsupported module manifest fields');
   if(m.programServices&&(!onlyKeys(m.programServices,['contractVersion','domain','syntheticOnly'])||m.programServices.contractVersion!==1||m.programServices.syntheticOnly!==true||!['housing','participant-services','employment','food'].includes(m.programServices.domain)||!atLeast(m.minimumPlatformVersion,'0.13.0')||!m.replication||m.replication.streams.some(s=>!['mission_aggregates_v1','mission_resources_v1'].includes(s.streamId)||s.columns.join(',')!=='id,revision,projection')))reject('Program services require closed aggregate-only disclosure contracts');
+  if(m.economicServices&&(m.programServices||!onlyKeys(m.economicServices,['contractVersion','kind','syntheticOnly'])||m.economicServices.contractVersion!==1||m.economicServices.syntheticOnly!==true||!['resource-availability','mission-budget','resource-coordination'].includes(m.economicServices.kind)||!atLeast(m.minimumPlatformVersion,'0.14.0')||m.replication?.streams.some(s=>s.streamId!=='economic_summaries_v1'||s.columns.join(',')!=='id,revision,projection')))reject('Economic services require synthetic, closed summary contracts and platform 0.14.0');
   if(m.simulation&&(!onlyKeys(m.simulation,['version','role'])||m.simulation.version!==1||!['engine','provider','participant'].includes(m.simulation.role)||!atLeast(m.minimumPlatformVersion,'0.11.0')||(['engine','provider'].includes(m.simulation.role)&&m.connector)))reject('Invalid isolated simulation declaration');
   if(m.connector&&(!onlyKeys(m.connector,['version','provider','webhookTopics'])||m.connector.version!==1||!['shopify','printify'].includes(m.connector.provider)||!atLeast(m.minimumPlatformVersion,'0.8.0')||!Array.isArray(m.connector.webhookTopics)||m.connector.webhookTopics.length>20||m.connector.webhookTopics.some(t=>typeof t!=='string'||! /^[a-z][a-z0-9_-]*(?:[/:][a-z][a-z0-9_-]*)+$/.test(t))))reject('Invalid connector declaration');
   if(m.api?.some(a=>a.path==='/connector-webhook'))reject('Connector ingress must not be a public module API');
@@ -113,6 +116,7 @@ export function validateManifest(m: ModulePackageManifest): void {
     if(f.generate!==undefined&&(f.type!=='string'||!['uuid','synthetic-participant','synthetic-reference'].includes(f.generate)||f.default!==undefined||f.reference!==undefined||f.enum!==undefined||f.readOnly===true))reject('Invalid generated reference');
   }
   if (m.mcpTools !== undefined && (!Array.isArray(m.mcpTools) || m.mcpTools.length > 10 || new Set(m.mcpTools.map(t=>t.name)).size !== m.mcpTools.length || m.mcpTools.some(t=>!onlyKeys(t,['name','description','operationId']) || !/^[a-z][a-z0-9_]{0,59}$/.test(t.name) || typeof t.description !== 'string' || t.description.length > 300 || !m.api.some(a=>a.operationId===t.operationId && a.method==='GET' && !a.path.includes(':'))))) reject('Invalid read-only MCP contribution');
+  if(m.economicServices&&m.mcpTools?.some(t=>m.api.find(a=>a.operationId===t.operationId)?.path!=='/published-economic-summaries'))reject('Economic MCP must use approved summaries');
   if(m.programServices&&m.mcpTools?.some(t=>m.api.find(a=>a.operationId===t.operationId)?.path!=='/published-aggregates'))reject('Private-service MCP must use the sealed aggregate operation');
   if (!m.configurationSchema || m.configurationSchema.type !== 'object' || m.configurationSchema.additionalProperties !== false) reject('Configuration must be a closed JSON object schema');
   configurationValidator(m.configurationSchema);

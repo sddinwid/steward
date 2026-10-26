@@ -21,7 +21,7 @@ export interface ResourceAvailabilityAssessment {
 }
 export interface NoncashResource {
  ownerEntityId:string;managerEntityId:string|null;kind:Exclude<EconomicResourceKind,'cash'>;
- resourceId:string;unit:string;quantity:number;reservedQuantity:number;operationalPriorityQuantity:number;
+ resourceId:string;unit:string;capacityMode:'consumable'|'reusable';quantity:number;reservedQuantity:number;operationalPriorityQuantity:number;
  availableFrom:string;availableUntil:string;restriction:string;valuation:Money|null;
  valuationBasis:'documented-unit-cost'|'documented-replacement-estimate'|'unknown';source:EconomicSourceReference;
 }
@@ -32,15 +32,15 @@ export type CommitmentState='proposed'|'reserve-pending'|'reserved'|'contributor
 export interface ContributionTerms {
  contractVersion:1;commitmentId:string;version:number;sourceEntityId:string;sourceInstallationId:string;
  destinationEntityId:string;destinationInstallationId:string;sourceProgramId:string;destinationProgramId:string;
- currency:Money['currency'];amountCents:number;resourceKind:EconomicResourceKind;resourceId:string|null;
- quantity:number;unit:string;valuationCents:number|null;restriction:string;purpose:string;
+ currency:Money['currency'];amountCents:number;resourceKind:EconomicResourceKind;capacityMode:'cash'|'consumable'|'reusable';resourceId:string|null;
+ quantity:number;unit:string;valuationCents:number|null;valuationBasis:NoncashResource['valuationBasis'];operatingCostCents:number;restriction:string;purpose:string;
  policyId:string;policyVersion:number;assessmentId:string;expiresAt:string;synthetic:true;
 }
 export interface FinancialApproval {approvalId:string;termsDigest:string;policyId:string;policyVersion:number;actorId:string;entityId:string;decision:'approve'|'reject';approvedAt:string;expiresAt:string;authorityGrantId:string}
-export interface AccountingLine {account:'cash'|'receivable'|'payable'|'restricted-fund'|'contribution-expense'|'contribution-income'|'service-expense'|'noncash-clearing';direction:'debit'|'credit';amount:Money}
+export interface AccountingLine {account:'cash'|'receivable'|'payable'|'restricted-fund'|'contribution-expense'|'contribution-income'|'service-expense'|'noncash-clearing'|'external-cash-clearing';direction:'debit'|'credit';amount:Money}
 export interface FinancialEvent {
  contractVersion:1;eventId:string;ownerEntityId:string;transactionId:string;classification:'external'|'intercompany'|'internal';
- kind:'commitment'|'synthetic-settlement'|'receipt'|'expenditure'|'noncash-delivery'|'return'|'reversal';
+ kind:'cash-observation-adjustment'|'commitment'|'synthetic-settlement'|'receipt'|'expenditure'|'noncash-delivery'|'return'|'reversal';
  source:EconomicSourceReference;lines:AccountingLine[];reversesEventId:string|null;occurredAt:string;actorId:string;synthetic:true;
 }
 export interface SettlementEvidence {contractVersion:1;provider:'steward.synthetic-settlement';synthetic:true;settlementId:string;commitmentId:string;termsDigest:string;sourceEntityId:string;destinationEntityId:string;amount:Money;status:'pending'|'confirmed'|'uncertain'|'reversed';executedAt:string|null;receiptId:string|null;reconciliation:'outstanding'|'matched'|'disputed'|'reversed'}

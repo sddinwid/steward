@@ -6,6 +6,11 @@
   "name": "Mission Budget & Funding",
   "description": "Synthetic entity-owned economic authority, immutable financial evidence and governed resource coordination. No external payments.",
   "minimumPlatformVersion": "0.14.0",
+  "economicServices": {
+    "contractVersion": 1,
+    "kind": "mission-budget",
+    "syntheticOnly": true
+  },
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -343,6 +348,40 @@
       "permission": "steward.finance.mission-budget.admin"
     },
     {
+      "operationId": "listExpenseReversal",
+      "method": "GET",
+      "path": "/expense-reversals",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createExpenseReversal",
+      "method": "POST",
+      "path": "/expense-reversals",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "updateExpenseReversal",
+      "method": "PUT",
+      "path": "/expense-reversals/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "approveExpenseReversal",
+      "method": "POST",
+      "path": "/approve-expense-reversal/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
+      "operationId": "postExpenseReversal",
+      "method": "POST",
+      "path": "/post-expense-reversal/:id",
+      "permission": "steward.finance.mission-budget.admin"
+    },
+    {
       "operationId": "financeOptionsPolicy",
       "method": "GET",
       "path": "/finance-options-policy",
@@ -406,6 +445,16 @@
       "operationId": "financeOptionsExpense",
       "method": "GET",
       "path": "/finance-options-expense",
+      "permission": "steward.finance.mission-budget.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "financeOptionsExpenseReversal",
+      "method": "GET",
+      "path": "/finance-options-expense-reversal",
       "permission": "steward.finance.mission-budget.read",
       "query": [
         "limit",
@@ -713,6 +762,12 @@
           "generate": "uuid"
         },
         {
+          "name": "managerEntityId",
+          "label": "Manager Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
           "name": "currency",
           "label": "Currency",
           "type": "string",
@@ -802,6 +857,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -914,6 +976,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -1005,7 +1074,12 @@
           "name": "revisesBudgetId",
           "label": "Revises Budget Id",
           "type": "string",
-          "required": true
+          "required": false,
+          "reference": {
+            "operationId": "financeOptionsBudget",
+            "valueField": "id",
+            "labelField": "name"
+          }
         },
         {
           "name": "varianceExplanation",
@@ -1024,6 +1098,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -1182,6 +1263,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -1275,6 +1363,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -1377,6 +1472,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -1459,13 +1561,13 @@
           "name": "encumbranceId",
           "label": "Encumbrance Id",
           "type": "string",
-          "required": true
+          "required": false
         },
         {
           "name": "serviceEvidenceId",
           "label": "Service Evidence Id",
           "type": "string",
-          "required": true
+          "required": false
         },
         {
           "name": "sourceDocument",
@@ -1489,6 +1591,23 @@
           "maxLength": 40
         },
         {
+          "name": "financialClassification",
+          "label": "Financial Classification",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "external",
+            "intercompany",
+            "internal"
+          ]
+        },
+        {
+          "name": "counterpartyEntityId",
+          "label": "Counterparty Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
           "name": "varianceExplanation",
           "label": "Variance Explanation",
           "type": "string",
@@ -1505,6 +1624,13 @@
         {
           "name": "id",
           "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
           "type": "string",
           "readOnly": true,
           "required": false
@@ -1527,6 +1653,114 @@
         {
           "label": "Post Expense",
           "operationId": "postExpense",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "expense-reversal",
+      "title": "Expense Reversal",
+      "navigationLabel": "Expense Reversal",
+      "listOperation": "listExpenseReversal",
+      "createOperation": "createExpenseReversal",
+      "updateOperation": "updateExpenseReversal",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "expenseId",
+          "label": "Expense Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "financeOptionsPolicy",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "sourceDocument",
+          "label": "Source Document",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "id",
+          "label": "Record reference",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "lastFailure",
+          "label": "Review or recovery needed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "observedAt",
+        "sourceDocument",
+        "reason",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Expense Reversal",
+          "operationId": "approveExpenseReversal",
+          "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
+        },
+        {
+          "label": "Post Expense Reversal",
+          "operationId": "postExpenseReversal",
           "confirmation": "Review the current entity authority, policy, amount and restrictions. This action is auditable and synthetic only."
         }
       ]
@@ -1553,8 +1787,21 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
-    "migrations": [],
+    "schemaVersion": 3,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "018ac55af0c646cc8e5f336da6655a58ca5eb0b964f7193d50cc792ee8c1ecca"
+      },
+      {
+        "version": 2,
+        "sha256": "d803fe2dd33f64f062f6b548260b4af540860a5b2fe550602dbda924b6bb26b0"
+      },
+      {
+        "version": 3,
+        "sha256": "783afc99b4032162d172942309cf45597ae37a47407de1f8a091be07da215f54"
+      }
+    ],
     "destructiveRollback": false
   },
   "integrationEvents": [],
@@ -1660,7 +1907,8 @@
                   "type": "string",
                   "enum": [
                     "accepted",
-                    "received"
+                    "received",
+                    "cancelled"
                   ]
                 },
                 "amountCents": {
@@ -1672,6 +1920,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1682,6 +1941,7 @@
                 "status",
                 "amountCents",
                 "termsDigest",
+                "receiptId",
                 "synthetic"
               ]
             },
@@ -1775,7 +2035,8 @@
                   "type": "string",
                   "enum": [
                     "accepted",
-                    "received"
+                    "received",
+                    "cancelled"
                   ]
                 },
                 "amountCents": {
@@ -1787,6 +2048,17 @@
                   "type": "string",
                   "pattern": "^[a-f0-9]{64}$"
                 },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
@@ -1797,6 +2069,124 @@
                 "status",
                 "amountCents",
                 "termsDigest",
+                "receiptId",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.finance.mission-budget.admin",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "finance.budget.cancel",
+            "command": "finance.budget.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "fundingRequestId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "currency": {
+                  "type": "string",
+                  "enum": [
+                    "USD",
+                    "EUR"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "restriction": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "commitmentId",
+                "fundingRequestId",
+                "sourceEntityId",
+                "currency",
+                "amountCents",
+                "restriction",
+                "termsDigest"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "commitmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "accepted",
+                    "received",
+                    "cancelled"
+                  ]
+                },
+                "amountCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                },
+                "termsDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "receiptId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "commitmentId",
+                "status",
+                "amountCents",
+                "termsDigest",
+                "receiptId",
                 "synthetic"
               ]
             },

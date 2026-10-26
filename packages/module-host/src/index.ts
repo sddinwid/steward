@@ -1,3 +1,4 @@
+import {financialAuthorityHeaders} from './financial-context.js';
 import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} from './simulation-routing.js';
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
 import Fastify from 'fastify';
@@ -79,7 +80,9 @@ async function connectorSecret(id:string){
 }
 async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
-  return http({ host: containerName(id), port: 8080, method, path,timeout,headers: { ...context,authorization: 'Bearer ' + token } }, body);
+  const headers:Record<string,string>=Object.fromEntries(Object.entries(context).filter(([key])=>key.toLowerCase()!=='x-steward-financial-principals'));headers.authorization='Bearer '+token;
+  if(!['/health','/ready','/internal/migrate'].includes(path))Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
+  return http({ host: containerName(id), port: 8080, method, path,timeout,headers }, body);
 }
 async function ready(id: string) {
   const deadline = Date.now() + 20000;
@@ -244,7 +247,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       if (!payload.manifest.replication) return { events: [] };
       return moduleDatabase(p.moduleId, async sql => {
         if (p.operation === 'outbox.read') {
-          const runtime = payload.manifest.programServices ? JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`, 'utf8')) : undefined;
+          const runtime = (payload.manifest.programServices||payload.manifest.economicServices) ? JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`, 'utf8')) : undefined;
           return { events: boundReplicationEvents(payload.manifest, (await sql.query('SELECT envelope FROM sync_outbox WHERE acknowledged_at IS NULL AND next_attempt_at<=now() ORDER BY created_at,event_id LIMIT 10')).rows.map(r => r.envelope), config.installationId, runtime?.sourceIdentity) };
         }
         for (const ids of [p.acknowledged, p.failed]) if (!Array.isArray(ids) || ids.length > 20 || ids.some((id: unknown) => typeof id !== 'string' || !/^[0-9a-f-]{36}$/.test(id))) failure('INVALID_ACKNOWLEDGMENT');

@@ -35,7 +35,7 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
       if(binding.source_program_id!==programScope||binding.destination_program_id!==command.payload.programId||new Date(binding.expires_at).getTime()<=Date.now()||!authorizeProgram)throw new Error('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
       await authorizeProgram(binding.actor_id,source.moduleId,binding.source_program_id);
       if(!binding.peer_installation_id)await authorizeProgram(binding.actor_id,binding.provider_id,binding.destination_program_id);
-    }else if(source.programServices)throw new Error('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+    }else if((source.programServices||source.economicServices))throw new Error('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
     const remote=binding.peer_installation_id?{peerInstallationId:binding.peer_installation_id as string,grantId:binding.peer_grant_id as string}:null;
     const row=remote?(await db.query(`SELECT p.module_id,p.provider_installation_id operation_id,p.descriptor,p.state,
       p.configured_capabilities,p.package_digest FROM smart_peer_providers p JOIN smart_peers w ON w.installation_id=p.peer_installation_id
@@ -52,7 +52,7 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
     const g=grant?.payload;
     if(remote&&(!g||g.sourceInstallationId!==installationId||g.sourceEntityId!==local.entity_id||g.destinationInstallationId!==remote.peerInstallationId||g.consumerModuleId!==source.moduleId||g.consumerInstallationId!==consumer.operation_id||g.consumerPackageDigest!==digest(canonical(consumer.descriptor))||g.providerModuleId!==row.module_id||g.providerInstallationId!==row.operation_id||g.providerPackageDigest!==binding.package_digest||g.sourceProgramId!==binding.source_program_id||g.destinationProgramId!==binding.destination_program_id||g.purpose!==binding.purpose||g.capabilityId!==reference.capabilityId||!g.operations.includes(reference.operation)||g.expiresAt<=Date.now()))throw new Error('INTEGRATION_APPROVAL_REVOKED');
     const targetEntity=remote?g.destinationEntityId:local.entity_id;
-    if(source.programServices){
+    if((source.programServices||source.economicServices)){
       if(!authorizeDispatch)throw new Error('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
       await authorizeDispatch(binding.actor_id,command,{sourceProgramId:binding.source_program_id,destinationProgramId:binding.destination_program_id,destinationInstallationId:remote?.peerInstallationId??installationId,destinationEntityId:targetEntity,providerModuleId:row.module_id});
     }
