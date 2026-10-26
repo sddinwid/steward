@@ -1,4 +1,4 @@
-import {simulationStageTools} from '../investigation-profiles.js';
+import {simulationStageTools,missionStageInstruction,profileInstructions} from '../investigation-profiles.js';
 import {scientificStageTools,profileTools,type ScientificPlan} from '../investigation-profiles.js';
 import {compactScientificCalculation,compactScientificConstraints,containsScientificAmount} from '../scientific-context.js';
 import { test } from 'node:test';
@@ -9,6 +9,13 @@ import { narrativeSchema, parseNarrative,validateScientificNarrative,scientificC
 import { agentProof,verifyAgentProof } from '../mcp-agent-identity.js';
 import { resourcePage, resourceQuerySchema, modelToolResult, resourceMatches,compactMissionScenario,compactMissionCalculation } from '../analyst-context.js';
 import { ollamaMessages, ollamaTurn } from '../ollama-model.js';
+test('mission tool-phase guidance is minimal and stage-specific; detailed money requirements begin only after real calculation',()=>{
+ const base=profileInstructions('mission-sustainability')!;assert(base.length<1000);assert(!base.includes('displayAmounts'));assert(!base.includes('humanDecisions'));
+ for(const [programmes,scenarios,name]of [[false,false,'query_mission_programmes'],[true,false,'query_mission_scenarios'],[true,true,'analyze_mission_sustainability']] as const){const instruction=missionStageInstruction(programmes,scenarios);assert(instruction.includes('Call '+name));assert(instruction.includes('native function tool'));assert(!instruction.includes('displayAmounts'));}
+ assert.equal(missionFinalizationInstruction([],false),undefined);
+ // Empty native turns remain invalid final narratives; no synthetic tool call/retry.
+ const empty=ollamaTurn({done:true,done_reason:'stop',message:{role:'assistant',content:''}});assert.deepEqual(empty.calls,[]);assert.throws(()=>parseNarrative(empty.text));
+});
 test('mission transport never invents a currency when source currency is missing or malformed',()=>{
  for(const currency of [undefined,null,'','usd','USDX',{code:'USD'}]){assert.equal(compactMissionScenario({currency,incrementalUnitCostCents:100000}).displayIncrementalUnitCost,'UNKNOWN');const view=compactMissionCalculation({financial:{currency,approvedAvailableCents:500000},planning:{incrementalUnitCostCents:100000,additionalCostCents:500000}});assert.equal(view.financial.displayApprovedAvailable,'UNKNOWN');assert.equal(view.displayAmounts.incrementalUnitCost,'UNKNOWN');assert.equal(view.displayAmounts.additionalCost,'UNKNOWN');assert(!JSON.stringify(view).includes('USD 5000.00'));}
  assert.equal(compactMissionCalculation({financial:{currency:'EUR'},planning:{incrementalUnitCostCents:123}}).displayAmounts.incrementalUnitCost,'EUR 1.23');
