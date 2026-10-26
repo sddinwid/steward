@@ -1,0 +1,2441 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.housing.management",
+  "version": "1.0.0",
+  "name": "Housing Management",
+  "description": "Synthetic programme-scoped housing operations with authoritative property references, reviewed placements, reserved units and sealed aggregate disclosure.",
+  "minimumPlatformVersion": "0.13.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.housing.management.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.housing.management.admin",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listCaseAssignments",
+      "method": "GET",
+      "path": "/case-assignments",
+      "permission": "steward.housing.management.admin",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCaseAssignment",
+      "method": "POST",
+      "path": "/case-assignments",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateCaseAssignment",
+      "method": "PUT",
+      "path": "/case-assignments/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "revokeCaseAssignment",
+      "method": "POST",
+      "path": "/revoke-case/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "dispatchAuthority",
+      "path": "/dispatch-authority",
+      "method": "GET",
+      "permission": "steward.housing.management.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProperty",
+      "method": "GET",
+      "path": "/properties",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createProperty",
+      "method": "POST",
+      "path": "/properties",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateProperty",
+      "method": "PUT",
+      "path": "/properties/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listBuilding",
+      "method": "GET",
+      "path": "/buildings",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createBuilding",
+      "method": "POST",
+      "path": "/buildings",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateBuilding",
+      "method": "PUT",
+      "path": "/buildings/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listUnit",
+      "method": "GET",
+      "path": "/units",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createUnit",
+      "method": "POST",
+      "path": "/units",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateUnit",
+      "method": "PUT",
+      "path": "/units/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listPlacement",
+      "method": "GET",
+      "path": "/placements",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "updatePlacement",
+      "method": "PUT",
+      "path": "/placements/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listServiceSource",
+      "method": "GET",
+      "path": "/service-sources",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createServiceSource",
+      "method": "POST",
+      "path": "/service-sources",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateServiceSource",
+      "method": "PUT",
+      "path": "/service-sources/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listMaintenance",
+      "method": "GET",
+      "path": "/maintenance",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createMaintenance",
+      "method": "POST",
+      "path": "/maintenance",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateMaintenance",
+      "method": "PUT",
+      "path": "/maintenance/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listFollowup",
+      "method": "GET",
+      "path": "/followups",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createFollowup",
+      "method": "POST",
+      "path": "/followups",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateFollowup",
+      "method": "PUT",
+      "path": "/followups/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listCost",
+      "method": "GET",
+      "path": "/costs",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createCost",
+      "method": "POST",
+      "path": "/costs",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateCost",
+      "method": "PUT",
+      "path": "/costs/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "listReleaseRequest",
+      "method": "GET",
+      "path": "/release-requests",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createReleaseRequest",
+      "method": "POST",
+      "path": "/release-requests",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "updateReleaseRequest",
+      "method": "PUT",
+      "path": "/release-requests/:id",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "verifyProperty",
+      "path": "/verify-property/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "refreshPropertyCatalog",
+      "path": "/refresh-property-catalog/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "approveSource",
+      "path": "/approve-source/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "revokeSource",
+      "path": "/revoke-source/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "reviewPlacement",
+      "path": "/review-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "approvePlacement",
+      "path": "/approve-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "reservePlacement",
+      "path": "/reserve-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "confirmPlacement",
+      "path": "/confirm-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "departPlacement",
+      "path": "/depart-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "withdrawPlacement",
+      "path": "/withdraw-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "rejectPlacement",
+      "path": "/reject-placement/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "resolveMaintenance",
+      "path": "/resolve-maintenance/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "publishAggregate",
+      "path": "/publish-aggregate/:id",
+      "method": "POST",
+      "permission": "steward.housing.management.admin"
+    },
+    {
+      "operationId": "propertyOptions",
+      "path": "/property-options",
+      "method": "GET",
+      "permission": "steward.housing.management.read"
+    },
+    {
+      "operationId": "buildingOptions",
+      "path": "/building-options",
+      "method": "GET",
+      "permission": "steward.housing.management.read"
+    },
+    {
+      "operationId": "propertyReferenceOptions",
+      "path": "/property-reference-options",
+      "method": "GET",
+      "permission": "steward.housing.management.read"
+    },
+    {
+      "operationId": "unitOptions",
+      "path": "/unit-options",
+      "method": "GET",
+      "permission": "steward.housing.management.read"
+    },
+    {
+      "operationId": "placementOptions",
+      "path": "/placement-options",
+      "method": "GET",
+      "permission": "steward.housing.management.read"
+    },
+    {
+      "operationId": "publishedAggregates",
+      "path": "/published-aggregates",
+      "method": "GET",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "referralStatus",
+      "path": "/referral-status",
+      "method": "GET",
+      "permission": "steward.housing.management.referral"
+    },
+    {
+      "operationId": "housingOverview",
+      "path": "/housing-overview",
+      "method": "GET",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "housingAvailability",
+      "path": "/availability",
+      "method": "GET",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "housingOccupancy",
+      "path": "/occupancy",
+      "method": "GET",
+      "permission": "steward.housing.management.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "assetAuthorityProgramId",
+          "label": "Asset Authority Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "assetAuthorityEntityId",
+          "label": "Asset Authority Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "assetAuthorityInstallationId",
+          "label": "Asset Authority Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "assetAuthorityModuleId",
+          "label": "Asset Authority Module Id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency"
+      ],
+      "actions": [
+        {
+          "label": "Refresh approved property catalogue",
+          "operationId": "refreshPropertyCatalog",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "coordinator",
+            "reviewer",
+            "housingOfficer",
+            "maintenance",
+            "reporter"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "case-assignments",
+      "title": "Case assignments",
+      "navigationLabel": "Case assignments",
+      "listOperation": "listCaseAssignments",
+      "createOperation": "createCaseAssignment",
+      "updateOperation": "updateCaseAssignment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "participantAlias",
+          "label": "Synthetic participant reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 50
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Case access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "participantAlias",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke case access",
+          "operationId": "revokeCaseAssignment",
+          "confirmation": "Remove only this case assignment? Programme membership remains unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "properties",
+      "title": "Property authority references",
+      "navigationLabel": "Property authority references",
+      "listOperation": "listProperty",
+      "createOperation": "createProperty",
+      "updateOperation": "updateProperty",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "assetId",
+          "label": "Authoritative asset",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "propertyOptions",
+            "valueField": "assetId",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "authorityStatus",
+          "label": "authority Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "authority",
+          "label": "authority",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "provider",
+          "label": "provider",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "assetId",
+        "authorityStatus"
+      ],
+      "actions": [
+        {
+          "label": "Verify property authority",
+          "operationId": "verifyProperty",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "buildings",
+      "title": "Buildings",
+      "navigationLabel": "Buildings",
+      "listOperation": "listBuilding",
+      "createOperation": "createBuilding",
+      "updateOperation": "updateBuilding",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Building name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "propertyId",
+          "label": "Property reference",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "propertyReferenceOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "propertyId"
+      ]
+    },
+    {
+      "screenId": "units",
+      "title": "Housing units",
+      "navigationLabel": "Housing units",
+      "listOperation": "listUnit",
+      "createOperation": "createUnit",
+      "updateOperation": "updateUnit",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "buildingId",
+          "label": "Building",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "buildingOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "classification",
+          "label": "Unit classification",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "standard",
+            "accessible",
+            "family"
+          ]
+        },
+        {
+          "name": "availability",
+          "label": "Operational availability",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "available",
+            "unavailable"
+          ],
+          "default": "available"
+        }
+      ],
+      "columns": [
+        "code",
+        "buildingId",
+        "classification",
+        "availability"
+      ]
+    },
+    {
+      "screenId": "placements",
+      "title": "Placement review",
+      "navigationLabel": "Placement review",
+      "listOperation": "listPlacement",
+      "updateOperation": "updatePlacement",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "unitId",
+          "label": "Suitable unit",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "unitOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reviewReason",
+          "label": "Suitability review",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "source Program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requestedStartsAt",
+          "label": "requested Starts At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requestedEndsAt",
+          "label": "requested Ends At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "classification",
+          "label": "classification",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedBy",
+          "label": "reviewed By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "approvedBy",
+          "label": "approved By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "confirmedAt",
+          "label": "confirmed At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantAlias",
+        "unitId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Record suitability review",
+          "operationId": "reviewPlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Approve placement",
+          "operationId": "approvePlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Reserve unit",
+          "operationId": "reservePlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Confirm occupancy",
+          "operationId": "confirmPlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Record departure",
+          "operationId": "departPlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Withdraw unoccupied placement",
+          "operationId": "withdrawPlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Reject pending referral",
+          "operationId": "rejectPlacement",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "service-sources",
+      "title": "Authorized referral sources",
+      "navigationLabel": "Authorized referral sources",
+      "listOperation": "listServiceSource",
+      "createOperation": "createServiceSource",
+      "updateOperation": "updateServiceSource",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "Source programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "Source organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "Source Worker installation ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "Source module ID",
+          "type": "string",
+          "required": true,
+          "default": "steward.housing.services"
+        },
+        {
+          "name": "expiresAt",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Relationship purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "sourceProgramId",
+        "sourceEntityId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve referral relationship",
+          "operationId": "approveSource",
+          "confirmation": "Confirm this recorded housing decision?"
+        },
+        {
+          "label": "Revoke referral relationship",
+          "operationId": "revokeSource",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "maintenance",
+      "title": "Maintenance restrictions",
+      "navigationLabel": "Maintenance restrictions",
+      "listOperation": "listMaintenance",
+      "createOperation": "createMaintenance",
+      "updateOperation": "updateMaintenance",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "unitId",
+          "label": "Unit",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "unitOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "startsAt",
+          "label": "Restriction starts (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "endsAt",
+          "label": "Restriction ends (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Safety or maintenance reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "unitId",
+        "startsAt",
+        "endsAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Resolve restriction",
+          "operationId": "resolveMaintenance",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "followups",
+      "title": "Housing follow-up",
+      "navigationLabel": "Housing follow-up",
+      "listOperation": "listFollowup",
+      "createOperation": "createFollowup",
+      "updateOperation": "updateFollowup",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "placementId",
+          "label": "Placement",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "placementOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "milestoneDays",
+          "label": "Milestone days",
+          "type": "number",
+          "required": true,
+          "minimum": 30,
+          "default": 30
+        },
+        {
+          "name": "observedAt",
+          "label": "Observation date (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "observation",
+          "label": "Outcome",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "maintained",
+            "changed",
+            "unknown"
+          ]
+        },
+        {
+          "name": "reason",
+          "label": "Recorded observation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordedAt",
+          "label": "recorded At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "placementId",
+        "milestoneDays",
+        "observation"
+      ]
+    },
+    {
+      "screenId": "costs",
+      "title": "Programme costs",
+      "navigationLabel": "Programme costs",
+      "listOperation": "listCost",
+      "createOperation": "createCost",
+      "updateOperation": "updateCost",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "category",
+          "label": "Cost category",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "actual-program-expense",
+            "estimated-future-service-cost"
+          ]
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount in minor currency units",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "startsAt",
+          "label": "Period starts (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "endsAt",
+          "label": "Period ends (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "label": "Source description",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        }
+      ],
+      "columns": [
+        "code",
+        "category",
+        "amountCents",
+        "currency"
+      ]
+    },
+    {
+      "screenId": "release-requests",
+      "title": "Aggregate disclosures",
+      "navigationLabel": "Aggregate disclosures",
+      "listOperation": "listReleaseRequest",
+      "createOperation": "createReleaseRequest",
+      "updateOperation": "updateReleaseRequest",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "cohortId",
+          "label": "Canonical cohort ID",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Disclosure policy ID",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "reason",
+          "label": "Disclosure purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "releaseId",
+          "label": "release Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "cohortId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve and seal disclosure",
+          "operationId": "publishAggregate",
+          "confirmation": "Confirm this recorded housing decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "published-aggregates",
+      "title": "Sealed housing disclosures",
+      "navigationLabel": "Published aggregates",
+      "listOperation": "publishedAggregates",
+      "fields": [
+        {
+          "name": "releaseId",
+          "label": "release Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "suppressed",
+          "label": "suppressed",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantCount",
+          "label": "participant Count",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantCounts",
+          "label": "participant Counts",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "capacity",
+          "label": "capacity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "financials",
+          "label": "financials",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "releaseId",
+        "programId",
+        "suppressed",
+        "participantCount"
+      ]
+    },
+    {
+      "screenId": "housing-overview",
+      "title": "Housing overview",
+      "navigationLabel": "Housing overview",
+      "listOperation": "housingOverview",
+      "fields": [
+        {
+          "name": "programName",
+          "label": "program Name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "housingUnits",
+          "label": "housing Units",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "pendingRequests",
+          "label": "pending Requests",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reservedPlacements",
+          "label": "reserved Placements",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "occupiedUnits",
+          "label": "occupied Units",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "actualOperatingCostCents",
+          "label": "actual Operating Cost Cents",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currency",
+          "label": "currency",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "housingUnits",
+        "pendingRequests",
+        "reservedPlacements",
+        "occupiedUnits",
+        "actualOperatingCostCents",
+        "currency"
+      ]
+    },
+    {
+      "screenId": "availability",
+      "title": "Unit availability",
+      "navigationLabel": "Unit availability",
+      "listOperation": "housingAvailability",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "classification",
+          "label": "classification",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "classification",
+        "status"
+      ]
+    },
+    {
+      "screenId": "occupancy",
+      "title": "Occupancy",
+      "navigationLabel": "Occupancy",
+      "listOperation": "housingOccupancy",
+      "fields": [
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "unitId",
+          "label": "unit Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expectedStartsAt",
+          "label": "expected Starts At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expectedEndsAt",
+          "label": "expected Ends At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "confirmedAt",
+          "label": "confirmed At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "departedAt",
+          "label": "departed At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantAlias",
+        "unitId",
+        "expectedStartsAt",
+        "expectedEndsAt",
+        "confirmedAt",
+        "departedAt",
+        "status"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 4,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "3f044dacd83ac223e7a1286ae79e4feedc9bd09fa6b5bce6336cc60317853640"
+      },
+      {
+        "version": 2,
+        "sha256": "f550d362d7fed778a4c575db1dc529182da0fc4157181d52b9656d3641cfeda3"
+      },
+      {
+        "version": 3,
+        "sha256": "4b1f9136d6654a03db199931204abb897de05abe61d10a43c8870c88e357d7c8"
+      },
+      {
+        "version": 4,
+        "sha256": "915c6445c3185c7c565c5f01187117846f49af50c3123c3f157ea935b3484638"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "programServices": {
+    "contractVersion": 1,
+    "domain": "housing",
+    "syntheticOnly": true
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "housing.sealed-program-aggregates",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "mcpTools": [
+    {
+      "name": "housing_published_aggregates",
+      "description": "Approved sealed synthetic housing aggregates only. Suppressed values are unknown and must not be reconstructed.",
+      "operationId": "publishedAggregates"
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "mission_aggregates_v1",
+        "table": "mission_aggregate_releases",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "housing.placement",
+        "contract": "steward.housing-placement",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "housing.placement.request",
+            "command": "housing.placement.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "type": "string",
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "requestedStartsAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "requestedEndsAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "standard",
+                    "accessible",
+                    "family"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "requestedStartsAt",
+                "requestedEndsAt",
+                "classification",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.housing.management.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "housing.placement.status",
+            "command": "housing.placement.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.housing.management.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "housing.placement.withdraw",
+            "command": "housing.placement.withdraw",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.housing.management.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "housing.capacity.observe",
+            "command": "housing.capacity.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "housingUnits": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "availableUnits": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "housingUnits",
+                "availableUnits",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.housing.management.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "property.authority",
+        "contract": "steward.property-authority",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "catalog",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "assetId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "site": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "ownerEntityId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "classification": {
+                        "type": "string",
+                        "const": "residential"
+                      },
+                      "assetRevision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "available": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "assetId",
+                      "name",
+                      "site",
+                      "ownerEntityId",
+                      "classification",
+                      "assetRevision",
+                      "available"
+                    ]
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "records",
+                "nextOffset",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "verify",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assetId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "assetId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "authorized": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "assetId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assetRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "ownerEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "custodianEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "userEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managerEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managerProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managementAuthorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managementAccessBasis": {
+                  "type": "string",
+                  "enum": [
+                    "owned",
+                    "leased",
+                    "shared",
+                    "custody"
+                  ]
+                },
+                "classification": {
+                  "type": "string",
+                  "const": "residential"
+                },
+                "available": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "authorized",
+                "assetId",
+                "assetRevision",
+                "ownerEntityId",
+                "custodianEntityId",
+                "userEntityId",
+                "managerEntityId",
+                "managerProgramId",
+                "managementAuthorityId",
+                "managementAccessBasis",
+                "classification",
+                "available",
+                "validUntil",
+                "synthetic"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

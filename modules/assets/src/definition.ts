@@ -1,3 +1,4 @@
+import {managementAuthorityResource,managementAuthorityActions,receivePropertyAuthority,auditAssetAccess,propertyProgramAuthority} from './authority.js';
 import { ensure, find, save, records, publicRecord, object, text, amount, choice, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import type { ModulePackageManifest } from '@steward/module-sdk';
 const nonnegative = { type: 'number', minimum: 0, maximum: 100000000, multipleOf: 0.001 };
@@ -14,9 +15,9 @@ async function projection(r: RecordValue, ctx: Context) {
     await ctx.db.query('INSERT INTO capacities(id,revision,name,site,capacity_m3,utilized_m3,available_m3,monthly_operating_cost,currency,ownership,valid_until) VALUES($1,1,$2,$3,$4,$5,$6,$7,$8,$9,$10) ON CONFLICT(id) DO UPDATE SET revision=capacities.revision+1,name=excluded.name,site=excluded.site,capacity_m3=excluded.capacity_m3,utilized_m3=excluded.utilized_m3,available_m3=excluded.available_m3,monthly_operating_cost=excluded.monthly_operating_cost,currency=excluded.currency,ownership=excluded.ownership,valid_until=excluded.valid_until WHERE (capacities.name,capacities.site,capacities.capacity_m3,capacities.utilized_m3,capacities.available_m3,capacities.monthly_operating_cost,capacities.currency,capacities.ownership,capacities.valid_until) IS DISTINCT FROM (excluded.name,excluded.site,excluded.capacity_m3,excluded.utilized_m3,excluded.available_m3,excluded.monthly_operating_cost,excluded.currency,excluded.ownership,excluded.valid_until)', [r.id, d.name, d.site, d.capacityM3, d.utilizedM3, available, d.monthlyOperatingCostCents / 100, d.currency, { ownerEntityId: d.ownerEntityId, custodianEntityId: d.custodianEntityId, userEntityId: d.userEntityId, accessBasis: d.accessBasis }, next ? new Date(next).toISOString() : null]);
 }
 export function assets(manifest: ModulePackageManifest): Definition {
-    return { manifest, resources: [
-            { kind: 'facility', path: '/facilities', key: 'code', schema: object({ code: text(60), name: text(), site: text(), classification: choice(['warehouse', 'office', 'land', 'workshop']), ...ownership }), prepare: async (b, p, ctx) => { authorized(b, ctx); return b; } },
-            { kind: 'asset', path: '/assets', key: 'code', schema: object({ code: text(60), name: text(), facilityCode: text(60), site: text(), classification: choice(['warehouse', 'equipment', 'vehicle', 'office']), ...ownership, capacityM3: nonnegative, utilizedM3: nonnegative, availability: choice(['available', 'unavailable', 'maintenance']), monthlyOperatingCostCents: amount, currency: text(3) }), prepare: async (b, p, ctx) => {
+    return { manifest, auditAccess:auditAssetAccess, receive:receivePropertyAuthority, queries:[{path:'/program-authority',run:propertyProgramAuthority}], resources: [managementAuthorityResource,
+            { kind: 'facility', path: '/facilities', key: 'code', schema: object({ code: text(60), name: text(), site: text(), classification: choice(['warehouse', 'office', 'land', 'workshop', 'residential']), ...ownership }), prepare: async (b, p, ctx) => { authorized(b, ctx); return b; } },
+            { kind: 'asset', path: '/assets', key: 'code', schema: object({ code: text(60), name: text(), facilityCode: text(60), site: text(), classification: choice(['warehouse', 'equipment', 'vehicle', 'office', 'residential']), ...ownership, capacityM3: nonnegative, utilizedM3: nonnegative, availability: choice(['available', 'unavailable', 'maintenance']), monthlyOperatingCostCents: amount, currency: text(3) }), prepare: async (b, p, ctx) => {
                     authorized(b, ctx);
                     ensure(await find(ctx, 'facility', b.facilityCode), 'Unknown facility');
                     ensure(b.utilizedM3 <= b.capacityM3, 'Utilization exceeds capacity');
@@ -44,7 +45,7 @@ export function assets(manifest: ModulePackageManifest): Definition {
                     return { ...b, status: 'booked' };
                 }, after: async (r, _p, ctx) => { const a = (await find(ctx, 'asset', r.data.assetCode))!; if (a.data.status === 'published')
                     await projection(a, ctx); } }
-        ], actions: [
+        ], actions: [...managementAuthorityActions,
             { path: '/withdraw/:id', permission: 'cee.assets.publish', kind: 'asset', run: async (r, ctx) => { await ctx.db.query('UPDATE capacities SET available_m3=0,valid_until=now(),revision=revision+1 WHERE id=$1', [r.id]); return { record: publicRecord(await save(ctx, 'asset', r.key, { ...r.data, status: 'unpublished' }, r)) }; } },
             { path: '/publish/:id', permission: 'cee.assets.publish', kind: 'asset', run: async (r, ctx) => { authorized(r.data, ctx); await projection(r, ctx); return { record: publicRecord(await save(ctx, 'asset', r.key, { ...r.data, status: 'published' }, r)) }; } },
             { path: '/complete/:id', permission: 'cee.assets.maintain', kind: 'maintenance', run: async (r, ctx) => { ensure(r.data.status === 'planned', 'Maintenance already completed'); const updated = await save(ctx, 'maintenance', r.key, { ...r.data, status: 'completed' }, r); const asset = (await find(ctx, 'asset', r.data.assetCode))!; if (asset.data.status === 'published')

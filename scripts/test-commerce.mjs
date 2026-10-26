@@ -16,6 +16,8 @@ import pg from 'pg';
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
 import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
+import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {authentication,createAccount} from '../packages/platform/dist/security/auth.js';
 import {smartModuleRoutes} from '../packages/platform/dist/smart-modules.js';
@@ -45,7 +47,7 @@ try{
  docker(['run','--rm','-d','--name',container,'--env-file',runDir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};db=new pg.Pool({...connection,database:'postgres'});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,simulationRoutingMigration])await db.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,peerRegistryMigration,peerGovernanceMigration,simulationRoutingMigration])await db.query(sql);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);await createAccount(db,'commerce-admin',adminPassword,'local_admin');
  const openssl=process.env.STEWARD_OPENSSL??(process.platform==='win32'?'C:/Program Files/Git/usr/bin/openssl.exe':'openssl');await writeFile(runDir+'/openssl.cnf','[req]\ndistinguished_name=dn\n[dn]\n');
  for(const [provider,simPort]of [['shopify',19481],['printify',19482]]){

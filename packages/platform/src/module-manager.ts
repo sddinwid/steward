@@ -10,9 +10,11 @@ import { signAssertion, fail } from './security/crypto.js';
 import { audit, transaction } from './security/store.js';
 import { RELEASE } from './config.js';
 import { smartModuleRoutes } from './smart-modules.js';
+import {peerServiceRoutes} from './peer-app.js';
+import type {SecurityConfig} from './security/config.js';
 
 interface ModuleRuntimeConfig { catalogFile: string; trustFile: string; brokerUrl: string; caFile: string; tlsServerName: string }
-export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authentication, installation: InstallationConfig, key: string, configFile: string) {
+export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authentication, installation: InstallationConfig, key: string, configFile: string,security?:SecurityConfig) {
   const runtime: ModuleRuntimeConfig = JSON.parse(await readFile(configFile, 'utf8'));
   async function catalog() {
     const trust: PublisherTrust = JSON.parse(await readFile(runtime.trustFile, 'utf8'));
@@ -32,7 +34,8 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     return (await pool.query('SELECT permission FROM module_permissions WHERE account_id=$1 AND module_id=$2', [actor.account_id, moduleId])).rows.map(r => r.permission).filter(p => declared.includes(p));
   }
   const broker = await createModuleBroker(configFile, installation, key);
-  await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust);
+  const governance=security?await peerServiceRoutes(app,pool,auth,installation,key,security,broker,async()=>(await catalog()).trust):undefined;
+  await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust,governance);
   // Encapsulation retains raw bytes only for this bounded webhook ingress.
   await app.register(async ingress=>{
     ingress.addContentTypeParser('application/json',{parseAs:'buffer',bodyLimit:131072},(_req,body,done)=>done(null,body));

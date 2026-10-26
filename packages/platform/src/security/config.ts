@@ -13,6 +13,8 @@ export interface SecurityConfig {
   publicOrigin: string;
   tlsKeyFile: string;
   tlsCertFile: string;
+  /** Public issuer CA for exporting a pinned peer profile (never a key). */
+  tlsCaFile?: string;
   identityKeyFile: string;
   trustedMasters: TrustedMaster[];
 }

@@ -1,3 +1,5 @@
+import {parsePeerScope,type AttestedPeerScope} from './peer-context.js';
+export * from './peer-context.js';
 export * from './simulation.js';
 import {setSimulationContext,simulationEpoch,inferSimulationContext} from './simulation.js';
 import {simulationEpochSql,sameSimulationDataset,type SimulationOrigin} from '@steward/module-sdk';
@@ -23,6 +25,7 @@ export class BusinessError extends Error {
 export function ensure(condition: unknown, message: string, status = 422): asserts condition { if (!condition)
     throw new BusinessError(status, message); }
 export interface Context {
+    readonly peerScope?:AttestedPeerScope|undefined;
     simulation?:SimulationOrigin;
     db: pg.PoolClient;
     config: Data;
@@ -223,7 +226,7 @@ async function resourceKey(resource: Resource, c: Context, input: Data) {
 }
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
-    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
+    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
     const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
     const audited = new WeakSet<FastifyRequest>();
     const identifyRecord = (request: FastifyRequest, kind: string, id?: string) => {
@@ -392,13 +395,13 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
     return app;
 }
 export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, runtime: Data, definition: Definition) {
-    const ctx = (db: pg.PoolClient): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
+    const ctx = (db: pg.PoolClient, request?:FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime',peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) });
     app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,(envelope->>'sequence')::bigint,command_id LIMIT 4")).rows.map(r => r.envelope) }));
     app.post<{
         Body: IntegrationCommand;
     }>('/integration-inbox', async (req, reply) => {
         const result = await transaction(pool, async (db) => {
-            const c = ctx(db);
+            const c = ctx(db,req);
             ensure(c.config.integrationsEnabled===true||req.body.simulation&&definition.manifest.simulation?.role==='participant'&&c.config.simulationEnabled===true,'Integrations disabled',403);
             validateCommand(req.body);
             ensure(!req.body.simulation||definition.manifest.simulation&&!definition.manifest.connector&&runtime.configuration.mode!=='live','SIMULATION_LIVE_PROVIDER_DENIED',403);

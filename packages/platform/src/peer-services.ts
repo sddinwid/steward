@@ -19,14 +19,16 @@ function programScopedInput(schema:Record<string,unknown>){const properties=sche
 export function peerTlsCaFingerprint(caPem:string,now=Date.now()){
  try{if(/PRIVATE KEY/.test(caPem))reject('PEER_TLS_PIN_INVALID');const c=new X509Certificate(caPem);if(!c.ca||Date.parse(c.validFrom)>now||Date.parse(c.validTo)<=now)reject('PEER_TLS_PIN_INVALID');return createHash('sha256').update(c.raw).digest('hex');}catch{return reject('PEER_TLS_PIN_INVALID');}
 }
-export interface PeerProfilePins {installationId:string;entityId:string;origin:string;tlsCaPem:string;publisherTrust:PublisherTrust}
+export interface PeerProfilePins {installationId:string;entityId:string;origin:string;tlsCaPem:string;publisherTrust:PublisherTrust;transport?:'direct'|'docker-host-localhost'}
 export interface VerifiedPeerProvider {moduleId:string;providerInstallationId:string;packageDigest:string;descriptor:SignedModulePackage;manifest:ModulePackageManifest;state:'active'|'inactive'|'unavailable';configuredCapabilities:string[]}
-export interface VerifiedPeerProfile {profile:PeerProfilePayload;publicKey:string;tlsCaPem:string;providers:VerifiedPeerProvider[];verifiedAt:number}
+export interface VerifiedPeerProfile {profile:PeerProfilePayload;publicKey:string;tlsCaPem:string;providers:VerifiedPeerProvider[];verifiedAt:number;transport?:'direct'|'docker-host-localhost'}
 
 /** Admin pins are supplied independently; no offered URL/CA/publisher is trusted implicitly. */
 export function verifyPeerProfile(value:unknown,pins:PeerProfilePins,trustedMasters:Pick<TrustedMaster,'installationId'|'publicKey'>[],now=Date.now()):VerifiedPeerProfile{
  try{
-  bounded(value,MAX_PROFILE_BYTES,'PEER_PROFILE_TOO_LARGE');if(/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/.test(canonical(value)))reject('PEER_PROFILE_PRIVATE_KEY');const assertion=signedPeerProfileSchema.parse(value),p=assertion.payload;
+  bounded(value,MAX_PROFILE_BYTES,'PEER_PROFILE_TOO_LARGE');if(/PRIVATE KEY/i.test(canonical(value)))reject('PEER_PROFILE_PRIVATE_KEY');if(/PRIVATE KEY/i.test(canonical(pins)))reject('PEER_PINS_PRIVATE_KEY');const assertion=signedPeerProfileSchema.parse(value),p=assertion.payload;
+  if(pins.transport!==undefined&&pins.transport!=='direct'&&pins.transport!=='docker-host-localhost')reject('PEER_TRANSPORT_PIN_INVALID');
+  if(pins.transport==='docker-host-localhost'&&!new URL(p.origin).hostname.endsWith('.localhost'))reject('PEER_TRANSPORT_PIN_INVALID');
   if(p.installationId!==pins.installationId||p.entityId!==pins.entityId||p.origin!==peerOriginSchema.parse(pins.origin))reject('PEER_PROFILE_PIN_MISMATCH');
   if(p.expiresAt<=now||p.issuedAt>now+30000||p.expiresAt-p.issuedAt<=0||p.expiresAt-p.issuedAt>300000||now-p.issuedAt>300000)reject('PEER_PROFILE_EXPIRED');
   if(peerTlsCaFingerprint(pins.tlsCaPem,now)!==p.tlsCaSha256)reject('PEER_TLS_PIN_MISMATCH');
@@ -38,7 +40,7 @@ export function verifyPeerProfile(value:unknown,pins:PeerProfilePins,trustedMast
   const providers=p.providers.map(v=>{const descriptor=v.descriptor as SignedModulePackage,packageValue=verifyPackage(descriptor,pins.publisherTrust),m=packageValue.manifest;
    if(v.moduleId!==m.moduleId||new Set(v.configuredCapabilities).size!==v.configuredCapabilities.length||v.configuredCapabilities.some(id=>!m.smart?.provides.some(c=>c.capabilityId===id)))reject('PEER_PROVIDER_MISMATCH');
    return{moduleId:m.moduleId,providerInstallationId:v.providerInstallationId,packageDigest:digest(canonical(descriptor)),descriptor,manifest:m,state:v.state,configuredCapabilities:v.configuredCapabilities};});
-  return{profile:p,publicKey:key,tlsCaPem:pins.tlsCaPem,providers,verifiedAt:now};
+  return{profile:p,publicKey:key,tlsCaPem:pins.tlsCaPem,providers,verifiedAt:now,...(pins.transport?{transport:pins.transport}:{})};
  }catch(e){if((e as Error).message.startsWith('PEER_'))throw e;return reject('PEER_PROFILE_INVALID');}
 }
 
@@ -107,5 +109,9 @@ export function verifyPeerReceipt(value:unknown,request:PeerCommandPayload,desti
 export async function requestPeerCommand(peer:VerifiedPeerProfile,envelope:SignedAssertion<PeerCommandPayload>,options:{timeoutMs?:number;signal?:AbortSignal}={}):Promise<unknown>{
  const timeout=options.timeoutMs??5000;if(!Number.isInteger(timeout)||timeout<100||timeout>10000)reject('PEER_DEADLINE_INVALID');if(!peerOriginSchema.safeParse(peer.profile.origin).success)reject('PEER_ORIGIN_INVALID');
  if(peerTlsCaFingerprint(peer.tlsCaPem)!==peer.profile.tlsCaSha256)reject('PEER_TLS_PIN_MISMATCH');bounded(envelope,MAX_COMMAND_BYTES,'PEER_COMMAND_TOO_LARGE');const bytes=JSON.stringify(envelope),url=new URL(PEER_COMMAND_PATH,peer.profile.origin),signal=options.signal?AbortSignal.any([options.signal,AbortSignal.timeout(timeout)]):AbortSignal.timeout(timeout);
- return new Promise((resolve,rejectPromise)=>{const req=request(url,{method:'POST',ca:peer.tlsCaPem,rejectUnauthorized:true,lookup:boundedLookup,signal,headers:{'content-type':'application/json','content-length':Buffer.byteLength(bytes)}},res=>{const chunks:Buffer[]=[];let size=0,oversized=false;res.on('data',(part:Buffer)=>{size+=part.length;if(size>MAX_RESPONSE_BYTES){oversized=true;req.destroy(new Error('PEER_RESPONSE_TOO_LARGE'));}else chunks.push(part);});res.on('error',()=>rejectPromise(new Error(oversized?'PEER_RESPONSE_TOO_LARGE':signal.aborted?'PEER_TRANSPORT_TIMEOUT':'PEER_TRANSPORT_UNAVAILABLE')));res.on('end',()=>{if(res.statusCode!==200)return rejectPromise(new Error('PEER_REQUEST_REJECTED'));if(!String(res.headers['content-type']??'').startsWith('application/json'))return rejectPromise(new Error('PEER_RESPONSE_INVALID'));try{resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{rejectPromise(new Error('PEER_RESPONSE_INVALID'));}});});req.on('error',e=>rejectPromise(new Error((e as Error).message==='PEER_RESPONSE_TOO_LARGE'?'PEER_RESPONSE_TOO_LARGE':signal.aborted?'PEER_TRANSPORT_TIMEOUT':'PEER_TRANSPORT_UNAVAILABLE')));req.end(bytes);});
+ if(peer.transport==='docker-host-localhost'&&!url.hostname.endsWith('.localhost'))reject('PEER_TRANSPORT_PIN_INVALID');
+ // DNS destination changes only in explicitly approved local Docker mode. TLS
+ // SNI, certificate hostname checks and HTTP Host remain the original peer URL.
+ const lookup=peer.transport==='docker-host-localhost'?((_host:string,opts:any,callback:any)=>boundedLookup('host.docker.internal',opts,callback)):boundedLookup;
+ return new Promise((resolve,rejectPromise)=>{const req=request(url,{method:'POST',ca:peer.tlsCaPem,rejectUnauthorized:true,lookup,signal,headers:{'content-type':'application/json','content-length':Buffer.byteLength(bytes)}},res=>{const chunks:Buffer[]=[];let size=0,oversized=false;res.on('data',(part:Buffer)=>{size+=part.length;if(size>MAX_RESPONSE_BYTES){oversized=true;req.destroy(new Error('PEER_RESPONSE_TOO_LARGE'));}else chunks.push(part);});res.on('error',()=>rejectPromise(new Error(oversized?'PEER_RESPONSE_TOO_LARGE':signal.aborted?'PEER_TRANSPORT_TIMEOUT':'PEER_TRANSPORT_UNAVAILABLE')));res.on('end',()=>{if(res.statusCode!==200)return rejectPromise(new Error('PEER_REQUEST_REJECTED'));if(!String(res.headers['content-type']??'').startsWith('application/json'))return rejectPromise(new Error('PEER_RESPONSE_INVALID'));try{resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{rejectPromise(new Error('PEER_RESPONSE_INVALID'));}});});req.on('error',e=>rejectPromise(new Error((e as Error).message==='PEER_RESPONSE_TOO_LARGE'?'PEER_RESPONSE_TOO_LARGE':signal.aborted?'PEER_TRANSPORT_TIMEOUT':'PEER_TRANSPORT_UNAVAILABLE')));req.end(bytes);});
 }

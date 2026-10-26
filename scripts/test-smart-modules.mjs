@@ -11,6 +11,8 @@ import Fastify from 'fastify';
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
 import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
+import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {PostgresDatabase} from '../packages/platform/dist/database.js';
 import {syncMigration,syncReliabilityMigration} from '../packages/platform/dist/sync-migration.js';
@@ -49,7 +51,7 @@ try{
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres',max:6});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);
+ await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);await db.query(peerRegistryMigration);await db.query(peerGovernanceMigration);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);
  const adminId=await createAccount(db,'local-admin',randomBytes(24).toString('base64url'),'local_admin');
  const adminPassword=randomBytes(24).toString('base64url'),userPassword=randomBytes(24).toString('base64url');
@@ -116,7 +118,7 @@ try{
    const snapshot=async()=>canonical(await Promise.all(['platform_installation','security_accounts','module_installations'].map(async table=>(await baseline.query('SELECT * FROM '+table+' ORDER BY 1')).rows)));
    const before=await snapshot(),database=new PostgresDatabase({...connection,database:'upgrade_baseline',ssl:false},identity);pools.push(database.pool);
    await database.migrate();await database.check();assert.equal(await snapshot(),before);await database.migrate();await database.check();assert.equal(await snapshot(),before);
-   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,15);assert.equal((await baseline.query("SELECT to_regclass('simulation_origins') IS NOT NULL AS present")).rows[0].present,true);
+   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,16);assert.equal((await baseline.query("SELECT to_regclass('simulation_origins') IS NOT NULL AS present")).rows[0].present,true);
  });
  await test('SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers',async()=>{
    await api('','GET',undefined,user,403);await api('/resolve','POST',{consumerId:'example.checkout',capabilityId:requirement.capabilityId},user,403);

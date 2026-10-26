@@ -34,7 +34,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
   if (installation.role === 'master') masterRoutes(app, database.pool, auth, installation, key, security.publicOrigin);
   else {
     await workerRoutes(app, database.pool, auth, installation, key, security);
-    if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE);
+    if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE,security);
   }
   workspaceRoutes(app,database.pool,auth,installation);
   await synchronizationRoutes(app,database.pool,auth,installation,key,security);

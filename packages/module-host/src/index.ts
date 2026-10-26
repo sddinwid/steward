@@ -5,11 +5,12 @@ import { moduleContainerName } from './naming.js';
 import { boundReplicationEvents } from './replication.js';
 import { executeSmartStep } from './smart-executor.js';
 import { routeSmartCommand } from './smart-routing.js';
+import {peerDeliveryHeaders,peerAcknowledgment} from './peer-delivery.js';
 import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
-import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog } from '@steward/module-sdk';
+import { canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog,type IntegrationCommand } from '@steward/module-sdk';
 
 interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
@@ -190,7 +191,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const lock = await client.query(['proxy','inspect'].includes(p.operation)
+    const lock = await client.query(['proxy','inspect','peer.deliver','peer.acknowledge'].includes(p.operation)
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
@@ -207,7 +208,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
-    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'){
+    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'||p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
       const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
       if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
     }
@@ -215,6 +216,22 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       if(current.phase!=='active')return reply.code(409).send({error:'MODULE_DISABLED'});
       const health=await callModule(p.moduleId,'GET','/ready',undefined,{},2000);
       return reply.code(health.status===200?200:503).send({state:health.status===200?'active':'unavailable'});
+    }
+    if(p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
+      if(current.phase!=='active'||!payload.manifest.integration)return reply.code(503).send({error:'MODULE_RUNTIME_UNAVAILABLE'});
+      const installed=(await metadataPool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[p.moduleId])).rows[0];
+      if(!installed||canonical(installed.descriptor)!==canonical(descriptor)||canonical(installed.configuration)!==canonical(p.configuration))failure('INTEGRATION_PROVIDER_CHANGED');
+      if(p.operation==='peer.acknowledge'){
+        const acknowledgment=peerAcknowledgment(p.command,p.outcome,payload.manifest);
+        const r=await callModule(p.moduleId,'POST',payload.manifest.integration.acknowledgmentPath,acknowledgment,{},4000);
+        return reply.code(r.status).send(r.value);
+      }
+      const enrollment=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];
+      if(!enrollment)failure('INTEGRATION_IDENTITY_MISMATCH');
+      const delivery=peerDeliveryHeaders({command:p.command,scope:p.scope},payload.manifest,p.configuration,config.installationId,installed.operation_id,digest(canonical(descriptor)),enrollment.entity_id);
+      const r=await callModule(p.moduleId,'POST',payload.manifest.integration.inboxPath,p.command,delivery.headers,4000);
+      if(r.status>=200&&r.status<300)validateCapabilityValue(r.value,delivery.operation.output);
+      return reply.code(r.status).send(r.value);
     }
     if(p.operation==='webhook'){
       if(current.phase!=='active'||!payload.manifest.connector)return reply.code(404).send({error:'CONNECTOR_NOT_ACTIVE'});
@@ -260,6 +277,26 @@ app.setErrorHandler((error, _request, reply) => {
   reply.code(503).send({ error: code && /^[A-Z_]+$/.test(code) ? code : 'MODULE_RUNTIME_FAILED' });
 });
 let integrating=false,integrationCursor=0;
+async function authorizeProgramme(actorId:string,moduleId:string,programId:string){
+ const row=(await metadataPool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[moduleId])).rows[0];
+ if(!row)failure('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+ const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8')),manifest=verifyPackage(row.descriptor,trust).manifest;
+ const path='/program-authority?q='+encodeURIComponent(programId),operation=operationFor(manifest,'GET',path);
+ if(!operation||operation.operationId!=='programAuthority')failure('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+ const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(moduleId)}/runtime.json`,'utf8'));
+ if((await state(moduleId))?.phase!=='active'||canonical(runtime.configuration)!==canonical(row.configuration))failure('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+ const response=await callModule(moduleId,'GET',path,undefined,{'x-steward-actor':actorId,'x-steward-permissions':JSON.stringify([...new Set(manifest.api.map(o=>o.permission))]),'x-steward-installation':config.installationId},2000);
+ if(response.status!==200||response.value?.programId!==programId||response.value?.authorized!==true)failure('INTEGRATION_PROGRAM_APPROVAL_REVOKED');
+}
+async function authorizeDispatch(actorId:string,command:IntegrationCommand,audience:Record<string,string>){
+ const moduleId=command.sourceModuleId,row=(await metadataPool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[moduleId])).rows[0];
+ if(!row)failure('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+ const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8')),manifest=verifyPackage(row.descriptor,trust).manifest;
+ const path='/dispatch-authority?q='+encodeURIComponent(command.commandId),op=operationFor(manifest,'GET',path);
+ if(!op||op.operationId!=='dispatchAuthority')failure('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
+ const response=await callModule(moduleId,'GET',path,undefined,{'x-steward-actor':actorId,'x-steward-permissions':JSON.stringify([...new Set(manifest.api.map(o=>o.permission))]),'x-steward-installation':config.installationId},2000),r=response.value;
+ if(response.status!==200||r?.authorized!==true||r.commandId!==command.commandId||r.commandDigest!==digest(canonical(command))||Object.entries(audience).some(([key,value])=>r[key]!==value))failure('INTEGRATION_PROGRAM_APPROVAL_REVOKED');
+}
 async function integrations(){
  if(integrating)return;integrating=true;const started=Date.now();let remaining=8;
  try{
@@ -282,7 +319,10 @@ async function integrations(){
      if(source.configuration.integrationsEnabled!==true&&!command.simulation)continue;
      if(command.simulation&&m.simulation?.role==='participant'&&source.configuration.simulationEnabled!==true)continue;
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
-     const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId,()=>moduleDatabase(m.moduleId,async db=>(await db.query("SELECT (envelope->>'sequence')::bigint n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2 ORDER BY n DESC LIMIT 1000",[command.aggregateId,command.capability.capabilityId])).rows.map(r=>Number(r.n)))):null;
+     const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId,()=>moduleDatabase(m.moduleId,async db=>(await db.query("SELECT (envelope->>'sequence')::bigint n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2 ORDER BY n DESC LIMIT 1000",[command.aggregateId,command.capability.capabilityId])).rows.map(r=>Number(r.n))),authorizeProgramme,authorizeDispatch):null;
+     // Durable remote routes are consumed by the Worker API coordinator, which
+     // owns external TLS connectivity. Only its verified receipt ACKs the source.
+     if(smart?.remote)continue;
      if(!smart&&!m.integration.peers.some(p=>p.moduleId===command.targetModuleId&&p.sends.some(c=>c.command===command.command&&c.version===command.version)))throw new Error('INTEGRATION_NOT_AUTHORIZED');
      const wire=smart?.command??command;
      const target=rows.find(r=>r.module_id===wire.targetModuleId);
@@ -307,8 +347,8 @@ async function integrations(){
       else{
        await protectSimulationRoute(metadataPool,wire,m,targetManifest,target.configuration);
        if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});
-       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{})},4000);
-       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor))}}:response.value;}
+       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{}),...(smart?.scope?{'x-steward-peer-scope':JSON.stringify(smart.scope)}:{})},4000);
+       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor)),...(smart.scope?{destinationEntityId:smart.scope.destinationEntityId,destinationInstallationId:smart.scope.destinationInstallationId,destinationProgramId:smart.scope.destinationProgramId,sourceProgramId:smart.scope.sourceProgramId,grantId:smart.scope.grantId}:{})}}:response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
       }

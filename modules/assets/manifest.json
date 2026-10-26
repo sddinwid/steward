@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.assets",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "name": "Assets",
-  "description": "Independent persistent assets business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.7.0",
+  "description": "Authoritative assets, ownership and facilities with human-reviewed, programme-scoped property management authority. Housing occupancy remains in the independent Housing module.",
+  "minimumPlatformVersion": "0.13.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -146,6 +146,52 @@
       "method": "POST",
       "path": "/withdraw/:id",
       "permission": "cee.assets.publish"
+    },
+    {
+      "operationId": "listManagementAuthority",
+      "method": "GET",
+      "path": "/management-authorities",
+      "permission": "cee.assets.authority.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createManagementAuthority",
+      "method": "POST",
+      "path": "/management-authorities",
+      "permission": "cee.assets.authority.write"
+    },
+    {
+      "operationId": "updateManagementAuthority",
+      "method": "PUT",
+      "path": "/management-authorities/:id",
+      "permission": "cee.assets.authority.write"
+    },
+    {
+      "operationId": "approveManagement",
+      "method": "POST",
+      "path": "/approve-management/:id",
+      "permission": "cee.assets.authority.review"
+    },
+    {
+      "operationId": "withdrawManagement",
+      "method": "POST",
+      "path": "/withdraw-management/:id",
+      "permission": "cee.assets.authority.review"
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "cee.assets.authority.review",
+      "query": [
+        "q"
+      ]
     }
   ],
   "ui": [
@@ -187,7 +233,8 @@
             "warehouse",
             "office",
             "land",
-            "workshop"
+            "workshop",
+            "residential"
           ]
         },
         {
@@ -281,7 +328,8 @@
             "warehouse",
             "equipment",
             "vehicle",
-            "office"
+            "office",
+            "residential"
           ]
         },
         {
@@ -598,6 +646,119 @@
         "attempts",
         "error"
       ]
+    },
+    {
+      "screenId": "management-authorities",
+      "workspace": "administration",
+      "title": "Property Management Authority",
+      "navigationLabel": "Property Management Authority",
+      "listOperation": "listManagementAuthority",
+      "createOperation": "createManagementAuthority",
+      "updateOperation": "updateManagementAuthority",
+      "fields": [
+        {
+          "name": "number",
+          "label": "Authority reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "assetId",
+          "label": "Canonical property asset",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listAsset",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "managedEntityId",
+          "label": "Approved manager organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "managedProgramId",
+          "label": "Manager programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "startsAt",
+          "label": "Authority starts at (ISO time)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "endsAt",
+          "label": "Authority ends at (ISO time)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "accessBasis",
+          "label": "Management access basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "owned",
+            "leased",
+            "shared",
+            "custody"
+          ]
+        },
+        {
+          "name": "authorityReference",
+          "label": "Reviewed agreement reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Review status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedBy",
+          "label": "Reviewer",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedAt",
+          "label": "Review time",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "assetId",
+        "managedEntityId",
+        "managedProgramId",
+        "accessBasis",
+        "endsAt",
+        "status",
+        "reviewedBy"
+      ],
+      "actions": [
+        {
+          "label": "Approve management authority",
+          "operationId": "approveManagement",
+          "confirmation": "I reviewed the canonical asset, legal ownership, documented management relationship, receiving programme and validity. This does not approve housing placement."
+        },
+        {
+          "label": "Withdraw management authority",
+          "operationId": "withdrawManagement",
+          "confirmation": "Withdraw authority for new property operations? Existing housing occupancy remains under its Housing provider and is not automatically terminated."
+        }
+      ]
     }
   ],
   "configurationSchema": {
@@ -627,12 +788,31 @@
           "pattern": "^[0-9a-fA-F-]{36}$"
         },
         "default": []
+      },
+      "serviceAuthorityProgramId": {
+        "type": "string",
+        "pattern": "^(?:|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})$",
+        "default": ""
+      },
+      "syntheticServiceAuthority": {
+        "type": "boolean",
+        "default": false
+      },
+      "authorizedManagerEntityIds": {
+        "type": "array",
+        "maxItems": 50,
+        "uniqueItems": true,
+        "items": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+        },
+        "default": []
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -706,5 +886,250 @@
         ]
       }
     ]
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "property.authority",
+        "contract": "steward.property-authority",
+        "version": "1.0.0",
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "integrationsEnabled": true,
+          "syntheticServiceAuthority": true
+        },
+        "operations": [
+          {
+            "name": "catalog",
+            "command": "property.authority.catalog",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ],
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                }
+              }
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "records",
+                "nextOffset",
+                "synthetic"
+              ],
+              "properties": {
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "assetId",
+                      "name",
+                      "site",
+                      "ownerEntityId",
+                      "classification",
+                      "assetRevision",
+                      "available"
+                    ],
+                    "properties": {
+                      "assetId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "site": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "ownerEntityId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "classification": {
+                        "type": "string",
+                        "const": "residential"
+                      },
+                      "assetRevision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "available": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "permission": "cee.assets.authority.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "verify",
+            "command": "property.authority.verify",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "assetId"
+              ],
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assetId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              }
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "authorized",
+                "assetId",
+                "assetRevision",
+                "ownerEntityId",
+                "custodianEntityId",
+                "userEntityId",
+                "managerEntityId",
+                "managerProgramId",
+                "managementAuthorityId",
+                "managementAccessBasis",
+                "classification",
+                "available",
+                "validUntil",
+                "synthetic"
+              ],
+              "properties": {
+                "authorized": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "assetId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "assetRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "ownerEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "custodianEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "userEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managerEntityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managerProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managementAuthorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "managementAccessBasis": {
+                  "type": "string",
+                  "enum": [
+                    "owned",
+                    "leased",
+                    "shared",
+                    "custody"
+                  ]
+                },
+                "classification": {
+                  "type": "string",
+                  "const": "residential"
+                },
+                "available": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "validUntil": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              }
+            },
+            "permission": "cee.assets.authority.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [],
+    "prerequisites": {
+      "configuration": {},
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
   }
 }
