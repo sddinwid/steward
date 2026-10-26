@@ -52,3 +52,12 @@ Current financial plans start on the UTC review day and the active source budget
 ### Recorded financial reviews
 
 Each financial module contributes Financial Review History through its signed package metadata. Reviewers can inspect only their authorized programmes' recorded decisions, distinct account references, original amount/currency, policy/quorum and expiration. This is historical audit evidence, not a promise that an old approval is currently executable. Revoked accounts/grants, expired reviews, policy changes and changed source terms remain enforced when an action runs. No review record can be edited or deleted through the view.
+
+
+### Source-declared service units and reporting comparisons
+
+A draft budget category can declare its service unit and compatible original service metric. These declarations become immutable with budget approval. Leave either unknown when alignment has not been reviewed. Master uses the original unit rather than allowing a reviewer/model to rename a unit cost as a different service or people measure. Open requested amounts exclude already accepted commitments and expire with their original requests; they are never spendable funds.
+
+Receipt-supported conditional capacity uses confirmed receipts less the full-period base requirement, divided by the declared positive incremental cost and capped by declared service capacity. It is a conditional financial bound, not proof of physical service capacity, delivery or causal impact. A comparison with recorded service events requires both programme disclosures, identical fixed periods and unambiguous budget/category/cohort mapping. Unknown, suppressed, zero-cost, ambiguous and differing-period cases retain an explicit unavailable reason. Placement and training-completion event counts are distinct from people and elapsed retention.
+
+New policies inherit a minimum activation-review quorum from immutable programme policy activation history. Revoking or replacing a stronger policy cannot silently lower that governance floor. A weaker operational policy must itself receive the stronger quorum's distinct human reviews. Financial Review History is evidence of past reviews; every execution still checks current grants, terms, policy version and expiration.

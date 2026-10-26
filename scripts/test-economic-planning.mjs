@@ -17,3 +17,5 @@ test('noncash restrictions, consumable horizon and operating costs preserve auth
 test('scenario factors cannot disguise improved conservative cash or alter the baseline',()=>{bad(f=>f.request.scenarios[0].generationBasisPoints=11000);bad(f=>f.request.scenarios[1].costBasisPoints=11000);bad(f=>f.request.scenarios[2].costBasisPoints=11000);bad(f=>f.request.scenarios[2].name='conservative');});
 
 test('current cash cannot be backdated, shifted past unmodeled operating days or funded by an expired first-period budget',()=>{bad(f=>f.request.startDate=new Date(Date.now()-86400000).toISOString().slice(0,10));bad(f=>f.request.startDate=new Date(Date.now()+86400000).toISOString().slice(0,10));bad(f=>f.budget.periodEnd=new Date(Date.parse(f.request.startDate)+29*86400000).toISOString());bad(f=>f.budget.periodStart=new Date(Date.parse(f.request.startDate)+86400000).toISOString());});
+
+test('a Master reviewer cannot relabel source-approved unit costs/capacity as different service or people units',()=>{bad(f=>f.request.programmes[0].unit='unique people');bad(f=>f.budget.metrics.lines[0].serviceUnit=null);});

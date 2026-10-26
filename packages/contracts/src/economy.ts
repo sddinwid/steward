@@ -26,7 +26,7 @@ export interface NoncashResource {
  valuationBasis:'documented-unit-cost'|'documented-replacement-estimate'|'unknown';source:EconomicSourceReference;
 }
 export type BudgetState='draft'|'submitted'|'reviewed'|'approved'|'active'|'revised'|'closed';
-export interface BudgetLine {category:string;service:'housing'|'food'|'training'|'employment'|'other';amount:Money;restriction:string;minimumOperatingCents:number;serviceUnitCostCents:number|null;serviceCapacity:number|null}
+export interface BudgetLine {category:string;service:'housing'|'food'|'training'|'employment'|'other';amount:Money;restriction:string;minimumOperatingCents:number;serviceUnit:string|null;serviceUnitCostCents:number|null;serviceCapacity:number|null}
 export interface BudgetVersion {contractVersion:1;budgetId:string;version:number;programId:string;ownerEntityId:string;periodStart:string;periodEnd:string;currency:Money['currency'];lines:BudgetLine[];state:BudgetState;previousVersionId:string|null;requestedBy:string;approvedBy:string|null;synthetic:true}
 export type CommitmentState='proposed'|'reserve-pending'|'reserved'|'contributor-approved'|'receiver-pending'|'receiver-accepted'|'authorized'|'pending-settlement'|'settlement-uncertain'|'settled'|'receipt-pending'|'reconciled'|'rejected'|'expired'|'cancelled'|'disputed';
 export interface ContributionTerms {

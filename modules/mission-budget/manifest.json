@@ -853,6 +853,13 @@
           "readOnly": true
         },
         {
+          "name": "serviceUnit",
+          "label": "service Unit",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
           "name": "conditionalFundedUnits",
           "label": "conditional Funded Units",
           "type": "number",
@@ -1632,6 +1639,49 @@
           ]
         },
         {
+          "name": "serviceUnit",
+          "label": "Service Unit",
+          "type": "string",
+          "required": false,
+          "maxLength": 40
+        },
+        {
+          "name": "recordedOutcomeMetric",
+          "label": "Recorded Outcome Metric",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "participants:enrolledParticipants",
+            "participants:servicePlanParticipants",
+            "participants:housingReferredParticipants",
+            "participants:housedParticipants",
+            "participants:housingRetainedParticipants",
+            "participants:trainingEnrolledParticipants",
+            "participants:trainingCompletedParticipants",
+            "participants:employmentReferredParticipants",
+            "participants:employedParticipants",
+            "participants:employmentRetainedParticipants",
+            "participants:foodServedParticipants",
+            "participants:followedUpParticipants",
+            "participants:transitionedParticipants",
+            "participants:unresolvedAuthorizedReferralParticipants",
+            "capacity:housingUnits",
+            "capacity:availableHousingUnits",
+            "capacity:occupiedHousingUnits",
+            "capacity:maintenanceRestrictedUnits",
+            "capacity:trainingSeats",
+            "capacity:availableTrainingSeats",
+            "capacity:plannedMeals",
+            "capacity:deliveredMeals",
+            "capacity:essentialSupplyUnits",
+            "capacity:consumedSupplyUnits",
+            "capacity:employmentOpportunities",
+            "capacity:localSupplyShortages",
+            "capacity:housingPlacements",
+            "capacity:trainingCompletions"
+          ]
+        },
+        {
           "name": "serviceCapacity",
           "label": "Service Capacity",
           "type": "number",
@@ -1844,7 +1894,12 @@
           "name": "costType",
           "label": "Cost Type",
           "type": "string",
-          "required": false
+          "required": false,
+          "enum": [
+            "operating",
+            "incremental-service",
+            "unclassified"
+          ]
         },
         {
           "name": "policyId",
@@ -1974,7 +2029,12 @@
           "name": "costType",
           "label": "Cost Type",
           "type": "string",
-          "required": false
+          "required": false,
+          "enum": [
+            "operating",
+            "incremental-service",
+            "unclassified"
+          ]
         },
         {
           "name": "serviceEvidenceId",
@@ -2321,7 +2381,8 @@
             "capacity:consumedSupplyUnits",
             "capacity:employmentOpportunities",
             "capacity:localSupplyShortages",
-            "capacity:housingPlacements"
+            "capacity:housingPlacements",
+            "capacity:trainingCompletions"
           ]
         },
         {
@@ -2435,8 +2496,9 @@
         {
           "name": "actualOperatingCostCents",
           "label": "Actual Operating Cost",
-          "type": "string",
-          "required": false
+          "type": "number",
+          "required": false,
+          "minimum": 0
         },
         {
           "name": "status",
@@ -3470,6 +3532,14 @@
                       "maximum": 100000000
                     },
                     "housingPlacements": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
+                    },
+                    "trainingCompletions": {
                       "type": [
                         "integer",
                         "null"

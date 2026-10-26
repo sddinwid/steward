@@ -35,10 +35,10 @@ export interface MissionServiceDelivery {version:1;deliveryId:string;sessionId:s
 export const MISSION_PARTICIPANT_METRICS=['enrolledParticipants','servicePlanParticipants','housingReferredParticipants','housedParticipants','housingRetainedParticipants','trainingEnrolledParticipants','trainingCompletedParticipants','employmentReferredParticipants','employedParticipants','employmentRetainedParticipants','foodServedParticipants','followedUpParticipants','transitionedParticipants','unresolvedAuthorizedReferralParticipants'] as const;
 export type MissionParticipantMetric=typeof MISSION_PARTICIPANT_METRICS[number];
 export type MissionParticipantVector=Record<Exclude<MissionParticipantMetric,'unresolvedAuthorizedReferralParticipants'>,number|null>&{unresolvedAuthorizedReferralParticipants?:number|null};
-export const MISSION_CAPACITY_METRICS=['housingUnits','availableHousingUnits','occupiedHousingUnits','maintenanceRestrictedUnits','trainingSeats','availableTrainingSeats','plannedMeals','deliveredMeals','essentialSupplyUnits','consumedSupplyUnits','employmentOpportunities','localSupplyShortages','housingPlacements'] as const;
+export const MISSION_CAPACITY_METRICS=['housingUnits','availableHousingUnits','occupiedHousingUnits','maintenanceRestrictedUnits','trainingSeats','availableTrainingSeats','plannedMeals','deliveredMeals','essentialSupplyUnits','consumedSupplyUnits','employmentOpportunities','localSupplyShortages','housingPlacements','trainingCompletions'] as const;
 export type MissionCapacityMetric=typeof MISSION_CAPACITY_METRICS[number];
 /** Older sealed v1 releases omit additive optional metrics; omission is unknown. */
-export type MissionCapacityVector=Record<Exclude<MissionCapacityMetric,'employmentOpportunities'|'localSupplyShortages'|'housingPlacements'>,number|null>&{employmentOpportunities?:number|null;localSupplyShortages?:number|null;housingPlacements?:number|null};
+export type MissionCapacityVector=Record<Exclude<MissionCapacityMetric,'employmentOpportunities'|'localSupplyShortages'|'housingPlacements'|'trainingCompletions'>,number|null>&{employmentOpportunities?:number|null;localSupplyShortages?:number|null;housingPlacements?:number|null;trainingCompletions?:number|null};
 export interface MissionAggregateFinancials {currency:string;actualOperatingCostCents:number|null;estimatedUnitCostCents:number|null;approvedAvailableCents:number|null}
 export interface MissionDisclosureReview {reviewed:true;actorId:string;reviewedAt:string;purpose:'aggregate-program-reporting'}
 export interface MissionAggregateRelease {

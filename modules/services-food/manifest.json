@@ -2555,6 +2555,14 @@
                       ],
                       "minimum": 0,
                       "maximum": 100000000
+                    },
+                    "trainingCompletions": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "minimum": 0,
+                      "maximum": 100000000
                     }
                   },
                   "required": [
