@@ -8,7 +8,7 @@ from .contracts import DescribeInput
 
 
 def metadata():
-    return {'service': 'steward-scientific', 'version': '1.0.0', 'contractVersion': 1,
+    return {'service': 'steward-scientific', 'version': '1.1.0', 'contractVersion': 1,
             'python': platform.python_version(), 'numpy': np.__version__,
             'scipy': scipy.__version__, 'pandas': pd.__version__}
 
@@ -32,6 +32,9 @@ def describe(parameters):
 
 
 def calculate(capability, parameters):
+    if capability == 'mission-sustainability':
+        from .mission import sustain
+        return sustain(parameters)
     if capability == 'describe-series':
         return describe(parameters)
     if capability == 'demand-forecast':

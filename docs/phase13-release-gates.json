@@ -1,0 +1,120 @@
+{
+  "version": "0.13.0",
+  "status": "unverified",
+  "sourceCommit": null,
+  "verifiedCandidateManifestSha256": null,
+  "gates": [
+    {
+      "id": "foundation",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "housing",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "participants",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "employment",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "food",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "coordination",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "privacy",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "analytics",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "mcp",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "ollama",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "browser",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "outage",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "installation",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "upgrade",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "regressions",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    },
+    {
+      "id": "release",
+      "mandatory": true,
+      "status": "unverified",
+      "result": "Acceptance has not yet been recorded for this exact committed release candidate.",
+      "evidence": []
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import {simulationRoutingMigration} from '../packages/module-host/dist/simulatio
 import {verifyShopifyLive} from './shopify-live-acceptance.mjs';
 import {connectionSource,context} from '../packages/commerce-kit/dist/index.js';
 import {syncMigration} from '../packages/platform/dist/sync-migration.js';
+import {missionMigration} from '../packages/platform/dist/mission-migration.js';
 import {commerceMonitorMigration,monitorCommerce} from '../packages/platform/dist/commerce-monitor.js';
 import {execFileSync,spawn} from 'node:child_process';
 import {mkdir,readFile,writeFile,readdir,rm,rmdir} from 'node:fs/promises';
@@ -18,6 +19,7 @@ import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
 import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
+import {peerPurposeMigration} from '../packages/platform/dist/peer-purpose-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {authentication,createAccount} from '../packages/platform/dist/security/auth.js';
 import {smartModuleRoutes} from '../packages/platform/dist/smart-modules.js';
@@ -47,7 +49,7 @@ try{
  docker(['run','--rm','-d','--name',container,'--env-file',runDir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};db=new pg.Pool({...connection,database:'postgres'});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,peerRegistryMigration,peerGovernanceMigration,simulationRoutingMigration])await db.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,peerRegistryMigration,peerGovernanceMigration,peerPurposeMigration,simulationRoutingMigration])await db.query(sql);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);await createAccount(db,'commerce-admin',adminPassword,'local_admin');
  const openssl=process.env.STEWARD_OPENSSL??(process.platform==='win32'?'C:/Program Files/Git/usr/bin/openssl.exe':'openssl');await writeFile(runDir+'/openssl.cnf','[req]\ndistinguished_name=dn\n[dn]\n');
  for(const [provider,simPort]of [['shopify',19481],['printify',19482]]){
@@ -160,7 +162,7 @@ try{
   await sales.api('POST','/financial-assessments',body,201);const report=await sales.api('GET','/commerce-intelligence');
   const entry=report.records.find(o=>o.sourceId.endsWith('/1'));assert.equal(entry.contributionMarginCents,1800);assert.equal(entry.marginBasis,'estimated');assert.deepEqual(entry.missingCosts,[]);
   const projection=(await sales.pool.query('SELECT * FROM commerce_orders WHERE id=$1',[source.id])).rows[0];assert.equal(projection.projection.financials.transactionFeeCents,125);const conflicts=await sales.pool.query("SELECT envelope->>'recordId' FROM sync_outbox WHERE envelope->>'streamId'='commerce_orders' GROUP BY envelope->>'recordId',envelope->>'recordRevision' HAVING count(DISTINCT envelope->'payload')>1");assert.equal(conflicts.rowCount,0,'One canonical projection per source revision');
-  await db.query(syncMigration);await db.query(commerceMonitorMigration);
+  await db.query(syncMigration);await db.query(missionMigration);await db.query(commerceMonitorMigration);
   await db.query("INSERT INTO legal_entities VALUES($1,'Synthetic monitor entity','synthetic',true,now())",[entityId]);
   await createAccount(db,'monitor-admin',adminPassword,'registry_admin');const account=(await db.query("SELECT account_id FROM security_accounts WHERE username='monitor-admin'")).rows[0].account_id;
   const row={installation_id:installationId,entity_id:entityId,module_id:'cee.sales',stream_id:'commerce_orders',record_id:source.id,revision:projection.revision,payload:{projection:{...projection.projection,financials:undefined}},source_at:new Date()};

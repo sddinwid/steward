@@ -1,0 +1,25 @@
+# Participant Services 1.0.1 — checkpoint 13C implementation
+
+This independently packaged synthetic-only module contributes programme administration, intake, assessed enrollment, reviewed service plans, private service referrals, milestones, scheduling, outcomes and scoped case activity through the existing declarative renderer. It does not contain real participant data and is not a production case-management or eligibility system.
+
+Build and generate the verified package metadata from the repository root:
+
+```powershell
+npm ci --prefix modules/participant-services
+npm run build --prefix modules/participant-services
+node modules/participant-services/generate-manifest.mjs
+node scripts/test-participant-services.mjs
+```
+
+The package has its own database migration and uses only `mission_aggregates_v1` replication. Its only MCP contribution returns reviewed, sealed aggregates. Private records, references, notes and activity remain in the module database. Programme permission plus individual case assignment is required; a broad Worker administrator role supplies no case access bypass. Initial intake assigns only the actual creator's newly created case. Programme coordinators explicitly administer role and case assignments using shared programme forms.
+
+Housing referrals use the signed SSMA `housing.placement` contract. Human review is required before a request enters the durable outbox. The host must resolve a verified provider, binding, workflow and bilateral peer grant; Housing independently approves a service-source relationship and makes placement decisions. Private `/dispatch-authority?q=<command UUID>` checks current programme-management authority and original dispatcher's current case authority and exposes only the intended routing audience plus exact command digest. The host must compare these before every network attempt. Source-local ACK metadata must match that intended audience and retain provider installation/package/grant identity. No source-local SYN-PART ID or case summary enters the request payload.
+
+Aliases are persisted by source participant and receiving entity/Worker/module audience, not per referral. Requests separately bind programme, referral, disclosure basis and expiry. Pending commands cannot race subsequent status/withdraw operations; recover the original durable command first. Provider rejection is recorded explicitly. A local withdrawal before dispatch does not claim to have withdrawn a remote placement.
+
+Closed programme periods and human review are required for publication. Cohorts are sealed once, cannot overlap prior member cohorts, and suppress the entire participant/capacity/financial vector when small counts or correlated differences could reveal people. Unsupported measures remain unknown. Publication never turns unknown programme costs or business profit into available funding.
+
+Verification scope: the isolated test script uses real PostgreSQL and authenticated module HTTP, with explicit Housing receipt contract fixtures. It does not establish browser, installed-package, live remote-provider or full governed-peer acceptance. Do not treat this module as checkpoint accepted until the integrated acceptance gates run. Housing, Food and Employment/Training requests use separately declared optional provider contracts. Receiving providers independently accept/review/deliver services; an absent provider leaves durable work unavailable rather than pretending to deliver. Programme administrators review labelled service-destination records; routine staff select a destination without technical entity/Worker/module/programme fields. Every dispatch and queued proof rechecks its immutable audience and current destination approval. Generic compatible replacement providers can be explicitly approved for new work without changing the consumer; existing referrals retain their original audience and provider/package/grant pins. Additional programme enrollment is an explicit reviewed workflow: select an already authorized source case, require source referral/review and target programme-management/case-write permission, then create an independent target case retaining the canonical SYN-PART identity. It copies no assessment narrative or service history. Repeated requests reuse that target case; assignments and lifecycle remain programme-local. Aliases remain stable across those programme enrollments for the same receiving audience. Independent new intake always creates a distinct synthetic identity; the system does not infer that separate intakes represent one person.
+
+
+Programme financial authority is recorded using the shared approved-resource ledger. Drafts contain private synthetic approval evidence and exact cents; explicit programme finance/funding/publication permissions seal a fixed-period immutable origin statement. A sealed statement cannot be silently revised; duplicate allocation, authority or transfer identities cannot create extra funding. No external money movement occurs. Participant1.0.0 migrations001/002 remain unchanged;1.0.1 appends003 for approved service destinations.

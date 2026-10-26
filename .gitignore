@@ -4,3 +4,5 @@ dist/
 .env
 *.log
 artifacts/
+__pycache__/
+*.pyc

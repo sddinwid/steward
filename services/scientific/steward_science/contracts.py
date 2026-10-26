@@ -50,7 +50,7 @@ class Provenance(Closed):
 class Request(Closed):
     schemaVersion: Literal[1]
     jobId: UUID
-    capability: Literal['describe-series', 'demand-forecast', 'procurement-optimization', 'scenario-comparison']
+    capability: Literal['describe-series', 'demand-forecast', 'procurement-optimization', 'scenario-comparison', 'mission-sustainability']
     principalId: UUID
     entityIds: list[UUID] = Field(min_length=1, max_length=8)
     provenance: Provenance

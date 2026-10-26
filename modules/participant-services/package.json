@@ -1,0 +1,19 @@
+{
+  "name": "@steward/participant-services",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@steward/business-kit": "file:../../packages/business-kit",
+    "@steward/contracts": "file:../../packages/contracts",
+    "@steward/mission-kit": "file:../../packages/mission-kit",
+    "@steward/module-sdk": "file:../../packages/module-sdk"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/test/server.test.js dist/test/security.test.js dist/test/synchronization.test.js dist/test/analyst.test.js dist/test/business-analysis.test.js dist/test/commerce-analysis.test.js dist/test/workspace.test.js dist/test/intelligence.test.js dist/test/commerce-intelligence.test.js dist/test/simulation-analysis.test.js dist/test/scientific.test.js dist/test/peer-services.test.js dist/test/peer-registry.test.js dist/test/mission-wire.test.js"
+    "test": "node --test dist/test/server.test.js dist/test/security.test.js dist/test/synchronization.test.js dist/test/analyst.test.js dist/test/business-analysis.test.js dist/test/commerce-analysis.test.js dist/test/workspace.test.js dist/test/intelligence.test.js dist/test/commerce-intelligence.test.js dist/test/simulation-analysis.test.js dist/test/scientific.test.js dist/test/peer-services.test.js dist/test/peer-registry.test.js dist/test/mission-wire.test.js dist/test/mission-analysis.test.js"
   },
   "dependencies": {
     "@fastify/helmet": "13.2.0",

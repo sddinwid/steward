@@ -13,6 +13,7 @@ import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
 import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
+import {peerPurposeMigration} from '../packages/platform/dist/peer-purpose-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {simulationRoutingMigration} from '../packages/module-host/dist/simulation-routing.js';
 import {authentication,createAccount} from '../packages/platform/dist/security/auth.js';
@@ -21,6 +22,7 @@ import {routeSmartCommand} from '../packages/module-host/dist/smart-routing.js';
 import {canonical,digest,signPackage,validateManifest,validateCapabilityValue,capabilityConfigured} from '../packages/module-sdk/dist/index.js';
 import {createBusinessServer,transaction} from '../packages/business-kit/dist/index.js';
 import {syncMigration} from '../packages/platform/dist/sync-migration.js';
+import {missionMigration} from '../packages/platform/dist/mission-migration.js';
 import {simulationIntelligenceMigration,simulationFindingEvidenceMigration,simulationThresholds,monitorSimulation} from '../packages/platform/dist/simulation-monitor.js';
 import {simulationDashboard} from '../packages/platform/dist/simulation-analysis.js';
 import {dataEvent,validateEvent} from '../packages/platform/dist/synchronization.js';
@@ -68,7 +70,7 @@ try{
  docker(['run','--rm','-d','--name',container,'--env-file',dir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres'});pools.push(db);for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(300);}}
- for(const sql of [securityMigration,moduleMigration,smartMigration,syncMigration,commerceMigration,commerceGovernanceMigration,peerRegistryMigration,peerGovernanceMigration,simulationRoutingMigration,simulationIntelligenceMigration,simulationFindingEvidenceMigration])await db.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,syncMigration,commerceMigration,commerceGovernanceMigration,peerRegistryMigration,peerGovernanceMigration,peerPurposeMigration,simulationRoutingMigration,simulationIntelligenceMigration,simulationFindingEvidenceMigration,missionMigration])await db.query(sql);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);await createAccount(db,'simulation-admin',adminPassword,'local_admin');
  const defs={sales,'stock-ledger':stockLedger,'simulation-commerce':simulationCommerce,'simulation-fulfillment':simulationFulfillment};
  for(const [name,define]of Object.entries(defs)){
@@ -191,5 +193,3 @@ try{
  for(const app of apps.reverse())await app.close();for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
  await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase11-service-lifecycle.json',JSON.stringify({checks,commandCount,finishedAt:new Date().toISOString()},null,2)+'\n');await rm(dir,{recursive:true,force:true});
 }
-
-

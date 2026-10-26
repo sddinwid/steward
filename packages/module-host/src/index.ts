@@ -191,7 +191,10 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const lock = await client.query(['proxy','inspect','peer.deliver','peer.acknowledge'].includes(p.operation)
+    // Outbox reads/acknowledgments use only committed module database rows.
+    // They share lifecycle protection with application requests, rather than
+    // briefly excluding user mutations on every synchronization poll.
+    const lock = await client.query(['proxy','inspect','peer.deliver','peer.acknowledge','outbox.read','outbox.complete'].includes(p.operation)
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });

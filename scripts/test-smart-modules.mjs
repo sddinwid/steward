@@ -13,6 +13,7 @@ import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
 import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
+import {peerPurposeMigration} from '../packages/platform/dist/peer-purpose-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {PostgresDatabase} from '../packages/platform/dist/database.js';
 import {syncMigration,syncReliabilityMigration} from '../packages/platform/dist/sync-migration.js';
@@ -51,7 +52,7 @@ try{
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres',max:6});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);await db.query(peerRegistryMigration);await db.query(peerGovernanceMigration);
+ await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);await db.query(peerRegistryMigration);await db.query(peerGovernanceMigration);await db.query(peerPurposeMigration);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);
  const adminId=await createAccount(db,'local-admin',randomBytes(24).toString('base64url'),'local_admin');
  const adminPassword=randomBytes(24).toString('base64url'),userPassword=randomBytes(24).toString('base64url');
@@ -118,7 +119,7 @@ try{
    const snapshot=async()=>canonical(await Promise.all(['platform_installation','security_accounts','module_installations'].map(async table=>(await baseline.query('SELECT * FROM '+table+' ORDER BY 1')).rows)));
    const before=await snapshot(),database=new PostgresDatabase({...connection,database:'upgrade_baseline',ssl:false},identity);pools.push(database.pool);
    await database.migrate();await database.check();assert.equal(await snapshot(),before);await database.migrate();await database.check();assert.equal(await snapshot(),before);
-   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,16);assert.equal((await baseline.query("SELECT to_regclass('simulation_origins') IS NOT NULL AS present")).rows[0].present,true);
+   assert.equal((await baseline.query('SELECT max(version) n FROM platform_migrations')).rows[0].n,18);assert.equal((await baseline.query("SELECT to_regclass('simulation_origins') IS NOT NULL AS present")).rows[0].present,true);
  });
  await test('SSMA governance uses real sessions, denies module users and CSRF, and reconstructs only trusted providers',async()=>{
    await api('','GET',undefined,user,403);await api('/resolve','POST',{consumerId:'example.checkout',capabilityId:requirement.capabilityId},user,403);
@@ -182,6 +183,29 @@ try{
   const legal=randomUUID();await db.query("INSERT INTO local_enrollment(singleton,profile_id,state,entity_id) VALUES(true,'fixture','enrolled',$1)",[legal]);
   try{const discovered=await api('');assert.equal(discovered.entityId,legal);assert(discovered.providers.every(p=>p.entityId===legal));const b=await bind('example.stock-b');assert.equal(b.entity_id,legal);const w=await workflow(b),e=await enqueue(w);await run();assert.equal((await state(e)).state,'completed');const before=await value('example.stock-b'),pending=await enqueue(w);await db.query('UPDATE local_enrollment SET entity_id=$1',[randomUUID()]);await run();assert.equal((await state(pending)).error_code,'ENTITY_SCOPE_MISMATCH');assert.equal(await value('example.stock-b'),before);}
   finally{await db.query('DELETE FROM local_enrollment');}
+ });
+ await test('one programme can approve distinct capability audiences without transferring existing obligations',async()=>{
+  const sourceId='example.scoped-consumer',providers=['example.scoped-training','example.scoped-employer'],sourceProgram=randomUUID(),destinations=[randomUUID(),randomUUID()];
+  const scopedInput={...input,required:[...input.required,'programId','sourceProgramId'],properties:{...input.properties,programId:{type:'string'},sourceProgramId:{type:'string'}}};
+  const scopedRequirement={...requirement,operations:[{...requirement.operations[0],input:scopedInput}]};
+  const manifests={};
+  for(const id of [sourceId,...providers]){
+   const provider=id!==sourceId,m=manifest(id,provider);m.minimumPlatformVersion='0.13.0';
+   if(provider)m.smart.provides[0].operations[0].input=scopedInput;else m.smart.consumes=[scopedRequirement];
+   const descriptor=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+digest(id),manifest:m},secret);manifests[id]={m,descriptor,installation:randomUUID()};
+   await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,$3,'active',$4)",[id,descriptor,{integrationsEnabled:true},manifests[id].installation]);
+  }
+  const bindings=[];
+  for(let n=0;n<2;n++){
+   const id=randomUUID(),p=manifests[providers[n]],cap=p.m.smart.provides[0];bindings.push(id);
+   await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason,source_program_id,destination_program_id,purpose,expires_at) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved',$11,$12,$13,$14,now()+interval '1 day')",[id,sourceId,requirement.capabilityId,providers[n],p.installation,digest(canonical(p.descriptor)),scopedRequirement,cap,adminId,entityId,reason,sourceProgram,destinations[n],'synthetic.pathways']);
+  }
+  const workflowId=randomUUID();await db.query("INSERT INTO smart_workflows(workflow_id,name,version,consumer_id,definition,state,actor_id,reason,scope_program_id) VALUES($1,$2,1,$3,$4,'active',$5,$6,$7)",[workflowId,'Scoped '+workflowId,sourceId,{steps:bindings.map(bindingId=>({bindingId,operation:'reserve'}))},adminId,reason,sourceProgram]);
+  const command=target=>({protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:sourceId,targetModuleId:'steward.capability',command:'reserve',version:1,aggregateId:randomUUID(),sequence:1,occurredAt:new Date().toISOString(),payload:{sku:'SYN-1',quantity:1,orderId:randomUUID(),sourceProgramId:sourceProgram,programId:target},capability:{capabilityId:requirement.capabilityId,operation:'reserve'}});
+  const verified=[];
+  for(let n=0;n<2;n++){const c=command(destinations[n]),r=await routeSmartCommand(db,c,manifests[sourceId].m,trust,installationId,undefined,async(...args)=>verified.push(args));assert.equal(r.command.targetModuleId,providers[n]);assert.equal(r.scope.destinationProgramId,destinations[n]);if(n===0)await assert.rejects(routeSmartCommand(db,{...c,commandId:randomUUID(),sequence:2,payload:{...c.payload,programId:destinations[1]}},manifests[sourceId].m,trust,installationId,undefined,async()=>{}),/WORKFLOW_APPROVAL_REQUIRED/);}
+  assert.equal((await db.query("SELECT count(*)::int n FROM smart_bindings WHERE consumer_id=$1 AND state='approved'",[sourceId])).rows[0].n,2);assert.equal(verified.length,4);
+  const duplicate=(await db.query('SELECT * FROM smart_bindings WHERE binding_id=$1',[bindings[0]])).rows[0];await assert.rejects(db.query("INSERT INTO smart_bindings SELECT $1,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,revision,reason,created_at,updated_at,peer_installation_id,peer_grant_id,source_program_id,destination_program_id,purpose,expires_at FROM smart_bindings WHERE binding_id=$2",[randomUUID(),duplicate.binding_id]),e=>e.code==='23505');
  });
  if(browserMode)await test('browser performs discovery, explicit provider approval, retained-state reload and unavailable-state inspection',async()=>{
    const {chromium}=await import('playwright');const browser=await chromium.launch({headless:true});

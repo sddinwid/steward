@@ -1,0 +1,3004 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.housing.services",
+  "version": "1.0.1",
+  "name": "Participant Services",
+  "description": "Synthetic programme-scoped intake, assessed support plans, human-reviewed referrals and private service follow-up. No real participant information.",
+  "minimumPlatformVersion": "0.13.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.housing.services.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "steward.housing.services.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.housing.services.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.housing.services.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listCaseAssignments",
+      "method": "GET",
+      "path": "/case-assignments",
+      "permission": "steward.housing.services.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCaseAssignment",
+      "method": "POST",
+      "path": "/case-assignments",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "updateCaseAssignment",
+      "method": "PUT",
+      "path": "/case-assignments/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "revokeCaseAssignment",
+      "method": "POST",
+      "path": "/revoke-case/:id",
+      "permission": "steward.housing.services.programmes.manage"
+    },
+    {
+      "operationId": "listResourceAllocations",
+      "method": "GET",
+      "path": "/resource-allocations",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createResourceAllocation",
+      "method": "POST",
+      "path": "/resource-allocations",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateResourceAllocation",
+      "method": "PUT",
+      "path": "/resource-allocations/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "publishResourceAllocation",
+      "method": "POST",
+      "path": "/publish-resource-allocation/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listServiceDestination",
+      "method": "GET",
+      "path": "/service-destinations",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createServiceDestination",
+      "method": "POST",
+      "path": "/service-destinations",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateServiceDestination",
+      "method": "PUT",
+      "path": "/service-destinations/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listProgramEnrollment",
+      "method": "GET",
+      "path": "/program-enrollments",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createProgramEnrollment",
+      "method": "POST",
+      "path": "/program-enrollments",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateProgramEnrollment",
+      "method": "PUT",
+      "path": "/program-enrollments/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listParticipant",
+      "method": "GET",
+      "path": "/participants",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createParticipant",
+      "method": "POST",
+      "path": "/participants",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateParticipant",
+      "method": "PUT",
+      "path": "/participants/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listPlan",
+      "method": "GET",
+      "path": "/plans",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createPlan",
+      "method": "POST",
+      "path": "/plans",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updatePlan",
+      "method": "PUT",
+      "path": "/plans/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listReferral",
+      "method": "GET",
+      "path": "/referrals",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createReferral",
+      "method": "POST",
+      "path": "/referrals",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateReferral",
+      "method": "PUT",
+      "path": "/referrals/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listMilestone",
+      "method": "GET",
+      "path": "/milestones",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createMilestone",
+      "method": "POST",
+      "path": "/milestones",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateMilestone",
+      "method": "PUT",
+      "path": "/milestones/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listFollowup",
+      "method": "GET",
+      "path": "/followups",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createFollowup",
+      "method": "POST",
+      "path": "/followups",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateFollowup",
+      "method": "PUT",
+      "path": "/followups/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listOutcome",
+      "method": "GET",
+      "path": "/outcomes",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createOutcome",
+      "method": "POST",
+      "path": "/outcomes",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateOutcome",
+      "method": "PUT",
+      "path": "/outcomes/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "listReleaseRequest",
+      "method": "GET",
+      "path": "/release-requests",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createReleaseRequest",
+      "method": "POST",
+      "path": "/release-requests",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "updateReleaseRequest",
+      "method": "PUT",
+      "path": "/release-requests/:id",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "approveServiceDestination",
+      "path": "/approve-service-destination/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "revokeServiceDestination",
+      "path": "/revoke-service-destination/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "approveEnrollment",
+      "path": "/approve-enrollment/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "reviewAssessment",
+      "path": "/review-assessment/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "enrollParticipant",
+      "path": "/enroll-participant/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "holdParticipant",
+      "path": "/hold-participant/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "resumeParticipant",
+      "path": "/resume-participant/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "withdrawParticipant",
+      "path": "/withdraw-participant/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "closeParticipant",
+      "path": "/close-participant/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "approvePlan",
+      "path": "/approve-plan/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "reviewReferral",
+      "path": "/review-referral/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "dispatchReferral",
+      "path": "/dispatch-referral/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "refreshReferral",
+      "path": "/refresh-referral/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "withdrawReferral",
+      "path": "/withdraw-referral/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "publishAggregate",
+      "path": "/publish-aggregate/:id",
+      "method": "POST",
+      "permission": "steward.housing.services.admin"
+    },
+    {
+      "operationId": "serviceDestinationOptions",
+      "path": "/service-destination-options",
+      "method": "GET",
+      "permission": "steward.housing.services.read"
+    },
+    {
+      "operationId": "dispatchAuthority",
+      "path": "/dispatch-authority",
+      "method": "GET",
+      "permission": "steward.housing.services.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "participantOptions",
+      "path": "/participant-options",
+      "method": "GET",
+      "permission": "steward.housing.services.read"
+    },
+    {
+      "operationId": "caseActivity",
+      "path": "/case-activity",
+      "method": "GET",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "publishedAggregates",
+      "path": "/published-aggregates",
+      "method": "GET",
+      "permission": "steward.housing.services.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: program.finance, program.fund. Existing case/team grants and intentionally removed rights remain unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "coordinator",
+            "caseworker",
+            "reviewer",
+            "reporter"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "case-assignments",
+      "title": "Case assignments",
+      "navigationLabel": "Case assignments",
+      "listOperation": "listCaseAssignments",
+      "createOperation": "createCaseAssignment",
+      "updateOperation": "updateCaseAssignment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 50
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Case access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "participantRef",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke case access",
+          "operationId": "revokeCaseAssignment",
+          "confirmation": "Remove only this case assignment? Programme membership remains unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "resource-allocations",
+      "title": "Approved programme resources",
+      "navigationLabel": "Approved resources",
+      "listOperation": "listResourceAllocations",
+      "createOperation": "createResourceAllocation",
+      "updateOperation": "updateResourceAllocation",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Source programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reference",
+          "label": "Allocation identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Human reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Receiving organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Receiving programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "restriction",
+          "label": "Authorized use",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "program"
+          ]
+        },
+        {
+          "name": "authorityId",
+          "label": "Organizational approval reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "transferId",
+          "label": "Actual transfer reference (when transferred)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "authorizedCents",
+          "label": "Legally authorized amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "availableCents",
+          "label": "Available after commitments",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "committedCents",
+          "label": "Committed amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "transferredCents",
+          "label": "Transferred amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "spentCents",
+          "label": "Spent amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "validUntil",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "authorityEvidence",
+          "label": "Private synthetic legal/organizational evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Review state",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "authorizedCents",
+        "availableCents",
+        "committedCents",
+        "transferredCents",
+        "spentCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve and seal resource statement",
+          "operationId": "publishResourceAllocation",
+          "confirmation": "I reviewed the organizational authority, restrictions, exact cash states and fixed reporting period. No external money movement is executed; this statement will become immutable."
+        }
+      ]
+    },
+    {
+      "screenId": "service-destinations",
+      "title": "Approved service destinations",
+      "navigationLabel": "Approved service destinations",
+      "listOperation": "listServiceDestination",
+      "createOperation": "createServiceDestination",
+      "updateOperation": "updateServiceDestination",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Service destination label",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "type",
+          "label": "Service type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment"
+          ]
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Receiving organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationInstallationId",
+          "label": "Receiving Worker ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationModuleId",
+          "label": "Approved capability provider module",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Receiving programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "Approved relationship expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Relationship approval purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "type",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve service destination",
+          "operationId": "approveServiceDestination",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Revoke service destination",
+          "operationId": "revokeServiceDestination",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ],
+      "workspace": "administration"
+    },
+    {
+      "screenId": "program-enrollments",
+      "title": "Additional programme enrollment",
+      "navigationLabel": "Additional programme enrollment",
+      "listOperation": "listProgramEnrollment",
+      "createOperation": "createProgramEnrollment",
+      "updateOperation": "updateProgramEnrollment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reference",
+          "label": "Enrollment request reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "sourceParticipantId",
+          "label": "Authorized source case",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reviewReason",
+          "label": "Reason for minimum identity reuse",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "targetParticipantId",
+          "label": "target Participant Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceParticipantId",
+        "status",
+        "targetParticipantId"
+      ],
+      "actions": [
+        {
+          "label": "Approve additional programme enrollment",
+          "operationId": "approveEnrollment",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "participants",
+      "title": "Synthetic intake",
+      "navigationLabel": "Synthetic intake",
+      "listOperation": "listParticipant",
+      "createOperation": "createParticipant",
+      "updateOperation": "updateParticipant",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reference",
+          "label": "Opaque intake reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "participantRef",
+          "label": "participant Ref",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "referralSource",
+          "label": "Referral source",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "self",
+            "partner-program",
+            "community",
+            "other-synthetic-source"
+          ]
+        },
+        {
+          "name": "assessmentSummary",
+          "label": "Minimum synthetic assessment",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "assessmentReviewedBy",
+          "label": "assessment Reviewed By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "participantRef",
+        "referralSource",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Review assessment",
+          "operationId": "reviewAssessment",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Enroll participant",
+          "operationId": "enrollParticipant",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Place on hold",
+          "operationId": "holdParticipant",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Resume support",
+          "operationId": "resumeParticipant",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Withdraw participation",
+          "operationId": "withdrawParticipant",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Close local case",
+          "operationId": "closeParticipant",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "plans",
+      "title": "Service plans",
+      "navigationLabel": "Service plans",
+      "listOperation": "listPlan",
+      "createOperation": "createPlan",
+      "updateOperation": "updatePlan",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "participantRef",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "goal",
+          "label": "Support goal",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "stability",
+            "coordinated-support"
+          ]
+        },
+        {
+          "name": "summary",
+          "label": "Synthetic plan summary",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "reviewDate",
+          "label": "Review due (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantRef",
+        "goal",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve service plan",
+          "operationId": "approvePlan",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "referrals",
+      "title": "Service referrals",
+      "navigationLabel": "Service referrals",
+      "listOperation": "listReferral",
+      "createOperation": "createReferral",
+      "updateOperation": "updateReferral",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "participantRef",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "type",
+          "label": "Service type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment"
+          ]
+        },
+        {
+          "name": "destinationId",
+          "label": "Approved service destination",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "serviceDestinationOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "authority",
+          "label": "Disclosure basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "consented",
+            "documented-authority"
+          ]
+        },
+        {
+          "name": "authorityId",
+          "label": "Documented disclosure authority",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "expiresAt",
+          "label": "Disclosure expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "requestedStartsAt",
+          "label": "Housing service begins (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "requestedEndsAt",
+          "label": "Housing service ends (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "classification",
+          "label": "Housing classification",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "standard",
+            "accessible",
+            "family"
+          ]
+        },
+        {
+          "name": "documentedSkillsText",
+          "label": "Training/employment documented skill codes (comma separated)",
+          "type": "string",
+          "required": false,
+          "maxLength": 1800
+        },
+        {
+          "name": "site",
+          "label": "Training/employment service site",
+          "type": "string",
+          "required": false,
+          "maxLength": 200
+        },
+        {
+          "name": "availability",
+          "label": "Training/employment availability",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "available",
+            "limited",
+            "unavailable"
+          ]
+        },
+        {
+          "name": "reviewReason",
+          "label": "Substantive disclosure and service review",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedBy",
+          "label": "reviewed By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "providerStatus",
+          "label": "provider Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lastDelivery",
+          "label": "last Delivery",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantRef",
+        "type",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Review referral",
+          "operationId": "reviewReferral",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Send through approved provider",
+          "operationId": "dispatchReferral",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Refresh provider outcome",
+          "operationId": "refreshReferral",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        },
+        {
+          "label": "Withdraw referral",
+          "operationId": "withdrawReferral",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "milestones",
+      "title": "Service milestones",
+      "navigationLabel": "Service milestones",
+      "listOperation": "listMilestone",
+      "createOperation": "createMilestone",
+      "updateOperation": "updateMilestone",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "participantRef",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "type",
+          "label": "Observation type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "service-engaged",
+            "housing-stable",
+            "training-complete",
+            "employment-retained"
+          ]
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed or scheduled (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "label": "Minimum synthetic observation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "recordedBy",
+          "label": "recorded By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantRef",
+        "type",
+        "observedAt"
+      ]
+    },
+    {
+      "screenId": "followups",
+      "title": "Follow-up scheduling",
+      "navigationLabel": "Follow-up scheduling",
+      "listOperation": "listFollowup",
+      "createOperation": "createFollowup",
+      "updateOperation": "updateFollowup",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "participantRef",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "type",
+          "label": "Observation type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "scheduled",
+            "completed",
+            "missed",
+            "rescheduled"
+          ]
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed or scheduled (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "label": "Minimum synthetic observation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "recordedBy",
+          "label": "recorded By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantRef",
+        "type",
+        "observedAt"
+      ]
+    },
+    {
+      "screenId": "outcomes",
+      "title": "Programme outcomes",
+      "navigationLabel": "Programme outcomes",
+      "listOperation": "listOutcome",
+      "createOperation": "createOutcome",
+      "updateOperation": "updateOutcome",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "participantRef",
+          "label": "Synthetic participant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "participantOptions",
+            "valueField": "participantRef",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "type",
+          "label": "Observation type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "stable-transition",
+            "ongoing-support",
+            "withdrawn",
+            "unknown"
+          ]
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed or scheduled (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "summary",
+          "label": "Minimum synthetic observation",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "recordedBy",
+          "label": "recorded By",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "participantRef",
+        "type",
+        "observedAt"
+      ]
+    },
+    {
+      "screenId": "release-requests",
+      "title": "Aggregate disclosure review",
+      "navigationLabel": "Aggregate disclosure review",
+      "listOperation": "listReleaseRequest",
+      "createOperation": "createReleaseRequest",
+      "updateOperation": "updateReleaseRequest",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "cohortId",
+          "label": "Fixed cohort ID",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "policyId",
+          "label": "Disclosure policy ID",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "reason",
+          "label": "Aggregate disclosure purpose",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "releaseId",
+          "label": "release Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "cohortId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve and seal aggregate",
+          "operationId": "publishAggregate",
+          "confirmation": "Confirm this authorized synthetic case decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "case-activity",
+      "title": "Private case activity",
+      "navigationLabel": "Case activity",
+      "listOperation": "caseActivity",
+      "fields": [
+        {
+          "name": "recordKind",
+          "label": "record Kind",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operation",
+          "label": "operation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "actorId",
+          "label": "actor Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "occurredAt",
+          "label": "occurred At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "recordKind",
+        "operation",
+        "actorId",
+        "occurredAt"
+      ]
+    },
+    {
+      "screenId": "published-aggregates",
+      "title": "Sealed participant-service disclosures",
+      "navigationLabel": "Published aggregates",
+      "listOperation": "publishedAggregates",
+      "fields": [
+        {
+          "name": "releaseId",
+          "label": "release Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "suppressed",
+          "label": "suppressed",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantCount",
+          "label": "participant Count",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "participantCounts",
+          "label": "participant Counts",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "releaseId",
+        "programId",
+        "suppressed",
+        "participantCount"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 4,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "6bb423d056c63006ec698a1b959b3796c6d07ba1cf50999ec950521f47e3d914"
+      },
+      {
+        "version": 2,
+        "sha256": "72a14bba067047f44c43d60097f9fcfbd0e1c7417d7cbb5a74c2f21cc28eea55"
+      },
+      {
+        "version": 3,
+        "sha256": "1ed1e0a4a164af7c87a327ecd0dcd55bf8d691d028d31117a54d0ae3525b5c8e"
+      },
+      {
+        "version": 4,
+        "sha256": "77595b2979f5ba588091259c43e582f4826d5f0b8401df63e0b0667e4e73c8fa"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "programServices": {
+    "contractVersion": 1,
+    "domain": "participant-services",
+    "syntheticOnly": true
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "participant-services.sealed-program-aggregates",
+      "version": 1
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
+  },
+  "mcpTools": [
+    {
+      "name": "participant_services_approved_aggregates",
+      "description": "Explicitly approved sealed synthetic programme aggregates only. Suppression means unknown; never derive individual case information.",
+      "operationId": "publishedAggregates"
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "mission_aggregates_v1",
+        "table": "mission_aggregate_releases",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "mission_resources_v1",
+        "table": "mission_resource_allocations",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
+  "smart": {
+    "version": 1,
+    "provides": [],
+    "consumes": [
+      {
+        "capabilityId": "housing.placement",
+        "contract": "steward.housing-placement",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "housing.placement.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "type": "string",
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "requestedStartsAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "requestedEndsAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "classification": {
+                  "type": "string",
+                  "enum": [
+                    "standard",
+                    "accessible",
+                    "family"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "requestedStartsAt",
+                "requestedEndsAt",
+                "classification",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "housing.placement.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "housing.placement.withdraw",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "placementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "approved",
+                    "reserved",
+                    "confirmed",
+                    "departed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "approved": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                },
+                "confirmed": {
+                  "type": "boolean"
+                },
+                "followUpMaintained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "placementId",
+                "status",
+                "approved",
+                "reserved",
+                "confirmed",
+                "followUpMaintained",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "housing.capacity.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "housingUnits": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "availableUnits": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "housingUnits",
+                "availableUnits",
+                "synthetic"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "restricted",
+        "optional": true
+      },
+      {
+        "capabilityId": "food.service",
+        "contract": "steward.food-service",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "food.referral.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "type": "string",
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "food.referral.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "food.referral.withdraw",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "food.capacity.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "plannedMeals": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "remainingMealCapacity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "plannedMeals",
+                "remainingMealCapacity",
+                "synthetic"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "restricted",
+        "optional": true
+      },
+      {
+        "capabilityId": "employment.pathways",
+        "contract": "steward.employment-pathways",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "employment.pathways.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "referralType": {
+                  "enum": [
+                    "training",
+                    "employment"
+                  ]
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "documentedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "site": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "availability": {
+                  "enum": [
+                    "available",
+                    "limited",
+                    "unavailable"
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "referralType",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "documentedSkills",
+                "site",
+                "availability",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "pathwayId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "training-reserved",
+                    "training-confirmed",
+                    "training-completed",
+                    "employment-referred",
+                    "employed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "trainingConfirmed": {
+                  "type": "boolean"
+                },
+                "trainingCompleted": {
+                  "type": "boolean"
+                },
+                "employed": {
+                  "type": "boolean"
+                },
+                "retained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "pathwayId",
+                "status",
+                "trainingConfirmed",
+                "trainingCompleted",
+                "employed",
+                "retained",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "employment.pathways.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "pathwayId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "training-reserved",
+                    "training-confirmed",
+                    "training-completed",
+                    "employment-referred",
+                    "employed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "trainingConfirmed": {
+                  "type": "boolean"
+                },
+                "trainingCompleted": {
+                  "type": "boolean"
+                },
+                "employed": {
+                  "type": "boolean"
+                },
+                "retained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "pathwayId",
+                "status",
+                "trainingConfirmed",
+                "trainingCompleted",
+                "employed",
+                "retained",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "employment.pathways.withdraw",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "pathwayId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "training-reserved",
+                    "training-confirmed",
+                    "training-completed",
+                    "employment-referred",
+                    "employed",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "trainingConfirmed": {
+                  "type": "boolean"
+                },
+                "trainingCompleted": {
+                  "type": "boolean"
+                },
+                "employed": {
+                  "type": "boolean"
+                },
+                "retained": {
+                  "type": "boolean"
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "pathwayId",
+                "status",
+                "trainingConfirmed",
+                "trainingCompleted",
+                "employed",
+                "retained",
+                "synthetic"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "restricted",
+        "optional": true
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

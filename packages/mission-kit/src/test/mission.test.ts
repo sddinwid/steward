@@ -1,9 +1,10 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {prepareMissionAggregateRelease,validateMissionAggregateRelease,validateMissionResourceAllocation,createSyntheticParticipantId,createScopedSyntheticAlias,missionParticipantVector,missionCapacityVector,deduplicateMissionAllocations,MissionContractError} from '../index.js';
+import {prepareMissionAggregateRelease,validateMissionAggregateRelease,validateMissionResourceAllocation,createSyntheticParticipantId,createScopedSyntheticAlias,missionParticipantVector,missionCapacityVector,deduplicateMissionAllocations,MissionContractError,createMissionFinance} from '../index.js';
 import {aggregateFixture,resourceFixture,instant} from './fixtures.js';
 const now=new Date(instant);
+test('financial form labels follow currency-unit renderer semantics while API fields remain integer cents',()=>{const finance=createMissionFinance('independent.program'),money=finance.ui[0]!.fields.filter(f=>f.name.endsWith('Cents'));assert.equal(money.length,5);assert(money.every(f=>f.type==='number'&&!/cents/i.test(f.label)));assert.equal(finance.resources[0]!.schema.properties.authorizedCents.type,'integer');});
 test('synthetic local identities and audience aliases have distinct non-production namespaces',()=>{
  const participants=new Set(Array.from({length:100},createSyntheticParticipantId)),aliases=new Set(Array.from({length:100},createScopedSyntheticAlias));assert.equal(participants.size,100);assert.equal(aliases.size,100);assert([...participants].every(v=>/^SYN-PART-[A-F0-9]{32}$/.test(v)));assert([...aliases].every(v=>/^SYNREF-[A-F0-9]{32}$/.test(v)));assert([...participants].every(v=>!aliases.has(v as any)));
 });
@@ -57,3 +58,4 @@ test('recipient mirrors never create extra availability and duplicate transfer/a
  const v=resourceFixture(),mirror={...v,observation:'recipient' as const};assert.deepEqual(deduplicateMissionAllocations([v,v,mirror]),[v]);assert.deepEqual(deduplicateMissionAllocations([mirror]),[]);assert.throws(()=>deduplicateMissionAllocations([v,{...v,availableCents:74000}]),MissionContractError);
  const transferred={...v,transferId:randomUUID(),transferredCents:20000};assert.throws(()=>deduplicateMissionAllocations([transferred,{...transferred,allocationId:randomUUID()}]),MissionContractError);assert.throws(()=>deduplicateMissionAllocations([v,{...v,sourceEntityId:randomUUID()}]),MissionContractError);
 });
+test('one source financial authority cannot be reused under different allocation IDs, modules or Worker installations',()=>{const original=resourceFixture();for(const changes of [{allocationId:randomUUID()},{allocationId:randomUUID(),sourceInstallationId:randomUUID()}])assert.throws(()=>deduplicateMissionAllocations([original,{...original,...changes}]),MissionContractError);});

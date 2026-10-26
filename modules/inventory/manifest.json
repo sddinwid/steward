@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.inventory",
-  "version": "1.4.2",
+  "version": "1.5.0",
   "name": "Inventory",
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
-  "minimumPlatformVersion": "0.8.0",
+  "minimumPlatformVersion": "0.13.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -39,6 +39,65 @@
       "method": "GET",
       "path": "/integration-status",
       "permission": "cee.inventory.read"
+    },
+    {
+      "operationId": "listServiceStock",
+      "method": "GET",
+      "path": "/service-stock",
+      "permission": "cee.inventory.service.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceStock",
+      "method": "POST",
+      "path": "/service-stock",
+      "permission": "cee.inventory.service.manage"
+    },
+    {
+      "operationId": "updateServiceStock",
+      "method": "PUT",
+      "path": "/service-stock/:id",
+      "permission": "cee.inventory.service.manage"
+    },
+    {
+      "operationId": "listServiceSources",
+      "method": "GET",
+      "path": "/service-sources",
+      "permission": "cee.inventory.service.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceSource",
+      "method": "POST",
+      "path": "/service-sources",
+      "permission": "cee.inventory.service.manage"
+    },
+    {
+      "operationId": "approveServiceSource",
+      "method": "POST",
+      "path": "/approve-service-source/:id",
+      "permission": "cee.inventory.service.manage"
+    },
+    {
+      "operationId": "revokeServiceSource",
+      "method": "POST",
+      "path": "/revoke-service-source/:id",
+      "permission": "cee.inventory.service.manage"
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "cee.inventory.service.manage",
+      "query": [
+        "q"
+      ]
     }
   ],
   "ui": [
@@ -100,6 +159,148 @@
         "availableQuantity",
         "minStock"
       ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "service-stock",
+      "title": "Private service supplies",
+      "navigationLabel": "Private service supplies",
+      "listOperation": "listServiceStock",
+      "createOperation": "createServiceStock",
+      "updateOperation": "updateServiceStock",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Private stock reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Supply name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "quantity",
+          "label": "Stock quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "minStock",
+          "label": "Shortage threshold",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "reserved",
+          "label": "Reserved units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "available",
+          "label": "Available units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "quantity",
+        "reserved",
+        "available",
+        "minStock"
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "service-sources",
+      "title": "Private supply service relationships",
+      "navigationLabel": "Supply service relationships",
+      "listOperation": "listServiceSources",
+      "createOperation": "createServiceSource",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Service relationship reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "Authorized source legal entity",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "Authorized source Worker installation",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "Authorized source programme",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "Authorized source module",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Reviewed service purpose",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedBy",
+          "label": "Reviewer account",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceEntityId",
+        "sourceProgramId",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve supply relationship",
+          "operationId": "approveServiceSource",
+          "confirmation": "Approve this explicit source entity, Worker and programme for private supplies until the recorded expiry?"
+        },
+        {
+          "label": "Revoke supply relationship",
+          "operationId": "revokeServiceSource",
+          "confirmation": "Revoke new access to this private supply relationship? Existing reservations remain recorded and require reconciliation."
+        }
+      ]
     }
   ],
   "configurationSchema": {
@@ -118,12 +319,21 @@
       "integrationsEnabled": {
         "type": "boolean",
         "default": false
+      },
+      "syntheticServiceStock": {
+        "type": "boolean",
+        "default": false
+      },
+      "serviceAuthorityProgramId": {
+        "type": "string",
+        "pattern": "^(?:|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})$",
+        "default": ""
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -447,6 +657,333 @@
         "sensitivity": "business",
         "scope": "entity",
         "ownership": "provider"
+      },
+      {
+        "capabilityId": "inventory.service-stock",
+        "contract": "steward.service-stock",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "integrationsEnabled": true,
+          "syntheticServiceStock": true
+        },
+        "events": [],
+        "operations": [
+          {
+            "name": "observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "availableQuantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "availableQuantity",
+                "synthetic"
+              ]
+            },
+            "command": "service-stock.observe",
+            "permission": "cee.inventory.service.manage",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId",
+                "quantity"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            },
+            "command": "service-stock.reserve",
+            "permission": "cee.inventory.service.manage",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "consume",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "deliveryId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId",
+                "deliveryId",
+                "quantity"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            },
+            "command": "service-stock.consume",
+            "permission": "cee.inventory.service.manage",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "release",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            },
+            "command": "service-stock.release",
+            "permission": "cee.inventory.service.manage",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ]
       }
     ],
     "consumes": [],

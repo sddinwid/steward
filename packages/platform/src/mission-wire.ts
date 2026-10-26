@@ -1,11 +1,13 @@
 import type {DataEvent} from '@steward/contracts';
 import {missionModuleDomains,validateMissionAggregateRelease,validateMissionResourceAllocation} from '@steward/mission-kit';
 import {fail,validUuid} from './security/crypto.js';
+import {MISSION_DISCLOSURE_STREAM,validateMissionDisclosureEvent} from './mission-disclosures.js';
 const streams=['mission_aggregates_v1','mission_resources_v1'];
 const closed=(v:any,keys:string[])=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).every(k=>keys.includes(k));
-export function isMissionEvent(e:DataEvent){return streams.includes(e.streamId)||e.disclosure!==undefined||Object.hasOwn(missionModuleDomains,e.moduleId);}
+export function isMissionEvent(e:DataEvent){return streams.includes(e.streamId)||e.streamId===MISSION_DISCLOSURE_STREAM||e.disclosure!==undefined||Object.hasOwn(missionModuleDomains,e.moduleId);}
 /** Strict before inbox persistence, including siblings and identity metadata. */
 export function validateMissionEvent(e:DataEvent,now=new Date()){
+ if(e.streamId===MISSION_DISCLOSURE_STREAM){validateMissionDisclosureEvent(e);return;}
  const reject=()=>fail(400,'Invalid private-service disclosure envelope');
  if(!closed(e,['envelopeVersion','eventId','source','destinationInstallationId','sequence','occurredAt','eventType','payloadVersion','correlationId','moduleId','streamId','recordId','recordRevision','payload','disclosure'])||!streams.includes(e.streamId)||e.eventType!=='record.upsert'||e.recordRevision!==1||e.sequence!=='1'||e.correlationId!==undefined&&!validUuid(e.correlationId))reject();
  const s=e.source as any;

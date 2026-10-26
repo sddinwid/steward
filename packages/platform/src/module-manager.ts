@@ -11,6 +11,7 @@ import { audit, transaction } from './security/store.js';
 import { RELEASE } from './config.js';
 import { smartModuleRoutes } from './smart-modules.js';
 import {peerServiceRoutes} from './peer-app.js';
+import {missionWorkerRoutes} from './mission-disclosures.js';
 import type {SecurityConfig} from './security/config.js';
 
 interface ModuleRuntimeConfig { catalogFile: string; trustFile: string; brokerUrl: string; caFile: string; tlsServerName: string }
@@ -35,6 +36,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
   }
   const broker = await createModuleBroker(configFile, installation, key);
   const governance=security?await peerServiceRoutes(app,pool,auth,installation,key,security,broker,async()=>(await catalog()).trust):undefined;
+  if(security)await missionWorkerRoutes(app,{pool,broker,trust:async()=>(await catalog()).trust,key,security,identity:installation,auth});
   await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust,governance);
   // Encapsulation retains raw bytes only for this bounded webhook ingress.
   await app.register(async ingress=>{
@@ -76,7 +78,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
       const api = p.manifest.api.filter(a => allowed.includes(a.permission));
       const ui = p.manifest.ui.filter(s => api.some(a => a.operationId === s.listOperation));
       const mcpTools=(p.manifest.mcpTools??[]).filter(t=>api.some(a=>a.operationId===t.operationId));
-      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: row.version, name: p.manifest.name, api, ui, mcpTools, ...(['simulator','live'].includes(row.configuration?.mode)?{mode:row.configuration.mode}:{}), ...(typeof row.configuration?.currency==='string'&&/^[A-Z]{3}$/.test(row.configuration.currency)?{currency:row.configuration.currency}:{}) });
+      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: row.version, name: p.manifest.name, api, ui, mcpTools, ...(p.manifest.programServices?{programServices:p.manifest.programServices}:{}), ...(['simulator','live'].includes(row.configuration?.mode)?{mode:row.configuration.mode}:{}), ...(typeof row.configuration?.currency==='string'&&/^[A-Z]{3}$/.test(row.configuration.currency)?{currency:row.configuration.currency}:{}) });
     }
     return { modules };
   });

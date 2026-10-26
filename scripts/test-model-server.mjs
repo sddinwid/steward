@@ -16,6 +16,15 @@ const server=createServer({key:readFileSync('/run/secrets/tls_key'),cert:readFil
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   if(b.instructions?.includes('query_mission_programmes')){
+    const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
+    if(!rows.some(d=>d.records?.some(r=>r.programId&&r.moduleId)))return calls([{name:'query_mission_programmes',arguments:{}}]);
+    const scenario=rows.find(d=>d.records?.some(r=>r.scenarioId))?.records[0];
+    if(!scenario)return calls([{name:'query_mission_scenarios',arguments:{}}]);
+    const analysis=rows.find(d=>d.missionCalculationId);
+    if(!analysis)return calls([{name:'analyze_mission_sustainability',arguments:{scenarioId:scenario.scenarioId}}]);
+    const c=analysis.calculation;return final({narrative:'TEST MODEL: synthetic fixed-cohort programme evidence. Approved available resources '+c.displayAmounts.available+', observed programme cost '+c.displayAmounts.cost+', period funding gap '+(prompt.includes('[fixture:wrong-amount]')?'USD 999999.00':c.displayAmounts.gap)+'. '+(c.status==='completed'?'Conditional maximum additional service units '+c.planning.maximumAdditionalUnits+'.':'Partial investigation: insufficient or suppressed information; no expansion conclusion.')+' Source programme attribution is separate; no eligibility, funding transfer, reservation or business decision was executed.',assumptions:['Human-reviewed fixed scenario capacity and incremental service unit costs; explicit approved resource restrictions.'],humanDecisions:['Review each programme authority, resource restrictions, current source freshness and service assumptions before any commitment.']});
+   }
    if(b.instructions?.includes('query_scientific_datasets')){
     const rows=results.map(r=>r.structuredContent?.data).filter(Boolean);
     if(!rows.some(d=>d.entities))return calls([{name:'list_entities',arguments:{}}]);

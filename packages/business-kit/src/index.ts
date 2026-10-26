@@ -356,7 +356,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
                 revision: number;
                 requestId: string;
             };
-        }>(action.path, { schema: { params: idParams, body: { type: 'object', additionalProperties: false, required: ['revision', 'requestId'], properties: { revision: { type: 'integer', minimum: 1 }, requestId: { type: 'string', pattern: uuidPattern } } } } }, async (req) => transaction(pool, async (db) => {
+        }>(action.path, { preValidation:async req=>{ensure(req.body&&typeof req.body==='object'&&!Array.isArray(req.body)&&Object.keys(req.body).every(k=>['revision','requestId'].includes(k)),'Unsupported action parameters',400);},schema: { params: idParams, body: { type: 'object', additionalProperties: false, required: ['revision', 'requestId'], properties: { revision: { type: 'integer', minimum: 1 }, requestId: { type: 'string', pattern: uuidPattern } } } } }, async (req) => transaction(pool, async (db) => {
             const c = ctx(db, req);
             identifyRecord(req, action.kind, req.params.id);
             ensure(c.permissions.includes(action.permission), 'Action permission denied', 403);

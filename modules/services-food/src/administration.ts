@@ -1,0 +1,5 @@
+import {createProgrammeAdministration,createMissionFinance} from '@steward/mission-kit';
+export const moduleId='steward.services.food';
+export const finance=createMissionFinance(moduleId);
+export const ownerPermissions=['program.read','program.manage','program.all-cases','case.read','case.write','food.read','food.write','food.review','food.deliver','food.supply','program.report','program.publish',...finance.permissions];
+export const administration=createProgrammeAdministration({moduleId,upgradableOwnerPermissions:['program.finance','program.fund'],ownerPermissions,roles:{coordinator:ownerPermissions,operator:['program.read','food.read','food.write','food.deliver','case.read'],reviewer:['program.read','food.read','food.review','case.read'],stockOfficer:['program.read','food.read','food.supply'],reporter:['program.read','program.report'],financialOfficer:['program.read','program.finance','program.fund','program.publish']},includeCaseAssignments:true,participantField:'participantAlias'});

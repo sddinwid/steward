@@ -25,13 +25,13 @@
       "operationId": "createProgram",
       "method": "POST",
       "path": "/programs",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "updateProgram",
       "method": "PUT",
       "path": "/programs/:id",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "programmeOptions",
@@ -47,7 +47,7 @@
       "operationId": "programAuthority",
       "method": "GET",
       "path": "/program-authority",
-      "permission": "steward.housing.management.admin",
+      "permission": "steward.housing.management.programmes.manage",
       "query": [
         "q"
       ]
@@ -56,7 +56,7 @@
       "operationId": "disclosureAuthority",
       "method": "GET",
       "path": "/disclosure-authority",
-      "permission": "steward.housing.management.admin",
+      "permission": "steward.housing.management.programmes.manage",
       "query": [
         "q"
       ]
@@ -65,7 +65,7 @@
       "operationId": "listProgrammeTeam",
       "method": "GET",
       "path": "/program-team",
-      "permission": "steward.housing.management.admin",
+      "permission": "steward.housing.management.programmes.manage",
       "query": [
         "limit",
         "offset"
@@ -75,25 +75,40 @@
       "operationId": "createProgrammeTeam",
       "method": "POST",
       "path": "/program-team",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "updateProgrammeTeam",
       "method": "PUT",
       "path": "/program-team/:id",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "revokeProgrammeTeam",
       "method": "POST",
       "path": "/revoke-team/:id",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.housing.management.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.housing.management.programmes.manage",
+      "query": [
+        "q"
+      ]
     },
     {
       "operationId": "listCaseAssignments",
       "method": "GET",
       "path": "/case-assignments",
-      "permission": "steward.housing.management.admin",
+      "permission": "steward.housing.management.programmes.manage",
       "query": [
         "limit",
         "offset"
@@ -103,19 +118,19 @@
       "operationId": "createCaseAssignment",
       "method": "POST",
       "path": "/case-assignments",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "updateCaseAssignment",
       "method": "PUT",
       "path": "/case-assignments/:id",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "revokeCaseAssignment",
       "method": "POST",
       "path": "/revoke-case/:id",
-      "permission": "steward.housing.management.admin"
+      "permission": "steward.housing.management.programmes.manage"
     },
     {
       "operationId": "listResourceAllocations",
@@ -530,6 +545,13 @@
       "updateOperation": "updateProgram",
       "fields": [
         {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
           "name": "reference",
           "label": "Programme reference",
           "type": "string",
@@ -610,9 +632,15 @@
         "code",
         "name",
         "status",
-        "currency"
+        "currency",
+        "id"
       ],
       "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: program.finance, program.fund. Existing case/team grants and intentionally removed rights remain unchanged."
+        },
         {
           "label": "Refresh approved property catalogue",
           "operationId": "refreshPropertyCatalog",
@@ -831,35 +859,35 @@
         },
         {
           "name": "authorizedCents",
-          "label": "Legally authorized amount (cents)",
+          "label": "Legally authorized amount",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "availableCents",
-          "label": "Available after commitments (cents)",
+          "label": "Available after commitments",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "committedCents",
-          "label": "Committed amount (cents)",
+          "label": "Committed amount",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "transferredCents",
-          "label": "Transferred amount (cents)",
+          "label": "Transferred amount",
           "type": "number",
           "required": true,
           "minimum": 0
         },
         {
           "name": "spentCents",
-          "label": "Spent amount (cents)",
+          "label": "Spent amount",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1453,11 +1481,11 @@
         },
         {
           "name": "milestoneDays",
-          "label": "Milestone days",
+          "label": "Elapsed follow-up days (0 immediate, 30 or 90)",
           "type": "number",
           "required": true,
-          "minimum": 30,
-          "default": 30
+          "minimum": 0,
+          "default": 0
         },
         {
           "name": "observedAt",
@@ -1496,13 +1524,28 @@
           "type": "string",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "verificationStatus",
+          "label": "verification Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "validationReason",
+          "label": "validation Reason",
+          "type": "string",
+          "required": false,
+          "readOnly": true
         }
       ],
       "columns": [
         "code",
         "placementId",
         "milestoneDays",
-        "observation"
+        "observation",
+        "verificationStatus"
       ]
     },
     {
@@ -1543,7 +1586,7 @@
         },
         {
           "name": "amountCents",
-          "label": "Amount in minor currency units",
+          "label": "Amount",
           "type": "number",
           "required": true,
           "minimum": 0
@@ -1916,7 +1959,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 5,
+    "schemaVersion": 8,
     "migrations": [
       {
         "version": 1,
@@ -1937,6 +1980,18 @@
       {
         "version": 5,
         "sha256": "72a14bba067047f44c43d60097f9fcfbd0e1c7417d7cbb5a74c2f21cc28eea55"
+      },
+      {
+        "version": 6,
+        "sha256": "9f2b073eab2470e9526c8096fb9f2c0bd298cddb963fd1ece77a62699bd38a06"
+      },
+      {
+        "version": 7,
+        "sha256": "fac3f23400d1c9336b7bae4c921f66cc5f1af93ed1e8a4e02487a6b09cdd22dc"
+      },
+      {
+        "version": 8,
+        "sha256": "9137641dcec3a6fe0c7308dec57c2d535d8054f51e776409ea1b3368eaca434a"
       }
     ],
     "destructiveRollback": false

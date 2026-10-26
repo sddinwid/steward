@@ -1,12 +1,13 @@
 import { ensure, find, get, save, records, enqueue, publicRecord, object, text, quantity, amount, choice, lines, uniqueLines, centsTotal, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import type { ModulePackageManifest } from '@steward/module-sdk';
+import {serviceSource,privateReplenishments,serviceActions,serviceProgramAuthority,receiveServiceReplenishment,authorizeServiceReplenishment} from './service-replenishment.js';
 const permission = 'cee.procurement.';
 const total = (r: RecordValue) => centsTotal(r.data.lines) + r.data.shippingCents;
 async function project(ctx: Context, r: RecordValue, stream: 'procurement_demands' | 'procurement_quotes', data: Data) {
     await ctx.db.query(`INSERT INTO ${stream}(id,revision,projection) VALUES($1,1,$2) ON CONFLICT(id) DO UPDATE SET revision=${stream}.revision+1,projection=excluded.projection`, [r.id, data]);
 }
 export function procurement(manifest: ModulePackageManifest): Definition {
-    return { manifest, resources: [
+    return { manifest,authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command==='service-replenishment.draft')await authorizeServiceReplenishment(a.command,ctx);},auditAccess:async(e,db)=>{await db.query('INSERT INTO procurement_service_audit(actor_id,operation,status_code) VALUES($1,$2,$3)',[e.actor,e.operationId,e.statusCode]);},queries:[{path:'/program-authority',run:serviceProgramAuthority}], resources: [serviceSource,privateReplenishments,
             { kind: 'supplier', path: '/suppliers', key: 'code', schema: object({ code: text(60), name: text(), relationship: choice(['external', 'ecosystem']) }) },
             { kind: 'requisition', path: '/requisitions', key: 'number', schema: object({ number: text(80), supplierCode: text(60), sku: text(80), quantity, reason: text(500), currency: text(3), unitPriceCents: amount, shippingCents: amount, transitionCents: amount }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Published requisition is immutable; create a new revision document');
@@ -50,7 +51,7 @@ export function procurement(manifest: ModulePackageManifest): Definition {
                     ensure(Number.isFinite(Date.parse(b.validUntil)) && Date.parse(b.validUntil) > Date.now(), 'Quote validity must be a future ISO timestamp');
                     return { ...b, validUntil: new Date(b.validUntil).toISOString(), relationship: supplier.data.relationship, status: 'draft' };
                 } }
-        ], actions: [
+        ], actions: [...serviceActions,
             ...[{ kind: 'requisition', path: '/withdraw-demand/:id', table: 'procurement_demands' }, { kind: 'quote', path: '/withdraw-quote/:id', table: 'procurement_quotes' }].map(t => ({ path: t.path, permission: permission + 'approve', kind: t.kind, run: async (r: RecordValue, ctx: Context) => { ensure(['approved', 'withdrawn'].includes(r.data.status), 'Only an approved projection can be withdrawn'); await ctx.db.query(`UPDATE ${t.table} SET revision=revision+1,projection=jsonb_set(projection,'{approved}','false') WHERE id=$1 AND projection->>'approved'='true'`, [r.id]); return { record: publicRecord(r.data.status === 'withdrawn' ? r : await save(ctx, t.kind, r.key, { ...r.data, status: 'withdrawn' }, r)) }; } })),
             ...[{ name: 'submit', from: ['draft'], to: 'submitted', right: 'write' }, { name: 'approve', from: ['submitted'], to: 'approved', right: 'approve' }, { name: 'place', from: ['approved'], to: 'ordered', right: 'approve' }, { name: 'cancel', from: ['draft', 'submitted', 'approved', 'ordered'], to: 'canceled', right: 'approve' }].map(t => ({ path: `/${t.name}/:id`, permission: permission + t.right, kind: 'order', run: async (r: RecordValue, ctx: Context) => {
                     ensure(t.from.includes(r.data.status), 'Invalid purchase order transition');
@@ -73,6 +74,7 @@ export function procurement(manifest: ModulePackageManifest): Definition {
                     return { record: publicRecord(await save(ctx, 'receipt', r.key, { ...r.data, stockStatus: 'pending' }, r)) };
                 } }
         ], receive: async (command, ctx) => {
+            if(command.command==='service-replenishment.draft')return receiveServiceReplenishment(command,ctx);
             ensure(command.command === 'stock.replenishment' && command.sourceModuleId === 'cee.inventory', 'Unsupported replenishment source', 403);
             const b = command.payload;
             ensure(typeof b.sku === 'string' && b.sku.length <= 80 && typeof b.quantity === 'number' && Number.isSafeInteger(b.quantity) && b.quantity > 0 && b.quantity <= 100000000, 'Invalid replenishment request');

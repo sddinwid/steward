@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.workforce",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Workforce",
-  "description": "Independent persistent workforce business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.7.0",
+  "description": "Authoritative skills, training and positions with opt-in private, programme-scoped mission reservations and human employer decisions.",
+  "minimumPlatformVersion": "0.13.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -208,6 +208,241 @@
       "method": "POST",
       "path": "/withdraw-position/:id",
       "permission": "cee.workforce.publish"
+    },
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/service-programs",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceProgram",
+      "method": "POST",
+      "path": "/service-programs",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "updateServiceProgram",
+      "method": "PUT",
+      "path": "/service-programs/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "cee.workforce.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "cee.workforce.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "cee.workforce.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "cee.workforce.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listCaseAssignments",
+      "method": "GET",
+      "path": "/case-assignments",
+      "permission": "cee.workforce.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCaseAssignment",
+      "method": "POST",
+      "path": "/case-assignments",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "updateCaseAssignment",
+      "method": "PUT",
+      "path": "/case-assignments/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "revokeCaseAssignment",
+      "method": "POST",
+      "path": "/revoke-case/:id",
+      "permission": "cee.workforce.programmes.manage"
+    },
+    {
+      "operationId": "activateServiceProgram",
+      "path": "/activate-service-program/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "approveServiceSource",
+      "path": "/approve-service-source/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "revokeServiceSource",
+      "path": "/revoke-service-source/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "recordParticipation",
+      "path": "/record-participation/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "completeServiceTraining",
+      "path": "/complete-service-training/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "reviewJobReferral",
+      "path": "/review-job-referral/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "acceptJobReferral",
+      "path": "/accept-job-referral/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "rejectJobReferral",
+      "path": "/reject-job-referral/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "withdrawJobReferral",
+      "path": "/withdraw-job-referral/:id",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "listServiceSource",
+      "path": "/service-sources",
+      "method": "GET",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "updateServiceSource",
+      "path": "/service-sources/:id",
+      "method": "PUT",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "createServiceSource",
+      "path": "/service-sources",
+      "method": "POST",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "listMissionEnrollment",
+      "path": "/mission-enrollments",
+      "method": "GET",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "updateMissionEnrollment",
+      "path": "/mission-enrollments/:id",
+      "method": "PUT",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "listMissionJobReferral",
+      "path": "/mission-job-referrals",
+      "method": "GET",
+      "permission": "cee.workforce.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "updateMissionJobReferral",
+      "path": "/mission-job-referrals/:id",
+      "method": "PUT",
+      "permission": "cee.workforce.admin"
+    },
+    {
+      "operationId": "serviceStatus",
+      "path": "/service-status",
+      "method": "GET",
+      "permission": "cee.workforce.mission.exchange"
     }
   ],
   "ui": [
@@ -694,6 +929,547 @@
         "attempts",
         "error"
       ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Restricted service programmes",
+      "navigationLabel": "Service programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createServiceProgram",
+      "updateOperation": "updateServiceProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: none. Existing case/team grants and intentionally removed rights remain unchanged."
+        },
+        {
+          "label": "Activate private mission services",
+          "operationId": "activateServiceProgram",
+          "confirmation": "Permanently disable legacy exact training and skills publications before restricted services are used?"
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "coordinator",
+            "instructor",
+            "employer"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "case-assignments",
+      "title": "Case assignments",
+      "navigationLabel": "Case assignments",
+      "listOperation": "listCaseAssignments",
+      "createOperation": "createCaseAssignment",
+      "updateOperation": "updateCaseAssignment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "participantAlias",
+          "label": "Synthetic participant reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 50
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Case access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "participantAlias",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke case access",
+          "operationId": "revokeCaseAssignment",
+          "confirmation": "Remove only this case assignment? Programme membership remains unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "service-sources",
+      "title": "Approved pathway sources",
+      "navigationLabel": "Pathway sources",
+      "listOperation": "listServiceSource",
+      "createOperation": "createServiceSource",
+      "updateOperation": "updateServiceSource",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "number",
+          "label": "number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "source Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "source Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "source Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "source Module Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "expires At",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "reason",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "sourceProgramId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "approve Service Source",
+          "operationId": "approveServiceSource",
+          "confirmation": "Confirm this human service decision?"
+        },
+        {
+          "label": "revoke Service Source",
+          "operationId": "revokeServiceSource",
+          "confirmation": "Confirm this human service decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "mission-enrollments",
+      "title": "Private training enrollments",
+      "navigationLabel": "Service training",
+      "listOperation": "listMissionEnrollment",
+      "updateOperation": "updateMissionEnrollment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "number",
+          "label": "number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reviewReason",
+          "label": "review Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "trainingProgramId",
+          "label": "training Program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true,
+          "reference": {
+            "operationId": "listProgram",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        }
+      ],
+      "columns": [
+        "number",
+        "participantAlias",
+        "trainingProgramId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "record Participation",
+          "operationId": "recordParticipation",
+          "confirmation": "Confirm this human service decision?"
+        },
+        {
+          "label": "complete Service Training",
+          "operationId": "completeServiceTraining",
+          "confirmation": "Confirm this human service decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "mission-job-referrals",
+      "title": "Private employer referrals",
+      "navigationLabel": "Employer decisions",
+      "listOperation": "listMissionJobReferral",
+      "updateOperation": "updateMissionJobReferral",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "number",
+          "label": "number",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reviewReason",
+          "label": "review Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "participantAlias",
+          "label": "participant Alias",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "positionId",
+          "label": "position Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true,
+          "reference": {
+            "operationId": "listPosition",
+            "valueField": "id",
+            "labelField": "title"
+          }
+        },
+        {
+          "name": "documentedSkills",
+          "label": "documented Skills",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requiredSkills",
+          "label": "required Skills",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "number",
+        "participantAlias",
+        "positionId",
+        "documentedSkills",
+        "requiredSkills",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "review Job Referral",
+          "operationId": "reviewJobReferral",
+          "confirmation": "Confirm this human service decision?"
+        },
+        {
+          "label": "accept Job Referral",
+          "operationId": "acceptJobReferral",
+          "confirmation": "Confirm this human service decision?"
+        },
+        {
+          "label": "reject Job Referral",
+          "operationId": "rejectJobReferral",
+          "confirmation": "Confirm this human service decision?"
+        },
+        {
+          "label": "withdraw Job Referral",
+          "operationId": "withdrawJobReferral",
+          "confirmation": "Confirm this human service decision?"
+        }
+      ]
+    },
+    {
+      "screenId": "service-status",
+      "title": "Private service receipts",
+      "navigationLabel": "Service status",
+      "listOperation": "serviceStatus",
+      "fields": [
+        {
+          "name": "referralId",
+          "label": "referral Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "enrollmentId",
+          "label": "enrollment Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "trainingProgramId",
+          "label": "training Program Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "positionId",
+          "label": "position Id",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "completedSkills",
+          "label": "completed Skills",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "referralId",
+        "status",
+        "completedSkills"
+      ]
     }
   ],
   "configurationSchema": {
@@ -727,13 +1503,34 @@
         "minimum": 3,
         "maximum": 100,
         "default": 3
+      },
+      "missionSensitive": {
+        "type": "boolean",
+        "default": false
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
-    "migrations": [],
+    "schemaVersion": 4,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "e97af76342ba32e65745c3f15d8ac84049afc71457a08e98d8836ed1f01b26e1"
+      },
+      {
+        "version": 2,
+        "sha256": "156c26b6de6f28a9dc3684d93f25461744b65db9f1c975c61a9189f562a9e6e8"
+      },
+      {
+        "version": 3,
+        "sha256": "3259677606bd5959fbbf2a729b6132c2112b23c09a43c7a010eb10b1d27e4610"
+      },
+      {
+        "version": 4,
+        "sha256": "732cb2dac1874409896ccb132fdb5ec87e23d17a031c2ae65e07e0c0b390f9c5"
+      }
+    ],
     "destructiveRollback": false
   },
   "integrationEvents": [
@@ -815,5 +1612,1036 @@
         ]
       }
     ]
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "workforce.pathways",
+        "contract": "steward.workforce-pathways",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "missionSensitive": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "training.catalog",
+            "command": "workforce.training.catalog",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "trainingProgramId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "skillCode": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60
+                      },
+                      "site": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "startsAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 40
+                      },
+                      "endsAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 40
+                      },
+                      "availableSeats": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000
+                      }
+                    },
+                    "required": [
+                      "trainingProgramId",
+                      "revision",
+                      "code",
+                      "name",
+                      "skillCode",
+                      "site",
+                      "startsAt",
+                      "endsAt",
+                      "availableSeats"
+                    ]
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "records",
+                "nextOffset",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "training.reserve",
+            "command": "workforce.training.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "trainingProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "trainingRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "trainingProgramId",
+                "trainingRevision",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "enrollmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "trainingProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "reserved",
+                    "confirmed",
+                    "participating",
+                    "completed",
+                    "cancelled"
+                  ]
+                },
+                "completedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "confirmedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "participationAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "completedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "enrollmentId",
+                "trainingProgramId",
+                "status",
+                "completedSkills",
+                "confirmedAt",
+                "participationAt",
+                "completedAt",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "training.confirm",
+            "command": "workforce.training.confirm",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "enrollmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "trainingProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "reserved",
+                    "confirmed",
+                    "participating",
+                    "completed",
+                    "cancelled"
+                  ]
+                },
+                "completedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "confirmedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "participationAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "completedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "enrollmentId",
+                "trainingProgramId",
+                "status",
+                "completedSkills",
+                "confirmedAt",
+                "participationAt",
+                "completedAt",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "training.cancel",
+            "command": "workforce.training.cancel",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "enrollmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "trainingProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "reserved",
+                    "confirmed",
+                    "participating",
+                    "completed",
+                    "cancelled"
+                  ]
+                },
+                "completedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "confirmedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "participationAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "completedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "enrollmentId",
+                "trainingProgramId",
+                "status",
+                "completedSkills",
+                "confirmedAt",
+                "participationAt",
+                "completedAt",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "training.status",
+            "command": "workforce.training.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "enrollmentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "trainingProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "reserved",
+                    "confirmed",
+                    "participating",
+                    "completed",
+                    "cancelled"
+                  ]
+                },
+                "completedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "confirmedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "participationAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "completedAt": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 20,
+                      "maxLength": 40
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "enrollmentId",
+                "trainingProgramId",
+                "status",
+                "completedSkills",
+                "confirmedAt",
+                "participationAt",
+                "completedAt",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "employment.catalog",
+            "command": "workforce.employment.catalog",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 10000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "positionId": {
+                        "type": "string",
+                        "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 60
+                      },
+                      "title": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "requiredSkills": {
+                        "type": "array",
+                        "maxItems": 30,
+                        "uniqueItems": true,
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 60
+                        }
+                      },
+                      "site": {
+                        "type": "string",
+                        "maxLength": 200
+                      },
+                      "openings": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 100000
+                      }
+                    },
+                    "required": [
+                      "positionId",
+                      "revision",
+                      "code",
+                      "title",
+                      "requiredSkills",
+                      "site",
+                      "openings"
+                    ]
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 10000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "records",
+                "nextOffset",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "employment.request",
+            "command": "workforce.employment.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "positionId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "positionRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "documentedSkills": {
+                  "type": "array",
+                  "maxItems": 30,
+                  "uniqueItems": true,
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 60
+                  }
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "positionId",
+                "positionRevision",
+                "documentedSkills",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "employerReferralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "positionId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "accepted",
+                    "rejected",
+                    "withdrawn"
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "employerReferralId",
+                "positionId",
+                "status",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "employment.status",
+            "command": "workforce.employment.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "employerReferralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "positionId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "enum": [
+                    "requested",
+                    "reviewed",
+                    "accepted",
+                    "rejected",
+                    "withdrawn"
+                  ]
+                },
+                "synthetic": {
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "employerReferralId",
+                "positionId",
+                "status",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.workforce.mission.exchange",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [],
+    "prerequisites": {
+      "configuration": {},
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
   }
 }

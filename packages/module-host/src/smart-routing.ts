@@ -25,7 +25,7 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
     for(const policy of policies)for(const step of policy.definition.steps){
       if(step.operation!==reference.operation)continue;
       const candidate=(await db.query('SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND capability_id=$3',[step.bindingId,source.moduleId,reference.capabilityId])).rows[0];
-      if(candidate&&(!pinned||candidate.binding_id===pinned.binding_id))candidates.push({policy,binding:candidate});
+      if(candidate&&(!candidate.source_program_id||candidate.source_program_id===programScope&&candidate.destination_program_id===command.payload.programId)&&(!pinned||candidate.binding_id===pinned.binding_id))candidates.push({policy,binding:candidate});
     }
     if(candidates.length!==1)throw new Error('INTEGRATION_WORKFLOW_APPROVAL_REQUIRED');
     const {policy,binding}=candidates[0]!,workflowId=policy.workflow_id;

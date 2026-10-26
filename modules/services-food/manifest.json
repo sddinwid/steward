@@ -1,0 +1,2582 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.services.food",
+  "version": "1.0.0",
+  "programServices": {
+    "contractVersion": 1,
+    "domain": "food",
+    "syntheticOnly": true
+  },
+  "name": "Food & Essential Services",
+  "description": "Synthetic programme-scoped meal sessions, essential supplies and human-reviewed referrals. Optional Inventory and Procurement obligations remain pinned to their approved provider.",
+  "minimumPlatformVersion": "0.13.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listPrograms",
+      "method": "GET",
+      "path": "/programs",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgram",
+      "method": "POST",
+      "path": "/programs",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "updateProgram",
+      "method": "PUT",
+      "path": "/programs/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "programmeOptions",
+      "method": "GET",
+      "path": "/program-options",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "steward.services.food.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "disclosureAuthority",
+      "method": "GET",
+      "path": "/disclosure-authority",
+      "permission": "steward.services.food.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listProgrammeTeam",
+      "method": "GET",
+      "path": "/program-team",
+      "permission": "steward.services.food.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createProgrammeTeam",
+      "method": "POST",
+      "path": "/program-team",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "updateProgrammeTeam",
+      "method": "PUT",
+      "path": "/program-team/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "revokeProgrammeTeam",
+      "method": "POST",
+      "path": "/revoke-team/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "reviewProgrammeUpgrade",
+      "method": "POST",
+      "path": "/review-programme-upgrade/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "financialDisclosureAuthority",
+      "method": "GET",
+      "path": "/financial-disclosure-authority",
+      "permission": "steward.services.food.programmes.manage",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listCaseAssignments",
+      "method": "GET",
+      "path": "/case-assignments",
+      "permission": "steward.services.food.programmes.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCaseAssignment",
+      "method": "POST",
+      "path": "/case-assignments",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "updateCaseAssignment",
+      "method": "PUT",
+      "path": "/case-assignments/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "revokeCaseAssignment",
+      "method": "POST",
+      "path": "/revoke-case/:id",
+      "permission": "steward.services.food.programmes.manage"
+    },
+    {
+      "operationId": "listResourceAllocations",
+      "method": "GET",
+      "path": "/resource-allocations",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createResourceAllocation",
+      "method": "POST",
+      "path": "/resource-allocations",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "updateResourceAllocation",
+      "method": "PUT",
+      "path": "/resource-allocations/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "publishResourceAllocation",
+      "method": "POST",
+      "path": "/publish-resource-allocation/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listSite",
+      "method": "GET",
+      "path": "/sites",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createSite",
+      "method": "POST",
+      "path": "/sites",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "updateSite",
+      "method": "PUT",
+      "path": "/sites/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listSession",
+      "method": "GET",
+      "path": "/sessions",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createSession",
+      "method": "POST",
+      "path": "/sessions",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "updateSession",
+      "method": "PUT",
+      "path": "/sessions/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listStock",
+      "method": "GET",
+      "path": "/supplies",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createStock",
+      "method": "POST",
+      "path": "/supplies",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "updateStock",
+      "method": "PUT",
+      "path": "/supplies/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "observeSupplies",
+      "method": "POST",
+      "path": "/observe-supplies/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listDelivery",
+      "method": "GET",
+      "path": "/deliveries",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createDelivery",
+      "method": "POST",
+      "path": "/deliveries",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "releaseSupplies",
+      "method": "POST",
+      "path": "/release-supplies/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listServiceSource",
+      "method": "GET",
+      "path": "/service-sources",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceSource",
+      "method": "POST",
+      "path": "/service-sources",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "updateServiceSource",
+      "method": "PUT",
+      "path": "/service-sources/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "approveSource",
+      "method": "POST",
+      "path": "/approve-source/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "revokeSource",
+      "method": "POST",
+      "path": "/revoke-source/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listReferral",
+      "method": "GET",
+      "path": "/referrals",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "updateReferral",
+      "method": "PUT",
+      "path": "/referrals/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "acceptReferral",
+      "method": "POST",
+      "path": "/accept-referral/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "rejectReferral",
+      "method": "POST",
+      "path": "/reject-referral/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "deliverReferral",
+      "method": "POST",
+      "path": "/deliver-referral/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listInterruption",
+      "method": "GET",
+      "path": "/interruptions",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createInterruption",
+      "method": "POST",
+      "path": "/interruptions",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "resolveInterruption",
+      "method": "POST",
+      "path": "/resolve-interruption/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listCost",
+      "method": "GET",
+      "path": "/costs",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createCost",
+      "method": "POST",
+      "path": "/costs",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listReplenishment",
+      "method": "GET",
+      "path": "/replenishments",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createReplenishment",
+      "method": "POST",
+      "path": "/replenishments",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "submitReplenishment",
+      "method": "POST",
+      "path": "/submit-replenishment/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "listReleaseRequest",
+      "method": "GET",
+      "path": "/release-requests",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createReleaseRequest",
+      "method": "POST",
+      "path": "/release-requests",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "publishAggregate",
+      "method": "POST",
+      "path": "/publish-aggregate/:id",
+      "permission": "steward.services.food.admin"
+    },
+    {
+      "operationId": "siteOptions",
+      "method": "GET",
+      "path": "/site-options",
+      "permission": "steward.services.food.read"
+    },
+    {
+      "operationId": "sessionOptions",
+      "method": "GET",
+      "path": "/session-options",
+      "permission": "steward.services.food.read"
+    },
+    {
+      "operationId": "stockOptions",
+      "method": "GET",
+      "path": "/stock-options",
+      "permission": "steward.services.food.read"
+    },
+    {
+      "operationId": "deliveryOptions",
+      "method": "GET",
+      "path": "/delivery-options",
+      "permission": "steward.services.food.read"
+    },
+    {
+      "operationId": "programmeSummaries",
+      "method": "GET",
+      "path": "/programme-summaries",
+      "permission": "steward.services.food.read"
+    },
+    {
+      "operationId": "programmeOverview",
+      "method": "GET",
+      "path": "/programme-overview",
+      "permission": "steward.services.food.read",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "referralStatus",
+      "method": "GET",
+      "path": "/referral-status",
+      "permission": "steward.services.food.referral"
+    },
+    {
+      "operationId": "dispatchAuthority",
+      "method": "GET",
+      "path": "/dispatch-authority",
+      "permission": "steward.services.food.admin",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "publishedAggregates",
+      "method": "GET",
+      "path": "/published-aggregates",
+      "permission": "steward.services.food.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    }
+  ],
+  "ui": [
+    {
+      "workspace": "business",
+      "screenId": "food-overview",
+      "title": "Food service overview",
+      "navigationLabel": "Food overview",
+      "listOperation": "programmeSummaries",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "plannedMeals",
+          "label": "Planned Meals",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "deliveredMeals",
+          "label": "Delivered Meals",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "deliveredEssentialUnits",
+          "label": "Delivered Essential Units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "localSupplyShortages",
+          "label": "Local Supply Shortages",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "externalShortages",
+          "label": "External Shortages",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "activeInterruptions",
+          "label": "Active Interruptions",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "actualOperatingCostCents",
+          "label": "Actual Operating Cost Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "estimatedCostPerMealCents",
+          "label": "Estimated Cost Per Meal Cents",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "plannedMeals",
+        "deliveredMeals",
+        "localSupplyShortages",
+        "activeInterruptions",
+        "actualOperatingCostCents",
+        "estimatedCostPerMealCents"
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programs",
+      "title": "Programmes",
+      "navigationLabel": "Programmes",
+      "listOperation": "listPrograms",
+      "createOperation": "createProgram",
+      "updateOperation": "updateProgram",
+      "fields": [
+        {
+          "name": "id",
+          "label": "Programme sharing ID",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reference",
+          "label": "Programme reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Programme code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Programme name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "currency",
+          "label": "Programme currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "status",
+          "label": "Programme status",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "open",
+            "held",
+            "closed"
+          ],
+          "default": "open"
+        },
+        {
+          "name": "reportingPeriodStart",
+          "label": "Reporting period starts (UTC)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "reportingPeriodEnd",
+          "label": "Reporting period ends (UTC)",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "status",
+        "currency",
+        "id"
+      ],
+      "actions": [
+        {
+          "label": "Review programme permission upgrade",
+          "operationId": "reviewProgrammeUpgrade",
+          "confirmation": "I am the active original programme creator. Adopt only these signed-module permission additions: program.finance, program.fund. Existing case/team grants and intentionally removed rights remain unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "programme-team",
+      "title": "Programme team",
+      "navigationLabel": "Programme team",
+      "listOperation": "listProgrammeTeam",
+      "createOperation": "createProgrammeTeam",
+      "updateOperation": "updateProgrammeTeam",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "role",
+          "label": "Programme role",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "coordinator",
+            "operator",
+            "reviewer",
+            "stockOfficer",
+            "reporter",
+            "financialOfficer"
+          ]
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Team access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "role",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke programme access",
+          "operationId": "revokeProgrammeTeam",
+          "confirmation": "Revoke this account’s programme and case access? Other programme access remains unchanged."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "case-assignments",
+      "title": "Case assignments",
+      "navigationLabel": "Case assignments",
+      "listOperation": "listCaseAssignments",
+      "createOperation": "createCaseAssignment",
+      "updateOperation": "updateCaseAssignment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "actorId",
+          "label": "Worker account ID",
+          "type": "string",
+          "required": true,
+          "maxLength": 36
+        },
+        {
+          "name": "participantAlias",
+          "label": "Synthetic participant reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 50
+        },
+        {
+          "name": "programName",
+          "label": "Programme",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Case access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "programName",
+        "actorId",
+        "participantAlias",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Revoke case access",
+          "operationId": "revokeCaseAssignment",
+          "confirmation": "Remove only this case assignment? Programme membership remains unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "resource-allocations",
+      "title": "Approved programme resources",
+      "navigationLabel": "Approved resources",
+      "listOperation": "listResourceAllocations",
+      "createOperation": "createResourceAllocation",
+      "updateOperation": "updateResourceAllocation",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Source programme",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reference",
+          "label": "Allocation identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Human reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Receiving organization ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Receiving programme ID",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "restriction",
+          "label": "Authorized use",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "housing",
+            "food",
+            "training",
+            "employment",
+            "program"
+          ]
+        },
+        {
+          "name": "authorityId",
+          "label": "Organizational approval reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "transferId",
+          "label": "Actual transfer reference (when transferred)",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "authorizedCents",
+          "label": "Legally authorized amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "availableCents",
+          "label": "Available after commitments",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "committedCents",
+          "label": "Committed amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "transferredCents",
+          "label": "Transferred amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "spentCents",
+          "label": "Spent amount",
+          "type": "number",
+          "required": true,
+          "minimum": 0
+        },
+        {
+          "name": "validUntil",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "authorityEvidence",
+          "label": "Private synthetic legal/organizational evidence",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Review state",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "currency",
+        "authorizedCents",
+        "availableCents",
+        "committedCents",
+        "transferredCents",
+        "spentCents",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve and seal resource statement",
+          "operationId": "publishResourceAllocation",
+          "confirmation": "I reviewed the organizational authority, restrictions, exact cash states and fixed reporting period. No external money movement is executed; this statement will become immutable."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "site",
+      "title": "Site",
+      "navigationLabel": "Site",
+      "listOperation": "listSite",
+      "createOperation": "createSite",
+      "updateOperation": "updateSite",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "location",
+          "label": "Location",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "location",
+        "status"
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "session",
+      "title": "Session",
+      "navigationLabel": "Session",
+      "listOperation": "listSession",
+      "createOperation": "createSession",
+      "updateOperation": "updateSession",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "siteId",
+          "label": "Site Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "siteOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "meals",
+            "essential-supplies"
+          ]
+        },
+        {
+          "name": "plannedCapacity",
+          "label": "Planned Capacity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "startsAt",
+          "label": "Starts At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "endsAt",
+          "label": "Ends At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "siteId",
+        "category",
+        "plannedCapacity",
+        "startsAt",
+        "status"
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "stock",
+      "title": "Stock",
+      "navigationLabel": "Stock",
+      "listOperation": "listStock",
+      "createOperation": "createStock",
+      "updateOperation": "updateStock",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "meals",
+            "essential-supplies"
+          ]
+        },
+        {
+          "name": "mode",
+          "label": "Mode",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "local",
+            "external"
+          ]
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "minStock",
+          "label": "Min Stock",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Destination Program Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Destination Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "destinationInstallationId",
+          "label": "Destination Installation Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "providerModuleId",
+          "label": "Provider Module Id",
+          "type": "string",
+          "required": false,
+          "maxLength": 80
+        },
+        {
+          "name": "externalItemId",
+          "label": "External Item Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "category",
+        "mode",
+        "quantity",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Observe Supplies",
+          "operationId": "observeSupplies",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "service-deliveries",
+      "title": "Delivery",
+      "navigationLabel": "Delivery",
+      "listOperation": "listDelivery",
+      "createOperation": "createDelivery",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "sessionId",
+          "label": "Session Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "sessionOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "stockId",
+          "label": "Stock Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "stockOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "stockQuantity",
+          "label": "Stock Quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "sessionId",
+        "stockId",
+        "quantity",
+        "stockQuantity",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Release Supplies",
+          "operationId": "releaseSupplies",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "service-source",
+      "title": "Service Source",
+      "navigationLabel": "Service Source",
+      "listOperation": "listServiceSource",
+      "createOperation": "createServiceSource",
+      "updateOperation": "updateServiceSource",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "Source Program Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "Source Entity Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "Source Installation Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "Source Module Id",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve Source",
+          "operationId": "approveSource",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        },
+        {
+          "label": "Revoke Source",
+          "operationId": "revokeSource",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "referral",
+      "title": "Referral",
+      "navigationLabel": "Referral",
+      "listOperation": "listReferral",
+      "updateOperation": "updateReferral",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "reviewReason",
+          "label": "Review Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "deliveryId",
+          "label": "Delivery Id",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "deliveryOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "deliveryId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Accept Referral",
+          "operationId": "acceptReferral",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        },
+        {
+          "label": "Reject Referral",
+          "operationId": "rejectReferral",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        },
+        {
+          "label": "Deliver Referral",
+          "operationId": "deliverReferral",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "interruption",
+      "title": "Interruption",
+      "navigationLabel": "Interruption",
+      "listOperation": "listInterruption",
+      "createOperation": "createInterruption",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "sessionId",
+          "label": "Session Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "sessionOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "sessionId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Resolve Interruption",
+          "operationId": "resolveInterruption",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "cost",
+      "title": "Cost",
+      "navigationLabel": "Cost",
+      "listOperation": "listCost",
+      "createOperation": "createCost",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "actual-program-expense",
+            "estimated-future-service-cost"
+          ]
+        },
+        {
+          "name": "amountCents",
+          "label": "Amount Cents",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "maxLength": 3
+        },
+        {
+          "name": "startsAt",
+          "label": "Starts At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "endsAt",
+          "label": "Ends At",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "maxLength": 300
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "category",
+        "amountCents",
+        "currency",
+        "startsAt",
+        "status"
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "replenishment",
+      "title": "Replenishment",
+      "navigationLabel": "Replenishment",
+      "listOperation": "listReplenishment",
+      "createOperation": "createReplenishment",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "meals",
+            "essential-supplies"
+          ]
+        },
+        {
+          "name": "quantity",
+          "label": "Quantity",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "destinationProgramId",
+          "label": "Destination Program Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "destinationEntityId",
+          "label": "Destination Entity Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "destinationInstallationId",
+          "label": "Destination Installation Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "providerModuleId",
+          "label": "Provider Module Id",
+          "type": "string",
+          "required": false,
+          "maxLength": 80
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "category",
+        "quantity",
+        "destinationProgramId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Submit Replenishment",
+          "operationId": "submitReplenishment",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "release-request",
+      "title": "Release Request",
+      "navigationLabel": "Release Request",
+      "listOperation": "listReleaseRequest",
+      "createOperation": "createReleaseRequest",
+      "fields": [
+        {
+          "name": "programId",
+          "label": "Program Id",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "programmeOptions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "cohortId",
+          "label": "Cohort Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "policyId",
+          "label": "Policy Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "cohortId",
+        "policyId",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Publish Aggregate",
+          "operationId": "publishAggregate",
+          "confirmation": "Apply this authorized operation to this programme record? Review the current status and recorded authority first."
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "syntheticOnly",
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "syntheticOnly": {
+        "type": "boolean",
+        "const": true,
+        "default": true
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 3,
+    "migrations": [],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "approved-food-programme-aggregates",
+      "version": 1,
+      "description": "Human-reviewed immutable privacy-protected programme food activity and operating costs; no recipient or stock ledgers."
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "mission_aggregates_v1",
+        "table": "mission_aggregate_releases",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "mission_resources_v1",
+        "table": "mission_resource_allocations",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
+  "mcpTools": [
+    {
+      "name": "food_approved_aggregates",
+      "description": "Read sealed, human-reviewed food service aggregates authorized for the current programme account.",
+      "operationId": "publishedAggregates"
+    }
+  ],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "food.service",
+        "contract": "steward.food-service",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticOnly": true,
+          "integrationsEnabled": true
+        },
+        "operations": [
+          {
+            "name": "food.referral.request",
+            "command": "food.referral.request",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                },
+                "authorityId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "authority": {
+                  "type": "string",
+                  "enum": [
+                    "consented",
+                    "documented-authority"
+                  ]
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 40
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias",
+                "authorityId",
+                "authority",
+                "expiresAt",
+                "synthetic"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.services.food.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "food.referral.status",
+            "command": "food.referral.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.services.food.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "food.referral.withdraw",
+            "command": "food.referral.withdraw",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "participantAlias": {
+                  "type": "string",
+                  "pattern": "^SYNREF-[A-F0-9]{32}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "participantAlias"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "referralId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "serviceId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "requested",
+                    "accepted",
+                    "delivered",
+                    "withdrawn",
+                    "rejected"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "referralId",
+                "serviceId",
+                "status",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.services.food.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "food.capacity.observe",
+            "command": "food.capacity.observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "plannedMeals": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "remainingMealCapacity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "programId",
+                "plannedMeals",
+                "remainingMealCapacity",
+                "synthetic"
+              ]
+            },
+            "permission": "steward.services.food.referral",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": []
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "inventory.service-stock",
+        "contract": "steward.service-stock",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "optional": true,
+        "maximumSensitivity": "restricted",
+        "events": [],
+        "operations": [
+          {
+            "name": "observe",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "availableQuantity": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "availableQuantity",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId",
+                "quantity"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "consume",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "deliveryId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId",
+                "deliveryId",
+                "quantity"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            }
+          },
+          {
+            "name": "release",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "itemId",
+                "reservationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reservationId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "reserved": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "consumed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000000
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "reserved",
+                    "consumed",
+                    "released"
+                  ]
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "itemId",
+                "reservationId",
+                "reserved",
+                "consumed",
+                "status",
+                "synthetic"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "capabilityId": "procurement.service-replenishment",
+        "contract": "steward.service-replenishment",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "optional": true,
+        "maximumSensitivity": "restricted",
+        "events": [],
+        "operations": [
+          {
+            "name": "draft",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "requirementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                },
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "meals",
+                    "essential-supplies"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "requirementId",
+                "quantity",
+                "category"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requirementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "draftId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "const": "draft"
+                },
+                "financialCommitment": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "requirementId",
+                "draftId",
+                "status",
+                "financialCommitment",
+                "synthetic"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "syntheticOnly": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

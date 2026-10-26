@@ -1,0 +1,11 @@
+import type {CapabilityContract,CapabilityRequirement} from '@steward/module-sdk';
+export const uuid={type:'string',pattern:'^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$'};
+const closed=(properties:Record<string,unknown>,required=Object.keys(properties))=>({type:'object',additionalProperties:false,properties,required});
+export const stockObserveInput=closed({programId:uuid,sourceProgramId:uuid,itemId:uuid});
+export const stockObserveOutput=closed({itemId:uuid,availableQuantity:{type:'integer',minimum:0,maximum:100000000},synthetic:{type:'boolean',const:true}});
+export const stockReserveInput=closed({programId:uuid,sourceProgramId:uuid,itemId:uuid,reservationId:uuid,quantity:{type:'integer',minimum:1,maximum:100000000}});
+export const stockConsumeInput=closed({programId:uuid,sourceProgramId:uuid,itemId:uuid,reservationId:uuid,deliveryId:uuid,quantity:{type:'integer',minimum:1,maximum:100000000}});
+export const stockReleaseInput=closed({programId:uuid,sourceProgramId:uuid,itemId:uuid,reservationId:uuid});
+export const stockMutationOutput=closed({itemId:uuid,reservationId:uuid,reserved:{type:'integer',minimum:0,maximum:100000000},consumed:{type:'integer',minimum:0,maximum:100000000},status:{type:'string',enum:['reserved','consumed','released']},synthetic:{type:'boolean',const:true}});
+export const stockRequirement:CapabilityRequirement={capabilityId:'inventory.service-stock',contract:'steward.service-stock',minimumVersion:'1.0.0',maximumMajor:1,optional:true,maximumSensitivity:'restricted',events:[],operations:[{name:'observe',input:stockObserveInput,output:stockObserveOutput},{name:'reserve',input:stockReserveInput,output:stockMutationOutput},{name:'consume',input:stockConsumeInput,output:stockMutationOutput},{name:'release',input:stockReleaseInput,output:stockMutationOutput}]};
+export const serviceStockCapability:CapabilityContract={capabilityId:stockRequirement.capabilityId,contract:stockRequirement.contract,version:'1.0.0',sensitivity:'restricted',scope:'entity',ownership:'provider',configuration:{integrationsEnabled:true,syntheticServiceStock:true},events:[],operations:stockRequirement.operations.map(o=>({...o,command:'service-stock.'+o.name,permission:'cee.inventory.service.manage',mode:'durable',idempotency:'required',retry:'safe'}))};

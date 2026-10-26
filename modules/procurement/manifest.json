@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.procurement",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Procurement",
   "description": "Independent persistent procurement business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.7.0",
+  "minimumPlatformVersion": "0.13.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -201,6 +201,53 @@
       "method": "POST",
       "path": "/withdraw-quote/:id",
       "permission": "cee.procurement.approve"
+    },
+    {
+      "operationId": "listServiceSources",
+      "method": "GET",
+      "path": "/service-sources",
+      "permission": "cee.procurement.service.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "createServiceSource",
+      "method": "POST",
+      "path": "/service-sources",
+      "permission": "cee.procurement.service.manage"
+    },
+    {
+      "operationId": "approveServiceSource",
+      "method": "POST",
+      "path": "/approve-service-source/:id",
+      "permission": "cee.procurement.service.manage"
+    },
+    {
+      "operationId": "revokeServiceSource",
+      "method": "POST",
+      "path": "/revoke-service-source/:id",
+      "permission": "cee.procurement.service.manage"
+    },
+    {
+      "operationId": "listServiceReplenishments",
+      "method": "GET",
+      "path": "/service-replenishments",
+      "permission": "cee.procurement.service.manage",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "programAuthority",
+      "method": "GET",
+      "path": "/program-authority",
+      "permission": "cee.procurement.service.manage",
+      "query": [
+        "q"
+      ]
     }
   ],
   "ui": [
@@ -638,6 +685,142 @@
         "attempts",
         "error"
       ]
+    },
+    {
+      "workspace": "administration",
+      "screenId": "service-sources",
+      "title": "Private replenishment service relationships",
+      "navigationLabel": "Replenishment relationships",
+      "listOperation": "listServiceSources",
+      "createOperation": "createServiceSource",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Relationship reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "sourceEntityId",
+          "label": "Authorized source legal entity",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceInstallationId",
+          "label": "Authorized source Worker",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "Authorized source programme",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "sourceModuleId",
+          "label": "Authorized source module",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "Authority expires (UTC)",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "reason",
+          "label": "Reviewed service purpose",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "sourceEntityId",
+        "sourceProgramId",
+        "expiresAt",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Approve replenishment relationship",
+          "operationId": "approveServiceSource",
+          "confirmation": "Approve private draft requirements from this exact entity, Worker and programme? This grants no purchasing authority."
+        },
+        {
+          "label": "Revoke replenishment relationship",
+          "operationId": "revokeServiceSource",
+          "confirmation": "Revoke this service relationship? Existing draft requirements remain for human review."
+        }
+      ]
+    },
+    {
+      "workspace": "business",
+      "screenId": "service-replenishments",
+      "title": "Private service requirements",
+      "navigationLabel": "Service requirements",
+      "listOperation": "listServiceReplenishments",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Requirement reference",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "sourceProgramId",
+          "label": "Requesting programme",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "category",
+          "label": "Category",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "quantity",
+          "label": "Requested units",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "receivedAt",
+          "label": "Received (UTC)",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "reference",
+        "sourceProgramId",
+        "category",
+        "quantity",
+        "status"
+      ]
     }
   ],
   "configurationSchema": {
@@ -656,12 +839,21 @@
       "integrationsEnabled": {
         "type": "boolean",
         "default": false
+      },
+      "syntheticServiceReplenishment": {
+        "type": "boolean",
+        "default": false
+      },
+      "serviceAuthorityProgramId": {
+        "type": "string",
+        "pattern": "^(?:|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})$",
+        "default": ""
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "migrations": [],
     "destructiveRollback": false
   },
@@ -781,5 +973,109 @@
         ]
       }
     ]
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "procurement.service-replenishment",
+        "contract": "steward.service-replenishment",
+        "version": "1.0.0",
+        "sensitivity": "restricted",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "syntheticServiceReplenishment": true,
+          "integrationsEnabled": true
+        },
+        "events": [],
+        "operations": [
+          {
+            "name": "draft",
+            "command": "service-replenishment.draft",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "programId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "sourceProgramId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "requirementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                },
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "meals",
+                    "essential-supplies"
+                  ]
+                }
+              },
+              "required": [
+                "programId",
+                "sourceProgramId",
+                "requirementId",
+                "quantity",
+                "category"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requirementId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "draftId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "const": "draft"
+                },
+                "financialCommitment": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "synthetic": {
+                  "type": "boolean",
+                  "const": true
+                }
+              },
+              "required": [
+                "requirementId",
+                "draftId",
+                "status",
+                "financialCommitment",
+                "synthetic"
+              ]
+            },
+            "permission": "cee.procurement.service.manage",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ]
+      }
+    ],
+    "consumes": [],
+    "prerequisites": {
+      "configuration": {},
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
   }
 }

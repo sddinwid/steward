@@ -3,6 +3,7 @@ import { Ajv } from 'ajv';
 import type pg from 'pg';
 import type { FastifyInstance } from 'fastify';
 import type { ModulePackageManifest } from '@steward/module-sdk';
+import {receiveServiceStock,authorizeServiceStock} from './service-stock.js';
 const validLines = new Ajv().compile(object({ lines: lines(false) }));
 export async function replenish(ctx: Context) {
     if (!ctx.config.integrationsEnabled)
@@ -21,8 +22,9 @@ export async function replenish(ctx: Context) {
     }
 }
 export function inventoryDefinition(manifest: ModulePackageManifest): Definition {
-    return { manifest, resources: [], actions: [], receive: async (command, ctx) => {
+    return { manifest, resources: [], actions: [],authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command.startsWith('service-stock.'))await authorizeServiceStock(a.command,ctx);}, receive: async (command, ctx) => {
             const b = command.payload;
+            if(command.command.startsWith('service-stock.'))return receiveServiceStock(command,ctx);
             if (command.command === 'stock.release') {
                 ensure(command.sourceModuleId === 'cee.sales' && b.orderId === command.aggregateId, 'Invalid reservation identity', 403);
                 const existing = (await ctx.db.query('SELECT * FROM inventory_reservations WHERE source_module=$1 AND order_id=$2 ORDER BY sku FOR UPDATE', [command.sourceModuleId, b.orderId])).rows;

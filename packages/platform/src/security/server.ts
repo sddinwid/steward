@@ -14,6 +14,7 @@ import { workerRoutes } from './worker.js';
 import { audit } from './store.js';
 import { moduleRoutes } from '../module-manager.js';
 import { synchronizationRoutes } from '../synchronization.js';
+import {missionMasterRoutes} from '../mission-routes.js';
 
 export async function createSecureServer(installation: InstallationConfig, database: PostgresDatabase, security: SecurityConfig, key: string) {
   const app = Fastify({ https: { key: await readFile(security.tlsKeyFile), cert: await readFile(security.tlsCertFile), minVersion: 'TLSv1.3' },
@@ -31,7 +32,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
     }
   });
   const auth = authentication(app, database.pool, security.publicOrigin);
-  if (installation.role === 'master') masterRoutes(app, database.pool, auth, installation, key, security.publicOrigin);
+  if (installation.role === 'master') {masterRoutes(app, database.pool, auth, installation, key, security.publicOrigin);await missionMasterRoutes(app,database.pool,auth,installation);}
   else {
     await workerRoutes(app, database.pool, auth, installation, key, security);
     if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE,security);

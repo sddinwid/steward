@@ -52,7 +52,7 @@ export type MissionAggregateReleaseInput=Omit<MissionAggregateRelease,'participa
 /** Amounts describe explicit authority, never inferred revenue/profit or automatic transfers. */
 export interface MissionResourceAllocation {
  contractVersion:1;synthetic:true;approved:true;allocationId:string;transferId:string|null;authorityId:string;
- sourceEntityId:string;sourceInstallationId:string;destinationEntityId:string;destinationProgramId:MissionProgramId;
+ sourceEntityId:string;sourceInstallationId:string;sourceProgramId:MissionProgramId;destinationEntityId:string;destinationProgramId:MissionProgramId;
  observation:'origin'|'recipient';periodStart:string;periodEnd:string;validUntil:string;
  currency:string;restriction:'housing'|'food'|'training'|'employment'|'program';
  authorizedCents:number;availableCents:number;committedCents:number;transferredCents:number;spentCents:number;

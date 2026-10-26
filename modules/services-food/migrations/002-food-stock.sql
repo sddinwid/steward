@@ -1,0 +1,3 @@
+CREATE TABLE food_local_consumption(delivery_id uuid PRIMARY KEY REFERENCES business_records(id),stock_id uuid NOT NULL REFERENCES business_records(id),quantity integer NOT NULL CHECK(quantity>0));
+CREATE TABLE food_dispatch_authority(command_id uuid PRIMARY KEY,command_digest text NOT NULL,actor_id uuid NOT NULL,source_program_id uuid NOT NULL,destination_program_id uuid NOT NULL,destination_entity_id uuid NOT NULL,destination_installation_id uuid NOT NULL,provider_module_id text NOT NULL,purpose text NOT NULL);
+CREATE TABLE food_external_obligations(delivery_id uuid PRIMARY KEY REFERENCES business_records(id),reservation_id uuid NOT NULL UNIQUE,provider_identity jsonb,stage text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());

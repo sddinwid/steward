@@ -5,10 +5,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { resourceSharing, type SharingInput } from '../analytical-capabilities.js';
 import { modelConfigSchema, createModel, tlsFetch } from '../analyst-model.js';
-import { narrativeSchema, parseNarrative,validateScientificNarrative,scientificCorrectionEvidence } from '../analyst.js';
+import { narrativeSchema, parseNarrative,validateScientificNarrative,scientificCorrectionEvidence,validateMissionNarrative } from '../analyst.js';
 import { agentProof,verifyAgentProof } from '../mcp-agent-identity.js';
 import { resourcePage, resourceQuerySchema, modelToolResult, resourceMatches } from '../analyst-context.js';
 import { ollamaMessages, ollamaTurn } from '../ollama-model.js';
+test('mission model view stays compact without losing full evidence and final amounts must match deterministic service',()=>{const raw={structuredContent:{data:{missionCalculationId:'retained',affectedEntities:['source'],supportingReferences:[{recordId:'sealed'}],calculation:{capabilityId:'steward.mission.sustainability',status:'completed',displayAmounts:{available:'USD 100.00',cost:'USD 50.00',gap:'USD 0.00'},planning:{maximumAdditionalUnits:5},scientific:{engine:{version:'1.1.0'},calculation:{fullSolverEvidence:true},elapsedMillis:1,inputDigest:'retained'},outcomes:[{entireFixedVector:'retained'}]}}}};const before=JSON.stringify(raw),view=modelToolResult('analyze_mission_sustainability',raw,true);assert.equal(JSON.stringify(raw),before);assert.equal(view.structuredContent.data.missionCalculationId,'retained');assert.equal(view.structuredContent.data.calculation.scientific.calculation,undefined);assert.equal(view.structuredContent.data.calculation.outcomes,undefined);validateMissionNarrative({narrative:'USD 100.00 available; USD 50.00 cost; USD 0.00 gap; 5 conditional service units.'},[raw.structuredContent.data]);assert.throws(()=>validateMissionNarrative({narrative:'USD 999.00 available.'},[raw.structuredContent.data]),/MODEL_EVIDENCE_MISMATCH/);});
 
 test('scientific planning continues after forecasting through constraints, integer optimization and scenarios',()=>{
  const tools=profileTools['scientific-procurement'].map(name=>({name})),stage:ScientificPlan={entities:false,dataset:false,forecast:false,constraints:false,optimization:false,scenarios:false,partial:false};

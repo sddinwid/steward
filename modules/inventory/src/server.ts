@@ -4,6 +4,7 @@ import {randomUUID,timingSafeEqual} from 'node:crypto';
 import {transaction,ensure,BusinessError,type Data,type Context} from '@steward/business-kit';
 import type {ModulePackageManifest} from '@steward/module-sdk';
 import {attachInventoryIntegration,replenish} from './integration.js';
+import {attachServiceStock} from './service-stock.js';
 export function createInventoryServer(pool:pg.Pool,token:string,migrate:()=>Promise<number>,ready:()=>Promise<void>,quantityUnit:string,runtime?:Data,manifest?:ModulePackageManifest){
  const app=Fastify({logger:false,bodyLimit:16384,requestTimeout:10000,ajv:{customOptions:{multipleOfPrecision:8}}});
  app.addHook('onRequest',async(request,reply)=>{if(request.url==='/health')return;const supplied=Buffer.from(request.headers.authorization?.startsWith('Bearer ')?request.headers.authorization.slice(7):''),expected=Buffer.from(token);if(supplied.length!==expected.length||!timingSafeEqual(supplied,expected))return reply.code(401).send({error:'Module gateway authentication required'});});
@@ -30,6 +31,6 @@ export function createInventoryServer(pool:pg.Pool,token:string,migrate:()=>Prom
   const result=await db.query('UPDATE inventory_items SET sku=$1,name=$2,quantity=$3,reserved_quantity=COALESCE($6,reserved_quantity),min_stock=COALESCE($7,min_stock),revision=revision+1,updated_at=now() WHERE item_id=$4 AND revision=$5 RETURNING '+select,[b.sku.trim(),b.name.trim(),b.quantity,req.params.id,b.revision,b.reservedQuantity??null,b.minStock??null]);
   if(!result.rowCount)return reply.code(409).send({error:'Item changed or no longer exists; refresh before editing'});if(runtime)await replenish(context(db));return{record:result.rows[0]};
  }));
- if(runtime&&manifest)attachInventoryIntegration(app,pool,runtime,manifest);
+ if(runtime&&manifest){attachInventoryIntegration(app,pool,runtime,manifest);attachServiceStock(app,pool,runtime);}
  app.setErrorHandler((error,_req,reply)=>{const e=error as {code?:string;statusCode?:number};return reply.code(error instanceof BusinessError?error.status:e.code==='23505'?409:e.statusCode&&e.statusCode<500?e.statusCode:500).send({error:error instanceof BusinessError?error.message:e.code==='23505'?'SKU already exists':'Inventory request failed'});});return app;
 }
