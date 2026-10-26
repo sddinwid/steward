@@ -5,7 +5,7 @@ process.chdir(fileURLToPath(new URL('..',import.meta.url)));
 const version=process.argv[2]??JSON.parse(await readFile('package.json','utf8')).version;
 if(!/^\d+\.\d+\.\d+$/.test(version))throw new Error('Release version must be semver');
 const git=args=>execFileSync('git',args,{encoding:'utf8'}).trim(),sourceCommit=git(['rev-parse','HEAD']);
-if(['0.11.0','0.12.0'].includes(version)&&git(['status','--porcelain']))throw new Error('Phase 11 distribution images require clean committed source');
+if(['0.11.0','0.12.0','0.13.0'].includes(version)&&git(['status','--porcelain']))throw new Error('Distribution images require clean committed source');
 const images={};
 // Candidate tags are local build outputs. Release bundles pin the accepted image IDs.
 for(const [kind,file,app]of [['master-api','api','master'],['worker-api','api','worker'],['master-web','web','master'],['worker-web','web','worker'],['module-host','module-host',null]]){
