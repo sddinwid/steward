@@ -1,0 +1,126 @@
+{
+  "version": "0.12.0",
+  "releaseTag": "v0.12.0",
+  "acceptanceStatus": "accepted",
+  "sourceCommit": "a8de28cc3ff0ea4b71c392a2aea97373d02b44b8",
+  "acceptanceEvidenceCommit": "265446c552ec1750461415c4aafefe6b84249fcf",
+  "verifiedCandidateManifestSha256": "4764b47574488d33849b6a1b8a74362ec88012774052d8f37a6e533f072a6d18",
+  "acceptedManifestSha256": "76d59cdb0f4527181c927af90938bec601a1b848f959d2afe7d92e42f31595ab",
+  "imageArchive": {
+    "path": "artifacts/releases/steward-0.12.0/images.tar",
+    "bytes": 1828203520,
+    "sha256": "e79e9b3b16209679a4d1c677f83296c3c2c5c5d98faf3adb2ec017ae6edeffb3"
+  },
+  "payloadFiles": 547,
+  "infrastructureImages": {
+    "master-api": {
+      "tag": "steward-master-api:0.12.0",
+      "id": "sha256:9952c9d62c8e814c6a7c64c1fc571563564a7776a505be52e9948e28b27d7d7a",
+      "platform": "linux/amd64"
+    },
+    "master-web": {
+      "tag": "steward-master-web:0.12.0",
+      "id": "sha256:1f95580f1a31bad4e563cdb2cc7f79f80ca7a3f56be99ebbb0b185a4c666e090",
+      "platform": "linux/amd64"
+    },
+    "worker-api": {
+      "tag": "steward-worker-api:0.12.0",
+      "id": "sha256:7bc06ba58a35d2f538eb8c606cd47d05cc7fda8d9df4678b146a4c9bd5c18f28",
+      "platform": "linux/amd64"
+    },
+    "worker-web": {
+      "tag": "steward-worker-web:0.12.0",
+      "id": "sha256:855a7eb58d1cb9a8da00b3c248cb912a89fa26a255f909b8839cddd0fea2ae12",
+      "platform": "linux/amd64"
+    },
+    "module-host": {
+      "tag": "steward-module-host:0.12.0",
+      "id": "sha256:559040205264b73d6349a8cc80d5ecb54e4e9f400c53e3d1d7f42253f89b72eb",
+      "platform": "linux/amd64"
+    },
+    "postgres": {
+      "tag": "postgres:17.9-alpine",
+      "id": "sha256:8bb11c4aae5819656e9a197dda176d826f62da8ad5eb5612702a60a2533302ee"
+    },
+    "commerce-simulator": {
+      "tag": "steward-commerce-simulator:1.0.1",
+      "id": "sha256:892ccc062ad0ddce8ae0cc1d447167ef67e9ba3f8838d00047acd6c8c8f0378b"
+    },
+    "scientific": {
+      "tag": "steward-scientific:1.0.0",
+      "id": "sha256:08b12beb678438f40ba569154f72814be075e0f28fb179b2ee24345aef0734fb",
+      "platform": "linux/amd64"
+    }
+  },
+  "modules": [
+    {
+      "moduleId": "cee.inventory",
+      "version": "1.4.2",
+      "imageId": "sha256:72be0fcced3d02926a74049cfdda846947b99ee037a4f82e3ec7559b8b352b24"
+    },
+    {
+      "moduleId": "cee.operations",
+      "version": "1.0.0",
+      "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317"
+    },
+    {
+      "moduleId": "cee.procurement",
+      "version": "1.0.2",
+      "imageId": "sha256:bb323f25a5ce590a6f5a93875ae7846f269343619fce6bd84ccb862c41d907d7"
+    },
+    {
+      "moduleId": "cee.sales",
+      "version": "1.3.2",
+      "imageId": "sha256:a1e3dc0dd22f7dd9f32150313fce24efa22fadb6cc870c1c38af03aec9fc9dd4"
+    },
+    {
+      "moduleId": "cee.assets",
+      "version": "1.0.3",
+      "imageId": "sha256:531df6830b18613c349f482a96db1902510bbd6d1f51e2c89b9dc79db21dca58"
+    },
+    {
+      "moduleId": "cee.workforce",
+      "version": "1.0.2",
+      "imageId": "sha256:edc73caa5237fc377e3084f0c128ead0ff578106be9f1c707a5dbe91feb827c0"
+    },
+    {
+      "moduleId": "cee.shopify",
+      "version": "1.2.0",
+      "imageId": "sha256:cafe7468c79cac02f7478d5635d74af394d6daeb3b6e672c404305923184bbbc"
+    },
+    {
+      "moduleId": "cee.printify",
+      "version": "1.1.2",
+      "imageId": "sha256:2fb3344f47209d5b9e669762ee0b493c100de96afac2939acf134fd8d7962744"
+    },
+    {
+      "moduleId": "cee.stock-ledger",
+      "version": "1.1.0",
+      "imageId": "sha256:0280b2f1eedec4defbd0b5ef48ffc0708b4c138d5518f3ab8d28271512451779"
+    },
+    {
+      "moduleId": "steward.simulation.commerce",
+      "version": "1.1.3",
+      "imageId": "sha256:7271399084d60e541f1fdcd17038f158f8e95187722282f4a16108e6493b4e61"
+    },
+    {
+      "moduleId": "steward.simulation.fulfillment",
+      "version": "1.0.1",
+      "imageId": "sha256:e64fc041e217df7d6b6c3069459685c132bf666417241d5a32b9f50f22451722"
+    }
+  ],
+  "distribution": "artifacts/releases/steward-0.12.0",
+  "verificationArchive": "artifacts/releases/steward-0.12.0-verification",
+  "runtime": "Linux/amd64 verified; scientific lock Python 3.13/Linux amd64",
+  "requiredFreeSubnetsForFullLab": 14,
+  "operatorProject": "steward-phase8-upgrade-reg",
+  "operatorRunningContainers": 37,
+  "knownLimitations": [
+    "Synthetic historical forecasting and supplier terms are validation data, not real current-market predictions or commitments.",
+    "Scientific model intervals and MILP conclusions are conditional on declared assumptions, data coverage, bounded solver status and separate company consent.",
+    "Live Shopify/Printify verification was read-only; no paid production/orders or commercial mutation compatibility is claimed.",
+    "Local MVP validation is not commercial production certification; high availability, scale, retention, production trust/key management and independent review remain deployment responsibilities.",
+    "Optional Ollama provider configuration is restored after verification; the presenter must configure/enable an available trusted provider before another AI run.",
+    "One upstream test-client deprecation warning and the lazy chart chunk-size warning remain documented."
+  ]
+}

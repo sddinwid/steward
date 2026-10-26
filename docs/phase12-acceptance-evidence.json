@@ -15176,7 +15176,9 @@
     },
     "imageArchiveBytes": 1828203520,
     "imageArchiveSha256": "e79e9b3b16209679a4d1c677f83296c3c2c5c5d98faf3adb2ec017ae6edeffb3",
-    "promotion": "pending after committed gate evidence"
+    "promotion": "accepted",
+    "acceptanceEvidenceCommit": "265446c552ec1750461415c4aafefe6b84249fcf",
+    "acceptedManifestSha256": "76d59cdb0f4527181c927af90938bec601a1b848f959d2afe7d92e42f31595ab"
   },
   "cleanInstallation": {
     "startedAt": "2026-10-26T01:14:40.114Z",
@@ -16004,5 +16006,92 @@
       "finishedAt": "2026-10-26T01:29:34.870Z",
       "browserErrors": []
     }
+  },
+  "finalSingleStack": {
+    "verifiedAt": "2026-10-26T01:42:38.345Z",
+    "selectedProject": "steward-phase8-upgrade-reg",
+    "selectedRunningContainers": 37,
+    "unexpectedRunningContainers": [],
+    "status": "passed"
+  },
+  "cleanAcceptanceNetworkRelease": {
+    "status": "passed",
+    "project": "steward-phase12-clean-release-002",
+    "networks": [
+      {
+        "id": "d4235d3bd8a700da660a97fa1d769d3a2c28471519e084dcff570f3cca3fb3d5",
+        "name": "steward-phase12-clean-release-002_commerce-simulators",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "134e168f012db79afbe2dc3a806fd83887498e5caa8f7d6aece4f6ed2285b0be",
+        "name": "steward-phase12-clean-release-002_enrollment",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "7e0ba233324fb7f44c0c84d321b6793e805fcdb6c1a9cd3a9bc96eec0dfd6b0b",
+        "name": "steward-phase12-clean-release-002_master",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "d9ac9ff5428920ca8d8783fc52f638c9fc8edaa2437d8bd169a3af2b8e053393",
+        "name": "steward-phase12-clean-release-002_master-data",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "975f07cbf9dddbbb250d48b95fc1545cc214945ce51c7a618370e38838989f7a",
+        "name": "steward-phase12-clean-release-002_scientific",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "7033e97054c2e474c6fb2f476f092df8e8c90b5cf0e2212c72377265fdf7e054",
+        "name": "steward-phase12-clean-release-002_worker-1",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "963c6d87e7694f349168ad9a6f421f12a775a152c6dae1228804d0a7e65c657c",
+        "name": "steward-phase12-clean-release-002_worker-1-data",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "ad7ad0bb2d813946d11756a04fca34b4275b07e857dfa38e7f3f8ef73bf4fa05",
+        "name": "steward-phase12-clean-release-002_worker-1-modules",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "3506b44663b0fa985555c216788435f1e0dc10632abc78607ce2b0b2e4d20a4c",
+        "name": "steward-phase12-clean-release-002_worker-2",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "f3bd4080886968eef2c655af6fe257b37aa82704c35179ca4f828c6fa5224c56",
+        "name": "steward-phase12-clean-release-002_worker-2-data",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "ca6ead963addcd7d164aa1c05be03b664a65195f80e07348312ed3849bb03e5c",
+        "name": "steward-phase12-clean-release-002_worker-2-modules",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "d0cd5430fb36039df7cfefeb887d3e7baace607b35d14e5bf111520904f18bfa",
+        "name": "steward-phase12-clean-release-002_worker-3",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "ffadf3425d4976523b8a5a09946217a6a721aadb946dc1383ac01e632c7ccb06",
+        "name": "steward-phase12-clean-release-002_worker-3-data",
+        "activeEndpoints": 0
+      },
+      {
+        "id": "3d9f0ee67e9a22f73a3b10900387617d5f3d14c2831dbed5b5478e33a3f96ee0",
+        "name": "steward-phase12-clean-release-002_worker-3-modules",
+        "activeEndpoints": 0
+      }
+    ],
+    "removedEmptyNetworks": 14,
+    "preservedAllContainersVolumesConfigurationIdentitiesAndCredentials": true,
+    "selectedOperatorAndLiveEgressUntouched": true,
+    "finishedAt": "2026-10-26T01:42:37.824Z"
   }
 }
