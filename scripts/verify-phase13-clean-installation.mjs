@@ -29,6 +29,7 @@ try{
  run('scripts/verify-phase13-participants.mjs',[target]);
  run('scripts/verify-phase13-employment.mjs',[target,'--prove-master-outage']);
  run('scripts/verify-phase13-food.mjs',[target]);
+ run('scripts/verify-phase13-essential-services.mjs',[target]);
  run('scripts/verify-phase13-participant-food.mjs',[target]);
  report.checks.push('Four independently installed mission modules and complete six-case synthetic housing/food/training/employment pathway through governed SSMA; no elapsed retention invented');
  run('scripts/verify-phase13-mission.mjs',[target,'--prove-master-outage']);
