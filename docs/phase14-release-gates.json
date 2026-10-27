@@ -1,108 +1,186 @@
 {
   "version": "0.14.0",
-  "status": "in-progress",
+  "status": "passed",
   "gates": [
     {
       "id": "contracts",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "packages/economy-kit/src/index.ts",
+        "docs/adr/0031-federated-economic-authority.md",
+        "artifacts/phase14-12668db-regressions.log"
+      ]
     },
     {
       "id": "resources",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-economic-setup-repeat.json",
+        "artifacts/phase14-shared-resource-outage.json",
+        "artifacts/phase14-reserve-rejection.json"
+      ]
     },
     {
       "id": "budgets",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-recorded-service-costs.json",
+        "artifacts/phase14-ledger-repeat.json",
+        "artifacts/phase14-final-recovery.json"
+      ]
     },
     {
       "id": "coordination",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-contributions.json",
+        "artifacts/phase14-ledger-repeat.json",
+        "artifacts/phase14-shared-resource-outage.json"
+      ]
     },
     {
       "id": "governance",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-setup-permission-preservation.json",
+        "artifacts/phase14-reserve-rejection.json",
+        "artifacts/phase14-12668db-regressions.log"
+      ]
     },
     {
       "id": "science",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-scientific-final-tests.log",
+        "artifacts/phase14-horizon-planning.json",
+        "artifacts/phase14-master-service-costs.json"
+      ]
     },
     {
       "id": "intelligence",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-master-service-costs.json",
+        "artifacts/phase14-horizon-planning.json",
+        "artifacts/phase14-financial-overviews-browser.json"
+      ]
     },
     {
       "id": "mcp",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-test-model.json",
+        "artifacts/phase14-economic-cost-ollama.json"
+      ]
     },
     {
       "id": "ollama",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-economic-cost-ollama.json",
+        "artifacts/phase14-economic-cost-ollama-review.log",
+        "artifacts/phase14-economic-browser-recovery.log"
+      ]
     },
     {
       "id": "browser",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-module-installation.json",
+        "artifacts/phase14-contributions.json",
+        "artifacts/phase14-recorded-service-costs.json",
+        "artifacts/phase14-economic-cost-ollama.json"
+      ]
     },
     {
       "id": "outage",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-shared-resource-outage.json",
+        "artifacts/phase14-final-recovery.json"
+      ]
     },
     {
       "id": "privacy",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-disclosure-final-native.json",
+        "artifacts/phase14-source-consent-browser.json",
+        "artifacts/phase14-test-model.json",
+        "artifacts/phase14-12668db-regressions.log"
+      ]
     },
     {
       "id": "installation",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-clean-installation.json",
+        "artifacts/phase14-clean-installation.log",
+        "artifacts/phase14-clean-evidence-index.json",
+        "artifacts/phase14-clean-evidence/phase14-clean-financial-modules.json"
+      ]
     },
     {
       "id": "upgrade",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-selected-upgrade.json",
+        "artifacts/phase14-rc15-selected-upgrade.log",
+        "artifacts/phase14-final-runtime.json"
+      ]
     },
     {
       "id": "regressions",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-12668db-build.log",
+        "artifacts/phase14-12668db-regressions.log",
+        "artifacts/phase14-disclosure-final-native.json",
+        "artifacts/phase14-scientific-final-tests.log",
+        "artifacts/phase14-smoke-release-contract-tests.log",
+        "artifacts/phase14-final-runtime-equivalence.json"
+      ]
     },
     {
       "id": "live-catalog",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-live-isolation.json",
+        "artifacts/phase14-final-live-isolation.log"
+      ]
     },
     {
       "id": "release",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase14-rc15-checksums.log",
+        "artifacts/phase14-final-candidate-checksums.log",
+        "artifacts/phase14-final-runtime-equivalence.json",
+        "artifacts/phase14-final-runtime.json",
+        "artifacts/phase14-verification-archive.json",
+        "artifacts/releases/steward-0.14.0-verification.zip",
+        "artifacts/releases/steward-0.14.0-verification.zip.sha256",
+        "docs/phase14-final-acceptance.md"
+      ]
     }
-  ]
+  ],
+  "sourceCommit": "65a4604ab0140441a606f48d326ded6ada33768b",
+  "verifiedCandidateManifestSha256": "6b833d90cb266539980b6d7a5a489818da7e66a348178bdc82f1e279ca53be7f"
 }
