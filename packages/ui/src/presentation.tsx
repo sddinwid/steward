@@ -8,6 +8,7 @@ export function screenLabel(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution
 }
 export function screenGroup(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
  if(s.workspace==='administration')return 'Administration';if(s.workspace==='developer')return 'Integration diagnostics';
+ if(s.navigationGroup)return s.navigationGroup;
  const text=(m.name+' '+s.navigationLabel).toLowerCase();
  if(/delivery|integration-status/.test(s.screenId))return 'Integration diagnostics';
  if(/connection|mapping/.test(s.screenId))return 'Connections';

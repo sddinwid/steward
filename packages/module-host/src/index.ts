@@ -1,4 +1,4 @@
-import {financialAuthorityHeaders} from './financial-context.js';
+import {financialAuthorityHeaders,approvalAuthorityHeaders,publicContextHeaders} from './financial-context.js';
 import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} from './simulation-routing.js';
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
 import Fastify from 'fastify';
@@ -80,8 +80,12 @@ async function connectorSecret(id:string){
 }
 async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
-  const headers:Record<string,string>=Object.fromEntries(Object.entries(context).filter(([key])=>key.toLowerCase()!=='x-steward-financial-principals'));headers.authorization='Bearer '+token;
-  if(!['/health','/ready','/internal/migrate'].includes(path))Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
+  const headers:Record<string,string>=publicContextHeaders(context);headers.authorization='Bearer '+token;
+  if(!['/health','/ready','/internal/migrate'].includes(path)){
+    Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
+    const installed=(await metadataPool.query('SELECT descriptor FROM module_installations WHERE module_id=$1',[id])).rows[0];
+    if(installed?.descriptor?.payload?.manifest?.approvalServices){const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));Object.assign(headers,await approvalAuthorityHeaders(metadataPool,verifyPackage(installed.descriptor,trust).manifest));}
+  }
   return http({ host: containerName(id), port: 8080, method, path,timeout,headers }, body);
 }
 async function ready(id: string) {
@@ -126,12 +130,19 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   await resourcePool.query(`REVOKE ALL ON DATABASE ${db} FROM PUBLIC`);
   await resourcePool.query(`GRANT CONNECT ON DATABASE ${db} TO ${db}`);
   let sourceIdentity:unknown;
-  if(m.programServices||m.economicServices||m.smart&&atLeast(m.minimumPlatformVersion,'0.13.0')){
+  if(m.programServices||m.economicServices||atLeast(m.minimumPlatformVersion,'0.15.0')||m.smart&&atLeast(m.minimumPlatformVersion,'0.13.0')){
     const coreIdentity=new pg.Client({...adminConnection,database:'steward'});await coreIdentity.connect();
     try{const row=(await coreIdentity.query("SELECT entity_id,entity_name FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];if(!row)failure('ENROLLMENT_REQUIRED');sourceIdentity={installationId:config.installationId,role:'worker',entity:{entityId:row.entity_id,displayName:row.entity_name}};}finally{await coreIdentity.end();}
   }
+  let providerIdentity:unknown;
+  if(atLeast(m.minimumPlatformVersion,'0.15.0')){
+    const installed=(await metadataPool.query('SELECT operation_id,descriptor FROM module_installations WHERE module_id=$1',[id])).rows[0];
+    if(!installed||canonical(installed.descriptor)!==canonical(descriptor))failure('MODULE_INSTALLATION_IDENTITY_MISMATCH');
+    providerIdentity={workerInstallationId:config.installationId,entityId:(sourceIdentity as any).entity.entityId,moduleId:id,moduleInstallationId:installed.operation_id,packageDigest:digest(canonical(descriptor))};
+  }
   await atomicJson(base + '/runtime.json', { installationId: config.installationId, moduleId: id, version: m.version,
     ...(sourceIdentity?{sourceIdentity,entityId:(sourceIdentity as any).entity.entityId}:{}),
+    ...(providerIdentity?{providerIdentity}:{}),
     databaseHost: config.databaseHost, databaseName: db, databaseUser: db, configuration, persistence: m.persistence }, 0o644);
   let container = await ownedContainer(id);
   if (container && container.Image !== payload.imageId) {

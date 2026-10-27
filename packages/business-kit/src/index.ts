@@ -12,6 +12,11 @@ import { canonical, digest, integrationSql, validateCommand, operationFor, INTEG
 export * from './schema.js';
 /** JSON values are accepted only after a closed, module-owned schema validates them. */
 export type Data = Record<string, any>;
+/** Identity attested by the local module host in its read-only runtime file. */
+export interface ProviderIdentity {
+    readonly workerInstallationId:string;readonly entityId:string;readonly moduleId:string;
+    readonly moduleInstallationId:string;readonly packageDigest:string;
+}
 export interface RecordValue {
     id: string;
     kind: string;
@@ -35,8 +40,11 @@ export interface Context {
     moduleId: string;
     /** Enrolled identity from the trusted runtime file, never module settings. */
     readonly entityId?: string;
+    readonly providerIdentity?:ProviderIdentity;
     /** Fresh, private Worker authentication context; never accepted from module API bodies. */
     readonly financialPrincipals?: {readonly issuedAt:number;readonly actors:readonly string[]};
+    /** Current eligible accounts only; module-owned policies decide quorum and approval. */
+    readonly approvalPrincipals?: {readonly issuedAt:number;readonly reviewerPermission:string;readonly actors:readonly string[]};
 }
 /** Optional module-owned data policy. Platform permission is checked separately. */
 export interface AccessRequest {
@@ -97,7 +105,10 @@ export interface Definition {
     report?: (ctx: Context) => Promise<Data>;
     queries?: {
         path: string;
-        run: (ctx: Context, query?: Record<string,string>) => Promise<Data>;
+        method?: 'GET'|'POST';
+        /** Required closed input schema for POST read-only previews. */
+        schema?: Data;
+        run: (ctx: Context, query?: Record<string,string>, body?:Data) => Promise<Data>;
     }[];
     tick?: (ctx: Context) => Promise<void>;
     webhook?: (body: Data, ctx: Context) => Promise<Data>;
@@ -109,10 +120,10 @@ CREATE TABLE IF NOT EXISTS business_requests(request_id uuid PRIMARY KEY,actor t
 CREATE TABLE IF NOT EXISTS business_audit(id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,actor text NOT NULL,operation text NOT NULL,record_id uuid,created_at timestamptz NOT NULL DEFAULT now());
 ${integrationSql}
 ${simulationEpochSql}`;
-export async function transaction<T>(pool: pg.Pool, run: (db: pg.PoolClient) => Promise<T>): Promise<T> {
+export async function transaction<T>(pool: pg.Pool, run: (db: pg.PoolClient) => Promise<T>,options:{readonly?:boolean}={}): Promise<T> {
     const db = await pool.connect();
     try {
-        await db.query('BEGIN');
+        await db.query(options.readonly?'BEGIN READ ONLY':'BEGIN');
         // One lock per dedicated module database serializes business transitions and inbox/outbox commits.
         await db.query('SELECT pg_advisory_xact_lock(711007)');
         const value = await run(db);
@@ -227,12 +238,26 @@ async function resourceKey(resource: Resource, c: Context, input: Data) {
     return key;
 }
 const financialContext=(request?:FastifyRequest)=>{const raw=request?.headers['x-steward-financial-principals'];if(raw===undefined)return{};let value:any;try{ensure(typeof raw==='string'&&raw.length<=12000,'Financial authentication context unavailable',403);value=JSON.parse(raw);}catch{throw new BusinessError(403,'Financial authentication context unavailable');}ensure(value&&Object.keys(value).length===2&&Object.keys(value).every(k=>['issuedAt','actors'].includes(k))&&Number.isSafeInteger(value.issuedAt)&&Array.isArray(value.actors)&&value.actors.length<=256&&new Set(value.actors).size===value.actors.length&&value.actors.every((id:unknown)=>typeof id==='string'&&new RegExp(uuidPattern).test(id)),'Financial authentication context unavailable',403);return{financialPrincipals:Object.freeze({issuedAt:value.issuedAt,actors:Object.freeze(value.actors)})};};
+function approvalContext(manifest:ModulePackageManifest,request?:FastifyRequest){
+    const raw=request?.headers['x-steward-approval-principals'];if(raw===undefined)return{};
+    const unavailable=()=>new BusinessError(403,'Approval authentication context unavailable');let value:any;
+    try{if(typeof raw!=='string'||raw.length>12000)throw unavailable();value=JSON.parse(raw);}catch{throw unavailable();}
+    if(!manifest.approvalServices||!value||Object.keys(value).length!==3||!Object.keys(value).every(k=>['issuedAt','reviewerPermission','actors'].includes(k))||value.reviewerPermission!==manifest.approvalServices.reviewerPermission||!Number.isSafeInteger(value.issuedAt)||Date.now()-value.issuedAt>60000||value.issuedAt-Date.now()>5000||!Array.isArray(value.actors)||value.actors.length>256||new Set(value.actors).size!==value.actors.length||!value.actors.every((id:unknown)=>typeof id==='string'&&new RegExp(uuidPattern).test(id)))throw unavailable();
+    return{approvalPrincipals:Object.freeze({issuedAt:value.issuedAt,reviewerPermission:value.reviewerPermission as string,actors:Object.freeze(value.actors as string[])})};
+}
+function providerContext(runtime:Data,moduleId:string):{providerIdentity?:ProviderIdentity}{
+    const p=runtime.providerIdentity;if(p===undefined)return{};
+    ensure(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===5&&Object.keys(p).every(k=>['workerInstallationId','entityId','moduleId','moduleInstallationId','packageDigest'].includes(k))&&p.workerInstallationId===runtime.installationId&&p.entityId===runtime.entityId&&p.moduleId===moduleId&&['workerInstallationId','entityId','moduleInstallationId'].every(k=>typeof p[k]==='string'&&new RegExp(uuidPattern).test(p[k]))&&typeof p.packageDigest==='string'&&/^[a-f0-9]{64}$/.test(p.packageDigest),'Module provider identity unavailable',503);
+    return{providerIdentity:Object.freeze({...p}) as ProviderIdentity};
+}
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
 
-    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...financialContext(request) });
+    const provider=providerContext(runtime,definition.manifest.moduleId);
+    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...provider,...financialContext(request),...approvalContext(definition.manifest,request) });
     const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
     const audited = new WeakSet<FastifyRequest>();
+    const previews=new Set((definition.queries??[]).filter(query=>query.method==='POST').map(query=>query.path));
     const identifyRecord = (request: FastifyRequest, kind: string, id?: string) => {
         const access = accesses.get(request);
         if (access) { access.kind = kind; if (id) access.recordId = id; }
@@ -268,7 +293,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             return payload;
         } catch {
             if (db) await db.query('ROLLBACK').catch(() => {});
-            const committedMutation = request.method !== 'GET' && reply.statusCode < 400;
+            const committedMutation = request.method !== 'GET' && !previews.has(access.path) && reply.statusCode < 400;
             reply.code(503);
             return JSON.stringify(committedMutation ? { error: 'Module access audit unavailable; the operation may have committed. Refresh and reconcile using the original request identity.', recovery: 'OUTCOME_REQUIRES_RECONCILIATION' } : { error: 'Module access audit unavailable' });
         } finally { db?.release(); }
@@ -392,14 +417,20 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
     if (definition.report)
         app.get('/reports', async (req) => transaction(pool, async (db) => { const c = ctx(db, req); await authorizeAccess(definition, undefined, c, { operation: 'report', path: '/reports' }); const report = await definition.report!(c); if (Array.isArray(report.records) && report.records.length === 0)
             report.records = Object.entries(report).filter(([k]) => !['records', 'source', 'summary'].includes(k)).map(([metric, value]) => ({ id: metric, metric, value })); return report; }));
-    for (const query of definition.queries ?? [])
-        app.get<{Querystring:Record<string,string>}>(query.path, async (req) => transaction(pool, async (db) => { const c = ctx(db, req); await authorizeAccess(definition, undefined, c, { operation: 'query', path: query.path, query: req.query }); return query.run(c, req.query); }));
+    for (const query of definition.queries ?? []){
+        if(query.method==='POST'){
+            ensure(query.schema?.type==='object'&&query.schema.additionalProperties===false,'POST query requires a closed input schema',500);
+            const validate=ajv.compile(query.schema);
+            app.post<{Querystring:Record<string,string>;Body:Data}>(query.path,async req=>transaction(pool,async db=>{ensure(validate(req.body),'Invalid preview input',400);const c=ctx(db,req);await authorizeAccess(definition,undefined,c,{operation:'query',path:query.path,query:req.query,input:req.body});return query.run(c,req.query,req.body);},{readonly:true}));
+        }else app.get<{Querystring:Record<string,string>}>(query.path, async (req) => transaction(pool, async (db) => { const c = ctx(db, req); await authorizeAccess(definition, undefined, c, { operation: 'query', path: query.path, query: req.query }); return query.run(c, req.query); }));
+    }
     registerIntegrationRoutes(app, pool, runtime, definition);
     app.setErrorHandler((error, _req, reply) => { const e = error as any; return reply.code(error instanceof BusinessError ? error.status : e.code === '23505' ? 409 : e.statusCode && e.statusCode < 500 ? e.statusCode : 500).send({ error: error instanceof BusinessError ? error.message : e.code === '23505' ? 'Business key already exists' : 'Business module request failed' }); });
     return app;
 }
 export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, runtime: Data, definition: Definition) {
-    const ctx = (db: pg.PoolClient, request?:FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime',peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...financialContext(request) });
+    const provider=providerContext(runtime,definition.manifest.moduleId);
+    const ctx = (db: pg.PoolClient, request?:FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime',peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...provider,...financialContext(request),...approvalContext(definition.manifest,request) });
     app.get('/integration-outbox', async () => ({ commands: (await pool.query("SELECT envelope FROM integration_outbox WHERE status='pending' AND next_attempt_at<=now() ORDER BY created_at,(envelope->>'sequence')::bigint,command_id LIMIT 4")).rows.map(r => r.envelope) }));
     app.post<{
         Body: IntegrationCommand;
@@ -470,7 +501,7 @@ export async function startBusinessModule(definition: Definition, background?: (
     const app = createBusinessServer(pool, (await readFile('/run/module-secrets/gateway-token', 'utf8')).trim(), runtime, definition, migrate, ready);
     let ticking = false;
     const timer = definition.tick ? setInterval(() => { if (ticking)
-        return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}) })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
+        return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...providerContext(runtime,definition.manifest.moduleId) })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
     let working=false;
     const backgroundTimer=background?setInterval(()=>{if(working)return;working=true;void background(pool,runtime).catch(()=>{}).finally(()=>{working=false;});},2000).unref():undefined;
     app.addHook('onClose', async () => { if (timer)
