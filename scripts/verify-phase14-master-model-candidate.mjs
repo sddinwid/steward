@@ -1,0 +1,23 @@
+// Reversible Master-only candidate test using the existing Compose override mechanism.
+// Exactly one operator stack. No container filesystem patch, module reinstall or data reset.
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFile,writeFile,mkdir,open,unlink} from 'node:fs/promises';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {privateDirectory} from '../tools/installer/dist/security.js';
+const selected=JSON.parse(await readFile('.steward/operator/selection.json','utf8')),directory=path.resolve(process.argv[2]??'');assert.equal(directory,path.resolve(selected.directory));assert(!process.env.STEWARD_COMPOSE_OVERRIDE_FILE,'Do not shadow an operator override');
+const run=(command,args,options={})=>execFileSync(command,args,{encoding:'utf8',stdio:'inherit',timeout:600000,...options}),docker=args=>execFileSync('docker',args,{encoding:'utf8',maxBuffer:16*1024*1024}).trim(),git=args=>execFileSync('git',args,{encoding:'utf8'}).trim();assert.equal(git(['status','--porcelain']),'','Clean committed source required');const commit=git(['rev-parse','HEAD']),label='steward-master-api:phase14-model-test';
+const {compose}=await import('./lib.mjs');const image=service=>docker(['inspect','--format','{{.Image}}',compose('ps','-q',service)]),before=image('master-api'),workers=Object.fromEntries(['worker-1','worker-2','worker-3'].map(w=>[w,image(w+'-api')]));assert.equal(new Set(Object.values(workers)).size,1);
+const files=['analyst/config/model.json','analyst/config/api-key.txt'],hash=b=>createHash('sha256').update(b).digest('hex'),protectedFiles=Object.fromEntries(await Promise.all(files.map(async f=>[f,hash(await readFile(path.join(directory,f)))]))),relative='release/phase14-model-test.yaml',override=path.resolve(directory,relative);assert(override.startsWith(directory+path.sep));
+const report={startedAt:new Date().toISOString(),status:'in-progress',sourceCommit:commit,originalMasterImage:before,workerImages:workers,restored:false};let applied=false,written=false;
+try{
+ run('docker',['build','-f','infra/Dockerfile.api','--build-arg','APP=master','--label','org.opencontainers.image.revision='+commit,'--label','org.opencontainers.image.version=0.14.0','-t',label,'.']);const tested=docker(['image','inspect','--format','{{.Id}}',label]);report.testedMasterImage=tested;assert.equal(JSON.parse(docker(['image','inspect','--format','{{json .Config.Labels}}',label]))['org.opencontainers.image.revision'],commit);
+ const backup=path.join(directory,'backups','phase14-model-'+Date.now());await mkdir(backup,{recursive:true});privateDirectory(backup);const handle=await open(path.join(backup,'master.sql'),'wx',0o600);try{run('docker',['exec',compose('ps','-q','master-db'),'pg_dumpall','-U','postgres'],{stdio:['ignore',handle.fd,'pipe']});}finally{await handle.close();}report.privateBackup=backup;
+ await writeFile(override,'services:\n  master-api:\n    image: '+tested+'\n    build: !reset null\n    pull_policy: never\n',{flag:'wx',mode:0o600});written=true;process.env.STEWARD_COMPOSE_OVERRIDE_FILE=relative;applied=true;compose('up','-d','--no-build','--wait','--wait-timeout','180','master-api');assert.equal(image('master-api'),tested);
+ run(process.execPath,['scripts/verify-phase14-test-model.mjs',directory]);
+ run(process.execPath,['scripts/verify-phase14-economic-ollama.mjs',directory],{env:{...process.env,STEWARD_ANALYST_INCLUDE_OUTCOMES:'1',STEWARD_OLLAMA_REPORT:'artifacts/phase14-economic-cost-ollama.json'},timeout:720000});report.status='passed_pending_separate_narrative_review';
+}catch(e){report.status='failed';report.error='Candidate child failed; inspect actual test/provider reports.';process.exitCode=1;console.error(report.error);}finally{
+ delete process.env.STEWARD_COMPOSE_OVERRIDE_FILE;if(written)await unlink(override);if(applied)try{compose('up','-d','--no-build','--wait','--wait-timeout','180','master-api');assert.equal(image('master-api'),before);report.restored=true;}catch(e){report.status='failed';report.recoveryError=e.message;process.exitCode=1;}
+ for(const[f,expected]of Object.entries(protectedFiles))assert.equal(hash(await readFile(path.join(directory,f))),expected,'Exact original provider configuration/key bytes restored');for(const[w,expected]of Object.entries(workers))assert.equal(image(w+'-api'),expected,'Worker core unchanged during Master-only candidate test');report.configurationRestored=true;report.workersUnchanged=true;run(process.execPath,['scripts/verify-single-stack.mjs']);report.finishedAt=new Date().toISOString();await writeFile('artifacts/phase14-master-model-candidate.json',JSON.stringify(report,null,2)+'\n');console.log('Master-only model candidate: '+report.status);
+}

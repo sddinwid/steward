@@ -1,3 +1,4 @@
+import {digest} from '../packages/module-sdk/dist/index.js';
 // Candidate upgrade of the selected operator only. Uses the existing release CLI.
 // Private snapshots/backups never enter source control. No module is upgraded here.
 import assert from 'node:assert/strict';
@@ -21,8 +22,10 @@ async function snapshot(){const result={core:{},modules:{},files:{}};
   for(const db of query(i.key,'steward',"SELECT datname FROM pg_database WHERE datname ~ '^m_[a-f0-9]{20}$' ORDER BY datname").split('\n').filter(Boolean)){
    const names=query(i.key,db,"SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY tablename").split('\n').filter(Boolean);assert(names.length);for(const name of names)assert(/^[a-z0-9_]+$/.test(name));
    // One read-only statement gives the same per-table row hashes, within one PostgreSQL snapshot.
-   // It avoids hundreds of Docker exec handshakes without weakening preserved-row assertions.
-   const selections=names.map(table=>{const expression=['integration_outbox','sync_outbox'].includes(table)?"to_jsonb(t)-ARRAY['status','attempts','next_attempt_at','last_error','result','completed_at','acknowledged_at']":"to_jsonb(t)";return `SELECT '${table}' AS name,coalesce(jsonb_agg(md5((${expression})::text) ORDER BY md5((${expression})::text)),'[]') AS rows FROM ${table} t`;});
+   // Connector health checks may advance revision/time; preserve every identity/configuration/state field.
+   // Financial, clinical, product, order and all other business records retain exact whole-row checks.
+   const observationalConnector=['cee.shopify','cee.printify'].some(id=>db==='m_'+digest(id).slice(0,20));
+   const selections=names.map(table=>{const expression=['integration_outbox','sync_outbox'].includes(table)?"to_jsonb(t)-ARRAY['status','attempts','next_attempt_at','last_error','result','completed_at','acknowledged_at']":table==='business_records'&&observationalConnector?"CASE WHEN t.kind='connector' THEN to_jsonb(t)-ARRAY['revision','updated_at'] ELSE to_jsonb(t) END":"to_jsonb(t)";return `SELECT '${table}' AS name,coalesce(jsonb_agg(md5((${expression})::text) ORDER BY md5((${expression})::text)),'[]') AS rows FROM ${table} t`;});
    result.modules[i.key+'/'+db]=JSON.parse(query(i.key,db,`SELECT jsonb_object_agg(name,rows) FROM (${selections.join(' UNION ALL ')}) hashes`));
   }
  }
