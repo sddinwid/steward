@@ -8,7 +8,7 @@ export function missionStageInstruction(programmesObserved:boolean,aggregatesObs
  return ' CURRENT TOOL STEP: Call analyze_mission_sustainability with one exact returned scenarioId OR, when comparing alternatives, call compare_mission_scenarios with two or three distinct returned scenarioIds sharing fixed source references. Use the offered native function tool. Do not guess an ID or output a final narrative before the calculation.';
 }
 export const profileTools: Record<Exclude<InvestigationProfile, 'resource-sharing'>, string[]> = {
-    'economic-sustainability':['query_economic_summaries','query_economic_scenarios','analyze_economic_sustainability','get_economic_result'],
+    'economic-sustainability':['query_economic_outcomes','query_economic_summaries','query_economic_scenarios','analyze_economic_sustainability','get_economic_result'],
     'mission-sustainability':['query_mission_programmes','query_mission_aggregates','query_mission_scenarios','analyze_mission_sustainability','compare_mission_scenarios','get_mission_result'],
     'scientific-procurement':['list_entities','query_scientific_datasets','forecast_demand','query_scientific_constraints','optimize_procurement','compare_procurement_scenarios','get_scientific_result'],
     'simulation-purchasing':['list_entities','query_simulation_ecosystem','query_simulation_purchasing','analyze_simulation_purchasing'],

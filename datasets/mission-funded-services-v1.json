@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "synthetic": true,
+  "codePrefix": "P14-SERVICE",
+  "currency": "USD",
+  "participantCount": 6,
+  "workforceWorker": "worker-3",
+  "trainingSkill": "P14-MISSION",
+  "courseDurationMs": 600000,
+  "services": [
+    {"key":"housing","worker":"worker-1","moduleId":"steward.housing.management","metric":"capacity:housingPlacements","unit":"housing-placements","parts":[{"kind":"operating","cents":400000},{"kind":"service","cents":600000}]},
+    {"key":"food","worker":"worker-3","moduleId":"steward.services.food","metric":"capacity:deliveredMeals","unit":"meal-services","parts":[{"kind":"operating","cents":100000},{"kind":"service","cents":12000}]},
+    {"key":"training","worker":"worker-2","moduleId":"steward.employment.pathways","metric":"capacity:trainingCompletions","unit":"training-completions","parts":[{"kind":"operating","cents":100000},{"kind":"service","cents":200000}]}
+  ],
+  "costCoverage": "Recorded synthetic external programme operating expenses, materials, consumables and venue costs only. Property use, instruction time and shared equipment are unpriced noncash services, with unknown valuation. These observations are not full economic costs, individual worth or evidence of causal impact. No intercompany service price or payment is inferred."
+}
