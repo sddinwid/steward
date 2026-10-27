@@ -85,6 +85,17 @@ Actual results:
 
 Boundary: browser/module tests use real code and PostgreSQL with explicitly synthetic private gateway, actor/reviewer and host-ACK fixtures. They do not prove real Worker account lookup, installed SSMA routing, ModuleManager installation or live provider connectivity. Both standalone signed-image gates must run from clean committed source before checkpoint 15C advances. Accepted Sales integration and revenue corrections remain checkpoint 15D, and cost/contribution remains 15F.
 
+Both standalone signed-image gates **passed** from clean committed source `4e7323cef374102d5777f528cd84655fac84ad2f`:
+
+| Package | Image digest | Evidence |
+| --- | --- | --- |
+| Catalog 1.1.0 | `sha256:91c7335ef82022af6bb40e0fa6bc1e58680e6e1c03f29c725a02c7dd69073556` | `artifacts/phase15b-catalog-package/b58063d2-98c8-471f-88fc-9eed595c7651/acceptance.json` — 6 gates |
+| Pricing 1.0.0 | `sha256:5e61c71dfd148c1734f7a158329f5800c43554431763dcf5e2c4a54c7f0d5115` | `artifacts/phase15c-pricing-package/09608b60-c24e-4fb8-bd7e-aad5feb88aec/acceptance.json` — 7 gates |
+
+Commands: `npm run verify:catalog:package` and `npm run verify:pricing:package`. Actual signatures, committed manifests, image identities, dedicated nonprivileged databases, read-only module containers, migrations, API permissions, persisted records and restart/repeated migration behavior passed. Pricing additionally exercised inactive proposals, denied self-review, separate current reviewer approval, explicit activation, preview-only calculation versus an actual bounded quote, and immutable retained evidence. Reviewer/gateway identities remain explicitly private fixtures, not Worker-account proof. No orders or external financial commitments were created.
+
+Both fixtures cleaned all containers, networks and private files; operator container IDs/images/start times were identical before/after. Final single-stack check passed with 52 selected containers. Checkpoint 15C is verified within this standalone scope. No previous module image was rebuilt/replaced, and no v0.15.0 release tag exists.
+
 ## Remaining gates
 
-15C standalone signed-image gates are pending. 15D–15J remain pending: business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.
+15D–15J remain pending: business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.
