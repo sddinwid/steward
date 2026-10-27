@@ -1,3 +1,4 @@
+import {initializeUnitGuard} from './item-references.js';
 import pg from 'pg';
 import { readFile, readdir } from 'node:fs/promises';
 import { digest } from '@steward/module-sdk';
@@ -29,6 +30,7 @@ async function migrate() {
       if (config.persistence.migrations[i].version !== i + 1 || config.persistence.migrations[i].sha256 !== sha256 || applied.some(m => m.version === i + 1 && m.sha256 !== sha256)) throw new Error('Migration content mismatch');
       if (!applied.some(m => m.version === i + 1)) { await client.query(sql); await client.query('INSERT INTO module_migrations(version,sha256) VALUES($1,$2)', [i + 1, sha256]); }
     }
+    await initializeUnitGuard({db:client,config:config.configuration,installationId:config.installationId,moduleId:config.moduleId,entityId:config.entityId,providerIdentity:config.providerIdentity,actor:'module-runtime',permissions:[]});
     await client.query('COMMIT'); return migrations.length;
   } catch (error) { await client.query('ROLLBACK'); throw error; }
   finally { client.release(); }

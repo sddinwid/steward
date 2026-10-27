@@ -1,0 +1,115 @@
+{
+  "formatVersion": 1,
+  "release": "0.14.0",
+  "sourceCommit": "811793c89d13c05557ad468551c5a79290961eda",
+  "packages": [
+    {
+      "directory": "modules/assets",
+      "moduleId": "cee.assets",
+      "version": "1.1.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/employment-pathways",
+      "moduleId": "steward.employment.pathways",
+      "version": "1.1.1",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/housing-management",
+      "moduleId": "steward.housing.management",
+      "version": "1.0.2",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/inventory",
+      "moduleId": "cee.inventory",
+      "version": "1.5.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/mission-budget",
+      "moduleId": "steward.finance.mission-budget",
+      "version": "1.0.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/operations",
+      "moduleId": "cee.operations",
+      "version": "1.0.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/participant-services",
+      "moduleId": "steward.housing.services",
+      "version": "1.0.4",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/printify",
+      "moduleId": "cee.printify",
+      "version": "1.1.2",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/procurement",
+      "moduleId": "cee.procurement",
+      "version": "1.1.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/resource-availability",
+      "moduleId": "steward.finance.resource-availability",
+      "version": "1.0.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/resource-coordination",
+      "moduleId": "steward.finance.resource-coordination",
+      "version": "1.0.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/sales",
+      "moduleId": "cee.sales",
+      "version": "1.3.2",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/services-food",
+      "moduleId": "steward.services.food",
+      "version": "1.0.2",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/shopify",
+      "moduleId": "cee.shopify",
+      "version": "1.2.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/simulation-commerce",
+      "moduleId": "steward.simulation.commerce",
+      "version": "1.1.3",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/simulation-fulfillment",
+      "moduleId": "steward.simulation.fulfillment",
+      "version": "1.0.1",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/stock-ledger",
+      "moduleId": "cee.stock-ledger",
+      "version": "1.1.0",
+      "sdkVersion": 1
+    },
+    {
+      "directory": "modules/workforce",
+      "moduleId": "cee.workforce",
+      "version": "1.2.0",
+      "sdkVersion": 1
+    }
+  ]
+}

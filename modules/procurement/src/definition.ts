@@ -1,3 +1,4 @@
+import {supplierReferenceReceive,supplierReferenceQuery} from './supplier-references.js';
 import { ensure, find, get, save, records, enqueue, publicRecord, object, text, quantity, amount, choice, lines, uniqueLines, centsTotal, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import type { ModulePackageManifest } from '@steward/module-sdk';
 import {serviceSource,privateReplenishments,serviceActions,serviceProgramAuthority,receiveServiceReplenishment,authorizeServiceReplenishment} from './service-replenishment.js';
@@ -7,7 +8,7 @@ async function project(ctx: Context, r: RecordValue, stream: 'procurement_demand
     await ctx.db.query(`INSERT INTO ${stream}(id,revision,projection) VALUES($1,1,$2) ON CONFLICT(id) DO UPDATE SET revision=${stream}.revision+1,projection=excluded.projection`, [r.id, data]);
 }
 export function procurement(manifest: ModulePackageManifest): Definition {
-    return { manifest,authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command==='service-replenishment.draft')await authorizeServiceReplenishment(a.command,ctx);},auditAccess:async(e,db)=>{await db.query('INSERT INTO procurement_service_audit(actor_id,operation,status_code) VALUES($1,$2,$3)',[e.actor,e.operationId,e.statusCode]);},queries:[{path:'/program-authority',run:serviceProgramAuthority}], resources: [serviceSource,privateReplenishments,
+    return { manifest,authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command==='service-replenishment.draft')await authorizeServiceReplenishment(a.command,ctx);},auditAccess:async(e,db)=>{await db.query('INSERT INTO procurement_service_audit(actor_id,operation,status_code) VALUES($1,$2,$3)',[e.actor,e.operationId,e.statusCode]);},queries:[{path:'/supplier-references',run:supplierReferenceQuery},{path:'/program-authority',run:serviceProgramAuthority}], resources: [serviceSource,privateReplenishments,
             { kind: 'supplier', path: '/suppliers', key: 'code', schema: object({ code: text(60), name: text(), relationship: choice(['external', 'ecosystem']) }) },
             { kind: 'requisition', path: '/requisitions', key: 'number', schema: object({ number: text(80), supplierCode: text(60), sku: text(80), quantity, reason: text(500), currency: text(3), unitPriceCents: amount, shippingCents: amount, transitionCents: amount }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Published requisition is immutable; create a new revision document');
@@ -74,6 +75,7 @@ export function procurement(manifest: ModulePackageManifest): Definition {
                     return { record: publicRecord(await save(ctx, 'receipt', r.key, { ...r.data, stockStatus: 'pending' }, r)) };
                 } }
         ], receive: async (command, ctx) => {
+            const read=await supplierReferenceReceive(command,ctx);if(read)return read;
             if(command.command==='service-replenishment.draft')return receiveServiceReplenishment(command,ctx);
             ensure(command.command === 'stock.replenishment' && command.sourceModuleId === 'cee.inventory', 'Unsupported replenishment source', 403);
             const b = command.payload;

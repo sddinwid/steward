@@ -25,7 +25,7 @@ export function ReadableValue({value,name='',currency}:{value:any;name?:string;c
  if(typeof value==='string'&&/^\d{4}-\d\d-\d\dT/.test(value)&&Number.isFinite(Date.parse(value)))return <time dateTime={value}>{new Date(value).toLocaleString()}</time>;
  if(typeof value==='boolean')return <>{value?'Yes':'No'}</>;
  if(Array.isArray(value))return value.length?<ul>{value.map((v,i)=><li key={i}><ReadableValue value={v} currency={currency}/></li>)}</ul>:<span className="muted">None</span>;
- if(typeof value==='object')return <dl className="readable-fields">{Object.entries(value).map(([k,v])=><div key={k}><dt>{humanize(k)}</dt><dd><ReadableValue value={v} name={k} currency={value.currency??currency}/></dd></div>)}</dl>;
+ if(typeof value==='object')return <dl className="readable-fields">{Object.entries(value).map(([k,v])=><div key={k}><dt>{/Cents$/.test(k)&&(value.currency??currency)?humanize(k).replace(/ Cents$/,''):humanize(k)}</dt><dd><ReadableValue value={v} name={k} currency={value.currency??currency}/></dd></div>)}</dl>;
  return <>{String(value)}</>;
 }
 export function StructuredValue({label,name,value,required,onChange}:{label:string;name:string;value:any;required:boolean;onChange:(v:any)=>void}){

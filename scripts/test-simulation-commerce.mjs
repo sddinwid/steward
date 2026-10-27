@@ -1,4 +1,4 @@
-import {execFileSync} from 'node:child_process';
+import {execFileSync,fork} from 'node:child_process';
 import {readFile,readdir,mkdir,writeFile,rm} from 'node:fs/promises';
 import {randomUUID,randomBytes,generateKeyPairSync} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -29,7 +29,7 @@ import {dataEvent,validateEvent} from '../packages/platform/dist/synchronization
 import {privateDirectory} from '../tools/installer/dist/security.js';
 import {sales} from '../modules/sales/dist/definition.js';
 import {stockLedger} from '../modules/stock-ledger/dist/definition.js';
-import {simulationCommerce,simulationCommerceBackground} from '../modules/simulation-commerce/dist/definition.js';
+import {simulationCommerce} from '../modules/simulation-commerce/dist/definition.js';
 import {simulationFulfillment,simulationFulfillmentBackground} from '../modules/simulation-fulfillment/dist/definition.js';
 import {sampleOrder,SIMULATION_SCENARIOS} from '../packages/simulation-kit/dist/index.js';
 
@@ -45,7 +45,19 @@ const password=randomBytes(32).toString('hex'),adminPassword=randomBytes(32).toS
 await writeFile(dir+'/pg.env','POSTGRES_PASSWORD='+password+'\n',{mode:0o600});
 const read=async(id,kind)=>(await modules.get(id).pool.query('SELECT * FROM business_records WHERE kind=$1 ORDER BY created_at,id',[kind])).rows;
 const engineId='steward.simulation.commerce',fakeId='steward.simulation.fulfillment';
-let db,core,commandCount=0;
+let db,core,commandCount=0,isolatedEngine;
+const resourceDiagnostics={processBoundary:'isolated-simulation-module',samples:0,observedPeakRssBytes:0,lastRssBytes:null,engineDatabaseBytes:null,maximumMemoryBytes:null,maximumDatabaseBytes:null,cohostObservedPeakRssBytes:0,cohostLastRssBytes:null};
+function sampleCohost(){resourceDiagnostics.cohostLastRssBytes=process.memoryUsage().rss;resourceDiagnostics.cohostObservedPeakRssBytes=Math.max(resourceDiagnostics.cohostObservedPeakRssBytes,resourceDiagnostics.cohostLastRssBytes);}
+function engineWorker(){
+ const child=fork(new URL('./fixtures/simulation-commerce-worker.mjs',import.meta.url),[],{stdio:['ignore','pipe','pipe','ipc'],execArgv:[]}),pending=new Map();let sequence=0,exited=false;
+ // Worker logs are not part of public evidence; credentials travel only over IPC.
+ child.stdout.resume();child.stderr.resume();
+ const exitPromise=new Promise(resolve=>child.once('exit',(code,signal)=>{exited=true;for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('Isolated simulation worker exited: '+String(code??signal)));}pending.clear();resolve();}));
+ child.on('error',()=>{for(const p of pending.values()){clearTimeout(p.timer);p.reject(Error('Isolated simulation worker unavailable'));}pending.clear();});
+ child.on('message',message=>{const p=pending.get(message?.requestId);if(!p)return;pending.delete(message.requestId);clearTimeout(p.timer);if(!message.ok){p.reject(Error(message.code??'Isolated simulation worker failed'));return;}if(message.resources)Object.assign(resourceDiagnostics,message.resources);p.resolve(message);});
+ const request=(type,body={})=>new Promise((resolve,reject)=>{if(exited||!child.connected){reject(Error('Isolated simulation worker unavailable'));return;}const requestId=++sequence,timer=setTimeout(()=>{pending.delete(requestId);reject(Error('Isolated simulation worker timed out'));},30000);pending.set(requestId,{resolve,reject,timer});child.send({requestId,type,...body},error=>{if(error){const p=pending.get(requestId);if(p){pending.delete(requestId);clearTimeout(timer);reject(Error('Isolated simulation worker IPC unavailable'));}}});});
+ return{request,get exited(){return exited;},close:async()=>{try{if(!exited&&child.connected)await request('close');}finally{if(!exited){let killTimer;await Promise.race([exitPromise,new Promise(resolve=>{killTimer=setTimeout(()=>{child.kill();resolve();},3000);})]);clearTimeout(killTimer);if(!exited){child.kill();await exitPromise;}}}}};
+}
 async function check(name,fn){await test(name,async()=>{const at=performance.now();try{await fn();checks.push({name,passed:true,elapsedMs:Math.round(performance.now()-at)});}catch(e){checks.push({name,passed:false,error:e.message});throw e;}});}
 async function delivery(){
  let count=0;
@@ -63,8 +75,8 @@ async function delivery(){
  }
  return count;
 }
-async function tick(){await delivery();for(const [id,background]of [[fakeId,simulationFulfillmentBackground],[engineId,simulationCommerceBackground]]){const f=modules.get(id);await background(f.pool,f.runtime);if(id===fakeId)for(const j of await read(fakeId,'job')){if(!j.data.simulatedUpdatedAt||!['pending','in_production','shipped'].includes(j.data.status))continue;const elapsed=j.data.status==='pending'?0:j.data.status==='in_production'?j.data.productionDelaySeconds:j.data.productionDelaySeconds+j.data.shippingDelaySeconds;assert.equal(Date.parse(j.data.simulatedUpdatedAt),Date.parse(j.data.simulation.simulatedAt)+elapsed*1000,'Provider virtual timestamps match the actual persisted stage');}}await delivery();}
-async function until(fn,label,timeout=65000){const end=Date.now()+timeout;do{await tick();const value=await fn();if(value)return value;await delay(120);}while(Date.now()<end);throw Error('Timed out '+label+' '+JSON.stringify((await read(engineId,'event')).map(e=>({stage:e.data.stage,error:e.data.error})))+' '+JSON.stringify((await read(engineId,'run')).map(r=>r.data)));}
+async function tick(){sampleCohost();await delivery();const fulfillment=modules.get(fakeId);await simulationFulfillmentBackground(fulfillment.pool,fulfillment.runtime);for(const j of await read(fakeId,'job')){if(!j.data.simulatedUpdatedAt||!['pending','in_production','shipped'].includes(j.data.status))continue;const elapsed=j.data.status==='pending'?0:j.data.status==='in_production'?j.data.productionDelaySeconds:j.data.productionDelaySeconds+j.data.shippingDelaySeconds;assert.equal(Date.parse(j.data.simulatedUpdatedAt),Date.parse(j.data.simulation.simulatedAt)+elapsed*1000,'Provider virtual timestamps match the actual persisted stage');}await isolatedEngine.request('tick',{runtime:modules.get(engineId).runtime});await delivery();sampleCohost();}
+async function until(fn,label,timeout=65000){const end=Date.now()+timeout;do{await tick();const paused=(await read(engineId,'run')).find(r=>r.data.state==='paused'&&r.data.warning==='Simulation resource budget reached; retained business data is unchanged.');if(paused){const fixture=modules.get(engineId),databaseBytes=Number((await fixture.pool.query('SELECT pg_database_size(current_database()) AS n')).rows[0].n);throw Error('Simulation resource budget paused before '+label+' '+JSON.stringify({state:paused.data.state,eventIndex:paused.data.eventIndex,rssBytes:resourceDiagnostics.lastRssBytes,cohostRssBytes:process.memoryUsage().rss,maximumMemoryBytes:fixture.runtime.configuration.maximumMemoryBytes,databaseBytes,maximumDatabaseBytes:fixture.runtime.configuration.maximumDatabaseBytes}));}const value=await fn();if(value)return value;await delay(120);}while(Date.now()<end);throw Error('Timed out '+label+' '+JSON.stringify((await read(engineId,'event')).map(e=>({stage:e.data.stage,error:e.data.error})))+' '+JSON.stringify((await read(engineId,'run')).map(r=>r.data)));}
 async function action(id,name,record){return(await modules.get(id).api('POST','/'+name+'/'+record.id,{revision:record.revision,requestId:randomUUID()})).record;}
 try{
  docker(['run','--rm','-d','--name',container,'--env-file',dir+'/pg.env','-p','127.0.0.1::5432','postgres:17.10-alpine']);
@@ -88,6 +100,7 @@ try{
   const f={pool,app,manifest,descriptor,runtime,token};modules.set(manifest.moduleId,f);
   f.api=async(method,url,body,status=200)=>{const r=await app.inject({method,url,headers:{authorization:'Bearer '+token,'x-steward-actor':'fixture-admin','x-steward-permissions':JSON.stringify([...new Set(manifest.api.map(o=>o.permission))])},...(body===undefined?{}:{payload:body})});assert.equal(r.statusCode,status,name+' '+method+' '+url+': '+r.body);return r.json();};
  }
+ isolatedEngine=engineWorker();await isolatedEngine.request('initialize',{connection:{...connection,database:'m_'+digest('simulation-commerce').slice(0,20)},runtime:modules.get(engineId).runtime});
  const governance=Fastify({logger:false});apps.push(governance);const origin='https://fixture.local',auth=authentication(governance,db,origin);await smartModuleRoutes(governance,db,auth,identity,async()=>({status:200,value:{}}),async()=>trust);governance.setErrorHandler((e,_r,reply)=>reply.code(e.statusCode??500).send({error:e.message}));
  const login=await governance.inject({method:'POST',url:'/api/v2/auth/login',headers:{origin},payload:{username:'simulation-admin',password:adminPassword}});assert.equal(login.statusCode,200);const cookie=login.headers['set-cookie'].split(';')[0],csrf=login.json().csrfToken;
  core=async(url,body,status=200)=>{const r=await governance.inject({method:body?'POST':'GET',url:'/api/v8/smart-modules'+url,headers:{cookie,origin,'x-csrf-token':csrf},...(body?{payload:body}:{})});assert.equal(r.statusCode,status,r.body);return r.json();};
@@ -190,6 +203,7 @@ try{
   assert.equal((await module.api('GET','/dashboard')).groups[0].title,original.data.name);assert.equal((await read(engineId,'run')).length,2);
  });
 }finally{
+ sampleCohost();if(isolatedEngine){try{await isolatedEngine.request('stats');}catch{}try{await isolatedEngine.close();}catch{resourceDiagnostics.workerCloseError='Isolated worker shutdown reported a failure';process.exitCode=1;}resourceDiagnostics.workerExited=isolatedEngine.exited;if(!isolatedEngine.exited)process.exitCode=1;}
  for(const app of apps.reverse())await app.close();for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}
- await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase11-service-lifecycle.json',JSON.stringify({checks,commandCount,finishedAt:new Date().toISOString()},null,2)+'\n');await rm(dir,{recursive:true,force:true});
+ await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase11-service-lifecycle.json',JSON.stringify({checks,commandCount,resourceDiagnostics,finishedAt:new Date().toISOString()},null,2)+'\n');await rm(dir,{recursive:true,force:true});
 }

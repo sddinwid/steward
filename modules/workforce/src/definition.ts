@@ -1,3 +1,4 @@
+import {withModuleServices} from './service-references.js';
 import {attachMissionWorkforce} from './mission.js';
 import { ensure, find, save, records, publicRecord, object, text, quantity, choice, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import type { ModulePackageManifest } from '@steward/module-sdk';
@@ -16,7 +17,7 @@ async function skillMetrics(ctx: Context, skill: string) {
     const completed = new Set(achievements.filter(a => programCodes.includes(a.data.programCode)).map(a => a.data.personRef)).size;
     return { skillCode: skill, availablePeople: count(qualified, ctx), completions: count(completed, ctx), suppressed: qualified < ctx.config.minimumGroupSize || completed < ctx.config.minimumGroupSize, minimumGroupSize: ctx.config.minimumGroupSize, synthetic: true };
 }
-export function workforce(manifest: ModulePackageManifest): Definition {
+function baseWorkforce(manifest: ModulePackageManifest): Definition {
     const legacy:Definition={ manifest, resources: [
             { kind: 'skill', path: '/skills', key: 'code', schema: object({ code: text(60), name: text(), classification: text(80) }) },
             { kind: 'person', path: '/people', key: 'reference', schema: object({ reference: syntheticRef, displayName: { type: 'string', pattern: '^Synthetic [A-Za-z0-9 -]{1,100}$' }, skills: codes, availabilityUnits: positive }), prepare: async (b, p, ctx) => { ensure(ctx.config.syntheticOnly === true, 'Only synthetic Workforce data is supported', 403); await knownSkills(b.skills, ctx); return { ...b, synthetic: true }; } },
@@ -71,3 +72,5 @@ export function workforce(manifest: ModulePackageManifest): Definition {
             return { records: metrics.slice(0,20).map(m => ({ ...m, id: m.skillCode })),skillMetricCount:metrics.length,trainingTotalSeats:programs.reduce((n,p)=>n+p.data.seats,0),availableTrainingSeats:programs.reduce((n,p)=>n+available(p),0),trainingCapacity:programs.slice(0,20).map(p=>({programCode:p.key,totalSeats:p.data.seats,availableSeats:available(p),endsAt:p.data.endsAt})),programCount:programs.length,openPositions: positions.reduce((n, p) => n + p.data.openings, 0), summary: 'Synthetic aggregates only; first 20 skill/program details, with total counts. Suppressed groups are unknown, never zero. Available seats exclude completed cohort enrollments and ended programs.' };
         } };return attachMissionWorkforce(legacy);
 }
+
+export function workforce(manifest:ModulePackageManifest):Definition{return withModuleServices(baseWorkforce(manifest));}

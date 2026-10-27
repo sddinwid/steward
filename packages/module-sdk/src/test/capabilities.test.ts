@@ -36,9 +36,11 @@ test('signed optional SSMA metadata preserves legacy manifests and cannot be tam
   const base=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
   base.persistence.migrations=Array.from({length:base.persistence.schemaVersion},(_,i)=>({version:i+1,sha256:'a'.repeat(64)}));
   validateManifest(base);
-  const {simulation,...legacy}=base;
-  const m:ModulePackageManifest={...legacy,minimumPlatformVersion:'0.8.0',smart:{version:1,provides:[],consumes:[requirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};
+  // A fixed legacy declaration must not inherit future Sales API counts, typed
+  // forms or approval metadata and then pretend those existed in Steward 0.8.
+  const m:ModulePackageManifest={manifestVersion:1,sdkVersion:1,moduleId:'example.checkout',version:'1.0.0',name:'Legacy checkout',description:'Fixed legacy compatibility fixture',minimumPlatformVersion:'0.8.0',dependencies:[],requiredPermissions:['storage.own-database'],api:[{operationId:'read',method:'GET',path:'/records',permission:'example.checkout.read'}],ui:[],configurationSchema:{type:'object',additionalProperties:false,properties:{integrationsEnabled:{type:'boolean'}}},persistence:{isolation:'dedicated-database',schemaVersion:1,migrations:[{version:1,sha256:'a'.repeat(64)}],destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],smart:{version:1,provides:[],consumes:[requirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};
   validateManifest(m);
+  const {smart,...withoutSmart}=m;validateManifest(withoutSmart);
   assert.throws(()=>validateManifest({...m,smart:{...m.smart!,consumes:[{...requirement,operations:[{name:'read',input:{$ref:'https://invalid.example/schema'},output}]}]}}));
   const pair=generateKeyPairSync('ed25519'),secret=pair.privateKey.export({type:'pkcs8',format:'pem'}).toString(),publicKey=pair.publicKey.export({type:'spki',format:'pem'}).toString();
   const p=signPackage({formatVersion:1,publisherId:'test',imageId:'sha256:'+'a'.repeat(64),manifest:m},secret),trust={publishers:[{publisherId:'test',publicKey}]};

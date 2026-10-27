@@ -5,8 +5,9 @@ import { ensure, find, get, save, records, enqueue, enqueueCapability,publicReco
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {contracts} from '@steward/commerce-kit';
 import {acceptPrice,attachAccepted,knownLines,recordSourceObservation,reconciliation,priceReconciliation} from './accepted-price.js';
+import {governedResources,governedActions,governedQueries,governedAcknowledge,governedStock} from './governed-order.js';
 export function sales(manifest: ModulePackageManifest): Definition {
-    return simulationSales({ manifest, resources: [financialAssessment,priceReconciliation,
+    return simulationSales({ manifest, resources: [...governedResources,financialAssessment,priceReconciliation,
             { kind: 'customer', path: '/customers', key: 'code', schema: object({ code: text(60), name: text(), reference: text(120) }) },
             { kind: 'order', path: '/orders', key: 'number', schema: object({ number: text(80), customerCode: text(60), currency: text(3), lines: lines() }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Only draft sales orders can be edited');
@@ -37,7 +38,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
                     await stock(ctx,order,'stock.consume',{ orderId: order.id, fulfillmentId: r.id, lines: r.data.lines });
                 else
                     await complete(ctx, order, r.data.lines); } }
-        ], actions: [
+        ], actions: [...governedActions,
             { path: '/confirm/:id', permission: 'cee.sales.write', kind: 'order', run: async (r, ctx) => {
                     ensure(r.data.status === 'draft', 'Only a draft order can be confirmed');
                     ensure(!r.data.channel||['paid','partially_refunded'].includes(r.data.financialStatus)&&!r.data.remoteCanceled,'Channel order must be paid and not canceled');
@@ -58,6 +59,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
                     return { record: publicRecord(await save(ctx, 'order', r.key, { ...r.data, status: 'canceled', stockStatus: release ? 'release_pending' : r.data.stockStatus }, r)) };
                 } },
             {path:'/production/:id',kind:'order',permission:'cee.sales.production.authorize',run:async(r,ctx)=>{
+                ensure(!r.data.governed,'Governed Catalog/Pricing orders have no approved production mapping; production is unsupported',409);
                 ensure(r.data.smartInventory&&r.data.inventoryIntegration&&r.data.status==='confirmed'&&r.data.stockStatus==='reserved'&&!r.data.productionRequested&&!r.data.remoteCanceled,'A confirmed, paid, fully reserved order is required');
                 ensure(r.data.lines.every((l:Data)=>r.data.reserved[l.sku]===l.quantity),'Production cannot exceed authoritative reserved stock');
                 await enqueueCapability(ctx,r.data.simulation?simulationContracts.fulfillment.id:contracts.production!.id,'fulfillment.submit',r.id,{orderId:r.id,currency:r.data.currency,lines:r.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});
@@ -66,6 +68,8 @@ export function sales(manifest: ModulePackageManifest): Definition {
             {path:'/publish-commerce/:id',kind:'order',permission:'cee.sales.publish',run:async(r,ctx)=>{ensure(r.data.channel,'Only source-attributed commerce orders can be published');return{record:publicRecord(await save(ctx,'order',r.key,{...r.data,commerceApproved:true},r))};}},
             {path:'/withdraw-commerce/:id',kind:'order',permission:'cee.sales.publish',run:async(r,ctx)=>({record:publicRecord(await save(ctx,'order',r.key,{...r.data,commerceApproved:false},r))})}
         ], acknowledge: async (command, status, result, ctx) => {
+            if(await governedAcknowledge(command,status,result,ctx))return;
+            if(command.command.startsWith('stock.verified.'))command={...command,command:command.command.replace('stock.verified.','stock.')};
             const order = await get(ctx, 'order', command.aggregateId);
             if (command.command === 'stock.reserve') {
                 const reserved = Object.create(null);
@@ -89,7 +93,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
             else if(command.command==='fulfillment.submit')await save(ctx,'order',order.key,{...order.data,productionStatus:status==='delivered'?'awaiting_authorization':'intent_rejected',productionJobId:result.jobId??null,productionProviderId:result._steward?.providerModuleId??null},order);
             else if(command.command==='fulfillment.cancel'){if(status==='delivered'&&result.canceled){await stock(ctx,order,'stock.release',{orderId:order.id});await save(ctx,'order',order.key,{...order.data,status:'canceled',stockStatus:'release_pending',productionStatus:'canceled'},order);}else await save(ctx,'order',order.key,{...order.data,reconciliationRequired:true},order);}
             else if(command.command==='channel.fulfillment')await save(ctx,'order',order.key,{...order.data,channelDeliveryStatus:status==='delivered'?'queued':'rejected'},order);
-        },receive:receiveCommerce,queries:[{path:'/price-reconciliation',run:reconciliation},{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
+        },receive:receiveCommerce,queries:[...governedQueries,{path:'/price-reconciliation',run:reconciliation},{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
 }
 async function salesReport(ctx:Context,query:Record<string,string>={}){
     const timestamp=(value:string|undefined)=>{if(value===undefined)return null;ensure(Number.isFinite(Date.parse(value)),'Invalid reporting timestamp',400);return new Date(value).toISOString();};
@@ -121,7 +125,7 @@ async function complete(ctx: Context, order: RecordValue, lines: Data[]) {
     await save(ctx, 'order', order.key, { ...order.data, fulfilled, reserved, status: all ? 'fulfilled' : 'partially_fulfilled',...(all?{completedAt:new Date().toISOString()}:{}) }, order);
     if(all&&order.data.channel&&order.data.productionTracking){await enqueueCapability(ctx,order.data.simulation?simulationContracts.channel.id:contracts.channel!.id,'channel.fulfillment',order.id,{sourceId:order.data.sourceId,orderId:order.id,tracking:order.data.productionTracking,lines:order.data.lines.map((l:Data)=>({sku:l.sku,quantity:l.quantity}))});}
 }
-async function stock(ctx:Context,order:RecordValue,command:string,payload:Data){return order.data.simulation?enqueueCapability(ctx,simulationContracts.reserve.id,command,order.id,payload):order.data.smartInventory?enqueueCapability(ctx,contracts.stock!.id,command,order.id,payload):enqueue(ctx,'cee.inventory',command,order.id,payload);}
+async function stock(ctx:Context,order:RecordValue,command:string,payload:Data){const governed=await governedStock(ctx,order,command,payload);if(governed)return governed;return order.data.simulation?enqueueCapability(ctx,simulationContracts.reserve.id,command,order.id,payload):order.data.smartInventory?enqueueCapability(ctx,contracts.stock!.id,command,order.id,payload):enqueue(ctx,'cee.inventory',command,order.id,payload);}
 async function receiveCommerce(command:import('@steward/module-sdk').IntegrationCommand,ctx:Context):Promise<Data>{
  const b=command.payload as Data;
  if(command.command==='commerce.order.import'){
@@ -129,6 +133,7 @@ async function receiveCommerce(command:import('@steward/module-sdk').Integration
   ensure(Buffer.byteLength(JSON.stringify(b.lines))<=6500,'Channel order exceeds the bounded projection size; review or split its lines',422);
   await recordSourceObservation(ctx,command);
   const key='CH-'+digest(command.sourceModuleId+':'+b.sourceId).slice(0,40),old=await find(ctx,'order',key);
+  ensure(!old||(old.data.sourceModuleId===command.sourceModuleId&&old.data.sourceId===b.sourceId&&old.data.channel===b.channel),'Channel order identity collides with an existing order; reconcile without overwriting its origin',409);
   const incoming=(ctx as Context&{incomingProviderIdentity?:Data}).incomingProviderIdentity;
   if(old?.data.sourceProviderIdentity&&canonical(old.data.sourceProviderIdentity)!==canonical(incoming??null)){
    await ctx.db.query('INSERT INTO sales_price_reconciliations(order_id,actor,decision) VALUES($1,$2,$3)',[old.id,ctx.actor,{kind:'source-provider-changed',commandId:command.commandId,provider:incoming??null}]);

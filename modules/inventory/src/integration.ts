@@ -1,4 +1,5 @@
-import { ensure, enqueue, registerIntegrationRoutes, object, text, lines, type Context, type Data, type Definition } from '@steward/business-kit';
+import {inventoryReferenceReceive,inventoryReferenceQuery,inventoryVerifiedStock,initializeUnitGuard,assertUnitGuard} from './item-references.js';
+import { ensure, enqueue, registerIntegrationRoutes, transaction, object, text, lines, type Context, type Data, type Definition } from '@steward/business-kit';
 import { Ajv } from 'ajv';
 import type pg from 'pg';
 import type { FastifyInstance } from 'fastify';
@@ -22,7 +23,7 @@ export async function replenish(ctx: Context) {
     }
 }
 export function inventoryDefinition(manifest: ModulePackageManifest): Definition {
-    return { manifest, resources: [], actions: [],authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command.startsWith('service-stock.'))await authorizeServiceStock(a.command,ctx);}, receive: async (command, ctx) => {
+    const definition:Definition={ manifest, afterMigrate:initializeUnitGuard, resources: [], actions: [],authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command.startsWith('service-stock.'))await authorizeServiceStock(a.command,ctx);}, receive: async (command, ctx) => {
             const b = command.payload;
             if(command.command.startsWith('service-stock.'))return receiveServiceStock(command,ctx);
             if (command.command === 'stock.release') {
@@ -55,6 +56,7 @@ export function inventoryDefinition(manifest: ModulePackageManifest): Definition
             }
             ensure(command.sourceModuleId === 'cee.sales' && b.orderId === command.aggregateId, 'Invalid sales order identity', 403);
             if (command.command === 'stock.reserve') {
+                if(ctx.providerIdentity)await assertUnitGuard(ctx);
                 ensure(!(await ctx.db.query('SELECT 1 FROM inventory_reservations WHERE source_module=$1 AND order_id=$2 LIMIT 1', [command.sourceModuleId, b.orderId])).rowCount, 'Order already has an authoritative reservation', 409);
                 const result = [];
                 for (const line of sorted) {
@@ -82,8 +84,10 @@ export function inventoryDefinition(manifest: ModulePackageManifest): Definition
             await replenish(ctx);
             return { orderId: b.orderId, fulfillmentId: b.fulfillmentId, applied: true };
         } };
+    const ordinary=definition.receive!;definition.receive=async(command,ctx)=>{const read=await inventoryReferenceReceive(command,ctx);if(read)return read;const verified=await inventoryVerifiedStock(command,ctx,ordinary);return verified??ordinary(command,ctx);};return definition;
 }
 export function attachInventoryIntegration(app: FastifyInstance, pool: pg.Pool, runtime: Data, manifest: ModulePackageManifest) {
     registerIntegrationRoutes(app, pool, runtime, inventoryDefinition(manifest));
+    app.get<{Querystring:Record<string,string>}>('/item-references',async req=>{let permissions:string[]=[];try{permissions=JSON.parse(String(req.headers['x-steward-permissions']??'[]'));}catch{}ensure(Array.isArray(permissions)&&permissions.includes('cee.inventory.read'),'Item reference permission required',403);return transaction(pool,db=>inventoryReferenceQuery({db,config:runtime.configuration,installationId:runtime.installationId,moduleId:'cee.inventory',actor:String(req.headers['x-steward-actor']??'module-runtime'),permissions,entityId:runtime.entityId,providerIdentity:runtime.providerIdentity},req.query),{readonly:true});});
     app.get('/integration-status', async () => ({ records: (await pool.query("SELECT command_id AS id,envelope->>'command' AS command,status,attempts,last_error AS error FROM integration_outbox ORDER BY created_at DESC LIMIT 20")).rows }));
 }

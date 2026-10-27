@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.services.food",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "programServices": {
     "contractVersion": 1,
     "domain": "food",
@@ -10,7 +10,7 @@
   },
   "name": "Food & Essential Services",
   "description": "Synthetic programme-scoped meal sessions, essential supplies and human-reviewed referrals. Optional Inventory and Procurement obligations remain pinned to their approved provider.",
-  "minimumPlatformVersion": "0.14.0",
+  "minimumPlatformVersion": "0.15.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -2641,6 +2641,354 @@
           }
         ],
         "events": []
+      },
+      {
+        "capabilityId": "food.module-services.read",
+        "contract": "steward.module-service-definitions",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "module-services.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "records": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "recordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "revision": {
+                        "const": 1
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "housing",
+                          "food",
+                          "training",
+                          "employment"
+                        ]
+                      },
+                      "definitionDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "capability": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "capabilityId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "contract": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "version": {
+                            "type": "string",
+                            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+                          }
+                        },
+                        "required": [
+                          "capabilityId",
+                          "contract",
+                          "version"
+                        ]
+                      },
+                      "availability": {
+                        "const": "unverified"
+                      },
+                      "programmeAuthorization": {
+                        "const": "required"
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "recordId",
+                      "revision",
+                      "code",
+                      "name",
+                      "kind",
+                      "definitionDigest",
+                      "capability",
+                      "availability",
+                      "programmeAuthorization",
+                      "observedAt",
+                      "expiresAt"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "records",
+                "nextOffset"
+              ]
+            },
+            "command": "module-services.discover",
+            "permission": "steward.services.food.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "module-services.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "recordId"
+              ]
+            },
+            "output": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "found"
+                    },
+                    "record": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "recordId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "revision": {
+                          "const": 1
+                        },
+                        "code": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "\\S"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "kind": {
+                          "type": "string",
+                          "enum": [
+                            "housing",
+                            "food",
+                            "training",
+                            "employment"
+                          ]
+                        },
+                        "definitionDigest": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        },
+                        "capability": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "capabilityId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "\\S"
+                            },
+                            "contract": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "\\S"
+                            },
+                            "version": {
+                              "type": "string",
+                              "pattern": "^\\d+\\.\\d+\\.\\d+$"
+                            }
+                          },
+                          "required": [
+                            "capabilityId",
+                            "contract",
+                            "version"
+                          ]
+                        },
+                        "availability": {
+                          "const": "unverified"
+                        },
+                        "programmeAuthorization": {
+                          "const": "required"
+                        },
+                        "observedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "recordId",
+                        "revision",
+                        "code",
+                        "name",
+                        "kind",
+                        "definitionDigest",
+                        "capability",
+                        "availability",
+                        "programmeAuthorization",
+                        "observedAt",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "not_found"
+                    },
+                    "record": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                }
+              ]
+            },
+            "command": "module-services.lookup",
+            "permission": "steward.services.food.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "integrationsEnabled": true
+        }
       }
     ],
     "consumes": [

@@ -1,6 +1,6 @@
 {
   "name": "@steward/housing-management",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,7 +10,8 @@
     "@steward/business-kit": "file:../../packages/business-kit",
     "@steward/contracts": "file:../../packages/contracts",
     "@steward/mission-kit": "file:../../packages/mission-kit",
-    "@steward/module-sdk": "file:../../packages/module-sdk"
+    "@steward/module-sdk": "file:../../packages/module-sdk",
+    "@steward/catalog-kit": "file:../../packages/catalog-kit"
   },
   "devDependencies": {
     "@types/node": "24.10.1",

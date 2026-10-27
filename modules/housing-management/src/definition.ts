@@ -1,3 +1,4 @@
+import {withModuleServices} from './service-references.js';
 import {withMissionCostEvidence} from '@steward/mission-kit';
 import {elapsedHousingObservation,housingRetentionVerified} from './retention.js';
 import {randomUUID} from 'node:crypto';
@@ -87,4 +88,4 @@ function baseHousingManagement(manifest:ModulePackageManifest):Definition{return
 
 };}
 
-export function housingManagement(manifest:ModulePackageManifest):Definition{return withMissionCostEvidence(baseHousingManagement(manifest));}
+export function housingManagement(manifest:ModulePackageManifest):Definition{return withModuleServices(withMissionCostEvidence(baseHousingManagement(manifest)));}

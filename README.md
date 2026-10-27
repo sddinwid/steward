@@ -18,6 +18,8 @@ Production/fulfillment validation uses isolated synthetic providers and TLS simu
 Commerce contribution reporting, governed operational alerts, compact MCP investigations and the controlled USD demonstration are documented in [Phase 10A commerce intelligence](docs/phase10a-commerce-intelligence.md). Actual acceptance results are in [the Phase 10A verification report](docs/phase10a-verification.md). The accepted v0.9.1 tag remains preserved. Phase 10A upgraded the selected deployment in place; Phase 11 subsequently upgraded that same retained deployment with its original accounts, ports, identities and databases. See [single-stack operations](docs/single-stack-operations.md). Temporary acceptance containers have been removed; their archived configuration and data volumes are retained.
 
 
+Phase 15 Catalog and Pricing work is in progress on `codex/phase15-catalog-pricing`. The selected operator remains on the verified Phase 14 deployment until its preservation and upgrade gates pass. See the [Phase 15 verification record](docs/phase15-verification.md), [Catalog guide](docs/phase15-catalog.md), [Pricing guide](docs/phase15-pricing.md), and [business integration workflow and test commands](docs/phase15-business-integration.md). No v0.15.0 release is accepted or tagged yet.
+
 ## Shopify development stores
 
 The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.

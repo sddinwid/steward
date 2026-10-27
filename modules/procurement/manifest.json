@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.procurement",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Procurement",
   "description": "Independent persistent procurement business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.13.0",
+  "minimumPlatformVersion": "0.15.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -246,6 +246,17 @@
       "path": "/program-authority",
       "permission": "cee.procurement.service.manage",
       "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "supplierReferences",
+      "method": "GET",
+      "path": "/supplier-references",
+      "permission": "cee.procurement.read",
+      "query": [
+        "limit",
+        "offset",
         "q"
       ]
     }
@@ -821,6 +832,59 @@
         "quantity",
         "status"
       ]
+    },
+    {
+      "screenId": "reference-directory",
+      "title": "Supplier References",
+      "navigationLabel": "Supplier References",
+      "navigationGroup": "Procurement",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "supplierReferences",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Source record",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "Source code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordRevision",
+          "label": "Record revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "validUntil",
+          "label": "Read evidence valid until",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "proof",
+          "label": "Original provider and read evidence",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "code",
+        "recordRevision",
+        "validUntil",
+        "proof"
+      ]
     }
   ],
   "configurationSchema": {
@@ -848,13 +912,33 @@
         "type": "string",
         "pattern": "^(?:|[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12})$",
         "default": ""
+      },
+      "referenceLeaseSeconds": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 3600,
+        "default": 300,
+        "description": "Maximum lease for read-only reference metadata. A lease grants no stock, supplier purchase, or operational authority."
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
     "schemaVersion": 3,
-    "migrations": [],
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "9fc640d44129acdd2255781b1c0ace96920aab3c19b1eaf363de7a8f149746de"
+      },
+      {
+        "version": 2,
+        "sha256": "3c5827b1ed6e68c19110a7a2ea5009257146df5f12e246fc442ab79f67445176"
+      },
+      {
+        "version": 3,
+        "sha256": "13f42cd247b23fcc06ce08512c4ea7c9b4e7a5b6c62104ba9bfd32261956acdb"
+      }
+    ],
     "destructiveRollback": false
   },
   "integrationEvents": [
@@ -1069,6 +1153,282 @@
             "retry": "safe"
           }
         ]
+      },
+      {
+        "capabilityId": "procurement.suppliers.read",
+        "contract": "steward.supplier-references",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "procurement.suppliers.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "records": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "recordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "active",
+                          "inactive"
+                        ]
+                      },
+                      "definitionDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "recordId",
+                      "revision",
+                      "code",
+                      "name",
+                      "status",
+                      "definitionDigest",
+                      "observedAt",
+                      "expiresAt"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "records",
+                "nextOffset"
+              ]
+            },
+            "command": "procurement.suppliers.discover",
+            "permission": "cee.procurement.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "procurement.suppliers.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "recordId"
+              ]
+            },
+            "output": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "found"
+                    },
+                    "record": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "recordId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 2147483647
+                        },
+                        "code": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "\\S"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "inactive"
+                          ]
+                        },
+                        "definitionDigest": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        },
+                        "observedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "recordId",
+                        "revision",
+                        "code",
+                        "name",
+                        "status",
+                        "definitionDigest",
+                        "observedAt",
+                        "expiresAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "not_found"
+                    },
+                    "record": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                }
+              ]
+            },
+            "command": "procurement.suppliers.lookup",
+            "permission": "cee.procurement.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "integrationsEnabled": true
+        }
       }
     ],
     "consumes": [],

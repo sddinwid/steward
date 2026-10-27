@@ -69,7 +69,11 @@ const definitions:Record<OfferingType,Record<string,Schema>>={
 };
 export const offeringSchema:Schema={oneOf:OFFERING_TYPES.map(type=>closedSchema({...baseProperties,type:{const:type},...definitions[type]}))};
 const ajv=new Ajv({strict:true,allErrors:false});
-const validateShape=ajv.compile(offeringSchema),validateAttributeShape=ajv.compile(attributeDefinitionSchema),validateValueShape=ajv.compile(attributeValueSchema),validateExtensionShape=ajv.compile(extensionDefinitionSchema),validateCategoryShape=ajv.compile(categorySchema),validateMappingShape=ajv.compile(externalMappingSchema);
+// Item/supplier providers reuse schemas without needing the full six-type
+// offering validator. Compile that validator on first actual Catalog use.
+let offeringValidator:ReturnType<Ajv['compile']>|undefined;
+const validateShape=(value:unknown)=>(offeringValidator??=ajv.compile(offeringSchema))(value);
+const validateAttributeShape=ajv.compile(attributeDefinitionSchema),validateValueShape=ajv.compile(attributeValueSchema),validateExtensionShape=ajv.compile(extensionDefinitionSchema),validateCategoryShape=ajv.compile(categorySchema),validateMappingShape=ajv.compile(externalMappingSchema);
 function check(value:unknown,code:string):asserts value {if(!value)throw new Error(code);}
 function unique(values:readonly string[],code:string){check(new Set(values).size===values.length,code);}
 function stamp(value:string){check(Number.isFinite(Date.parse(value)),'CATALOG_TIMESTAMP_INVALID');const parts=/^(.*?)(?:\.(\d{1,3}))?Z$/.exec(value);check(parts&&new Date(value).toISOString()===parts[1]+'.'+(parts[2]??'').padEnd(3,'0')+'Z','CATALOG_TIMESTAMP_INVALID');}
