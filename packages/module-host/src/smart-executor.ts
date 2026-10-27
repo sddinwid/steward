@@ -1,9 +1,9 @@
-import {capabilityConfigured} from '@steward/module-sdk';
+import {atLeast,capabilityConfigured,consumerCapabilityConfigured} from '@steward/module-sdk';
 import {protectSimulationRoute,recordSimulationDenial} from './simulation-routing.js';
 import type pg from 'pg';
 import { canonical,digest,verifyPackage,resolveCapability,validateCapabilityValue,INTEGRATION_PROTOCOL,type PublisherTrust,type IntegrationCommand,type CapabilityProvider } from '@steward/module-sdk';
 
-type Call = (id:string,method:string,path:string,body?:unknown,context?:Record<string,string>,timeout?:number)=>Promise<{status:number;value:any}>;
+type Call = (id:string,method:string,path:string,body?:unknown,context?:Record<string,string>,timeout?:number,incomingIdentity?:Record<string,string>)=>Promise<{status:number;value:any}>;
 // Stable command IDs survive process death between a provider commit and coordinator commit.
 export function workflowCommandId(executionId:string,step:number) { const h=digest('steward-smart-step-v1:'+executionId+':'+step);return `${h.slice(0,8)}-${h.slice(8,12)}-5${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`; }
 export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:PublisherTrust,call:Call,runtimeMatches:(id:string,configuration:unknown)=>Promise<boolean>) {
@@ -36,6 +36,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const requirement=sm.smart?.consumes.find(r=>r.capabilityId===binding.capability_id),capability=tm.smart?.provides.find(c=>c.capabilityId===binding.capability_id);
       if(!requirement||canonical(requirement)!==canonical(binding.requirement)||!capability)throw new Error('CONTRACT_CHANGED_REVIEW_REQUIRED');
       if(!Object.entries(sm.smart!.prerequisites.configuration).every(([k,v])=>source.configuration[k]===v))throw new Error('CONSUMER_CONFIGURATION_PREREQUISITE');
+      if(!consumerCapabilityConfigured(sm,source.configuration,requirement))throw new Error('CONSUMER_CONFIGURATION_PREREQUISITE');
       const p:CapabilityProvider={moduleId:tm.moduleId,moduleVersion:tm.version,installationId:target.operation_id,entityId:binding.entity_id,packageDigest:binding.package_digest,state:'active',configured:capabilityConfigured(tm,target.configuration,capability),capability};
       if(!resolveCapability(requirement,[p],{entityId:binding.entity_id,permissions:capability.operations.map(o=>o.permission)}).selected)throw new Error('INCOMPATIBLE_PROVIDER');
       if(!await runtimeMatches(tm.moduleId,target.configuration)||!await runtimeMatches(sm.moduleId,source.configuration))throw new Error('CONFIGURATION_MISMATCH');
@@ -61,9 +62,9 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         if(!tm.integration)throw new Error('DURABLE_ENDPOINT_MISSING');
         let sequence=1;
         for(let i=0;i<e.step;i++){const prior=(await db.query('SELECT provider_id FROM smart_bindings WHERE binding_id=$1',[w.definition.steps[i].bindingId])).rows[0];if(prior?.provider_id===target.module_id)sequence++;}
-        const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence,occurredAt:new Date(e.created_at).toISOString(),payload:input};
+        const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence,occurredAt:new Date(e.created_at).toISOString(),payload:input,...(atLeast(tm.minimumPlatformVersion,'0.15.0')?{capability:{capabilityId:capability.capabilityId,operation:op.name}}:{})};
         await protectSimulationRoute(db,envelope,sm,tm,target.configuration);
-        response=await call(tm.moduleId,'POST',tm.integration.inboxPath,envelope,{'x-steward-integration-source':sm.moduleId,'x-steward-installation':installationId,'x-steward-capability':capability.capabilityId},4000);
+        response=await call(tm.moduleId,'POST',tm.integration.inboxPath,envelope,{'x-steward-integration-source':sm.moduleId,'x-steward-installation':installationId,'x-steward-capability':capability.capabilityId},4000,{workerInstallationId:installationId,entityId:binding.entity_id,moduleId:sm.moduleId,moduleInstallationId:source.operation_id,packageDigest:digest(canonical(source.descriptor))});
       }else if(!response){
         const api=tm.api.find(a=>a.operationId===op.command&&!a.path.includes(':'));
         if(!api||api.permission!==op.permission)throw new Error('SYNC_ENDPOINT_MISSING');

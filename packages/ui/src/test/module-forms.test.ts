@@ -4,7 +4,7 @@ import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import type {ModuleFormField as Field, ScreenContribution} from '@steward/module-sdk';
 import {ModuleFormField,ModuleReferenceValue} from '../module-field.js';
-import {ModuleScreen} from '../modules.js';
+import {ModuleScreen,ModuleEvidenceValue} from '../modules.js';
 import {screenGroup} from '../presentation.js';
 import {moduleDateTimeDisplay,moduleDateTimeValue,moduleFormBody,moduleListQuery,moduleFormDefaults,moduleEditValues,moduleFieldDefault,moduleFieldVisible,moduleReferenceFields,exactMoneyDisplay} from '../module-fields.js';
 const item:Field={name:'entry',label:'Component',type:'object',required:true,fields:[{name:'offering',label:'Offering',type:'string',required:true,reference:{operationId:'choices',valueField:'id',labelField:'name'}},{name:'amount',label:'Amount',type:'number',format:'money',minimum:0,required:true},{name:'enabled',label:'Enabled',type:'boolean',required:true,default:true}]};
@@ -83,4 +83,10 @@ test('opaque generated UUID controls collapse without changing values or hiding 
  const markup=render(field,uuid);assert.match(markup,/<details class="module-field"><summary>Creation request reference<\/summary>/);assert(!markup.includes('<details open'));assert.match(markup,/aria-label="Creation request reference"/);assert.match(markup,/readOnly=""/i);assert(markup.includes('value="'+uuid+'"'));
  assert.deepEqual(moduleFormBody([field],{requestId:uuid},{}),{requestId:uuid});
  for(const generate of ['synthetic-participant','synthetic-reference'] as const){const meaningful=render({...field,generate},'SYN-REFERENCE');assert(!meaningful.includes('<details'));assert(meaningful.includes('SYN-REFERENCE'));}
+});
+
+test('only exact semantically named evidence hashes collapse while business strings remain visible',()=>{
+ const hash='ab'.repeat(32),display=(name:string,value:unknown)=>renderToStaticMarkup(createElement(ModuleEvidenceValue,{name,value,currency:'USD'}));
+ for(const name of ['proof','hash','digest','factsDigest','origin_hash','sourceProof']){const html=display(name,hash);assert.match(html,/<details><summary>Evidence \u00b7 abababab<\/summary><code>/);assert(html.includes(hash));assert(!html.includes('<details open'));}
+ for(const [name,value] of [['sku',hash],['name',hash],['proof',hash.slice(1)],['proof','z'.repeat(64)],['proof','ordinary human evidence']] as const){assert(!display(name,value).includes('<details>'));assert(display(name,value).includes(value));}
 });

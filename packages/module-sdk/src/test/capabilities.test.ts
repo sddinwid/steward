@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID, generateKeyPairSync } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { capabilityConfigured, resolveCapability, validateManifest, validateCapabilityValue, signPackage, verifyPackage, type CapabilityContract, type CapabilityRequirement, type CapabilityProvider, type ModulePackageManifest } from '../index.js';
+import { capabilityConfigured,capabilityInboundEnabled,capabilityOutboundEnabled,consumerCapabilityConfigured,resolveCapability, validateManifest, validateCapabilityValue, signPackage, verifyPackage, type CapabilityContract, type CapabilityRequirement, type CapabilityProvider, type ModulePackageManifest } from '../index.js';
 const input={type:'object',additionalProperties:false,required:['sku'],properties:{sku:{type:'string',maxLength:80}}};
 const output={type:'object',additionalProperties:false,required:['available'],properties:{available:{type:'integer',minimum:0}}};
 const c:CapabilityContract={capabilityId:'inventory.availability.read',contract:'steward.inventory-availability',version:'1.0.0',operations:[{name:'read',command:'availability',input,output,permission:'example.stock.read',mode:'sync',idempotency:'required',retry:'safe'}],events:[],sensitivity:'business',scope:'entity',ownership:'provider'};
@@ -10,6 +10,23 @@ const requirement:CapabilityRequirement={capabilityId:c.capabilityId,contract:c.
 const entityId=randomUUID(),installationId=randomUUID();
 const provider:CapabilityProvider={moduleId:'example.stock',moduleVersion:'1.0.0',installationId,entityId,packageDigest:'a'.repeat(64),state:'active',configured:true,capability:c};
 const context={entityId,permissions:['example.stock.read','other.stock.read']};
+test('signed independent consumer gates are versioned, configured and cannot widen legacy disable controls',()=>{
+ const base=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
+ const r={...requirement,configuration:{governedSalesEnabled:true}},m={...base,smart:{...base.smart!,consumes:[r]}};validateManifest(m);
+ assert.equal(consumerCapabilityConfigured(m,{governedSalesEnabled:false,integrationsEnabled:true},r),false);
+ assert.equal(capabilityOutboundEnabled(m,{governedSalesEnabled:true,integrationsEnabled:false},r.capabilityId),true);
+ assert.equal(capabilityOutboundEnabled(m,{governedSalesEnabled:false,integrationsEnabled:true},r.capabilityId),false);
+ const legacy={...m,smart:{...m.smart,consumes:[requirement]}};assert.equal(capabilityOutboundEnabled(legacy,{integrationsEnabled:false},r.capabilityId),false);assert.equal(capabilityOutboundEnabled(legacy,{integrationsEnabled:true},r.capabilityId),true);
+ for(const configuration of [{},{missing:true},{governedSalesEnabled:[]},{governedSalesEnabled:Infinity}])assert.throws(()=>validateManifest({...m,smart:{...m.smart,consumes:[{...r,configuration} as CapabilityRequirement]}}));
+ assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.14.0'}));
+});
+test('independent read provider gates retain global constraints and explicit empty local resolution semantics',()=>{
+ const base=JSON.parse(readFileSync(new URL('../../../../modules/pricing/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest,c=base.smart!.provides[0]!;
+ assert.equal(capabilityInboundEnabled(base,{integrationsEnabled:false},c.capabilityId),true);
+ const constrained={...base,smart:{...base.smart!,prerequisites:{...base.smart!.prerequisites,configuration:{integrationsEnabled:true}}}};assert.equal(capabilityInboundEnabled(constrained,{integrationsEnabled:false},c.capabilityId),false);
+ const legacy={...base,smart:{...base.smart!,provides:[{...c,configuration:undefined}]}} as unknown as ModulePackageManifest;assert.equal(capabilityInboundEnabled(legacy,{integrationsEnabled:false},c.capabilityId),false);
+ const explicit={...base,smart:{...base.smart!,provides:[{...c,configuration:{catalogReadEnabled:true}}]}};assert.equal(capabilityInboundEnabled(explicit,{catalogReadEnabled:false,integrationsEnabled:true},c.capabilityId),false);assert.equal(capabilityInboundEnabled(explicit,{catalogReadEnabled:true,integrationsEnabled:false},c.capabilityId),true);
+});
 test('SSMA deterministic selection requires an explicit preference when providers are ambiguous',()=>{
   const other={...provider,moduleId:'other.stock',capability:{...c,operations:[{...c.operations[0]!,permission:'other.stock.read'}]}};
   assert.equal(resolveCapability(requirement,[other,provider],context).state,'ambiguous');

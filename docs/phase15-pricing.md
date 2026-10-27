@@ -1,6 +1,6 @@
 # Pricing Management
 
-Independent module `steward.pricing.management` 1.0.0, minimum platform 0.15.0. The current operator upgrade is not yet accepted. Pricing uses its own database and requires neither Master nor AI for local SKU operations. Catalog is optional; a SKU string never establishes Catalog identity.
+Independent module `steward.pricing.management`, current source 1.1.0, minimum platform 0.15.0. The current operator upgrade is not yet accepted. Pricing uses its own database and requires neither Master nor AI for local SKU operations. Catalog is optional; a SKU string never establishes Catalog identity. Its signed resolution capability is independently available for approved local consumers; `integrationsEnabled` gates optional outbound Catalog reads. Sales additionally requires its own governed flags and current writer authority. Existing published 1.0.0 images remain immutable.
 
 ## Operating procedure
 

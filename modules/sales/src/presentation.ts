@@ -53,7 +53,7 @@ export function salesManifest(base:ModulePackageManifest,migrations:ModulePackag
  });
  manifest.approvalServices={contractVersion:1,reviewerPermission:'cee.sales.write'};
  manifest.smart??={version:1,provides:[],consumes:[],prerequisites:{configuration:{},requiresActive:true,requiresHealthy:true}};
- const requirements=[catalogRequirement(true),catalogOperationalRequirement(true),pricingRequirement(true),verifiedStockRequirement(true)];
+ const requirements=[{...catalogRequirement(true),configuration:{governedCatalogEnabled:true}},{...catalogOperationalRequirement(true),configuration:{governedCatalogEnabled:true}},{...pricingRequirement(true),configuration:{governedSalesEnabled:true}},{...verifiedStockRequirement(true),configuration:{governedSalesEnabled:true,integrationsEnabled:true}}];
  manifest.smart.consumes=[...manifest.smart.consumes.filter(r=>!requirements.some(n=>n.capabilityId===r.capabilityId)),...requirements];
  screens.push(
   {screenId:'accepted-price-reconciliation',title:'Accepted Price Evidence',navigationLabel:'Accepted Price Evidence',navigationGroup:'Sales & Orders',workspace:'business',formVersion:1,listOperation:'priceReconciliation',fields:[{name:'number',label:'Order',type:'string',required:false,readOnly:true},{name:'currency',label:'Original currency',type:'string',required:false,readOnly:true},{name:'status',label:'Order status',type:'string',required:false,readOnly:true},{name:'priceKnown',label:'Accepted price evidence known',type:'boolean',required:false,readOnly:true},{name:'basis',label:'Evidence basis',type:'string',required:false,readOnly:true}],columns:['number','currency','status','priceKnown','basis']},

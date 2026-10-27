@@ -11,6 +11,8 @@ export interface CapabilityContract {
   sensitivity: Sensitivity; scope: 'entity'; ownership: 'provider';
 }
 export interface CapabilityRequirement {
+  /** Explicit independent consumer gate; supported from Steward 0.15.0. */
+  configuration?:Record<string,string|number|boolean>;
   capabilityId: string; contract: string; minimumVersion: string; maximumMajor: number;
   operations: { name: string; input: JsonSchema; output: JsonSchema }[];
   events: { name: string; schema: JsonSchema }[];
@@ -74,7 +76,8 @@ export function validateSmartManifest(m: ModulePackageManifest) {
     events(c.events);
   }
   for (const c of s.consumes) {
-    check(closed(c, ['capabilityId','contract','minimumVersion','maximumMajor','operations','events','maximumSensitivity','optional']) && id.test(c.capabilityId) && id.test(c.contract) && semver.test(c.minimumVersion) && Number.isSafeInteger(c.maximumMajor) && c.maximumMajor === Number(c.minimumVersion.split('.')[0]) && typeof c.optional === 'boolean' && levels.includes(c.maximumSensitivity), 'requirement');
+    check(closed(c, ['capabilityId','contract','minimumVersion','maximumMajor','operations','events','maximumSensitivity','optional','configuration']) && id.test(c.capabilityId) && id.test(c.contract) && semver.test(c.minimumVersion) && Number.isSafeInteger(c.maximumMajor) && c.maximumMajor === Number(c.minimumVersion.split('.')[0]) && typeof c.optional === 'boolean' && levels.includes(c.maximumSensitivity), 'requirement');
+    if(c.configuration!==undefined)check(atLeast(m.minimumPlatformVersion,'0.15.0')&&c.configuration&&typeof c.configuration==='object'&&!Array.isArray(c.configuration)&&Object.keys(c.configuration).length>=1&&Object.keys(c.configuration).length<=12&&Object.entries(c.configuration).every(([k,v])=>Object.hasOwn((m.configurationSchema.properties??{}) as object,k)&&['string','number','boolean'].includes(typeof v)&&(!(typeof v==='number')||Number.isFinite(v))),'consumer configuration prerequisites');
     check(unique(c.operations, o => o.name, 12) && c.operations.length, 'required operations');
     for (const o of c.operations) { check(closed(o,['name','input','output']) && id.test(o.name), 'required operation'); schema(o.input); schema(o.output); }
     events(c.events);
@@ -111,3 +114,8 @@ export function resolveCapability(requirement: CapabilityRequirement, providers:
 export function validateCapabilityValue(value: unknown, contract: JsonSchema) { if (!schema(contract)(value)) throw new Error('CAPABILITY_SCHEMA_MISMATCH'); }
 
 export function capabilityConfigured(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capability:CapabilityContract){return [...Object.entries(manifest.smart?.prerequisites.configuration??{}),...Object.entries(capability.configuration??{})].every(([k,v])=>configuration[k]===v);}
+export function consumerCapabilityConfigured(manifest:ModulePackageManifest,configuration:Record<string,unknown>,requirement:CapabilityRequirement){return [...Object.entries(manifest.smart?.prerequisites.configuration??{}),...Object.entries(requirement.configuration??{})].every(([k,v])=>configuration[k]===v);}
+/** Explicit signed gates can enable an independent capability without enabling
+ * legacy business integrations. Undeclared gates retain legacy behavior. */
+export function capabilityOutboundEnabled(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capabilityId:string){const r=manifest.smart?.consumes.find(c=>c.capabilityId===capabilityId);return Boolean(r&&consumerCapabilityConfigured(manifest,configuration,r)&&(configuration.integrationsEnabled===true||atLeast(manifest.minimumPlatformVersion,'0.15.0')&&r.configuration&&Object.keys(r.configuration).length>0));}
+export function capabilityInboundEnabled(manifest:ModulePackageManifest,configuration:Record<string,unknown>,capabilityId:string){const c=manifest.smart?.provides.find(c=>c.capabilityId===capabilityId);return Boolean(c&&capabilityConfigured(manifest,configuration,c)&&(configuration.integrationsEnabled===true||atLeast(manifest.minimumPlatformVersion,'0.15.0')&&c.configuration!==undefined));}

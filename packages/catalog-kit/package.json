@@ -35,6 +35,10 @@
     "./module-services": {
       "types": "./dist/module-services.d.ts",
       "default": "./dist/module-services.js"
+    },
+    "./external-catalog": {
+      "types": "./dist/external-catalog.d.ts",
+      "default": "./dist/external-catalog.js"
     }
   },
   "scripts": {

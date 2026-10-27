@@ -12,7 +12,7 @@ import pg from 'pg';
 import { request, type RequestOptions } from 'node:http';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
-import { atLeast,canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog,type IntegrationCommand } from '@steward/module-sdk';
+import { capabilityInboundEnabled,capabilityOutboundEnabled,atLeast,canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog,type IntegrationCommand } from '@steward/module-sdk';
 
 interface HostConfig {
   installationId: string; workerPublicKey: string; catalogFile: string; trustFile: string;
@@ -324,7 +324,7 @@ async function integrations(){
   const ordered=rows.length?[...rows.slice(integrationCursor%rows.length),...rows.slice(0,integrationCursor%rows.length)]:[];integrationCursor++;
   for(const source of ordered){try{
    const m=verifyPackage(source.descriptor,trust).manifest;
-   if(!m.integration||!(source.configuration.integrationsEnabled===true||m.simulation?.role==='participant'&&source.configuration.simulationEnabled===true))continue;
+   if(!m.integration||!(source.configuration.integrationsEnabled===true||m.simulation?.role==='participant'&&source.configuration.simulationEnabled===true||m.smart?.consumes.some(r=>capabilityOutboundEnabled(m,source.configuration,r.capabilityId))))continue;
    const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(m.moduleId)}/runtime.json`,'utf8'));
    if((await state(m.moduleId))?.phase!=='active'||canonical(runtime.configuration)!==canonical(source.configuration))continue;
    const batch=await callModule(m.moduleId,'GET',m.integration.outboxPath,undefined,{},4000);
@@ -335,7 +335,7 @@ async function integrations(){
     let status='retry',result:unknown=null,error:string|null=null;
     let deliveryClient:pg.PoolClient|undefined;const deliveryLocks:string[]=[];
     try{
-     if(source.configuration.integrationsEnabled!==true&&!command.simulation)continue;
+     if(!command.simulation&&(command.capability?!capabilityOutboundEnabled(m,source.configuration,command.capability.capabilityId):source.configuration.integrationsEnabled!==true))throw new Error('INTEGRATION_SOURCE_DISABLED');
      if(command.simulation&&m.simulation?.role==='participant'&&source.configuration.simulationEnabled!==true)continue;
      validateCommand(command);if(command.sourceModuleId!==m.moduleId)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
      const smart=command.capability?await routeSmartCommand(metadataPool,command,m,trust,config.installationId,()=>moduleDatabase(m.moduleId,async db=>(await db.query("SELECT (envelope->>'sequence')::bigint n FROM integration_outbox WHERE status='rejected' AND envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2 ORDER BY n DESC LIMIT 1000",[command.aggregateId,command.capability.capabilityId])).rows.map(r=>Number(r.n))),authorizeProgramme,authorizeDispatch):null;
@@ -364,7 +364,7 @@ async function integrations(){
       assertRuntimeInstallation(target,targetRuntime,config.installationId);
       const current=await state(target.module_id),sourceState=await state(m.moduleId);
       if(current?.phase!=='active'||current.version!==target.version||sourceState?.version!==m.version||sourceState?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)||canonical(liveSourceRuntime.configuration)!==canonical(source.configuration)){error='PEER_UNAVAILABLE';}
-      else if(target.configuration.integrationsEnabled!==true&&!(wire.simulation&&targetManifest.simulation?.role==='participant'&&target.configuration.simulationEnabled===true)){error='PEER_DISABLED';}
+      else if(!(wire.capability?capabilityInboundEnabled(targetManifest,target.configuration,wire.capability.capabilityId):target.configuration.integrationsEnabled===true)&&!(wire.simulation&&targetManifest.simulation?.role==='participant'&&target.configuration.simulationEnabled===true)){error='PEER_DISABLED';}
       else{
        await protectSimulationRoute(metadataPool,wire,m,targetManifest,target.configuration);
        if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});

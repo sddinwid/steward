@@ -1,3 +1,5 @@
+import {withExternalCatalog} from './external-catalog.js';
+import {recordCatalogSync,catalogSyncUnavailable,catalogConnectionsConfigured} from './catalog-provenance.js';
 import {liveActions,liveProfileResource,liveBackground,productCatalog,productVariants} from './live.js';
 import {loadShopifyConnections} from './live-auth.js';
 import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity,unavailableConnections} from '@steward/commerce-kit';
@@ -7,7 +9,7 @@ import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,tran
 import {canonical,digest,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyHmac,graphql,ConnectorError,context,connectorState,issued,reconciled,page,cents,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return{manifest,resources:[liveProfileResource,{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
+export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withExternalCatalog({manifest,resources:[liveProfileResource,{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
  ensure((await records(ctx,'product')).some(p=>p.data.variants.some((v:Data)=>v.sourceVariantId===b.sourceVariantId)),'Unknown Shopify variant');
  ensure(!old||old.data.sku===b.sku||!(await records(ctx,'order')).some(o=>o.data.lines.some((l:Data)=>l.sourceVariantId===b.sourceVariantId)&&o.data.dispatchStatus!=='not_dispatched'),'A used mapping requires explicit order reconciliation',409);return b;
 }}],actions:[...liveActions,{path:'/dispatch/:id',kind:'order',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{
@@ -26,7 +28,7 @@ export function shopify(manifest:ModulePackageManifest,secretFile?:string):Defin
  ensure(verifyHmac(raw,s.webhookSecret,h['x-shopify-hmac-sha256'])&&h['x-shopify-shop-domain']===s.shopDomain&&h['x-shopify-api-version']==='2026-10'&&manifest.connector!.webhookTopics.includes(h['x-shopify-topic']),'Invalid Shopify webhook identity or signature',403);
  if(ctx.config.mode==='live')ensure(['products/create','products/update','products/delete'].includes(h['x-shopify-topic']),'SHOPIFY_LIVE_WEBHOOK_TOPIC_NOT_ENABLED',403);
  const id=h['x-shopify-webhook-id'];ensure(typeof id==='string'&&/^[a-f0-9-]{36}$/.test(id),'Invalid event identity',400);return remember(ctx,connectionSource(s.connectionId,id),raw);
- }};}
+ }});}
 async function remember(ctx:Context,id:string,raw:Buffer){const hash=createHash('sha256').update(raw).digest('hex'),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}JSON.parse(raw.toString());await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[id,hash]);return{accepted:true,replay:false};}
 async function normalize(ctx:Context,data:Data){const lines=[];for(const l of data.lines){const m=await find(ctx,'mapping',l.sourceVariantId);ensure(m,'Explicit local mapping required for every Shopify variant');lines.push({sourceVariantId:l.sourceVariantId,sku:m.data.sku,quantity:l.quantity,unitPriceCents:l.unitPriceCents,lineRevenueCents:l.lineRevenueCents});}return{sourceId:data.sourceId,sourceCreatedAt:data.sourceCreatedAt,sourceUpdatedAt:data.sourceUpdatedAt,channel:'shopify',currency:data.currency,financialStatus:data.financialStatus,fulfillmentStatus:data.fulfillmentStatus,canceled:data.canceled,refundCents:data.refundCents,lines};}
 const productsQuery=`query StewardProducts($first:Int!,$after:String){products(first:$first,after:$after){nodes{id title status updatedAt variants(first:100){nodes{id sku inventoryQuantity inventoryItem{id inventoryLevels(first:20){nodes{location{id} quantities(names:["available"]){name quantity}}}}} pageInfo{hasNextPage}}} pageInfo{hasNextPage endCursor}}}`;
@@ -37,13 +39,13 @@ const fulfillmentQuery=`mutation StewardFulfillment($fulfillment:FulfillmentInpu
 
 export async function shopifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
  if(runtime.configuration.mode==='live'){await liveBackground(pool,runtime,secretFile);return;}
- let connections:Data[];try{connections=await connectorConnections('shopify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
- await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
+ let connections:Data[];try{connections=await connectorConnections('shopify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await catalogSyncUnavailable(pool,undefined,error);await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
+ await catalogConnectionsConfigured(pool,connections.map(s=>s.connectionId));await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
  for(const secret of connections)await pollConnection(pool,{...runtime,connectionId:secret.connectionId},secretFile,secret);
 }
 async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefined,s:Data){
  if(nextPoll(pool,runtime)>Date.now())return;deferPoll(pool,runtime,2000);
- const lock=await pool.connect();let acquired=false;
+ const lock=await pool.connect();let acquired=false,catalogSynced=false;
  try{
   acquired=(await lock.query('SELECT pg_try_advisory_lock(8148001) acquired')).rows[0].acquired;if(!acquired)return;await bindConnectionIdentity(pool,runtime,s);
   
@@ -54,6 +56,7 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
   await transaction(pool,async db=>{const ctx=context(db,runtime),seen=new Set();
    for(const p of fetched.products!){ensure(!p.variants.pageInfo?.hasNextPage,'Shopify product exceeds declared 100-variant import bound');const data={sourceId:connectionSource(s.connectionId,p.id),remoteSourceId:p.id,connectionId:s.connectionId,title:p.title,status:p.status,sourceUpdatedAt:p.updatedAt,variants:p.variants.nodes.map((v:Data)=>({sourceVariantId:connectionSource(s.connectionId,v.id),remoteSourceVariantId:v.id,sourceSku:v.sku,observedQuantity:v.inventoryQuantity,locations:(v.inventoryItem?.inventoryLevels?.nodes??[]).map((l:Data)=>({sourceLocationId:l.location.id,available:l.quantities.find((q:Data)=>q.name==='available')?.quantity??null}))}))};seen.add(data.sourceId);const old=await find(ctx,'product',data.sourceId);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'product',data.sourceId,data,old);}
    for(const old of await records(ctx,'product'))if((old.data.connectionId??'default')===s.connectionId&&!seen.has(old.key)&&old.data.status!=='REMOVED')await save(ctx,'product',old.key,{...old.data,status:'REMOVED'},old);
+   await recordCatalogSync(ctx,{provider:'shopify',mode:s.mode,connectionId:s.connectionId,accountId:s.shopId??s.shopDomain,shopDomain:s.shopDomain},fetched.products!);
    for(const o of fetched.orders!){
     ensure(!o.lineItems.pageInfo?.hasNextPage&&Number.isFinite(Date.parse(o.updatedAt)),'Unsupported or incomplete Shopify order');
     const data:Data={sourceId:connectionSource(s.connectionId,o.id),remoteSourceId:o.id,connectionId:s.connectionId,sourceCreatedAt:o.createdAt,sourceUpdatedAt:o.updatedAt,currency:o.currencyCode,financialStatus:String(o.displayFinancialStatus).toLowerCase(),fulfillmentStatus:o.displayFulfillmentStatus,canceled:!!o.cancelledAt,refundCents:cents(o.totalRefundedSet.shopMoney.amount),lines:o.lineItems.nodes.map((l:Data)=>({sourceVariantId:connectionSource(s.connectionId,l.variant?.id??'unmapped'),remoteSourceVariantId:l.variant?.id??'unmapped',sku:l.sku,quantity:l.quantity,unitPriceCents:cents(l.originalUnitPriceSet.shopMoney.amount),lineRevenueCents:cents(l.discountedTotalSet.shopMoney.amount)})),fulfillmentOrders:o.fulfillmentOrders.nodes,fulfillments:o.fulfillments};
@@ -64,10 +67,10 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
     if(merged.dispatchEnabled){const normalized=await normalize(ctx,merged),hash=digest(canonical(normalized));if(hash!==merged.dispatchDigest){await enqueueCapability(ctx,contracts.orders!.id,'commerce.order.import',updated!.id,normalized);await save(ctx,'order',data.sourceId,{...merged,dispatchDigest:hash,dispatchStatus:'pending'},updated);}}
    }
   });
-  const jobs=(await pool.query("SELECT * FROM business_records WHERE kind='channel-job' AND data->>'status' IN ('queued','uncertain') AND coalesce(data->>'connectionId','default')=$1 ORDER BY key LIMIT 4",[s.connectionId])).rows;
+  catalogSynced=true;const jobs=(await pool.query("SELECT * FROM business_records WHERE kind='channel-job' AND data->>'status' IN ('queued','uncertain') AND coalesce(data->>'connectionId','default')=$1 ORDER BY key LIMIT 4",[s.connectionId])).rows;
   for(const job of jobs)await channelJob(pool,runtime,s,job);
   await connectorState(pool,runtime,'available');
- }catch(e){deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
+ }catch(e){if(!catalogSynced)await catalogSyncUnavailable(pool,s.connectionId,'SHOPIFY_CATALOG_READ_UNAVAILABLE');deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
  finally{if(acquired)await lock.query('SELECT pg_advisory_unlock(8148001)').catch(()=>{});lock.release();}
 }
 async function channelJob(pool:pg.Pool,runtime:Data,s:Data,job:any){

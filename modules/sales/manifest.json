@@ -5359,7 +5359,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "governedCatalogEnabled": true
+        }
       },
       {
         "capabilityId": "catalog.operational.read",
@@ -5737,48 +5740,123 @@
                 "links": {
                   "type": "array",
                   "items": {
-                    "type": "object",
-                    "additionalProperties": false,
-                    "properties": {
-                      "linkId": {
-                        "type": "string",
-                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
-                      },
-                      "variantId": {
-                        "anyOf": [
-                          {
-                            "type": "string",
-                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "purpose": {
-                        "type": "string",
-                        "enum": [
-                          "inventory",
-                          "supplier"
-                        ]
-                      },
-                      "capability": {
+                    "oneOf": [
+                      {
                         "type": "object",
                         "additionalProperties": false,
                         "properties": {
-                          "contractVersion": {
-                            "const": 1
+                          "linkId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                           },
-                          "provider": {
+                          "variantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "capability": {
                             "type": "object",
                             "additionalProperties": false,
                             "properties": {
                               "contractVersion": {
                                 "const": 1
                               },
-                              "workerInstallationId": {
+                              "provider": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "contractVersion": {
+                                    "const": 1
+                                  },
+                                  "workerInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "entityId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "moduleId": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 120,
+                                    "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                  },
+                                  "moduleInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "packageDigest": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "contractVersion",
+                                  "workerInstallationId",
+                                  "entityId",
+                                  "moduleId",
+                                  "moduleInstallationId",
+                                  "packageDigest"
+                                ]
+                              },
+                              "capabilityId": {
                                 "type": "string",
-                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "contract": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "version": {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                              },
+                              "recordId": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              "purpose": {
+                                "type": "string",
+                                "enum": [
+                                  "inventory",
+                                  "production",
+                                  "fulfillment",
+                                  "availability",
+                                  "supplier",
+                                  "service",
+                                  "resource"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "provider",
+                              "capabilityId",
+                              "contract",
+                              "version",
+                              "recordId",
+                              "purpose"
+                            ]
+                          },
+                          "source": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
                               },
                               "entityId": {
                                 "type": "string",
@@ -5790,113 +5868,301 @@
                                 "maxLength": 120,
                                 "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
                               },
-                              "moduleInstallationId": {
+                              "streamId": {
                                 "type": "string",
-                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "pattern": "\\S"
                               },
-                              "packageDigest": {
+                              "recordId": {
                                 "type": "string",
-                                "pattern": "^[a-f0-9]{64}$"
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              "revision": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 2147483647
+                              },
+                              "provider": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "contractVersion": {
+                                    "const": 1
+                                  },
+                                  "workerInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "entityId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "moduleId": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 120,
+                                    "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                  },
+                                  "moduleInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "packageDigest": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "contractVersion",
+                                  "workerInstallationId",
+                                  "entityId",
+                                  "moduleId",
+                                  "moduleInstallationId",
+                                  "packageDigest"
+                                ]
+                              },
+                              "observedAt": {
+                                "type": "string",
+                                "minLength": 20,
+                                "maxLength": 35,
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
                               }
                             },
                             "required": [
                               "contractVersion",
-                              "workerInstallationId",
                               "entityId",
                               "moduleId",
-                              "moduleInstallationId",
-                              "packageDigest"
+                              "streamId",
+                              "recordId",
+                              "revision",
+                              "provider",
+                              "observedAt"
                             ]
                           },
-                          "capabilityId": {
-                            "type": "string",
-                            "minLength": 3,
-                            "maxLength": 120,
-                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
-                          },
-                          "contract": {
-                            "type": "string",
-                            "minLength": 3,
-                            "maxLength": 120,
-                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
-                          },
-                          "version": {
-                            "type": "string",
-                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
-                          },
-                          "recordId": {
+                          "code": {
                             "type": "string",
                             "minLength": 1,
-                            "maxLength": 200,
+                            "maxLength": 80,
                             "pattern": "\\S"
+                          },
+                          "definitionDigest": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "unitDefinition": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "unitOfMeasure": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 40,
+                                        "pattern": "\\S"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "quantityScale": {
+                                    "anyOf": [
+                                      {
+                                        "type": "integer",
+                                        "minimum": 0,
+                                        "maximum": 6
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  },
+                                  "configurationDigest": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string",
+                                        "pattern": "^[a-f0-9]{64}$"
+                                      },
+                                      {
+                                        "type": "null"
+                                      }
+                                    ]
+                                  }
+                                },
+                                "required": [
+                                  "unitOfMeasure",
+                                  "quantityScale",
+                                  "configurationDigest"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "verifiedAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
                           },
                           "purpose": {
                             "type": "string",
                             "enum": [
                               "inventory",
-                              "production",
-                              "fulfillment",
-                              "availability",
-                              "supplier",
-                              "service",
-                              "resource"
+                              "supplier"
                             ]
+                          },
+                          "availability": {
+                            "type": "null"
+                          },
+                          "programmeAuthorization": {
+                            "type": "null"
                           }
                         },
                         "required": [
-                          "contractVersion",
-                          "provider",
-                          "capabilityId",
-                          "contract",
-                          "version",
-                          "recordId",
-                          "purpose"
+                          "linkId",
+                          "variantId",
+                          "capability",
+                          "source",
+                          "code",
+                          "definitionDigest",
+                          "unitDefinition",
+                          "verifiedAt",
+                          "expiresAt",
+                          "purpose",
+                          "availability",
+                          "programmeAuthorization"
                         ]
                       },
-                      "source": {
+                      {
                         "type": "object",
                         "additionalProperties": false,
                         "properties": {
-                          "contractVersion": {
-                            "const": 1
-                          },
-                          "entityId": {
+                          "linkId": {
                             "type": "string",
                             "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                           },
-                          "moduleId": {
-                            "type": "string",
-                            "minLength": 3,
-                            "maxLength": 120,
-                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          "variantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
-                          "streamId": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 120,
-                            "pattern": "\\S"
-                          },
-                          "recordId": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 200,
-                            "pattern": "\\S"
-                          },
-                          "revision": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 2147483647
-                          },
-                          "provider": {
+                          "capability": {
                             "type": "object",
                             "additionalProperties": false,
                             "properties": {
                               "contractVersion": {
                                 "const": 1
                               },
-                              "workerInstallationId": {
+                              "provider": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "contractVersion": {
+                                    "const": 1
+                                  },
+                                  "workerInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "entityId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "moduleId": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 120,
+                                    "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                  },
+                                  "moduleInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "packageDigest": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "contractVersion",
+                                  "workerInstallationId",
+                                  "entityId",
+                                  "moduleId",
+                                  "moduleInstallationId",
+                                  "packageDigest"
+                                ]
+                              },
+                              "capabilityId": {
                                 "type": "string",
-                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "contract": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "version": {
+                                "type": "string",
+                                "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                              },
+                              "recordId": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              "purpose": {
+                                "type": "string",
+                                "enum": [
+                                  "inventory",
+                                  "production",
+                                  "fulfillment",
+                                  "availability",
+                                  "supplier",
+                                  "service",
+                                  "resource"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "provider",
+                              "capabilityId",
+                              "contract",
+                              "version",
+                              "recordId",
+                              "purpose"
+                            ]
+                          },
+                          "source": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
                               },
                               "entityId": {
                                 "type": "string",
@@ -5908,130 +6174,134 @@
                                 "maxLength": 120,
                                 "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
                               },
-                              "moduleInstallationId": {
+                              "streamId": {
                                 "type": "string",
-                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "pattern": "\\S"
                               },
-                              "packageDigest": {
+                              "recordId": {
                                 "type": "string",
-                                "pattern": "^[a-f0-9]{64}$"
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              "revision": {
+                                "type": "integer",
+                                "minimum": 1,
+                                "maximum": 2147483647
+                              },
+                              "provider": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "contractVersion": {
+                                    "const": 1
+                                  },
+                                  "workerInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "entityId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "moduleId": {
+                                    "type": "string",
+                                    "minLength": 3,
+                                    "maxLength": 120,
+                                    "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                  },
+                                  "moduleInstallationId": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "packageDigest": {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  }
+                                },
+                                "required": [
+                                  "contractVersion",
+                                  "workerInstallationId",
+                                  "entityId",
+                                  "moduleId",
+                                  "moduleInstallationId",
+                                  "packageDigest"
+                                ]
+                              },
+                              "observedAt": {
+                                "type": "string",
+                                "minLength": 20,
+                                "maxLength": 35,
+                                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
                               }
                             },
                             "required": [
                               "contractVersion",
-                              "workerInstallationId",
                               "entityId",
                               "moduleId",
-                              "moduleInstallationId",
-                              "packageDigest"
+                              "streamId",
+                              "recordId",
+                              "revision",
+                              "provider",
+                              "observedAt"
                             ]
                           },
-                          "observedAt": {
+                          "code": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "definitionDigest": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "unitDefinition": {
+                            "type": "null"
+                          },
+                          "verifiedAt": {
                             "type": "string",
                             "minLength": 20,
                             "maxLength": 35,
                             "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          },
+                          "expiresAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "enum": [
+                              "service",
+                              "resource"
+                            ]
+                          },
+                          "availability": {
+                            "const": "unverified"
+                          },
+                          "programmeAuthorization": {
+                            "const": "required"
                           }
                         },
                         "required": [
-                          "contractVersion",
-                          "entityId",
-                          "moduleId",
-                          "streamId",
-                          "recordId",
-                          "revision",
-                          "provider",
-                          "observedAt"
+                          "linkId",
+                          "variantId",
+                          "capability",
+                          "source",
+                          "code",
+                          "definitionDigest",
+                          "unitDefinition",
+                          "verifiedAt",
+                          "expiresAt",
+                          "purpose",
+                          "availability",
+                          "programmeAuthorization"
                         ]
-                      },
-                      "code": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 80,
-                        "pattern": "\\S"
-                      },
-                      "definitionDigest": {
-                        "type": "string",
-                        "pattern": "^[a-f0-9]{64}$"
-                      },
-                      "unitDefinition": {
-                        "anyOf": [
-                          {
-                            "type": "object",
-                            "additionalProperties": false,
-                            "properties": {
-                              "unitOfMeasure": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 40,
-                                    "pattern": "\\S"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "quantityScale": {
-                                "anyOf": [
-                                  {
-                                    "type": "integer",
-                                    "minimum": 0,
-                                    "maximum": 6
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              },
-                              "configurationDigest": {
-                                "anyOf": [
-                                  {
-                                    "type": "string",
-                                    "pattern": "^[a-f0-9]{64}$"
-                                  },
-                                  {
-                                    "type": "null"
-                                  }
-                                ]
-                              }
-                            },
-                            "required": [
-                              "unitOfMeasure",
-                              "quantityScale",
-                              "configurationDigest"
-                            ]
-                          },
-                          {
-                            "type": "null"
-                          }
-                        ]
-                      },
-                      "verifiedAt": {
-                        "type": "string",
-                        "minLength": 20,
-                        "maxLength": 35,
-                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
-                      },
-                      "expiresAt": {
-                        "type": "string",
-                        "minLength": 20,
-                        "maxLength": 35,
-                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
                       }
-                    },
-                    "required": [
-                      "linkId",
-                      "variantId",
-                      "purpose",
-                      "capability",
-                      "source",
-                      "code",
-                      "definitionDigest",
-                      "unitDefinition",
-                      "verifiedAt",
-                      "expiresAt"
                     ]
                   },
                   "minItems": 0,
@@ -6052,7 +6322,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "governedCatalogEnabled": true
+        }
       },
       {
         "capabilityId": "pricing.prices.resolve",
@@ -7331,7 +7604,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "governedSalesEnabled": true
+        }
       },
       {
         "capabilityId": "inventory.stock.verified",
@@ -7619,7 +7895,11 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "governedSalesEnabled": true,
+          "integrationsEnabled": true
+        }
       }
     ],
     "prerequisites": {

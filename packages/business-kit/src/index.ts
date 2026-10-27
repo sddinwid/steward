@@ -8,7 +8,7 @@ import pg from 'pg';
 import { Ajv } from 'ajv';
 import { readFile, readdir } from 'node:fs/promises';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
-import { canonical, digest, integrationSql, validateCommand, operationFor, INTEGRATION_PROTOCOL, type IntegrationCommand, type ModulePackageManifest } from '@steward/module-sdk';
+import { capabilityInboundEnabled,canonical, digest, integrationSql, validateCommand, operationFor, INTEGRATION_PROTOCOL, type IntegrationCommand, type ModulePackageManifest } from '@steward/module-sdk';
 export * from './schema.js';
 /** JSON values are accepted only after a closed, module-owned schema validates them. */
 export type Data = Record<string, any>;
@@ -454,8 +454,10 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
     }>('/integration-inbox', async (req, reply) => {
         const result = await transaction(pool, async (db) => {
             const c = ctx(db,req);
-            ensure(c.config.integrationsEnabled===true||req.body.simulation&&definition.manifest.simulation?.role==='participant'&&c.config.simulationEnabled===true,'Integrations disabled',403);
             validateCommand(req.body);
+            const incomingCapability=typeof req.headers['x-steward-capability']==='string'?req.headers['x-steward-capability']:undefined;
+            ensure((incomingCapability?capabilityInboundEnabled(definition.manifest,c.config,incomingCapability):c.config.integrationsEnabled===true)||req.body.simulation&&definition.manifest.simulation?.role==='participant'&&c.config.simulationEnabled===true,'Integrations disabled',403);
+            if(incomingCapability&&req.body.capability)ensure(req.body.capability.capabilityId===incomingCapability,'Integration capability identity mismatch',403);
             ensure(!req.body.simulation||definition.manifest.simulation&&!definition.manifest.connector&&runtime.configuration.mode!=='live','SIMULATION_LIVE_PROVIDER_DENIED',403);
             ensure(!['engine','provider'].includes(definition.manifest.simulation?.role??'')||req.body.simulation,'SIMULATION_PROVENANCE_REQUIRED',403);
             ensure(req.headers['x-steward-integration-source'] === req.body.sourceModuleId && req.headers['x-steward-installation'] === c.installationId, 'Integration identity mismatch', 403);

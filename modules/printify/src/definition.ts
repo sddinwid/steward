@@ -1,10 +1,13 @@
+import {withExternalCatalog} from './external-catalog.js';
+import {synchronizePrintifyCatalog} from './catalog-sync.js';
+import {recordCatalogSync,catalogSyncUnavailable,catalogConnectionsConfigured} from './catalog-provenance.js';
 import {connectorConnections,connectionSource,nextPoll,deferPoll,bindConnectionIdentity,unavailableConnections} from '@steward/commerce-kit';
 import {connectorConditions,publishConnectorConditions} from '@steward/commerce-kit';
 import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,transaction,type Definition,type Data,type Context} from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyPrintify,remote,ConnectorError,context,connectorState,issued,reconciled,page,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return{manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
+export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withExternalCatalog({manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
  const p=await find(ctx,'product',b.productId);ensure(p?.data.variants.some((v:Data)=>v.id===b.variantId&&v.isEnabled),'Unknown or unavailable Printify variant');ensure(!old||canonical(old.data)===canonical(b)||!(await records(ctx,'job')).some(j=>j.data.lines.some((l:Data)=>l.sku===b.sku)),'Used variant mapping is immutable; reconcile existing jobs before replacement',409);return b;
 }}],actions:[{path:'/authorize/:id',kind:'job',permission:manifest.moduleId+'.production.authorize',run:async(r,ctx)=>{
  ensure(ctx.config.productionEnabled===true,'Production is disabled in module configuration',403);ensure(r.data.status==='awaiting_authorization','Job is not awaiting authorization',409);
@@ -21,31 +24,28 @@ export function printify(manifest:ModulePackageManifest,secretFile?:string):Defi
  const raw=Buffer.from(String(b.bodyBase64??''),'base64');ensure(raw.length<=131072&&raw.toString('base64')===b.bodyBase64,'Invalid Printify webhook signature',403);
  const body=JSON.parse(raw.toString());const s=(await connectorConnections('printify',ctx.config.mode,secretFile)).find(s=>s.shopId===String(body.resource?.shop_id));ensure(s&&verifyPrintify(raw,s.webhookSecret,b.headers?.['x-pfy-signature']),'Invalid Printify webhook identity or signature',403);body.id=connectionSource(s.connectionId,body.id);ensure(manifest.connector!.webhookTopics.includes(body.type)&&String(body.resource?.shop_id)===s.shopId&&typeof body.id==='string'&&body.id.length<=120,'Printify webhook scope mismatch',403);
  const hash=digest(raw.toString()),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[body.id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[body.id,hash]);return{accepted:true,replay:false};
- }};}
+ }});}
 async function mapLines(ctx:Context,lines:Data[]){const result=[];let connection:string|undefined;for(const l of lines){const m=await find(ctx,'mapping',l.sku);ensure(m,'Explicit Printify SKU/variant mapping required');const p=await find(ctx,'product',m.data.productId),v=p?.data.variants.find((v:Data)=>v.id===m.data.variantId&&v.isEnabled);ensure(v,'Mapped Printify variant unavailable');ensure(connection===undefined||connection===(p!.data.connectionId??'default'),'Production lines must belong to one supplier connection');connection=p!.data.connectionId??'default';result.push({product_id:p!.data.remoteSourceId??m.data.productId,variant_id:m.data.variantId,quantity:l.quantity});}return result;}
 export function validatePrintifyCurrency(secret:Data,currency:string){if(secret.mode==='live'&&secret.costCurrency!==currency)throw new ConnectorError('CONNECTOR_COST_CURRENCY_CONFIRMATION_REQUIRED');}
 
 async function pages(s:Data,kind:string){const all=[];for(let p=1;p<=50;p++){const r=await remote(s,`/v1/shops/${encodeURIComponent(s.shopId)}/${kind}.json?page=${p}&limit=2`);ensure(Array.isArray(r.data),'Invalid Printify page');all.push(...r.data);if(p>=r.last_page)return all;}throw new ConnectorError('CONNECTOR_PAGE_BUDGET_REACHED');}
 export async function printifyBackground(pool:pg.Pool,runtime:Data,secretFile?:string){
- let connections:Data[];try{connections=await connectorConnections('printify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
- await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
+ let connections:Data[];try{connections=await connectorConnections('printify',runtime.configuration.mode,secretFile);}catch(e){const error=e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID';await catalogSyncUnavailable(pool,undefined,error);await unavailableConnections(pool,runtime,[],error);await connectorState(pool,runtime,'connection_unavailable',error);return;}
+ await catalogConnectionsConfigured(pool,connections.map(s=>s.connectionId));await unavailableConnections(pool,runtime,connections.map(s=>s.connectionId));
  for(const secret of connections)await pollConnection(pool,{...runtime,connectionId:secret.connectionId},secretFile,secret);
 }
 async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefined,s:Data){
- if(nextPoll(pool,runtime)>Date.now())return;deferPoll(pool,runtime,2000);const lock=await pool.connect();let acquired=false;
+ if(nextPoll(pool,runtime)>Date.now())return;deferPoll(pool,runtime,2000);const lock=await pool.connect();let acquired=false,catalogSynced=false;
  try{
   acquired=(await lock.query('SELECT pg_try_advisory_lock(8148001) acquired')).rows[0].acquired;if(!acquired)return;await bindConnectionIdentity(pool,runtime,s);
-  validatePrintifyCurrency(s,runtime.configuration.currency);const shops=await remote(s,'/v1/shops.json');ensure(shops.some((shop:Data)=>String(shop.id)===s.shopId),'Printify shop not authorized',403);
-  await transaction(pool,async db=>{const ctx=context(db,runtime);for(const shop of shops.filter((shop:Data)=>String(shop.id)===s.shopId)){const data={sourceId:connectionSource(s.connectionId,String(shop.id)),remoteSourceId:String(shop.id),connectionId:s.connectionId,title:String(shop.title??shop.id),salesChannel:String(shop.sales_channel??'unknown')},old=await find(ctx,'shop',data.sourceId);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'shop',data.sourceId,data,old);}});
-  const products=await pages(s,'products');
-  await transaction(pool,async db=>{const ctx=context(db,runtime),seen=new Set();for(const p of products){const data={sourceId:connectionSource(s.connectionId,p.id),remoteSourceId:p.id,connectionId:s.connectionId,title:p.title,printProviderId:p.print_provider_id,blueprintId:p.blueprint_id,variants:p.variants.map((v:Data)=>({id:v.id,isEnabled:v.is_enabled&&v.is_available!==false,unitCostCents:Number.isSafeInteger(v.cost)&&v.cost>=0?v.cost:null,sourceSku:v.sku??null}))};seen.add(data.sourceId);const old=await find(ctx,'product',data.sourceId);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'product',data.sourceId,data,old);}for(const old of await records(ctx,'product'))if((old.data.connectionId??'default')===s.connectionId&&!seen.has(old.key)&&old.data.variants.some((v:Data)=>v.isEnabled))await save(ctx,'product',old.key,{...old.data,variants:old.data.variants.map((v:Data)=>({...v,isEnabled:false}))},old);});
+  validatePrintifyCurrency(s,runtime.configuration.currency);await synchronizePrintifyCatalog(pool,runtime,s);catalogSynced=true;
   const jobs=(await pool.query("SELECT * FROM business_records WHERE kind='job' AND data->>'status' NOT IN ('awaiting_authorization','canceled') AND coalesce(data->>'connectionId','default')=$1 ORDER BY key LIMIT 20",[s.connectionId])).rows;
   // Full bounded reconciliation also handles a lost create response; external_id alone is not an idempotency guarantee.
   const external=await pages(s,'orders');
   await transaction(pool,async db=>{const ctx=context(db,runtime);for(const o of external){const data={sourceId:connectionSource(s.connectionId,String(o.id)),remoteSourceId:String(o.id),connectionId:s.connectionId,externalId:String(o.external_id??o.metadata?.shop_order_id??'Unknown'),ownership:String(o.external_id??'').startsWith(runtime.installationId+':')?'Steward authorized':'Native/external · monitor only',status:String(o.status),tracking:(o.shipments??[]).map((s:Data)=>String(s.number??'Unknown')),currency:o.currency??null};const old=await find(ctx,'external-order',data.sourceId);if(!old||canonical(old.data)!==canonical(data))await save(ctx,'external-order',data.sourceId,data,old);}});
   for(const job of jobs){try{await reconcileJob(pool,runtime,s,job,external);}catch(e){await jobPatch(pool,runtime,job.key,{error:e instanceof ConnectorError?e.code:'EXTERNAL_OUTCOME_REQUIRES_RECONCILIATION'});}}
   await connectorState(pool,runtime,'available');
- }catch(e){deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
+ }catch(e){if(!catalogSynced)await catalogSyncUnavailable(pool,s.connectionId,'PRINTIFY_CATALOG_READ_UNAVAILABLE');deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
  finally{if(acquired)await lock.query('SELECT pg_advisory_unlock(8148001)').catch(()=>{});lock.release();}
 }
 async function reconcileJob(pool:pg.Pool,runtime:Data,s:Data,job:any,external:Data[]){

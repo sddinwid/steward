@@ -1,0 +1,7 @@
+import {canonical} from '@steward/module-sdk';
+import type {Context,Data,RecordValue} from '@steward/business-kit';
+import type {ExternalMapping} from '@steward/catalog-kit';
+import {timestamp,uniqueChild} from './store.js';
+export function mappingValue(ctx:Context,b:Data,o:RecordValue,id:string):ExternalMapping{const d=o.data;return{contractVersion:1,id,offeringId:b.offeringId,variantId:b.variantId??null,provider:d.provider,externalProvider:d.externalProvider,accountId:d.accountId,productId:d.productId,externalVariantId:d.externalVariantId,status:b.status==='inactive'?'inactive':b.status==='proposed'?'proposed':'verified',origin:'manual',lastVerifiedAt:d.verifiedAt,source:d.source,supportedCapabilities:d.supportedCapabilities,fieldAuthority:[{field:'name',authority:b.displayNameOverride?'local-display':'provider',localOverride:b.displayNameOverride??null},{field:'sku',authority:'provider',localOverride:null}]};}
+export function mappingContinuityKey(m:ExternalMapping){return canonical([m.provider.entityId,m.provider.workerInstallationId,m.provider.moduleId,m.externalProvider,m.accountId,m.productId,m.externalVariantId]);}
+export async function mappingConflict(ctx:Context,m:ExternalMapping,previousId?:string){await uniqueChild(ctx,'mapping',previousId?{id:previousId} as RecordValue:null,r=>r.data.mapping.status!=='inactive'&&mappingContinuityKey(r.data.mapping)===mappingContinuityKey(m),'External observation already mapped; explicit reconciliation required');}

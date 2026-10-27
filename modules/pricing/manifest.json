@@ -3587,7 +3587,8 @@
         "events": [],
         "sensitivity": "business",
         "scope": "entity",
-        "ownership": "provider"
+        "ownership": "provider",
+        "configuration": {}
       }
     ],
     "consumes": [
@@ -5025,7 +5026,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "integrationsEnabled": true
+        }
       },
       {
         "capabilityId": "catalog.pricing-subjects.read",
@@ -5426,7 +5430,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "integrationsEnabled": true
+        }
       }
     ],
     "prerequisites": {
