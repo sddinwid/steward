@@ -11,8 +11,7 @@
     "@steward/contracts": "file:../../packages/contracts",
     "@steward/economy-kit": "file:../../packages/economy-kit",
     "@steward/mission-kit": "file:../../packages/mission-kit",
-    "@steward/module-sdk": "file:../../packages/module-sdk",
-    "steward-platform": "file:../.."
+    "@steward/module-sdk": "file:../../packages/module-sdk"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
