@@ -54,3 +54,29 @@ Actual source/controller APIs reviewed and sealed **11** financial summaries (si
 The initial publisher attempted to assert a field deliberately omitted from the Master lease-list DTO. It stopped before accepting the first lease. It now verifies the exact account against the source-issued proof and the account-filtered Master endpoint. No authorization or response privacy check was weakened. Existing source grants/snapshots are reused; a changed/expired source snapshot or expired lease fails rather than silently extending access. Evidence: `artifacts/phase14-coordination-setup.json` and `phase14-financial-publication.json`.
 
 Financial finding publication is currently paused while the code correction for recipient-scoped explanations is prepared for deployment. The authorized Master retains full analysis; a Worker must not receive another installation's programme identities/costs or a whole-ecosystem financial total merely because it is affected. No actual financial finding has been published yet. Continue with the corrected core candidate before the normal-UI plan/proposal demonstration.
+
+
+## Verified reviewed plan and synthetic contribution UI
+
+The initial reserve-aware Master form and affected-only scoped finding delivery have passed browser acceptance. The original financial summaries are now historical because contributions changed their source ledgers. Review a new source snapshot before a fresh investigation; never treat a historical current-cash scenario as executable authority.
+
+```powershell
+node scripts/verify-phase14-disclosure-consent.mjs "$deployment"
+node scripts/verify-phase14-economic-planning.mjs "$deployment"
+node scripts/verify-phase14-contributions.mjs "$deployment"
+node scripts/verify-phase14-ledgers.mjs "$deployment"
+```
+
+The successful contribution runner used ordinary module-provided forms/actions and distinct authenticated accounts for food USD2000, housing USD10000 and training USD3000. It explicitly verified commitments before receipts and final reconciliation. Repeats reuse original records/settlement identities. Do not recreate proposals to recover from a timeout; inspect the original obligation and use its supported reconciliation actions. Existing source-owner/admin passwords were not changed. Actual recorded services, linked approved expenditures, shared-resource demonstration and the complete real-model investigation remain acceptance work; the focused local finalization diagnostic is not an end-to-end AI result.
+
+
+After real synthetic settlements change source cash and receiving ledgers, the actual renewed source/plan procedure is:
+
+```powershell
+$env:STEWARD_ECONOMIC_SNAPSHOT = 'settled'
+node scripts/publish-phase14-financial-summaries.mjs "$deployment"
+node scripts/verify-phase14-economic-planning.mjs "$deployment"
+Remove-Item Env:STEWARD_ECONOMIC_SNAPSHOT
+```
+
+This explicitly creates a new reviewed snapshot/scenario generation, preserves original evidence, and reuses that generation on retries. The verified settled baseline proposes USD17000 of new contributions, using the already confirmed USD15000 receipts once. Existing source resources remain USD13000/8000 potentially available; these are neither income nor authorization. Repeat ledger acceptance verified eight databases, three original settlements/receipts/consumed holds and six balanced journals with no new intercompany income.

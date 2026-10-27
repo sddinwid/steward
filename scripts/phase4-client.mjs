@@ -7,11 +7,12 @@ const ca=await readFile(path.join(directory,'security/ca-cert.pem'));
 export const credentials=JSON.parse(await readFile(process.env.STEWARD_SEED_CREDENTIALS_FILE??path.join(directory,'security/verification.json'),'utf8'));
 export const origin=key=>{const i=deployment.instances.find(i=>i.key===key);return `https://${key}.localhost:${i.webPort+1000}`;};
 export const sessions={};
+// Verification performs synchronous Docker audits between requests; do not reuse idle TLS sockets whose close event was blocked.
 export async function api(key,url,method='GET',body,expected=200,session=sessions[key],readRetry=0){
  try{
  return await new Promise((resolve,reject)=>{
   const data=body===undefined?undefined:JSON.stringify(body);
-  const req=request(origin(key)+url,{method,ca,rejectUnauthorized:true,timeout:100000,lookup:(_h,_o,cb)=>cb(null,[{address:'127.0.0.1',family:4}]),headers:{...(session?{cookie:session.cookie}:{}),...(data?{'content-type':'application/json',origin:origin(key),'x-csrf-token':session?.csrfToken??''}:{})}},res=>{let text='';res.on('data',c=>text+=c);res.on('end',()=>{try{const value=JSON.parse(text);if(res.statusCode!==expected)throw new Error(`${key} ${method} ${url}: expected ${expected}, received ${res.statusCode} (${value.error??'request failed'})`);resolve({value,cookie:res.headers['set-cookie']?.[0]?.split(';')[0]});}catch(e){reject(e);}});});req.on('error',()=>reject(new Error('TLS connection unavailable')));req.on('timeout',()=>req.destroy());req.end(data);
+  const req=request(origin(key)+url,{method,ca,rejectUnauthorized:true,agent:false,timeout:100000,lookup:(_h,_o,cb)=>cb(null,[{address:'127.0.0.1',family:4}]),headers:{...(session?{cookie:session.cookie}:{}),...(data?{'content-type':'application/json',origin:origin(key),'x-csrf-token':session?.csrfToken??''}:{})}},res=>{let text='';res.on('data',c=>text+=c);res.on('end',()=>{try{const value=JSON.parse(text);if(res.statusCode!==expected)throw new Error(`${key} ${method} ${url}: expected ${expected}, received ${res.statusCode} (${value.error??'request failed'})`);resolve({value,cookie:res.headers['set-cookie']?.[0]?.split(';')[0]});}catch(e){reject(e);}});});req.on('error',()=>reject(new Error('TLS connection unavailable')));req.on('timeout',()=>req.destroy());req.end(data);
  });
  }catch(e){if(method==='GET'&&readRetry<5&&e.message.includes('409 (OPERATION_IN_PROGRESS)')){await new Promise(r=>setTimeout(r,350*(readRetry+1)));return api(key,url,method,body,expected,session,readRetry+1);}throw e;}
 }
