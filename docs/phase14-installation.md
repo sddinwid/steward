@@ -1,6 +1,6 @@
 # Phase 14 installation and recovery
 
-Phase14 is not yet an accepted or tagged release. Read the selected deployment's release manifest for its exact image pins; earlier rc1/rc2 entries below are historical acceptance checkpoints. Preserve the tagged v0.13.0 baseline, original database volumes, private credentials, installation identities and connector files.
+Only a distribution whose release manifest reports acceptanceStatus: accepted is accepted. Read that manifest for its exact build source and image pins; earlier rc1/rc2 entries below are historical acceptance checkpoints. Preserve the tagged v0.13.0 baseline, original database volumes, private credentials, installation identities and connector files.
 
 Routine operation uses the existing selected stack:
 
@@ -20,9 +20,9 @@ From clean committed source, build release images, create a new candidate direct
 ```powershell
 $deployment = (Get-Content .steward/operator/selection.json | ConvertFrom-Json).directory
 node scripts/build-release-images.mjs 0.14.0
-node scripts/release.mjs pack --version 0.14.0 --directory "$deployment" --bundle artifacts/releases/steward-0.14.0-rc10 --candidate
-node scripts/release.mjs verify --bundle artifacts/releases/steward-0.14.0-rc10
-node scripts/upgrade-phase14-selected.mjs "$deployment" artifacts/releases/steward-0.14.0-rc10
+node scripts/release.mjs pack --version 0.14.0 --directory "$deployment" --bundle artifacts/releases/steward-0.14.0-rc14 --candidate
+node scripts/release.mjs verify --bundle artifacts/releases/steward-0.14.0-rc14
+node scripts/upgrade-phase14-selected.mjs "$deployment" artifacts/releases/steward-0.14.0-rc14
 node scripts/verify-single-stack.mjs
 ```
 
@@ -33,7 +33,7 @@ The upgrade snapshots every protected record, account, authority and private con
 Clean installation acceptance uses a new private target and the portable candidate toolkit. It first builds the toolkit, then stops all selected core AND managed-module containers. Cleanup stops every temporary container and restores the original operator even after a failed child:
 
 ```powershell
-$env:STEWARD_RELEASE_BUNDLE = (Resolve-Path artifacts/releases/steward-0.14.0-rc10).Path
+$env:STEWARD_RELEASE_BUNDLE = (Resolve-Path artifacts/releases/steward-0.14.0-rc14).Path
 $env:STEWARD_TEST_NETWORK_PREFIX = '10.238'
 node scripts/verify-phase14-clean-installation.mjs .steward/phase14-clean-final
 Remove-Item Env:STEWARD_RELEASE_BUNDLE
@@ -41,7 +41,7 @@ Remove-Item Env:STEWARD_TEST_NETWORK_PREFIX
 node scripts/verify-single-stack.mjs
 ```
 
-The network prefix must not overlap retained Docker networks. This runner is still awaiting actual acceptance; its presence does not establish a successful clean install. It preserves stopped archives/volumes and never prunes Docker or erases real operator data. Review the generated report and cleanup errors before proceeding after a failure.
+The network prefix must not overlap retained Docker networks. The runner's presence alone does not establish a successful clean install; inspect the verification archive accompanying the accepted distribution. It preserves stopped archives/volumes and never prunes Docker or erases real operator data. Review the generated report and cleanup errors before proceeding after a failure.
 
 ## Additive API routing
 
