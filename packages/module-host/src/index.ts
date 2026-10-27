@@ -1,4 +1,5 @@
 import {assertInstallationContinuity,assertRuntimeInstallation} from './installation-continuity.js';
+import {installedProviderHeaders} from './installed-providers.js';
 import {financialAuthorityHeaders,approvalAuthorityHeaders,publicContextHeaders} from './financial-context.js';
 import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} from './simulation-routing.js';
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
@@ -38,13 +39,13 @@ await pool.query('CREATE TABLE IF NOT EXISTS module_host_nonces(nonce uuid PRIMA
 await mkdir(stateRoot, { recursive: true });
 const app = Fastify({ https: { key: await readFile('/run/secrets/tls_key'), cert: await readFile('/run/secrets/tls_cert'), minVersion: 'TLSv1.3' }, logger: false, bodyLimit: 262144, requestTimeout: 60000 });
 function failure(code: string): never { throw Object.assign(new Error(code), { code }); }
-function http(options: RequestOptions, body?: unknown): Promise<{ status: number; value: any }> {
+function http(options: RequestOptions, body?: unknown): Promise<{ status: number; value: any;providerConfigurationDigest?:string }> {
   return new Promise((resolve, reject) => {
     const data = body === undefined ? undefined : JSON.stringify(body);
     const req = request({ ...options, headers: { ...options.headers, ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) }, timeout: options.timeout??15000 }, res => {
       let value = ''; res.setEncoding('utf8');
       res.on('data', chunk => { value += chunk; if (value.length > 1048576) req.destroy(new Error('Response exceeds limit')); });
-      res.on('end', () => { try { resolve({ status: res.statusCode ?? 500, value: value ? JSON.parse(value) : {} }); } catch { reject(new Error('Invalid runtime response')); } });
+      res.on('end', () => { try { const captured=res.headers['x-steward-provider-configuration-digest'];resolve({ status: res.statusCode ?? 500, value: value ? JSON.parse(value) : {},...(typeof captured==='string'&&/^[a-f0-9]{64}$/.test(captured)?{providerConfigurationDigest:captured}:{}) }); } catch { reject(new Error('Invalid runtime response')); } });
     });
     req.on('timeout', () => req.destroy(new Error('Runtime timeout'))); req.on('error', reject); req.end(data);
   });
@@ -85,8 +86,8 @@ async function callModule(id: string, method: string, path: string, body?: unkno
   if(incomingIdentity)headers['x-steward-source-identity']=JSON.stringify(incomingIdentity);
   if(!['/health','/ready','/internal/migrate'].includes(path)){
     Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
-    const installed=(await metadataPool.query('SELECT descriptor FROM module_installations WHERE module_id=$1',[id])).rows[0];
-    if(installed?.descriptor?.payload?.manifest?.approvalServices){const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));Object.assign(headers,await approvalAuthorityHeaders(metadataPool,verifyPackage(installed.descriptor,trust).manifest));}
+    const installed=(await metadataPool.query('SELECT descriptor,configuration FROM module_installations WHERE module_id=$1',[id])).rows[0];
+    if(installed?.descriptor){const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8')),manifest=verifyPackage(installed.descriptor,trust).manifest;Object.assign(headers,await approvalAuthorityHeaders(metadataPool,manifest),await installedProviderHeaders(metadataPool,manifest,installed.configuration,trust));}
   }
   return http({ host: containerName(id), port: 8080, method, path,timeout,headers }, body);
 }
@@ -372,7 +373,7 @@ async function integrations(){
        if(enrolled&&typeof liveSourceRuntime.entityId==='string'&&liveSourceRuntime.entityId!==enrolled.entity_id)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
        const incomingIdentity=enrolled?{workerInstallationId:config.installationId,entityId:enrolled.entity_id,moduleId:m.moduleId,moduleInstallationId:source.operation_id,packageDigest:digest(canonical(source.descriptor))}:undefined;
        const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{}),...(smart?.scope?{'x-steward-peer-scope':JSON.stringify(smart.scope)}:{})},4000,incomingIdentity);
-       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor)),...(smart.scope?{destinationEntityId:smart.scope.destinationEntityId,destinationInstallationId:smart.scope.destinationInstallationId,destinationProgramId:smart.scope.destinationProgramId,sourceProgramId:smart.scope.sourceProgramId,grantId:smart.scope.grantId}:{})}}:response.value;}
+       if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor)),...(atLeast(m.minimumPlatformVersion,'0.15.0')&&response.providerConfigurationDigest?{providerConfigurationDigest:response.providerConfigurationDigest}:{}),...(smart.scope?{destinationEntityId:smart.scope.destinationEntityId,destinationInstallationId:smart.scope.destinationInstallationId,destinationProgramId:smart.scope.destinationProgramId,sourceProgramId:smart.scope.sourceProgramId,grantId:smart.scope.grantId}:{})}}:response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';
       }

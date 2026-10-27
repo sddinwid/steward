@@ -69,6 +69,21 @@ export function moduleFormCurrency(screen:ScreenContribution,values:Record<strin
  if(!screen.currencyReference)return typeof values.currency==='string'?values.currency:fallback;
  return choices[screen.currencyReference]?.choices.find(c=>c.value===values[screen.currencyReference!])?.currency;
 }
+/** Currency gates apply to controls actually shown, including populated nested rows. */
+export function moduleHasEditableMoney(fields:ModuleField[],values:Record<string,any>):boolean{
+ function shown(field:ModuleField,value:unknown):boolean{
+  if(field.readOnly)return false;
+  if(field.type==='object')return moduleHasEditableMoney(field.fields??[],value&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,any>:{});
+  if(field.type==='array')return Boolean(field.items&&Array.isArray(value)&&value.some(row=>shown(field.items!,row)));
+  return field.format==='money'||/Cents$/.test(field.name);
+ }
+ return fields.some(field=>!field.readOnly&&moduleFieldVisible(field,values)&&shown(field,values[field.name]));
+}
+export function moduleReferenceCurrencyReady(screen:ScreenContribution,values:Record<string,any>,choices:Record<string,ReferenceChoices>,fallback:string):boolean{
+ if(!screen.currencyReference||!moduleHasEditableMoney(screen.fields,values))return true;
+ const currency=moduleFormCurrency(screen,values,choices,fallback);
+ return Boolean(currency&&(!screen.fields.some(field=>field.name==='currency'&&!field.readOnly&&moduleFieldVisible(field,values))||values.currency===currency));
+}
 
 /** Conditions select presentation only. The module validates the complete submitted contract. */
 export function moduleFieldVisible(field:ModuleField,values:Record<string,any>):boolean{return !field.visibleWhen||values[field.visibleWhen.field]===field.visibleWhen.equals;}

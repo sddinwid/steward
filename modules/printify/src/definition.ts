@@ -1,3 +1,4 @@
+import {withProductionCostEvidence} from './cost-evidence.js';
 import {withExternalCatalog} from './external-catalog.js';
 import {synchronizePrintifyCatalog} from './catalog-sync.js';
 import {recordCatalogSync,catalogSyncUnavailable,catalogConnectionsConfigured} from './catalog-provenance.js';
@@ -7,7 +8,7 @@ import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,tran
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyPrintify,remote,ConnectorError,context,connectorState,issued,reconciled,page,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withExternalCatalog({manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
+export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withProductionCostEvidence(withExternalCatalog({manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
  const p=await find(ctx,'product',b.productId);ensure(p?.data.variants.some((v:Data)=>v.id===b.variantId&&v.isEnabled),'Unknown or unavailable Printify variant');ensure(!old||canonical(old.data)===canonical(b)||!(await records(ctx,'job')).some(j=>j.data.lines.some((l:Data)=>l.sku===b.sku)),'Used variant mapping is immutable; reconcile existing jobs before replacement',409);return b;
 }}],actions:[{path:'/authorize/:id',kind:'job',permission:manifest.moduleId+'.production.authorize',run:async(r,ctx)=>{
  ensure(ctx.config.productionEnabled===true,'Production is disabled in module configuration',403);ensure(r.data.status==='awaiting_authorization','Job is not awaiting authorization',409);
@@ -24,7 +25,7 @@ export function printify(manifest:ModulePackageManifest,secretFile?:string):Defi
  const raw=Buffer.from(String(b.bodyBase64??''),'base64');ensure(raw.length<=131072&&raw.toString('base64')===b.bodyBase64,'Invalid Printify webhook signature',403);
  const body=JSON.parse(raw.toString());const s=(await connectorConnections('printify',ctx.config.mode,secretFile)).find(s=>s.shopId===String(body.resource?.shop_id));ensure(s&&verifyPrintify(raw,s.webhookSecret,b.headers?.['x-pfy-signature']),'Invalid Printify webhook identity or signature',403);body.id=connectionSource(s.connectionId,body.id);ensure(manifest.connector!.webhookTopics.includes(body.type)&&String(body.resource?.shop_id)===s.shopId&&typeof body.id==='string'&&body.id.length<=120,'Printify webhook scope mismatch',403);
  const hash=digest(raw.toString()),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[body.id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[body.id,hash]);return{accepted:true,replay:false};
- }});}
+ }}));}
 async function mapLines(ctx:Context,lines:Data[]){const result=[];let connection:string|undefined;for(const l of lines){const m=await find(ctx,'mapping',l.sku);ensure(m,'Explicit Printify SKU/variant mapping required');const p=await find(ctx,'product',m.data.productId),v=p?.data.variants.find((v:Data)=>v.id===m.data.variantId&&v.isEnabled);ensure(v,'Mapped Printify variant unavailable');ensure(connection===undefined||connection===(p!.data.connectionId??'default'),'Production lines must belong to one supplier connection');connection=p!.data.connectionId??'default';result.push({product_id:p!.data.remoteSourceId??m.data.productId,variant_id:m.data.variantId,quantity:l.quantity});}return result;}
 export function validatePrintifyCurrency(secret:Data,currency:string){if(secret.mode==='live'&&secret.costCurrency!==currency)throw new ConnectorError('CONNECTOR_COST_CURRENCY_CONFIRMATION_REQUIRED');}
 
@@ -38,7 +39,7 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
  if(nextPoll(pool,runtime)>Date.now())return;deferPoll(pool,runtime,2000);const lock=await pool.connect();let acquired=false,catalogSynced=false;
  try{
   acquired=(await lock.query('SELECT pg_try_advisory_lock(8148001) acquired')).rows[0].acquired;if(!acquired)return;await bindConnectionIdentity(pool,runtime,s);
-  validatePrintifyCurrency(s,runtime.configuration.currency);await synchronizePrintifyCatalog(pool,runtime,s);catalogSynced=true;
+  await synchronizePrintifyCatalog(pool,runtime,s);catalogSynced=true;validatePrintifyCurrency(s,runtime.configuration.currency);
   const jobs=(await pool.query("SELECT * FROM business_records WHERE kind='job' AND data->>'status' NOT IN ('awaiting_authorization','canceled') AND coalesce(data->>'connectionId','default')=$1 ORDER BY key LIMIT 20",[s.connectionId])).rows;
   // Full bounded reconciliation also handles a lost create response; external_id alone is not an idempotency guarantee.
   const external=await pages(s,'orders');

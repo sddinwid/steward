@@ -1,5 +1,6 @@
 import type {ApiContribution,ModuleFormField,ModulePackageManifest,ScreenContribution} from '@steward/module-sdk';
 import {OFFERING_TYPES,SUPPORTED_PRICING_CURRENCIES,pricingCapability,catalogRequirement,catalogPricingRequirement} from '@steward/catalog-kit';
+import {COST_CATEGORIES,costEvidenceRequirement} from '@steward/catalog-kit/cost-evidence';
 
 export const pricingModuleId='steward.pricing.management';
 const permission=(name:string)=>pricingModuleId+'.'+name;
@@ -46,6 +47,19 @@ export const pricingApi:ApiContribution[]=[
  {operationId:'refreshSubject',method:'POST',path:'/refresh-subject/:id',permission:permission('catalog')},
  {operationId:'resolve',method:'POST',path:'/resolve/:id',permission:permission('read')}
 ];
+pricingApi.push(
+ {operationId:'listCostModel',method:'GET',path:'/cost-models',permission:permission('cost.read'),query},
+ {operationId:'createCostModel',method:'POST',path:'/cost-models',permission:permission('configure')},
+ {operationId:'updateCostModel',method:'PUT',path:'/cost-models/:id',permission:permission('configure')},
+ {operationId:'listCostInput',method:'GET',path:'/cost-inputs',permission:permission('cost.read'),query},
+ {operationId:'createCostInput',method:'POST',path:'/cost-inputs',permission:permission('configure')},
+ {operationId:'costObservationChoices',method:'GET',path:'/cost-observation-choices',permission:permission('cost.read'),query:customQuery},
+ {operationId:'requestCostInput',method:'POST',path:'/request-cost-input/:id',permission:permission('configure')},
+ {operationId:'nextCostPage',method:'POST',path:'/next-cost-page/:id',permission:permission('configure')},
+ {operationId:'deactivateCostInput',method:'POST',path:'/deactivate-cost-input/:id',permission:permission('configure')},
+ {operationId:'costInputOverview',method:'GET',path:'/cost-input-overview',permission:permission('cost.read'),query:customQuery},
+ {operationId:'contributionPreview',method:'POST',path:'/contribution-preview',permission:permission('cost.read')}
+);
 const screen=(screenId:string,title:string,listOperation:string,fields:ModuleFormField[],columns:string[],resource?:string,mutable=true):ScreenContribution=>({screenId,title,navigationLabel:title,navigationGroup:'Pricing Management',workspace:'business',formVersion:1,listOperation,fields,columns,...(resource?{createOperation:'create'+resource,...(mutable?{updateOperation:'update'+resource}:{})}:{})});
 const subjectFields=():ModuleFormField[]=>[choices('subjectKind','Price subject',['sku','catalog'],'sku'),conditional(text('sku','Standalone SKU',true,{maxLength:80}),'subjectKind','sku'),conditional(ref('catalogSubjectId','Verified Catalog offering or variant','verifiedSubjects'),'subjectKind','catalog')];
 const priceList=()=>ref('priceListId','Price list','listPriceList',true,'currency');
@@ -59,7 +73,7 @@ export const pricingScreens:ScreenContribution[]=[
  screen('price-lists','Price Lists','listPriceList',[recordKey(),text('name','Price list name',true,{maxLength:160}),choices('kind','Price list purpose',['retail','wholesale','customer','channel','promotion'],'retail'),currency(),choices('status','Price list status',['draft','active','inactive','archived'],'draft')],['name','kind','currency','status'],'PriceList'),
  {...screen('offering-prices','Offering Prices','priceDirectory',[...ruleFields(),readonly('subjectLabel','Offering or SKU'),readonly('priceListName','Price list')],ruleColumns,'PriceRule',false),currencyReference:'priceListId',actions:lifecycle},
  {...screen('channel-pricing','Channel Pricing','channelPrices',[...ruleFields().map(f=>f.name==='channel'?{...f,required:true}:f),readonly('subjectLabel','Offering or SKU'),readonly('priceListName','Price list')],ruleColumns,'PriceRule',false),currencyReference:'priceListId',actions:lifecycle},
- screen('promotional-pricing','Promotional Pricing','listPromotion',[recordKey(),text('name','Promotion name',true,{maxLength:160}),text('campaignReference','Campaign reference',false,{maxLength:200}),time('startsAt','Promotion starts'),time('endsAt','Promotion ends'),choices('status','Promotion status',['draft','active','inactive'],'draft')],['name','campaignReference','startsAt','endsAt','status'],'Promotion'),
+ screen('promotional-pricing','Promotional Pricing','listPromotion',[recordKey(),text('name','Promotion name',true,{maxLength:160}),text('campaignReference','Campaign reference',false,{maxLength:200}),ref('priceListId','Planned price list (metadata only)','listPriceList',false),time('startsAt','Promotion starts'),time('endsAt','Promotion ends'),choices('status','Promotion status',['draft','active','inactive'],'draft')],['name','campaignReference','priceListId','startsAt','endsAt','status'],'Promotion'),
  {...screen('scheduled-changes','Scheduled Changes','scheduledChanges',ruleDisplay(),ruleColumns),actions:lifecycle},
  screen('approval-history','Approval History','approvalHistory',[readonly('ruleName','Price proposal'),readonly('decision','Decision'),readonly('reviewer','Reviewer'),readonly('reviewedAt','Reviewed at'),readonly('reason','Review reason'),readonly('termsDigest','Exact reviewed terms')],['ruleName','decision','reviewer','reviewedAt','reason','termsDigest']),
  {screenId:'resolution-preview',title:'Price Resolution Preview',navigationLabel:'Price Resolution Preview',navigationGroup:'Pricing Management',workspace:'business',formVersion:1,preview:{version:1,operationId:'resolutionPreview',submitLabel:'Preview resolved price'},fields:quoteFields(true),columns:[]},
@@ -73,6 +87,43 @@ export const pricingScreens:ScreenContribution[]=[
  screen('resolution-history','Resolution History','resolutionHistory',[readonly('name','Subject'),readonly('status','Resolution status'),readonly('currency','Currency'),readonly('evaluatedAt','Evaluated at'),readonly('resolution','Historical resolution evidence')],['name','status','currency','evaluatedAt','resolution']),
  {...screen('promotional-prices','Promotional Price Proposals','promotionalPrices',[...ruleFields().map(f=>f.name==='promotionId'?{...f,required:true}:f),readonly('subjectLabel','Offering or SKU'),readonly('priceListName','Price list')],ruleColumns,'PriceRule',false),currencyReference:'priceListId',actions:lifecycle}
 ];
-export const pricingConfigurationSchema={type:'object',additionalProperties:false,required:['integrationsEnabled'],properties:{integrationsEnabled:{type:'boolean',default:false,description:'Enable explicitly approved Catalog read capabilities. Standalone SKU pricing remains available without Catalog.'},catalogMaxAgeSeconds:{type:'integer',minimum:10,maximum:3600,default:300,description:'Maximum age of a cached Catalog observation. Cached evidence does not prove current external state.'}}};
+pricingScreens.push(
+ {...screen('cost-models','Estimated Cost Models','listCostModel',[
+  recordKey(),text('name','Cost model name',true,{maxLength:160}),...subjectFields(),currency(),
+  ref('priceListId','Price list (optional configured default)','listPriceList',false,'currency'),text('unitOfMeasure','Explicit model quantity unit',true,{maxLength:40}),
+  choices('acquisitionMode','Required acquisition cost source',['supplier','production']),
+  {name:'requiredCategories',label:'Required variable cost categories (acquisition is always required)',type:'array',required:true,minItems:1,maxItems:7,items:choices('category','Required category',COST_CATEGORIES)},
+  text('scopeReason','Human cost scope and coverage reason',true,{format:'multiline',maxLength:1000}),choices('status','Cost model status (analysis only)',['active','inactive'],'active')
+ ],['name','subjectKind','currency','unitOfMeasure','acquisitionMode','requiredCategories','status'],'CostModel')},
+ {...screen('cost-inputs','Cost Evidence and Human Assumptions','costInputOverview',[
+  recordKey(),choices('kind','Evidence or explicit human assumption',['discover','provider','assessment','not-applicable'],'discover'),
+  conditional(choices('provider','Original cost provider',['procurement','printify']),'kind','discover'),
+  conditional(text('query','Source quote, SKU or product search',false,{maxLength:160}),'kind','discover'),
+  ref('modelId','Cost model (required except discovery)','listCostModel',false,'currency'),
+  conditional({...ref('observationId','Observed original cost evidence','costObservationChoices'),reference:{operationId:'costObservationChoices',valueField:'id',labelField:'choiceLabel'}},'kind','provider'),
+  conditional(text('name','Cost input name',true,{maxLength:160}),'kind','assessment'),
+  choices('category','Human category (supplier/production need provider evidence or explicit N/A)',COST_CATEGORIES,undefined,false),
+  conditional(choices('assessmentBasis','Human assessment basis',['estimate','unknown']),'kind','assessment'),
+  conditional(choices('currency','Assessment currency (derived from selected model)',SUPPORTED_PRICING_CURRENCIES),'kind','assessment'),
+  conditional({...numeric('amountCents','Human estimate amount (leave blank for unknown)',false,0,1000000000000),format:'money'},'kind','assessment'),
+  conditional(choices('chargeBasis','Explicit assessment charge basis',['per-unit','per-order','per-shipment']),'kind','assessment'),
+  conditional(text('unitOfMeasure','Explicit assessment quantity unit',true,{maxLength:40}),'kind','assessment'),
+  conditional({...numeric('minimumQuantity','Minimum assessment quantity',true,1,100000000),default:1},'kind','assessment'),
+  conditional(numeric('maximumQuantity','Maximum assessment quantity',false,1,100000000),'kind','assessment'),
+  conditional(numeric('exactQuantity','Exact assessment quantity (optional)',false,1,100000000),'kind','assessment'),
+  time('validUntil','Human assessment or N/A validity end',false),
+  text('reason','Human reason (evidence binding, assessment or explicit N/A)',false,{format:'multiline',maxLength:1000}),
+  readonly('status','Analysis evidence lifecycle'),readonly('currentStatus','Current evidence availability'),readonly('error','Unavailable evidence reason'),readonly('nextOffset','Next source page','number')
+ ],['kind','name','modelId','observationId','category','currentStatus','reason','nextOffset'],'CostInput',false),currencyReference:'modelId',actions:[
+  {label:'Request governed cost evidence',operationId:'requestCostInput',confirmation:'Read source estimates from the approved original provider? A discovered observation is not an activated analysis binding; an exact constrained read is required. This creates no financial or production obligation.'},
+  {label:'Read next cost source page',operationId:'nextCostPage',confirmation:'Read the next bounded page from this same source? No quote, cost or price is changed.'},
+  {label:'Deactivate analysis input',operationId:'deactivateCostInput',confirmation:'Stop this input being used for new prospective analyses? Original supplier quotes, provider observations and historical evidence remain unchanged.'}
+ ]},
+ {screenId:'contribution-preview',title:'Estimated Contribution and Scenario Preview',navigationLabel:'Estimated Contribution Preview',navigationGroup:'Pricing Management',workspace:'business',formVersion:1,currencyReference:'modelId',preview:{version:1,operationId:'contributionPreview',submitLabel:'Preview estimated contribution'},fields:[
+  ref('modelId','Cost model','listCostModel',true,'currency'),choices('currency','Scenario currency (derived from selected model)',SUPPORTED_PRICING_CURRENCIES),ref('promotionId','Promotion context (approved rules only)','listPromotion',false),{...numeric('quantity','Evaluated quantity',true,1,100000000),default:1},numeric('shipmentCount','Explicit planned shipment count',false,1,100000000),
+  {...numeric('scenarioUnitPriceCents','Prospective scenario unit price (not an approved price)',false,0,1000000000000),format:'money'}
+ ],columns:[]}
+);
+export const pricingConfigurationSchema={type:'object',additionalProperties:false,required:['integrationsEnabled'],properties:{costReadEnabled:{type:'boolean',default:true,description:'Permit governed read-only cost evidence and prospective contribution analysis. This does not activate prices or create financial records.'},costMaxAgeSeconds:{type:'integer',minimum:10,maximum:86400,default:300,description:'Maximum accepted cost observation age; original source leases and human assumption validity are never extended.'},integrationsEnabled:{type:'boolean',default:false,description:'Enable explicitly approved Catalog read capabilities. Standalone SKU pricing remains available without Catalog.'},catalogMaxAgeSeconds:{type:'integer',minimum:10,maximum:3600,default:300,description:'Maximum age of a cached Catalog observation. Cached evidence does not prove current external state.'}}};
 /** Signed optional metadata requests current local reviewer facts; it grants no permission. */
-export function pricingManifest(migrations:{version:number;sha256:string}[]):ModulePackageManifest{return{manifestVersion:1,sdkVersion:1,moduleId:pricingModuleId,version:'1.1.0',name:'Pricing Management',description:'Independent entity-owned price lists, immutable proposals, separate human reviews and activation, deterministic resolution and historical evidence. No external publishing or payment execution.',minimumPlatformVersion:'0.15.0',dependencies:[],requiredPermissions:['storage.own-database'],approvalServices:{contractVersion:1,reviewerPermission:permission('review')},api:pricingApi,ui:pricingScreens,configurationSchema:pricingConfigurationSchema,persistence:{isolation:'dedicated-database',schemaVersion:migrations.length,migrations,destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],integration:{version:1,outboxPath:'/integration-outbox',inboxPath:'/integration-inbox',acknowledgmentPath:'/integration-ack',peers:[]},smart:{version:1,provides:[{...pricingCapability(pricingModuleId),configuration:{}}],consumes:[{...catalogRequirement(true),configuration:{integrationsEnabled:true}},{...catalogPricingRequirement(true),configuration:{integrationsEnabled:true}}],prerequisites:{configuration:{},requiresActive:true,requiresHealthy:true}}};}
+export function pricingManifest(migrations:{version:number;sha256:string}[]):ModulePackageManifest{return{manifestVersion:1,sdkVersion:1,moduleId:pricingModuleId,version:'1.2.0',name:'Pricing Management',description:'Independent entity-owned price lists, immutable proposals, separate human reviews and activation, deterministic resolution and historical evidence. No external publishing or payment execution.',minimumPlatformVersion:'0.15.0',dependencies:[],requiredPermissions:['storage.own-database'],approvalServices:{contractVersion:1,reviewerPermission:permission('review')},api:pricingApi,ui:pricingScreens,configurationSchema:pricingConfigurationSchema,persistence:{isolation:'dedicated-database',schemaVersion:migrations.length,migrations,destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],integration:{version:1,outboxPath:'/integration-outbox',inboxPath:'/integration-inbox',acknowledgmentPath:'/integration-ack',peers:[]},smart:{version:1,provides:[{...pricingCapability(pricingModuleId),configuration:{}}],consumes:[{...catalogRequirement(true),configuration:{integrationsEnabled:true}},{...catalogPricingRequirement(true),configuration:{integrationsEnabled:true}},costEvidenceRequirement('procurement',true),costEvidenceRequirement('printify',true)],prerequisites:{configuration:{},requiresActive:true,requiresHealthy:true}}};}

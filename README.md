@@ -20,6 +20,8 @@ Commerce contribution reporting, governed operational alerts, compact MCP invest
 
 Phase 15 Catalog and Pricing work is in progress on `codex/phase15-catalog-pricing`. The selected operator remains on the verified Phase 14 deployment until its preservation and upgrade gates pass. See the [Phase 15 verification record](docs/phase15-verification.md), [Catalog guide](docs/phase15-catalog.md), [Pricing guide](docs/phase15-pricing.md), [business integration](docs/phase15-business-integration.md), and [read-only external catalog workflow](docs/phase15-external-catalog.md). No v0.15.0 release is accepted or tagged yet.
 
+The [prospective contribution methodology](docs/phase15-contribution-methodology.md) describes the in-progress cost scenarios, exact arithmetic, explicit assumptions and historical revenue boundary.
+
 ## Shopify development stores
 
 The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.

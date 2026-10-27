@@ -6,3 +6,7 @@ export * from './catalog-pricing.js';
 export * from './operational.js';
 export * from './module-services.js';
 export * from './external-catalog.js';
+
+export * from './cost-evidence.js';
+
+export * from './contribution.js';

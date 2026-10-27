@@ -1,0 +1,2186 @@
+{
+  "formatVersion": 1,
+  "release": "0.14.0",
+  "sourceCommit": "811793c89d13c05557ad468551c5a79290961eda",
+  "description": "Public released contracts for legacy modules extended in Phase15. Derived from the immutable v0.14.0 source commit; independent current package versions are intentionally excluded.",
+  "modules": [
+    {
+      "directory": "modules/sales",
+      "moduleId": "cee.sales",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "sales_demand",
+            "table": "sales_demand",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "commerce_orders",
+            "table": "commerce_orders",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": [
+            {
+              "moduleId": "cee.inventory",
+              "minimumVersion": "1.3.0",
+              "sends": [
+                {
+                  "command": "stock.reserve",
+                  "version": 1
+                },
+                {
+                  "command": "stock.release",
+                  "version": 1
+                },
+                {
+                  "command": "stock.consume",
+                  "version": 1
+                }
+              ],
+              "receives": []
+            }
+          ]
+        },
+        "integrationEvents": [
+          {
+            "name": "cee.sales.stock-reservation",
+            "version": 1,
+            "direction": "produced"
+          },
+          {
+            "name": "cee.sales.stock-release",
+            "version": 1,
+            "direction": "produced"
+          },
+          {
+            "name": "cee.sales.stock-consumption",
+            "version": 1,
+            "direction": "produced"
+          },
+          {
+            "name": "cee.sales.order-demand-upsert",
+            "version": 1,
+            "direction": "produced"
+          }
+        ],
+        "analyticalCapabilities": [
+          {
+            "name": "sales.summary",
+            "version": 1
+          },
+          {
+            "name": "sales.period-report",
+            "version": 1
+          }
+        ],
+        "simulation": {
+          "version": 1,
+          "role": "participant"
+        }
+      },
+      "api": [
+        {
+          "operationId": "listCustomer",
+          "sha256": "09743e0811e7525fa1a49c2ed253fb5d18ed38b12f1a1de3b759d2fa074f2d27"
+        },
+        {
+          "operationId": "createCustomer",
+          "sha256": "f733c25cb2fdd67d85107dc555d5e1e6645b3582de289b232ed30e23314c36f7"
+        },
+        {
+          "operationId": "updateCustomer",
+          "sha256": "f81d258066b65452aec9426e6d72ad6c70546df447a9d89afa9f527deff59ebc"
+        },
+        {
+          "operationId": "listOrder",
+          "sha256": "8689c11ddfe274555459609fd5e95caf20c947d4912f76f8238bf2b7dc34ebe5"
+        },
+        {
+          "operationId": "createOrder",
+          "sha256": "3b9edf48f427571aa2dd6ed07325aa0286c4e53b93882a62b7c07aaf989512ee"
+        },
+        {
+          "operationId": "updateOrder",
+          "sha256": "06b05ce50aceb555bfa21fa29095124c221b89993afd3dce6b369ffc58a6e8c2"
+        },
+        {
+          "operationId": "confirm",
+          "sha256": "d5b3afff62af2a3dc8db0e6b019e263ccef4380df7967b45b387da85f528d70c"
+        },
+        {
+          "operationId": "cancel",
+          "sha256": "f50c1abf47696d6e9e1b857b7dc652f034772627119d6c43cbf5e25f4ea13764"
+        },
+        {
+          "operationId": "listFulfillment",
+          "sha256": "6406b188fdb7ceca0667e41894c359dc70b62a821a75cc3cb457423b6bdd5c36"
+        },
+        {
+          "operationId": "createFulfillment",
+          "sha256": "d2a985eec812cdadcbdf459a612ebcea9861e4a82fd020996fc7aa14b304d162"
+        },
+        {
+          "operationId": "updateFulfillment",
+          "sha256": "22c7a75bcd678db4bf2c3a7d4c22bd4c4a53ceced8e63e2e75a8cd2bf7bada91"
+        },
+        {
+          "operationId": "reports",
+          "sha256": "a1409befe47090654c811acb37a12b80da9b8414bc2bc3e4e86b63157d1c7f5b"
+        },
+        {
+          "operationId": "integrationStatus",
+          "sha256": "947c306e059f048a406b9a2b1e571b99176c77ae993b9fd18fec1819b48cdef6"
+        },
+        {
+          "operationId": "salesByPeriod",
+          "sha256": "3a3e2a9290d4d15633a7614c570f903be155a286f1821df166cf278fa60a6f0b"
+        },
+        {
+          "operationId": "production",
+          "sha256": "5d3d03f08516060a6498c0f1a9915a329f192e8a41ec38d58c6748d499da8ff6"
+        },
+        {
+          "operationId": "publishCommerce",
+          "sha256": "293ff9482ef5f5deb1c8ea5f5ae3ffd176e81b2ed0ee712ade32965bce5bcc1c"
+        },
+        {
+          "operationId": "withdrawCommerce",
+          "sha256": "27fcb7c2434ba929ca3d552a655790a5b8ef09aafde0d707e306c873d013d5d8"
+        },
+        {
+          "operationId": "commerceIntelligence",
+          "sha256": "d0939665adb0e75f479971d124b5d1133f7ab5c84e46055550616a7fc64f1267"
+        },
+        {
+          "operationId": "commerceExceptions",
+          "sha256": "7bbd480d1c25f39c24a7a11d77099cff1909acd027d8348108270ce38c4306b6"
+        },
+        {
+          "operationId": "listAssessment",
+          "sha256": "3e7197a7220e0a6fcd8357c2fd1ad6c2e02ea17019e8c53c544638c4d85bca8f"
+        },
+        {
+          "operationId": "createAssessment",
+          "sha256": "be4851314dc59824c558b8ce89738d616317c950d5f6b695ef2c04e51531b8b4"
+        },
+        {
+          "operationId": "updateAssessment",
+          "sha256": "246ba8ffa791b5da8775a86c48e9e1b046d6d318b5d52a37590b7c4bce0e8a13"
+        },
+        {
+          "operationId": "simulationDatasets",
+          "sha256": "16151ad94d44a7f6ef82ab6af3d70411835a498009df38894ec364b95b4ffcf1"
+        }
+      ],
+      "screenIds": [
+        "customer",
+        "order",
+        "fulfillment",
+        "reports",
+        "integration-status",
+        "commerce-intelligence",
+        "commerce-exceptions",
+        "financial-assessment"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "commerce.orders.manage",
+            "abiSha256": "3b6d5368c6a6bede81421934de1bc0c3fce9a5faad7d36105dd322634309aab3",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "commerce.orders.fulfillment",
+            "abiSha256": "a69b55b4776681da0caa3bc797ba8ecad462656148ad86b07ee95426e2b28d62",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "simulation.sales.manage",
+            "abiSha256": "2ca2c47356cb7d5c2295d4d08018bc435b798b908354b5f1f6a63e9b64a1eb68",
+            "configuration": {
+              "simulationEnabled": true
+            }
+          },
+          {
+            "capabilityId": "simulation.commerce.orders",
+            "abiSha256": "4368716f65ae9217f0c0cbadaa14540d98d3d5bc72b072ba6002c5505bac2d13",
+            "configuration": {
+              "simulationEnabled": true
+            }
+          },
+          {
+            "capabilityId": "simulation.commerce.status",
+            "abiSha256": "2d59cd3a2baad26e344554f97ac86334702c0cefb7c74a82e6490956c5bc969e",
+            "configuration": {
+              "simulationEnabled": true
+            }
+          }
+        ],
+        "consumes": [
+          {
+            "capabilityId": "inventory.stock.reserve",
+            "abiSha256": "a9d445cf2bc35f7b6064d8da52eb0b49f0c83fde9672e63c4a4469f8e115c4d5",
+            "configuration": {}
+          },
+          {
+            "capabilityId": "fulfillment.orders.submit",
+            "abiSha256": "52ca220bbc83c7b781c978fd7e06c970bda3ca93c70dcd0de6cbf3c5d7e0b5fa",
+            "configuration": {}
+          },
+          {
+            "capabilityId": "commerce.channel.fulfillment",
+            "abiSha256": "2667c651a0ba8a495e8cebd613f4b3670cd104911bf3f30ef17970b1fb58f867",
+            "configuration": {}
+          },
+          {
+            "capabilityId": "simulation.inventory.reserve",
+            "abiSha256": "73c5ce0336acdd0455c045c22dc16d611faf9de476ee4b2f90a3916287a11186",
+            "configuration": {}
+          },
+          {
+            "capabilityId": "simulation.fulfillment.submit",
+            "abiSha256": "0229f977afea1f1a07905e55d0114cf6dfb6765284c032ac1dbf0fa14c611ca3",
+            "configuration": {}
+          },
+          {
+            "capabilityId": "simulation.channel.fulfillment",
+            "abiSha256": "f48da66e11c042cf5c25016e7fac9f12d3d690f4187d02d6191b1b4f91ba4ebb",
+            "configuration": {}
+          }
+        ]
+      }
+    },
+    {
+      "directory": "modules/inventory",
+      "moduleId": "cee.inventory",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "items",
+            "table": "inventory_items",
+            "idColumn": "item_id",
+            "revisionColumn": "revision",
+            "columns": [
+              "item_id",
+              "revision",
+              "sku",
+              "name",
+              "quantity",
+              "reserved_quantity",
+              "min_stock"
+            ]
+          },
+          {
+            "streamId": "replenishment_requirements",
+            "table": "replenishment_requirements",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": [
+            {
+              "moduleId": "cee.sales",
+              "minimumVersion": "1.0.0",
+              "sends": [],
+              "receives": [
+                {
+                  "command": "stock.reserve",
+                  "version": 1
+                },
+                {
+                  "command": "stock.release",
+                  "version": 1
+                },
+                {
+                  "command": "stock.consume",
+                  "version": 1
+                }
+              ]
+            },
+            {
+              "moduleId": "cee.procurement",
+              "minimumVersion": "1.0.0",
+              "sends": [
+                {
+                  "command": "stock.replenishment",
+                  "version": 1
+                }
+              ],
+              "receives": [
+                {
+                  "command": "goods.received",
+                  "version": 1
+                }
+              ]
+            }
+          ]
+        },
+        "integrationEvents": [
+          {
+            "name": "cee.inventory.stock-replenishment",
+            "version": 1,
+            "direction": "produced"
+          },
+          {
+            "name": "cee.inventory.goods-received",
+            "version": 1,
+            "direction": "consumed"
+          }
+        ],
+        "analyticalCapabilities": []
+      },
+      "api": [
+        {
+          "operationId": "listItems",
+          "sha256": "5ec5797a1bc915d0f1499231e6ac01b50af3fa369239bc53e60de1b290a52d9f"
+        },
+        {
+          "operationId": "createItem",
+          "sha256": "47f81d2413bbbf1bf25c77066c312f4bae799a215b1dfdbf4f81317e901ef490"
+        },
+        {
+          "operationId": "updateItem",
+          "sha256": "0a065a4e1b85ab1320552f036e71b06c98f051b256820bd2a00927cb936859e9"
+        },
+        {
+          "operationId": "integrationStatus",
+          "sha256": "95e16eeeb210dbce1078fe81f39e6632bd151452e355e635c474deb72b54bcc7"
+        },
+        {
+          "operationId": "listServiceStock",
+          "sha256": "b6bfab9cb90f5bd0ac39c5729433199ce62439fa450dbc0b83b3f5fbdc33c2d1"
+        },
+        {
+          "operationId": "createServiceStock",
+          "sha256": "6eba24b20b7bd8d9713b0e9d7ae8529e72e362d3cddd8ac409e38a0fe63716b0"
+        },
+        {
+          "operationId": "updateServiceStock",
+          "sha256": "e9611f3e3fd5f66c4c4ef18ab1200e217a1304924434c63026a229e1a6d84616"
+        },
+        {
+          "operationId": "listServiceSources",
+          "sha256": "15c0b4e37b534ac74abc76fcd09d41c8ee3a9baa41562558bbe9f9e0343b55dc"
+        },
+        {
+          "operationId": "createServiceSource",
+          "sha256": "40462c78dfbe72aea52eea21e9b8a2fd7e1812efc8af357b3d6b41a8c4954244"
+        },
+        {
+          "operationId": "approveServiceSource",
+          "sha256": "ebba59e1739a19e38578c9a9dae6b752373cd7098c309588fcde6adc6d7d7f63"
+        },
+        {
+          "operationId": "revokeServiceSource",
+          "sha256": "49147ce6546d2765822f11e67f60d8e048c240a8f627abf4e14f9280e244803a"
+        },
+        {
+          "operationId": "programAuthority",
+          "sha256": "97b244e5f8aa712777f92bed379af7ff91a1ae51ca070a1ced972a7e810e3eec"
+        }
+      ],
+      "screenIds": [
+        "items",
+        "service-stock",
+        "service-sources"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "inventory.stock.reserve",
+            "abiSha256": "5b380149e230f4e40176aaead0376723a50eb592af8ed4f3524fba754fc46417",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "inventory.service-stock",
+            "abiSha256": "29ef46b7f615564563b000c115083652a83a254f575166ed525ecf1de7320a99",
+            "configuration": {
+              "integrationsEnabled": true,
+              "syntheticServiceStock": true
+            }
+          }
+        ],
+        "consumes": []
+      }
+    },
+    {
+      "directory": "modules/stock-ledger",
+      "moduleId": "cee.stock-ledger",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": null,
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": []
+        },
+        "integrationEvents": [],
+        "analyticalCapabilities": [],
+        "simulation": {
+          "version": 1,
+          "role": "participant"
+        }
+      },
+      "api": [
+        {
+          "operationId": "listitem",
+          "sha256": "a6ec22d34680fafba4569cd8733058c6313783a12ddebcf960c2b6c70f5cf5fc"
+        },
+        {
+          "operationId": "createitem",
+          "sha256": "aca181eff2be94511164e72dcff278049f218f8c81d8861e28849ea2afc13e7e"
+        },
+        {
+          "operationId": "updateitem",
+          "sha256": "cd16bc5548e9e901a6d1af9e1e3b9a6c3f88e6f326f69c8b670fdd9245d78097"
+        },
+        {
+          "operationId": "listreservation",
+          "sha256": "60a9426b9c65d94af423cebcf602e7cca25682eadcc9436b7c318696cbc6c9e2"
+        },
+        {
+          "operationId": "simulationDatasets",
+          "sha256": "70c4df00cbe7f1e9be6eb66744e3992442d305a3a91562418a231a215f42088a"
+        }
+      ],
+      "screenIds": [
+        "item",
+        "reservation"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "inventory.stock.reserve",
+            "abiSha256": "42159368833fcd4f075d70f12e58cf680a23d1fd2e4e597eb1779f83398020d6",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "simulation.stock.manage",
+            "abiSha256": "ec3d19615d29f883e9fb02f4436f81202b62968943606555c01cd52bb305d723",
+            "configuration": {
+              "simulationEnabled": true
+            }
+          },
+          {
+            "capabilityId": "simulation.inventory.reserve",
+            "abiSha256": "1e65c5a995209c04d9f6802424e405bf0e10c427059ac17123edfa07af3824ba",
+            "configuration": {
+              "simulationEnabled": true
+            }
+          }
+        ],
+        "consumes": []
+      }
+    },
+    {
+      "directory": "modules/procurement",
+      "moduleId": "cee.procurement",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "procurement_demands",
+            "table": "procurement_demands",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "procurement_quotes",
+            "table": "procurement_quotes",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "purchase_commitments",
+            "table": "purchase_commitments",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": [
+            {
+              "moduleId": "cee.inventory",
+              "minimumVersion": "1.3.0",
+              "sends": [
+                {
+                  "command": "goods.received",
+                  "version": 1
+                }
+              ],
+              "receives": [
+                {
+                  "command": "stock.replenishment",
+                  "version": 1
+                }
+              ]
+            }
+          ]
+        },
+        "integrationEvents": [
+          {
+            "name": "cee.procurement.goods-received",
+            "version": 1,
+            "direction": "produced"
+          },
+          {
+            "name": "cee.procurement.stock-replenishment",
+            "version": 1,
+            "direction": "consumed"
+          },
+          {
+            "name": "cee.procurement.approved-demand-upsert",
+            "version": 1,
+            "direction": "produced"
+          }
+        ],
+        "analyticalCapabilities": [
+          {
+            "name": "procurement.summary",
+            "version": 1
+          }
+        ]
+      },
+      "api": [
+        {
+          "operationId": "listSupplier",
+          "sha256": "1074b45cd31259328ca9f329d2c3db606bfa572c68cd37ec77e7b502a7bf2a73"
+        },
+        {
+          "operationId": "createSupplier",
+          "sha256": "a27838526eefa4b24aa08aa193f4c1d6536be69b34e4b949cb51a67907fe16d2"
+        },
+        {
+          "operationId": "updateSupplier",
+          "sha256": "94afa1c04d621c64ac2e5d8c5a576b445b611d858d5908e7a017c55d86ec0f90"
+        },
+        {
+          "operationId": "listRequisition",
+          "sha256": "51559d416cbb178b6f8ad7841b495d319f3e79d6b68b276a580c490a21980ea8"
+        },
+        {
+          "operationId": "createRequisition",
+          "sha256": "f01ac6d52563c066cd883412566c2e522555f9fff7adb8daa832bcb2fd1a0ea5"
+        },
+        {
+          "operationId": "updateRequisition",
+          "sha256": "86e8c82de909cadf1ffcb003aaf7245a9046c7c9e4b98b8eb0d5b424095673b6"
+        },
+        {
+          "operationId": "publishDemand",
+          "sha256": "aaa62807bf02bbb550e79f8a45267ec6406cddc75583766ccd355387990baf06"
+        },
+        {
+          "operationId": "listOrder",
+          "sha256": "7154a6f997404028ef1caa3f1d3e7b282843d76c872ef21c7b6ceaf3293267d1"
+        },
+        {
+          "operationId": "createOrder",
+          "sha256": "083fe67c6567d6bcedb1d6be5f47a95125c175e5d650349c4ca810cbdc108680"
+        },
+        {
+          "operationId": "updateOrder",
+          "sha256": "aee6a7d632d8ae8b86b170fbb5c94a6fbeee4e3d128c87501e09f75f26e7ad2b"
+        },
+        {
+          "operationId": "submit",
+          "sha256": "fd512f8e4ecf31b0f7727e2ee594135240f47a906690b2f531b3c2f4f54e3dfa"
+        },
+        {
+          "operationId": "approve",
+          "sha256": "c7270f90915baeda9304e1a0b1734dafb845aa057efe9cdc5faedb906cd0fae7"
+        },
+        {
+          "operationId": "place",
+          "sha256": "8a607c59f02aadc544b6c9aa4041e786ed72ae663f489143ca530fce022f8142"
+        },
+        {
+          "operationId": "cancel",
+          "sha256": "08687b0a97685f6c023af1debabb35ec6a368c5d4f785cef8fa74c337a3e3e19"
+        },
+        {
+          "operationId": "listReceipt",
+          "sha256": "6dd6c0788cc5f44e23deed38a88d44cf7546ddd6d5f66c2b1f4b54f36e71d8ab"
+        },
+        {
+          "operationId": "createReceipt",
+          "sha256": "e04d9b193f092c6aba5a621c2cfa597b9f92766ea53ce8fd49db961bff0386e1"
+        },
+        {
+          "operationId": "updateReceipt",
+          "sha256": "7d87ad1d7e545e0351598da5b6d934de40faedf50d0950a97c726a4510281b31"
+        },
+        {
+          "operationId": "retryStock",
+          "sha256": "dcff033eb5bfacba79801cf3d5a2eebd5d9c2d769f1dab3bfff5423839e968b7"
+        },
+        {
+          "operationId": "listQuote",
+          "sha256": "592ca61ecc861568575e4867f715149b1f5e8cd92804e60fcfa5e4a2d3dbd075"
+        },
+        {
+          "operationId": "createQuote",
+          "sha256": "70df647ba5f6e17d7f64d3197cf527bb899595e0ac772de3ca415138de798677"
+        },
+        {
+          "operationId": "updateQuote",
+          "sha256": "d9390058ca84b2389f3d1317d7c97f008effd0f34773edc9bcfa4872323f0b11"
+        },
+        {
+          "operationId": "publishQuote",
+          "sha256": "5fb3b250dbe43ea2d66780f802d1205d3a955e2a18f6bf3b8cd9955ba3a62020"
+        },
+        {
+          "operationId": "reports",
+          "sha256": "a7c6bf64b18a56b666510dabe8b22779123d71d9f54fa94bb92c7b27a00b50c3"
+        },
+        {
+          "operationId": "integrationStatus",
+          "sha256": "5853d1a42914180b8f9a050f1921201ab662db0c7111cc8d5dd15a87629f2511"
+        },
+        {
+          "operationId": "withdrawDemand",
+          "sha256": "850031db05cb8c8a290f2f4258302b256848d6d5b9fd4d7ae3e14fbe5223f632"
+        },
+        {
+          "operationId": "withdrawQuote",
+          "sha256": "f15037c39a009fd5cdc4be8870062029500206779fb5bebd0184e2e190966be4"
+        },
+        {
+          "operationId": "listServiceSources",
+          "sha256": "93925b27100c6e02775d6a7134a6124de8029bd45b291eb853406fbd9b5caf24"
+        },
+        {
+          "operationId": "createServiceSource",
+          "sha256": "a77eaf7ffbba85480a30da0c7a6e76e84ac9f0df82e37f907ed21ec61437929e"
+        },
+        {
+          "operationId": "approveServiceSource",
+          "sha256": "28ad22f67fed7e180ff84eef113454cedd28921cffc9aad57fe7383c96dc5e15"
+        },
+        {
+          "operationId": "revokeServiceSource",
+          "sha256": "d34c538096179a2e6ef689788f642a59d3875b8a518014f1959b394cf34da89b"
+        },
+        {
+          "operationId": "listServiceReplenishments",
+          "sha256": "fcbc915a1ed6964d45e2d05d2c5650311997e60e7cf24c7d07fde56403c94a55"
+        },
+        {
+          "operationId": "programAuthority",
+          "sha256": "958bdfc2f416b15263d7780551fc4a680a28bf5439d8cb208e787c05909bb0cf"
+        }
+      ],
+      "screenIds": [
+        "supplier",
+        "requisition",
+        "order",
+        "receipt",
+        "quote",
+        "reports",
+        "integration-status",
+        "service-sources",
+        "service-replenishments"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "procurement.service-replenishment",
+            "abiSha256": "0d0c5ac746cdbd1cdf8e7984debec479e471c0351e6fc587393bc7467a628906",
+            "configuration": {
+              "syntheticServiceReplenishment": true,
+              "integrationsEnabled": true
+            }
+          }
+        ],
+        "consumes": []
+      }
+    },
+    {
+      "directory": "modules/housing-management",
+      "moduleId": "steward.housing.management",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "mission_aggregates_v1",
+            "table": "mission_aggregate_releases",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "mission_resources_v1",
+            "table": "mission_resource_allocations",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": []
+        },
+        "integrationEvents": [],
+        "analyticalCapabilities": [
+          {
+            "name": "housing.sealed-program-aggregates",
+            "version": 1
+          }
+        ],
+        "programServices": {
+          "contractVersion": 1,
+          "domain": "housing",
+          "syntheticOnly": true
+        }
+      },
+      "api": [
+        {
+          "operationId": "listPrograms",
+          "sha256": "ed4997ec374e628408c9183bed715b1015318abdb8949bea8964f2d28f0d28b2"
+        },
+        {
+          "operationId": "createProgram",
+          "sha256": "34f87784fb134e739ae04026444e06a6371bb926adca0fc27589b44f42c73c54"
+        },
+        {
+          "operationId": "updateProgram",
+          "sha256": "118ab4a6468492cabafd7fb94c931b592b4a5ea5dce4546ff3ee6ba90a72f429"
+        },
+        {
+          "operationId": "programmeOptions",
+          "sha256": "8ceb60d125a860576bf40b3b3a46c3828658bebf65622d938206e748b8c38839"
+        },
+        {
+          "operationId": "programAuthority",
+          "sha256": "f909bbd517b352b90ffd0d4cec40e6013885440583e0869c6b35a54fdd4531dc"
+        },
+        {
+          "operationId": "disclosureAuthority",
+          "sha256": "41f54c9980b712b6d003202f43699bfbc4d1832f94ab6dd0b3f0f3d830d756bf"
+        },
+        {
+          "operationId": "listProgrammeTeam",
+          "sha256": "a5307b6a393070b9b1d2d25b98ed0f3316fa64766407f5ee9fe25afdb45e39e3"
+        },
+        {
+          "operationId": "createProgrammeTeam",
+          "sha256": "2e6d0668df22172468a9dde2493e0c26d89abd8863369ed81c8268fab932bbd0"
+        },
+        {
+          "operationId": "updateProgrammeTeam",
+          "sha256": "986713f3b6baa19ad1d8aa3e12f3acbbdacded5d89a4994e44d0dca76d9728c1"
+        },
+        {
+          "operationId": "revokeProgrammeTeam",
+          "sha256": "1e5a4d6ebd77661288e8284e5498c1d9fbf57b112824b191e4bdef95f5950e63"
+        },
+        {
+          "operationId": "reviewProgrammeUpgrade",
+          "sha256": "fec565d32fd0d9fcad2d87441b669ed6c280e1f44738141581c4c252f1f58ab1"
+        },
+        {
+          "operationId": "financialDisclosureAuthority",
+          "sha256": "098d44d4a080f6f54852feee6af43f7fb829b6967bc10e6a8ec56033167a10f2"
+        },
+        {
+          "operationId": "listCaseAssignments",
+          "sha256": "6ad2efd681fbe56fbabc5aeb25c5f5c15a7466b9aab6569e0c5d9c33b42551cc"
+        },
+        {
+          "operationId": "createCaseAssignment",
+          "sha256": "d9a6f285cab57da7f850821cc038b1cc441f550b342ecc90e5fe280390076aa0"
+        },
+        {
+          "operationId": "updateCaseAssignment",
+          "sha256": "3992bffa325ea5a4727be5c8881bb4bb3412f2fd4074c7a4d7c118d9eb725ed8"
+        },
+        {
+          "operationId": "revokeCaseAssignment",
+          "sha256": "e06b6f492bf4df4110655a2ec58815393f19d7d9eb108c17946db014f6cc5de5"
+        },
+        {
+          "operationId": "listResourceAllocations",
+          "sha256": "733a1e7019e45196c79a426f132bce02426e5869a5019499487d4ffdc3bbc331"
+        },
+        {
+          "operationId": "createResourceAllocation",
+          "sha256": "75ee503545f29a94d0e2331c577d0520c4f9886b943975740cafbf30ad53c3e4"
+        },
+        {
+          "operationId": "updateResourceAllocation",
+          "sha256": "e2162eb7b7cd7e42b4fe9080510b2ed9f596eb727be94896a4ddc367c2ae1ac0"
+        },
+        {
+          "operationId": "publishResourceAllocation",
+          "sha256": "667d36b6ea865b0bf1ea44965ec6983d034c439d17e9b1122a3706eb873d3b52"
+        },
+        {
+          "operationId": "dispatchAuthority",
+          "sha256": "c1e78334f878e0fb89c2d71cfaae8e5b47ef0e8a41d0645bf8ce2e9da02891d2"
+        },
+        {
+          "operationId": "listProperty",
+          "sha256": "620d5ca2f5a67e259635e5f155147390dd419737c3fef49e79bb1567a6cb55ab"
+        },
+        {
+          "operationId": "createProperty",
+          "sha256": "0d2b6dc0f5923457a8325d1acfac5337c85b16452e7084a8877a4c3e2fca1e6f"
+        },
+        {
+          "operationId": "updateProperty",
+          "sha256": "60fa72a8623bc8ef15c38d124e0abcbcde350a0a37e8256337152d6f4c9b3d83"
+        },
+        {
+          "operationId": "listBuilding",
+          "sha256": "3d252d162b5be237e78d432e4b23451e8f82d7fb39bf9253d6cd3825262851bd"
+        },
+        {
+          "operationId": "createBuilding",
+          "sha256": "a9cae98bbbbcf81639e13e2b1126d113a0fa7c0b466866c7991425c91aa64549"
+        },
+        {
+          "operationId": "updateBuilding",
+          "sha256": "20cbf03932f393494a776ad0666d7d68de1bb49a18fb9ad4a0a6037ecc28d792"
+        },
+        {
+          "operationId": "listUnit",
+          "sha256": "f1a0d855c80a7ee28ad407df494ae61fa9476e80b7d790be542ff8d2579c7f30"
+        },
+        {
+          "operationId": "createUnit",
+          "sha256": "c7ef64796ef924fe8551c623542d9c8b096ae9c9596451cadd2f7038e5a03c17"
+        },
+        {
+          "operationId": "updateUnit",
+          "sha256": "e3c97ecb6c8b77434fc1a3f94d2a468f3af5de503ee6be1469ead974c35d350b"
+        },
+        {
+          "operationId": "listPlacement",
+          "sha256": "1e7b749e2e5f9b5bd644467a2b7c151264099f5eadb049691b99ef49926e2540"
+        },
+        {
+          "operationId": "updatePlacement",
+          "sha256": "8b503e5190c815583980a7ddfa5b2d50e290356e61cf93feed75b859f2b2db61"
+        },
+        {
+          "operationId": "listServiceSource",
+          "sha256": "0e8306cb96268d88a5abfdb78c15eb1d73879f8791e4e91dc44e1b939ac4aceb"
+        },
+        {
+          "operationId": "createServiceSource",
+          "sha256": "9f9e63c62825dc3fec941b77596798e203ced00f27fda48fc010d17db73ba3ec"
+        },
+        {
+          "operationId": "updateServiceSource",
+          "sha256": "13a1b13ecfe1f50b17f0579803607b85f028ee7202abc720281eb7edb2b1e29c"
+        },
+        {
+          "operationId": "listMaintenance",
+          "sha256": "1485981651449fedfaccc082fcb4ff10f027ddb79148de3e2a135d299f5777ec"
+        },
+        {
+          "operationId": "createMaintenance",
+          "sha256": "ff9c08be2385341cc1dc0c4ed5d0c5423d1d9fac2ed717520b99b2cd69286b7f"
+        },
+        {
+          "operationId": "updateMaintenance",
+          "sha256": "76e9c5906ef2099f9196486e91c45063989eed31800de7aa61cfeb4b499ab62d"
+        },
+        {
+          "operationId": "listFollowup",
+          "sha256": "0161490c5560c58f4e948bb37fa0da4d12ded430d20ee8ed58a0860d5fec5e6a"
+        },
+        {
+          "operationId": "createFollowup",
+          "sha256": "165b8097998096120714cb38da574e9b77be24b105208e79f2c492cbb707a8c9"
+        },
+        {
+          "operationId": "updateFollowup",
+          "sha256": "23d38ef954aa3454536c6b25cd16025c2f9a221cf13189d72b5091b7a6b06548"
+        },
+        {
+          "operationId": "listCost",
+          "sha256": "b04d673adcc931356abbfdc225e2a664686a4e13ac4652f1cfda458a3930666f"
+        },
+        {
+          "operationId": "createCost",
+          "sha256": "f21b4b57ad5e41e1d2b0c4f77e962c8417675991f98d3808d70372adfb775b93"
+        },
+        {
+          "operationId": "updateCost",
+          "sha256": "f63794073a6ffcf630aa4aa3e76fd4a83b62ef3d9dcee93ed3e4ef420afdf3ab"
+        },
+        {
+          "operationId": "listReleaseRequest",
+          "sha256": "5e272dfe0ebde6662dbc4b69a1ac1635c2d9709dbda406b96cb0d7e73243ba5e"
+        },
+        {
+          "operationId": "createReleaseRequest",
+          "sha256": "c2f2bb9dddfd39d9df14cb3d2ff827aafeaad8008be6a16c9e27c28b7076d7bd"
+        },
+        {
+          "operationId": "updateReleaseRequest",
+          "sha256": "de7ceb0516c27e9aba98baea9883f9607ee6627230c5ce5b3f3888586e94e256"
+        },
+        {
+          "operationId": "verifyProperty",
+          "sha256": "198affb089a6152a8fa3a114dc1eba7e060709ff623475cdc99d8904a0697c6b"
+        },
+        {
+          "operationId": "refreshPropertyCatalog",
+          "sha256": "634be7b3c6b036d8c98319360db3dbb5b8d3e60ccc62d4c977ccfa4019127dbe"
+        },
+        {
+          "operationId": "approveSource",
+          "sha256": "4e976886c317c0dc67ea2d085f3095bb1fa3528029f167851e7b628ebb0a3841"
+        },
+        {
+          "operationId": "revokeSource",
+          "sha256": "3ecfdef74e54b45ad7f7469515e6beed89e408de2fabf6dd627675fb55128ca2"
+        },
+        {
+          "operationId": "reviewPlacement",
+          "sha256": "006d13f0ae607c162167e20522f66918bddf329b68a091321a93bc34feadf65f"
+        },
+        {
+          "operationId": "approvePlacement",
+          "sha256": "28c95ef858c29d869dcfcb02330daefef0aa78967dbb30289562f62bee41e44e"
+        },
+        {
+          "operationId": "reservePlacement",
+          "sha256": "da6a64c58b652d772c6f537038eefe21d05a3b3104b5ef28670fd560d131561a"
+        },
+        {
+          "operationId": "confirmPlacement",
+          "sha256": "8adc0dd0ff9bc77dc027e87a394d2ba33f1dd55741c4f58d4182a6d9d6f9a599"
+        },
+        {
+          "operationId": "departPlacement",
+          "sha256": "7b925ba9e2ccabd7141853e305d3dbb7b2ea09aeba0e40a89de15457f12872ae"
+        },
+        {
+          "operationId": "withdrawPlacement",
+          "sha256": "f8d822d5dc16a28eb874c4059de1210eedfd0e208052fb3bf19cafdd9c5eff64"
+        },
+        {
+          "operationId": "rejectPlacement",
+          "sha256": "d29be77fba70d280f351c2ceb58ae6e6f729824cf0e2c63ed20a07a0687e2d55"
+        },
+        {
+          "operationId": "resolveMaintenance",
+          "sha256": "c5d1e4a5781b0926a04ca2e3481830d636c218fa9393a26da31ec9869b001859"
+        },
+        {
+          "operationId": "publishAggregate",
+          "sha256": "491ec37098c4c30ec06f80c16d8baaa5c34a447e37b2ff9c53e1dc3d33008c05"
+        },
+        {
+          "operationId": "propertyOptions",
+          "sha256": "abc17a8bde99a7e3561833b47fa886d1af934351567d0d92df5c591796f5c50e"
+        },
+        {
+          "operationId": "buildingOptions",
+          "sha256": "aed00e15e59a1e91395c28842075866a1ae187adff71cefa0107d98e3dff1fa7"
+        },
+        {
+          "operationId": "propertyReferenceOptions",
+          "sha256": "22630dcb95dba914cdb9908e1ac007c1ba369c00663d9d2a5e5a631c22aae169"
+        },
+        {
+          "operationId": "unitOptions",
+          "sha256": "4ebe4edc2efea6cfb60c7f1c108ba3c58c3efd2e0e2d868894bdfb5f76a24861"
+        },
+        {
+          "operationId": "placementOptions",
+          "sha256": "053043d5534ca39fc8bffa4e3b8259a165b835e16bef09b281829f8e0f583c19"
+        },
+        {
+          "operationId": "publishedAggregates",
+          "sha256": "a0a92f0f5240731841e9f6864ce75f45cbf32c2084ff5568ec67179ad4a67aa5"
+        },
+        {
+          "operationId": "referralStatus",
+          "sha256": "3f4a96361572750ce6de15e1c86aae654765cf416403afb0f3cd4e0c424ad1b5"
+        },
+        {
+          "operationId": "housingOverview",
+          "sha256": "e651b34e2562981feb9033a6b4b5a285b3a42b8a1e1ed432df98fe8d0e93c4ef"
+        },
+        {
+          "operationId": "housingAvailability",
+          "sha256": "509f1c2e4cf1e914d7eddbd9db08598c710fdcbc71ab21345613e8a3c0fa1ca2"
+        },
+        {
+          "operationId": "housingOccupancy",
+          "sha256": "2c80579b0e61c4c33179101dd42bceff277d64dfea1224c1987309e7e7d51e9e"
+        }
+      ],
+      "screenIds": [
+        "programs",
+        "programme-team",
+        "case-assignments",
+        "resource-allocations",
+        "properties",
+        "buildings",
+        "units",
+        "placements",
+        "service-sources",
+        "maintenance",
+        "followups",
+        "costs",
+        "release-requests",
+        "published-aggregates",
+        "housing-overview",
+        "availability",
+        "occupancy"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "housing.placement",
+            "abiSha256": "219d34d1942c9340b3e1ceb86f0dcff75203813af826a2cdf6017eb0dfc183af",
+            "configuration": {
+              "syntheticOnly": true,
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "mission.cost-evidence",
+            "abiSha256": "ea900ee6aa202d98cad109b16ebfd20dcd6d95eb8478bd08c3fc4a8f00453637",
+            "configuration": {
+              "syntheticOnly": true,
+              "integrationsEnabled": true
+            }
+          }
+        ],
+        "consumes": [
+          {
+            "capabilityId": "property.authority",
+            "abiSha256": "c6b0e37c2ed2eb3d863e684cd2dd045d36e23abf744b15f0686c72d1488fce3c",
+            "configuration": {
+              "syntheticOnly": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "directory": "modules/services-food",
+      "moduleId": "steward.services.food",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "mission_aggregates_v1",
+            "table": "mission_aggregate_releases",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "mission_resources_v1",
+            "table": "mission_resource_allocations",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "inboxPath": "/integration-inbox",
+          "acknowledgmentPath": "/integration-ack",
+          "peers": []
+        },
+        "integrationEvents": [],
+        "analyticalCapabilities": [
+          {
+            "name": "approved-food-programme-aggregates",
+            "version": 1,
+            "description": "Human-reviewed immutable privacy-protected programme food activity and operating costs; no recipient or stock ledgers."
+          }
+        ],
+        "programServices": {
+          "contractVersion": 1,
+          "domain": "food",
+          "syntheticOnly": true
+        }
+      },
+      "api": [
+        {
+          "operationId": "listPrograms",
+          "sha256": "3023c77f0b193b6b71e0026152ca8b9d22069ac0970e8a071bb0392842fd44cf"
+        },
+        {
+          "operationId": "createProgram",
+          "sha256": "01834a06d701528ec01864d00552a51b13a9bcf8ef05542512e204f2569f0c1b"
+        },
+        {
+          "operationId": "updateProgram",
+          "sha256": "7722619a5ebd14108e4c31badbf13d20b56ab6dcb3e0c7d745e2520a71a37e7c"
+        },
+        {
+          "operationId": "programmeOptions",
+          "sha256": "005e08c11620b8ae998bffa074cb280992804df818bb90f72eb7320d99a2c6d4"
+        },
+        {
+          "operationId": "programAuthority",
+          "sha256": "d67c3fa85b782e53f8991df5d3845143ec2ef09c0c3dcfa7440f3a012f7d83b5"
+        },
+        {
+          "operationId": "disclosureAuthority",
+          "sha256": "53b707f894c7afdc5684979f004194f04e271430905d74cc9a369f750f127fd3"
+        },
+        {
+          "operationId": "listProgrammeTeam",
+          "sha256": "361244dbbc4dacf813d72bd10d0859ac560ea880662483a1b3d471915dada16b"
+        },
+        {
+          "operationId": "createProgrammeTeam",
+          "sha256": "9228ef01da2e45033a7197c41bbf1805529b8fdfbe744169dca904d6d764f202"
+        },
+        {
+          "operationId": "updateProgrammeTeam",
+          "sha256": "1b5b32c2dba1933b98c42809b162b895a5aff45f584a9efb04363e33c9e8accd"
+        },
+        {
+          "operationId": "revokeProgrammeTeam",
+          "sha256": "10860cb17b00205621a1da633ebaa4ce7b0b538f1cbc754a0979292b64421eb8"
+        },
+        {
+          "operationId": "reviewProgrammeUpgrade",
+          "sha256": "ce7665d13be9cd0a9c852d5e73ccc7b916f20817062a71a2a4b25ca4edff885b"
+        },
+        {
+          "operationId": "financialDisclosureAuthority",
+          "sha256": "dabb18c6646f7061398a31bd88000031e07ccf28c340f6dc24d45b2a92fb3b8d"
+        },
+        {
+          "operationId": "listCaseAssignments",
+          "sha256": "b3c176cc06089a7562f99beff5b016ebc68be5707fadb6511565c38703ab373c"
+        },
+        {
+          "operationId": "createCaseAssignment",
+          "sha256": "06c3557ff5d129d427624b2cc2c10672c75e56e6e370609868e4e69ca98815d7"
+        },
+        {
+          "operationId": "updateCaseAssignment",
+          "sha256": "538cb7557944abcdf210d16303b090ac8cec0d1bb832bed9159289c6cbcecbde"
+        },
+        {
+          "operationId": "revokeCaseAssignment",
+          "sha256": "8ec7fe23ed37e69498c61e559afd3174f5d1ff998b85ade84fd94e7b6edd925b"
+        },
+        {
+          "operationId": "listResourceAllocations",
+          "sha256": "3eb3ec5d44e7388fe8a1022ca6edb7f499db166fe11c136cf6ae91c916ef4762"
+        },
+        {
+          "operationId": "createResourceAllocation",
+          "sha256": "e300e643bc22ca81ebe62c36fbd3884c0f7a66c5cf07962fe620e213148caaff"
+        },
+        {
+          "operationId": "updateResourceAllocation",
+          "sha256": "fa70298434034407bf88dc2f1d54d7add7550b02602fbe7b80d1a056e9b04cc5"
+        },
+        {
+          "operationId": "publishResourceAllocation",
+          "sha256": "df1ab03d33aa03e5eb005cedd2f108256cf3f536cd0b728f630fa36c0bbd7d81"
+        },
+        {
+          "operationId": "listSite",
+          "sha256": "4676e58013fba180a2d6a2b10eed3456ec05ed096528b3edd785d7ae62bfafed"
+        },
+        {
+          "operationId": "createSite",
+          "sha256": "5651464a6af05c80be83ec53d70cf7a897f3fbcdb58723889fa2edbf5f8bae93"
+        },
+        {
+          "operationId": "updateSite",
+          "sha256": "a7a845dd527f6aaf8fe3ae416e57e4452e96793bd09190b397ad006d3c2d54e5"
+        },
+        {
+          "operationId": "listSession",
+          "sha256": "22a2240603e4e3fb8bf12b6e9d984e6e54ca911878fb2536e681bea9f798696c"
+        },
+        {
+          "operationId": "createSession",
+          "sha256": "b91fdb5e0092b3882bb14051298ae5d9d6136a5cec6ab7e93166c4a8786c354c"
+        },
+        {
+          "operationId": "updateSession",
+          "sha256": "5ba42653943d64cb01000ac906608fa49cb724d8ed945a4580590c0067b61924"
+        },
+        {
+          "operationId": "listStock",
+          "sha256": "1ffab269a92e13780e81ad9021c9064b2691baaf495851b2c0550d9428e3a41b"
+        },
+        {
+          "operationId": "createStock",
+          "sha256": "27252a1020df92279cc447fa2d9d120005c8196d5c535d3d7b4a2afcaa2bce54"
+        },
+        {
+          "operationId": "updateStock",
+          "sha256": "7b3e7af28c3a88a0eb43a2f4f6cef7291b864829c60a034aa9a149ead72cb926"
+        },
+        {
+          "operationId": "observeSupplies",
+          "sha256": "26204d0b04a68b84454edb3cb78d7994997be0ad0cc7510b8a7ddca9489c9f87"
+        },
+        {
+          "operationId": "listDelivery",
+          "sha256": "d87dc2e59b93b24ad55019df0e2db19a515c9d524d313821b7178c195679feb1"
+        },
+        {
+          "operationId": "createDelivery",
+          "sha256": "e2ca43dfedac8474a5f2db66ca60d861ebc529a206c9f5916f38aa751c5ec115"
+        },
+        {
+          "operationId": "releaseSupplies",
+          "sha256": "0beaf6d468407ebc3b91b5a8fbe32bf085680da516820a5839e182699e928eb3"
+        },
+        {
+          "operationId": "listServiceSource",
+          "sha256": "4c66baa57ca3f2534ed83edc32bd1e838a9b791c99312ae4ec0e19c36d9cfe51"
+        },
+        {
+          "operationId": "createServiceSource",
+          "sha256": "c10bf4349b951bb51123b312b1b0aebb14c76b2db3f46bd50e91814b37ebdfb5"
+        },
+        {
+          "operationId": "updateServiceSource",
+          "sha256": "21fab8f5625ff14af84e84e06494d4878169052b75c990a7aff8a059d9dacffa"
+        },
+        {
+          "operationId": "approveSource",
+          "sha256": "668584179d3dae783b1b52ae9137a8d62d833b8835380940b93b0dad90de0ac1"
+        },
+        {
+          "operationId": "revokeSource",
+          "sha256": "629f4c56b8ccd9a77545c8f5fc9a33c4725aede003bbcf7af541899544ee4a2c"
+        },
+        {
+          "operationId": "listReferral",
+          "sha256": "9bb9042a313967e092b7edc1ab71f0e59eda6f54c69db5bdf9fe93ac7d04bbb4"
+        },
+        {
+          "operationId": "updateReferral",
+          "sha256": "a70c6b5f7208fa1c97a0c6cd67c543592d028584218f8d769a2cd7c7351bca4e"
+        },
+        {
+          "operationId": "acceptReferral",
+          "sha256": "f75743761bc3a7ce3d3a2609a11eb7924692a9919c3214f5878f92d0094c0619"
+        },
+        {
+          "operationId": "rejectReferral",
+          "sha256": "828c203830f323163e85086e082d72b0098b129292f2249333c957c3f7ea6b81"
+        },
+        {
+          "operationId": "deliverReferral",
+          "sha256": "ea19233fc9b3a7d8fa145d72c8a6cf664bff794fe3eb6f782ed8f644e9e2a2de"
+        },
+        {
+          "operationId": "listInterruption",
+          "sha256": "8c89325403cbfb0c58201e56291b4068752ffa0e1d3e48aea7fb7fe53588c533"
+        },
+        {
+          "operationId": "createInterruption",
+          "sha256": "3ce3d6de2a0e42b40bb154c04d98ea1dd01d88a8cb1d4e138307eaddb90834c0"
+        },
+        {
+          "operationId": "resolveInterruption",
+          "sha256": "35d94f5acaa7b32f74259012f6b4a561cfd35a6a0cf8e26fe54870fff4b65df7"
+        },
+        {
+          "operationId": "listCost",
+          "sha256": "531f76dc682a41dc26e585cbbe9cd8bc9b759041aa3b719f314f35f446329d7a"
+        },
+        {
+          "operationId": "createCost",
+          "sha256": "cafee2c87c1be0f062035551ec31a78d021f193e3ff95958e9b448d668b579c6"
+        },
+        {
+          "operationId": "listReplenishment",
+          "sha256": "ce029c41c87677515358a4ee1b34e9cbe3bbf4fc0246960dc1eb3b071e81589d"
+        },
+        {
+          "operationId": "createReplenishment",
+          "sha256": "c5532733a41d8b5fe9f6b17074fd0c22c0376fff85b2822eba9276b9b67aeea1"
+        },
+        {
+          "operationId": "submitReplenishment",
+          "sha256": "e04ad921f0b6aaced254975b7b9599e199bcb4cd623b6f0c3885fcd82fb2d0c1"
+        },
+        {
+          "operationId": "listReleaseRequest",
+          "sha256": "c8d5404a99878b5d68b56ed6baa9cc0584810b5d4e313b9b9f8d9cf8424395c6"
+        },
+        {
+          "operationId": "createReleaseRequest",
+          "sha256": "a01057d8c3dcab70807a1bed8c07c951ae0e4a45b8b7983664c67d85d15b930b"
+        },
+        {
+          "operationId": "publishAggregate",
+          "sha256": "ef9f06cd7e1170713409a4a50c0089409ccb4346cee8e2a9dffd017b4ffe8660"
+        },
+        {
+          "operationId": "siteOptions",
+          "sha256": "11b539d253b4407c675417fe88bebf4a711c27703968095f38052f497ad5d65a"
+        },
+        {
+          "operationId": "sessionOptions",
+          "sha256": "fec1ae9db28043bc6d96b32fcf7de1ff6fdb79c2e7c4e045a5ca88becfd6fc0b"
+        },
+        {
+          "operationId": "stockOptions",
+          "sha256": "c20070e0fa5ba575d4168fcf5a0cd3df04222abeaa417edfa09670f862a408fd"
+        },
+        {
+          "operationId": "deliveryOptions",
+          "sha256": "fa95456512daaa543699cab54d315a07e733427781fad20040c8d28876be24ca"
+        },
+        {
+          "operationId": "programmeSummaries",
+          "sha256": "00b65cddb94ba3adf679de1636bcecab61e5396634af6a74923b71305c20f161"
+        },
+        {
+          "operationId": "programmeOverview",
+          "sha256": "041511b0e09050388a2d616152ae536fc2d1f5f66af6a685e4fafdc76adcab64"
+        },
+        {
+          "operationId": "referralStatus",
+          "sha256": "164bfec212902a7e2bbf21f6ca3e5d8ce9e5306e2e14273bfdb91daa455aacda"
+        },
+        {
+          "operationId": "dispatchAuthority",
+          "sha256": "96061634d350f5cd43a565036af8e8a004f37c0f87ec254983d09360fcaaf003"
+        },
+        {
+          "operationId": "publishedAggregates",
+          "sha256": "b8f629df605ddde34cdab85ada5615fc76dc7cdacfe1dff5fcd86426de019d4e"
+        }
+      ],
+      "screenIds": [
+        "food-overview",
+        "programs",
+        "programme-team",
+        "case-assignments",
+        "resource-allocations",
+        "site",
+        "session",
+        "stock",
+        "service-deliveries",
+        "service-source",
+        "referral",
+        "interruption",
+        "cost",
+        "replenishment",
+        "release-request"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "food.service",
+            "abiSha256": "701ab5700e2197c231e5ddef85d831c4e089aa4195d488a4a875dc474fc4bc6c",
+            "configuration": {
+              "syntheticOnly": true,
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "mission.cost-evidence",
+            "abiSha256": "f1eb09eeeaa3b25c866cfdad224e6a081715db0e595fc94c957b97d67c57a2ba",
+            "configuration": {
+              "syntheticOnly": true,
+              "integrationsEnabled": true
+            }
+          }
+        ],
+        "consumes": [
+          {
+            "capabilityId": "inventory.service-stock",
+            "abiSha256": "0d175f48ec385eed38682e72b28033b1afe738c092d9e670f42e90fadbacac9a",
+            "configuration": {
+              "syntheticOnly": true
+            }
+          },
+          {
+            "capabilityId": "procurement.service-replenishment",
+            "abiSha256": "ee005ada85119e15af0c1531bfb77003875d591108c2afaf530c98454ad722d7",
+            "configuration": {
+              "syntheticOnly": true
+            }
+          }
+        ]
+      }
+    },
+    {
+      "directory": "modules/workforce",
+      "moduleId": "cee.workforce",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "workforce_supply",
+            "table": "workforce_supply",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "training_metrics",
+            "table": "training_metrics",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          },
+          {
+            "streamId": "workforce_demand",
+            "table": "workforce_demand",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": []
+        },
+        "integrationEvents": [
+          {
+            "name": "cee.workforce.approved-aggregate-upsert",
+            "version": 1,
+            "direction": "produced"
+          }
+        ],
+        "analyticalCapabilities": [
+          {
+            "name": "workforce.summary",
+            "version": 1
+          }
+        ]
+      },
+      "api": [
+        {
+          "operationId": "listSkill",
+          "sha256": "d1591a15305e8034510268717dff8b822cc27c3bd965186b20aff5a925d02a65"
+        },
+        {
+          "operationId": "createSkill",
+          "sha256": "4f2a370f67f0485e3d53bf8036dfac9a0a7a1cb037f872b55161c215b9b1150b"
+        },
+        {
+          "operationId": "updateSkill",
+          "sha256": "a783d41c62af1e7447edc644f7064d199f734d6a45189d23d187f85504ade677"
+        },
+        {
+          "operationId": "publishSkills",
+          "sha256": "b16a1e083d98c34bd3fcbb0d8a50738e49a8830287a1959603fb0c93496f3576"
+        },
+        {
+          "operationId": "listPerson",
+          "sha256": "14deec776e57b362fc451e48cd1400a66d2a7a31109f920a573f8cf0ef3c0551"
+        },
+        {
+          "operationId": "createPerson",
+          "sha256": "7ba34c55364dd432c894d3cd7a26f350dea1e4b73d24af42af9c145aed7b7a81"
+        },
+        {
+          "operationId": "updatePerson",
+          "sha256": "11b3cfdb4fbcc555b0597c68914fc9e3a53bbfada71d879b4bf47c3eedc8fc1b"
+        },
+        {
+          "operationId": "listProgram",
+          "sha256": "20fd5c30de56155b9baac5850743d3314c414e339ea30267974d8c99a8871e8f"
+        },
+        {
+          "operationId": "createProgram",
+          "sha256": "f51260372cb0a3544c5762a83e83a884396b5ac5d6d3acb6ebb0fe4d65ce4d31"
+        },
+        {
+          "operationId": "updateProgram",
+          "sha256": "3e2de8ba7e9d5b13fb606cd8b4f2f9c493f162c3d3818f4720c30929ba8eb324"
+        },
+        {
+          "operationId": "publishProgram",
+          "sha256": "f854fb2cae10406cf9d8e5f1212a25fc297b81356b95be1db432e48bf4148cf8"
+        },
+        {
+          "operationId": "listEnrollment",
+          "sha256": "819f154c844b07fb4e98d2269a939abbf384f22f1c2b955f2c041c332f9cae84"
+        },
+        {
+          "operationId": "createEnrollment",
+          "sha256": "4172f67d0efb9540f763d159cdd4a1225002f0ce56a5cc4469ff46bca84a353e"
+        },
+        {
+          "operationId": "updateEnrollment",
+          "sha256": "ae66e06e097535591bfd22d66997421c578b0a5ff1edad6cb56a1a16f4ca8c7e"
+        },
+        {
+          "operationId": "complete",
+          "sha256": "a4bb2441e05b1903dac4afbc655e3553470c515585b33b84c83b5de55aab47dc"
+        },
+        {
+          "operationId": "listAchievement",
+          "sha256": "c218cc77777ff8e0fa7fb2df714f440359ef712e07e6f7666a59ed9c4f27b947"
+        },
+        {
+          "operationId": "listPosition",
+          "sha256": "cd638ae45f4befd6c9132a242f2bd147412c5f2a8809f44b4de5bd7fa4e8d713"
+        },
+        {
+          "operationId": "createPosition",
+          "sha256": "1e094a1e0cd51548abd40412530ccf8a9fbc591c874ca3ea2ecd89b5170b1c19"
+        },
+        {
+          "operationId": "updatePosition",
+          "sha256": "617358201701fb5a6d830fe4a4e6c7c21c574e568fa9ceb97c69d96dd0b4de0a"
+        },
+        {
+          "operationId": "publishPosition",
+          "sha256": "8dc09ce1c98eaf3b1853f0a39c120577eba2ce4c7cd3adfecd0b425393937131"
+        },
+        {
+          "operationId": "reports",
+          "sha256": "dd86fa7bd0cb3132e7376a94758d5fd7961811225aec9c90aa45673c802747a0"
+        },
+        {
+          "operationId": "integrationStatus",
+          "sha256": "1b7f456606bbd0830d622dc80a30a567d242e43d082ac48bda31439464cf730e"
+        },
+        {
+          "operationId": "candidateMatches",
+          "sha256": "2f9d82b37c4c1fc47c480a175e2e591c0af37dc60b82fb29c37555e09e250a28"
+        },
+        {
+          "operationId": "withdrawSkills",
+          "sha256": "090e2a48c7a7756c0a2fc65c06a9009ab12426e6d2813b0fdb916fec8e261dec"
+        },
+        {
+          "operationId": "withdrawProgram",
+          "sha256": "5fbe6a3a5799e4f12a4ca21ca1fdb054d3a489c0c22d929cb8795fe39d4e1f45"
+        },
+        {
+          "operationId": "withdrawPosition",
+          "sha256": "0eb4c67295e4f3bb4a95bb14323477da22a7435876a6abbb8dafec01b87d301a"
+        },
+        {
+          "operationId": "listPrograms",
+          "sha256": "c8b6b08e51638701d85055c25744f4da36425c4527f7d9dd72211dfd67cafee3"
+        },
+        {
+          "operationId": "createServiceProgram",
+          "sha256": "ba57cdca485603b3a17005dba8d2db894e71f816de96b860e42b62d0d828d943"
+        },
+        {
+          "operationId": "updateServiceProgram",
+          "sha256": "429772d81975eb59e585b7f63c73ca6ddc72a5b95bc85bac5e3b4f1ae866caa8"
+        },
+        {
+          "operationId": "programmeOptions",
+          "sha256": "962b76d529584982908e246bb46d2294f0f34a4663fa241463e2a6fc7288acf7"
+        },
+        {
+          "operationId": "programAuthority",
+          "sha256": "92291e10b153a6badd22dc046638c48026f2ccacb86fe5900c04b4b088b228ed"
+        },
+        {
+          "operationId": "disclosureAuthority",
+          "sha256": "e3b94df1864dcd5d56e0e21d2df0ed6f72474e87c3d79d7be26f21784415d573"
+        },
+        {
+          "operationId": "listProgrammeTeam",
+          "sha256": "a10ac387f3a71115cdad492a3a4ad0a90459f1c6f086ecfaefdd38e9d305a454"
+        },
+        {
+          "operationId": "createProgrammeTeam",
+          "sha256": "01f200a9b11957d5d08768faa7a2392901aac25b73dcbdeea62c27e95ae87fbe"
+        },
+        {
+          "operationId": "updateProgrammeTeam",
+          "sha256": "2be83353376139e56373362734efdb8bbfd9c4a7d3247556f14cb1f6e7c3f977"
+        },
+        {
+          "operationId": "revokeProgrammeTeam",
+          "sha256": "48080e532a4de0b159860ea1dc9f39f1be6d0345e2b62aacb39c798eb313c604"
+        },
+        {
+          "operationId": "reviewProgrammeUpgrade",
+          "sha256": "9aceb7719243b094fd55b1d9da8d9663f098266e4c0874be8f8ea1f34d6af1c5"
+        },
+        {
+          "operationId": "financialDisclosureAuthority",
+          "sha256": "9065baf8162dcffd136a87a3ad75d8e3c34c7a32957bce7a0f794161c124df18"
+        },
+        {
+          "operationId": "listCaseAssignments",
+          "sha256": "7a54631a1b1455994b2a1e34a0cfd284968adc67fa4bf60ebd5ba9171fdb4268"
+        },
+        {
+          "operationId": "createCaseAssignment",
+          "sha256": "9698d0c5af7e9ee685bbda5cf289070b835ead1a01047ca26a5b0e5737d70772"
+        },
+        {
+          "operationId": "updateCaseAssignment",
+          "sha256": "22300a9dad328efb0cf50c7df85920f5bdaebd3b6a56b718e4aaeadf95ff99ea"
+        },
+        {
+          "operationId": "revokeCaseAssignment",
+          "sha256": "1bfd8c6e651592af886b683e6405556f5e1dce5366a81374f45eec03eee71c8e"
+        },
+        {
+          "operationId": "activateServiceProgram",
+          "sha256": "c82c4d7711d37a3f10db54d6eb9864bdbe476c76ba30093a130d5fb722bf5d13"
+        },
+        {
+          "operationId": "approveServiceSource",
+          "sha256": "9398b1f49076a1ac4037ac125b39e4c8e6f6d49c7e11060552a39946ab9daf29"
+        },
+        {
+          "operationId": "revokeServiceSource",
+          "sha256": "ef96fdbb17f193601f8e906ec9a4f3e6b8313cce4bb5ae94915c27c9160092fd"
+        },
+        {
+          "operationId": "recordParticipation",
+          "sha256": "1949ee4775f771126d1a177557e04eb85e77615af581d00c20d9b49b7543619e"
+        },
+        {
+          "operationId": "completeServiceTraining",
+          "sha256": "9e31623f021f8dcdd29dc3bfe96e89f1cfc9ca6615e961bfcd267448b6199c6d"
+        },
+        {
+          "operationId": "reviewJobReferral",
+          "sha256": "fda9076e0f3f605ef71d3518cab188d803544714e9c3f80e84857b3874e1c3f0"
+        },
+        {
+          "operationId": "acceptJobReferral",
+          "sha256": "8339324d8bffd13cb4fc2bd9bdf7e184ed6e68614d3c69ec157125a211ea5a78"
+        },
+        {
+          "operationId": "rejectJobReferral",
+          "sha256": "8a0b5ea7ad3cff934e80e51763e3aae6f74111050533dcfe50dd324f70cce285"
+        },
+        {
+          "operationId": "withdrawJobReferral",
+          "sha256": "5d4a2709ec27e1a059ac90b43a55e614a16a7b0cc417027d01a713bdd43477b0"
+        },
+        {
+          "operationId": "listServiceSource",
+          "sha256": "634f87cb4597ed8c34c1d79cc80b3e473bb9ca963b2090f568b88ad488976087"
+        },
+        {
+          "operationId": "updateServiceSource",
+          "sha256": "85987d2e50561ecc684646ef54fee8ef194a749509b4e35f740b194c55e50b1e"
+        },
+        {
+          "operationId": "createServiceSource",
+          "sha256": "b31d9c81bb010f0e668eb2fb4762fa1a6c091162285e5a5ac6ba9dd731b07eaa"
+        },
+        {
+          "operationId": "listMissionEnrollment",
+          "sha256": "b7193b76fb5c534ea1b1236de2803f65fd6dcc2f20bc09c99421ba86725dd402"
+        },
+        {
+          "operationId": "updateMissionEnrollment",
+          "sha256": "99390091c191310786c8d60aca680e3d1d3c00b69f64c24a65bebb0e8d74f108"
+        },
+        {
+          "operationId": "listMissionJobReferral",
+          "sha256": "b65af6c6f8636dbf45dd922e14e888e6b34ea1af4080556bb7fbfeccc9395355"
+        },
+        {
+          "operationId": "updateMissionJobReferral",
+          "sha256": "17ee58b0136b1118778e152cad9ac35d9525b7b2c120e7f9823465014d0a8ffb"
+        },
+        {
+          "operationId": "serviceStatus",
+          "sha256": "6f20511edab6531d899a4170c90586358953654bf5d99a6fc0d1f60ec032b73a"
+        },
+        {
+          "operationId": "listCapacityAllocation",
+          "sha256": "f49f7fdad404268182dc6fd07d41b6224a57547772f251be188cd3a24247a9c6"
+        },
+        {
+          "operationId": "createCapacityAllocation",
+          "sha256": "ff83e352eff174e6bfec1a04dc4f43746b10599cf7c685b5effa1fe74599d0d3"
+        },
+        {
+          "operationId": "updateCapacityAllocation",
+          "sha256": "db18ab6f44468d378776a03f2182efaeeb5c7d0f1f0f06bf049c4bf0594ca64d"
+        },
+        {
+          "operationId": "approveCapacityAllocation",
+          "sha256": "483ee355766e4b7817e7dd67e9402808df01dfc8fd8523749efebabce8ef34db"
+        },
+        {
+          "operationId": "revokeCapacityAllocation",
+          "sha256": "32602fbd1f1b52d0f9bbe5b1ddf5cb84f49e5cf72284e3705b60af591ef439de"
+        },
+        {
+          "operationId": "capacityResources",
+          "sha256": "851954917f61cff9adb9254bd0c344f07cd9f5ed3e117234057c20cca944461f"
+        }
+      ],
+      "screenIds": [
+        "skill",
+        "person",
+        "program",
+        "enrollment",
+        "achievement",
+        "position",
+        "reports",
+        "candidate-matches",
+        "integration-status",
+        "programs",
+        "programme-team",
+        "case-assignments",
+        "service-sources",
+        "mission-enrollments",
+        "mission-job-referrals",
+        "service-status",
+        "capacity-allocations"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "workforce.pathways",
+            "abiSha256": "25dc3d85f7a22065b4283996276c4319d6c8bb0b50876b64734a643ced573323",
+            "configuration": {
+              "syntheticOnly": true,
+              "missionSensitive": true,
+              "integrationsEnabled": true
+            }
+          },
+          {
+            "capabilityId": "workforce.program-capacity",
+            "abiSha256": "cea8161a9b79a712286e7b98c79e28ccb7b5b68e3577f90e4d2d806cb08fa6d3",
+            "configuration": {
+              "syntheticOnly": true,
+              "missionSensitive": true,
+              "integrationsEnabled": true
+            }
+          }
+        ],
+        "consumes": []
+      }
+    },
+    {
+      "directory": "modules/shopify",
+      "moduleId": "cee.shopify",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "commerce_exceptions",
+            "table": "commerce_exceptions",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": []
+        },
+        "integrationEvents": [],
+        "analyticalCapabilities": [],
+        "connector": {
+          "version": 1,
+          "provider": "shopify",
+          "webhookTopics": [
+            "products/create",
+            "products/update",
+            "products/delete",
+            "orders/create",
+            "orders/updated",
+            "refunds/create",
+            "inventory_levels/update",
+            "fulfillments/update"
+          ]
+        }
+      },
+      "api": [
+        {
+          "operationId": "listmapping",
+          "sha256": "eadd3c4cee264b68326669aad473cb1b023063e22a1dcfbcf817896820c03ca7"
+        },
+        {
+          "operationId": "createmapping",
+          "sha256": "aaddea365d4cab1660015f29a1323c0307e7d836bc73941e1d4c37c74335ca59"
+        },
+        {
+          "operationId": "updatemapping",
+          "sha256": "88941c00929cc2ec5d2d33779baaa1394387ba17625a6dd659a1e05310926405"
+        },
+        {
+          "operationId": "listconnection",
+          "sha256": "5438b8b5a1c1f3692af3c37b88d3e2e2b2e03c3edb16668ba19c56b152ac6a6c"
+        },
+        {
+          "operationId": "synchronize",
+          "sha256": "258e34c5ad8d6711b3dff7e5167d8463783b08c1878df28ae34e0e9ba852f551"
+        },
+        {
+          "operationId": "listproduct",
+          "sha256": "f7bf68990690fb2180feeed53410c4398cbded395091ea318c17408439128014"
+        },
+        {
+          "operationId": "listorder",
+          "sha256": "7bb61ea0ea3bf6de1293ed427b20b5b0c5bc7c57842dc25b1aec4227745c2aea"
+        },
+        {
+          "operationId": "dispatch",
+          "sha256": "4e272fa58fb82517666dd7cba7483b95a18204b73440d626bf637d7f866cfd5b"
+        },
+        {
+          "operationId": "commerceExceptions",
+          "sha256": "2643c056b252c344464b8ec96d86fba802097fef6889a1690f18111c2982164e"
+        },
+        {
+          "operationId": "listLiveConnection",
+          "sha256": "e0d5070ba2f297fdea9488226258e939c643c63c15fd4a72235264f64d82f388"
+        },
+        {
+          "operationId": "createLiveConnection",
+          "sha256": "e7f0b57a010048cf8ce1bc0ecbd4533d1dee0588fc79e0fc89187184f6c8c83d"
+        },
+        {
+          "operationId": "updateLiveConnection",
+          "sha256": "8907416eb2df1ab56abdc5197f7504104c26cd3678a42912c4ce86cb82c6140c"
+        },
+        {
+          "operationId": "testLiveConnection",
+          "sha256": "7b176950f4de14f7801b67466e98bfdc3195f2bd4a1c40ccb342c0715d28f865"
+        },
+        {
+          "operationId": "syncLiveCatalog",
+          "sha256": "bfd57cd56344f5845362d61bbf5d8cd733801f80878e2c25a3edea8bd63fb584"
+        },
+        {
+          "operationId": "listCatalogVariants",
+          "sha256": "4487889f4e387d01efebddd0afe097d6141494b37adb15d5b65e11dc94cbe0fb"
+        }
+      ],
+      "screenIds": [
+        "live-connection",
+        "mapping",
+        "connection",
+        "product",
+        "order",
+        "commerce-exceptions",
+        "catalog-variant"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "commerce.channel.fulfillment",
+            "abiSha256": "37467ec4a1bc87874238f4d0ccd3216048afee42374b2f0285e87eec3bd3acae",
+            "configuration": {
+              "integrationsEnabled": true,
+              "mode": "simulator"
+            }
+          }
+        ],
+        "consumes": [
+          {
+            "capabilityId": "commerce.orders.manage",
+            "abiSha256": "412a8b171f6865f098eaa7810d3f131d39db294c41352c1c9ef611a3406652d5",
+            "configuration": {
+              "integrationsEnabled": true,
+              "mode": "simulator"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "directory": "modules/printify",
+      "moduleId": "cee.printify",
+      "sdkVersion": 1,
+      "requiredPermissions": [
+        "storage.own-database"
+      ],
+      "replication": {
+        "contractVersion": 1,
+        "streams": [
+          {
+            "streamId": "commerce_exceptions",
+            "table": "commerce_exceptions",
+            "idColumn": "id",
+            "revisionColumn": "revision",
+            "columns": [
+              "id",
+              "revision",
+              "projection"
+            ]
+          }
+        ]
+      },
+      "retainedMetadata": {
+        "integration": {
+          "version": 1,
+          "outboxPath": "/integration-outbox",
+          "acknowledgmentPath": "/integration-ack",
+          "inboxPath": "/integration-inbox",
+          "peers": []
+        },
+        "integrationEvents": [],
+        "analyticalCapabilities": [],
+        "connector": {
+          "version": 1,
+          "provider": "printify",
+          "webhookTopics": [
+            "order:created",
+            "order:updated",
+            "order:sent-to-production",
+            "order:shipment:created"
+          ]
+        }
+      },
+      "api": [
+        {
+          "operationId": "listmapping",
+          "sha256": "1a5e3481dd7baa2aa8103f520e8f6b1bd9f2e73af3fb0dd065934725cecc9faf"
+        },
+        {
+          "operationId": "createmapping",
+          "sha256": "b429bc8e92e1126c7931e2db85aac4063deb1721ea19f20f278747b716678c8d"
+        },
+        {
+          "operationId": "updatemapping",
+          "sha256": "d7135062ff45e003360e10767cd7009f78bdbb2a04ce25755c8d9537f7fab5a7"
+        },
+        {
+          "operationId": "listconnection",
+          "sha256": "f5c3253a1ce16f185644f76b1b15d7cc2722a75718d778381631e6e9933240b8"
+        },
+        {
+          "operationId": "synchronize",
+          "sha256": "50d9972338237a2a8166711c72b3d0a393b5f41c8a8cb53f0666adc9f587a318"
+        },
+        {
+          "operationId": "listproduct",
+          "sha256": "8a0c31555aebea1cedea0e326de3e9a3aa173922aaaa858b31b1304183eae231"
+        },
+        {
+          "operationId": "listjob",
+          "sha256": "7d4800cb80f954ad28c2ee2c6f638bf418600acde192a16a1925569e1c8f803b"
+        },
+        {
+          "operationId": "authorize",
+          "sha256": "72e69772fb5317749c1daacf08a871d28fe89c8dda94fc74d7ef702a25b268bb"
+        },
+        {
+          "operationId": "reconcile",
+          "sha256": "c7bb1b850df78ef82230b6e96e86096a60a54c7ad9630eb5bbc8226f2d256126"
+        },
+        {
+          "operationId": "listshop",
+          "sha256": "1fbe8a746f567429cb60295027602132a752e9216332bea7e537f51a0085ccb1"
+        },
+        {
+          "operationId": "listExternalOrders",
+          "sha256": "3880bc65d68ee252de9f6725e985501deb9da6c57b765549ff3b63965e4acb4f"
+        },
+        {
+          "operationId": "commerceExceptions",
+          "sha256": "5911e3bf732673b24427f185cf6e461cce5bdd9b0dbd0e9df6d5a9799c34ba46"
+        }
+      ],
+      "screenIds": [
+        "mapping",
+        "connection",
+        "product",
+        "job",
+        "shop",
+        "external-order",
+        "commerce-exceptions"
+      ],
+      "smart": {
+        "requiresActive": true,
+        "requiresHealthy": true,
+        "provides": [
+          {
+            "capabilityId": "fulfillment.orders.submit",
+            "abiSha256": "0f6adabda90994823a963aafcedc62a8ed80a4cf4bdbc5a4a6cdaab23c1236e9",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          }
+        ],
+        "consumes": [
+          {
+            "capabilityId": "commerce.orders.fulfillment",
+            "abiSha256": "9663b9a4f04270de41972aeddeadd062f52665d13812b70e655e9913f70e9c82",
+            "configuration": {
+              "integrationsEnabled": true
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

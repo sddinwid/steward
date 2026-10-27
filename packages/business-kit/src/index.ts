@@ -8,7 +8,7 @@ import pg from 'pg';
 import { Ajv } from 'ajv';
 import { readFile, readdir } from 'node:fs/promises';
 import { randomUUID, timingSafeEqual } from 'node:crypto';
-import { capabilityInboundEnabled,canonical, digest, integrationSql, validateCommand, operationFor, INTEGRATION_PROTOCOL, type IntegrationCommand, type ModulePackageManifest } from '@steward/module-sdk';
+import { atLeast,capabilityInboundEnabled,canonical, digest, integrationSql, validateCommand, operationFor, INTEGRATION_PROTOCOL, type IntegrationCommand, type ModulePackageManifest } from '@steward/module-sdk';
 export * from './schema.js';
 /** JSON values are accepted only after a closed, module-owned schema validates them. */
 export type Data = Record<string, any>;
@@ -47,6 +47,8 @@ export interface Context {
     readonly financialPrincipals?: {readonly issuedAt:number;readonly actors:readonly string[]};
     /** Current eligible accounts only; module-owned policies decide quorum and approval. */
     readonly approvalPrincipals?: {readonly issuedAt:number;readonly reviewerPermission:string;readonly actors:readonly string[]};
+    /** Verified current local registry facts; never a workflow grant or remote-health proof. */
+    readonly installedCapabilityProviders?: {readonly issuedAt:number;readonly complete:boolean;readonly providers:readonly {readonly capabilityId:string;readonly provider:ProviderIdentity;readonly configurationDigest:string}[]};
 }
 /** Optional module-owned data policy. Platform permission is checked separately. */
 export interface AccessRequest {
@@ -174,9 +176,10 @@ export async function enqueueCapability(ctx:Context,capabilityId:string,operatio
     const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation,...(p?{providerConstraint:{version:1,workerInstallationId:p.workerInstallationId,entityId:p.entityId,moduleId:p.moduleId,moduleInstallationId:p.moduleInstallationId,packageDigest:p.packageDigest}}:{})},...(ctx.simulation?{simulation:ctx.simulation}:{})};
     validateCommand(envelope);await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)',[envelope.commandId,envelope]);return envelope.commandId;
 }
-export async function receiveCommand(ctx: Context, command: IntegrationCommand, receive: NonNullable<Definition['receive']>): Promise<{
+export async function receiveCommand(ctx: Context, command: IntegrationCommand, receive: NonNullable<Definition['receive']>,options:{captureConfiguration?:boolean}={}): Promise<{
     httpStatus: number;
     value: Data;
+    providerConfigurationDigest?:string;
 }> {
     const hash = validateCommand(command);
     ensure(command.targetModuleId === ctx.moduleId, 'Wrong integration target', 403);
@@ -185,6 +188,9 @@ export async function receiveCommand(ctx: Context, command: IntegrationCommand, 
         ensure(cached.digest === hash, 'Command identity reused with different content', 409);
         return cached.response;
     }
+    // Capture before execution and retain it with the original inbox receipt.
+    // Retries must never re-label a cached old result with current settings.
+    const executionConfigurationDigest=options.captureConfiguration?digest(canonical(ctx.config)):undefined;
     if(command.simulation){setSimulationContext(ctx,command.simulation);ensure(command.command==='simulation.dataset.reset'||await simulationEpoch(ctx,command.command==='simulation.dataset.begin'),'SIMULATION_DATASET_CLOSED',403);}
     const previous = Number((await ctx.db.query('SELECT sequence FROM integration_sequences WHERE source_module=$1 AND aggregate_id=$2 FOR UPDATE', [command.sourceModuleId, command.aggregateId])).rows[0]?.sequence ?? 0);
     ensure(command.sequence === previous + 1, command.sequence > previous + 1 ? 'Earlier command has not arrived' : 'Stale integration sequence', command.sequence > previous + 1 ? 425 : 409);
@@ -192,16 +198,17 @@ export async function receiveCommand(ctx: Context, command: IntegrationCommand, 
     let response: {
         httpStatus: number;
         value: Data;
+        providerConfigurationDigest?:string;
     };
     try {
-        response = { httpStatus: 200, value: await receive(command, ctx) };
+        response = { httpStatus: 200, value: await receive(command, ctx),...(executionConfigurationDigest?{providerConfigurationDigest:executionConfigurationDigest}:{}) };
         await ctx.db.query('RELEASE SAVEPOINT business_command');
     }
     catch (error) {
         if (!(error instanceof BusinessError) || ![400, 403, 409, 422].includes(error.status))
             throw error;
         await ctx.db.query('ROLLBACK TO SAVEPOINT business_command');
-        response = { httpStatus: error.status, value: { error: error.message } };
+        response = { httpStatus: error.status, value: { error: error.message },...(executionConfigurationDigest?{providerConfigurationDigest:executionConfigurationDigest}:{}) };
     }
     if(ctx.simulation)await ctx.db.query('INSERT INTO integration_inbox(source_module,command_id,digest,response,simulation) VALUES($1,$2,$3,$4,$5)',[command.sourceModuleId,command.commandId,hash,response,ctx.simulation]);
     else await ctx.db.query('INSERT INTO integration_inbox(source_module,command_id,digest,response) VALUES($1,$2,$3,$4)', [command.sourceModuleId, command.commandId, hash, response]);
@@ -258,6 +265,14 @@ function providerContext(runtime:Data,moduleId:string):{providerIdentity?:Provid
     ensure(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===5&&Object.keys(p).every(k=>['workerInstallationId','entityId','moduleId','moduleInstallationId','packageDigest'].includes(k))&&p.workerInstallationId===runtime.installationId&&p.entityId===runtime.entityId&&p.moduleId===moduleId&&['workerInstallationId','entityId','moduleInstallationId'].every(k=>typeof p[k]==='string'&&new RegExp(uuidPattern).test(p[k]))&&typeof p.packageDigest==='string'&&/^[a-f0-9]{64}$/.test(p.packageDigest),'Module provider identity unavailable',503);
     return{providerIdentity:Object.freeze({...p}) as ProviderIdentity};
 }
+export function installedCapabilityContext(runtime:Data,raw:unknown):Pick<Context,'installedCapabilityProviders'>{
+    if(raw===undefined)return{};const unavailable=()=>new BusinessError(403,'Installed provider context unavailable');let value:any;
+    try{if(typeof raw!=='string'||Buffer.byteLength(raw)>4096)throw unavailable();value=JSON.parse(raw);}catch{throw unavailable();}
+    const now=Date.now(),validUuid=(v:unknown)=>typeof v==='string'&&new RegExp(uuidPattern).test(v),validId=(v:unknown)=>typeof v==='string'&&/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(v)&&v.length<=120;
+    if(!value||Array.isArray(value)||Object.keys(value).length!==4||!Object.keys(value).every(k=>['v','issuedAt','complete','providers'].includes(k))||value.v!==1||!Number.isSafeInteger(value.issuedAt)||now-value.issuedAt>30000||value.issuedAt-now>5000||typeof value.complete!=='boolean'||!validUuid(runtime.installationId)||!validUuid(runtime.entityId)||!Array.isArray(value.providers)||value.providers.length>12||!value.complete&&value.providers.length)throw unavailable();
+    const keys=new Set<string>(),providers=value.providers.map((tuple:unknown)=>{if(!Array.isArray(tuple)||tuple.length!==5||!validId(tuple[0])||!validId(tuple[1])||!validUuid(tuple[2])||![tuple[3],tuple[4]].every(v=>typeof v==='string'&&/^[a-f0-9]{64}$/.test(v)))throw unavailable();const key=JSON.stringify(tuple.slice(0,4));if(keys.has(key))throw unavailable();keys.add(key);return Object.freeze({capabilityId:tuple[0] as string,configurationDigest:tuple[4] as string,provider:Object.freeze({workerInstallationId:runtime.installationId,entityId:runtime.entityId,moduleId:tuple[1] as string,moduleInstallationId:tuple[2] as string,packageDigest:tuple[3] as string})});});
+    return{installedCapabilityProviders:Object.freeze({issuedAt:value.issuedAt,complete:value.complete,providers:Object.freeze(providers)})};
+}
 function incomingProviderContext(request:FastifyRequest,ctx:Context,command:IntegrationCommand):void{
     const raw=request.headers['x-steward-source-identity'];if(raw===undefined)return;
     let p:any;try{ensure(typeof raw==='string'&&raw.length<=2048,'Integration source identity unavailable',403);p=JSON.parse(raw);}catch{throw new BusinessError(403,'Integration source identity unavailable');}
@@ -268,7 +283,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
 
     const provider=providerContext(runtime,definition.manifest.moduleId);
-    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...provider,...financialContext(request),...approvalContext(definition.manifest,request) });
+    const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...provider,...financialContext(request),...approvalContext(definition.manifest,request),...installedCapabilityContext(runtime,request?.headers['x-steward-installed-providers']) });
     const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
     const audited = new WeakSet<FastifyRequest>();
     const previews=new Set((definition.queries??[]).filter(query=>query.method==='POST').map(query=>query.path));
@@ -470,8 +485,9 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             ensure(peer?.receives.some(v => v.command === req.body.command && v.version === req.body.version) || capability?.operations.some(o => o.command === req.body.command && o.mode === 'durable'), 'Command is not authorized', 403);
             ensure(definition.receive, 'Integration command unsupported', 403);
             await authorizeAccess(definition, undefined, c, { operation: 'integration-receive', path: '/integration-inbox', command: req.body });
-            return receiveCommand(c, req.body, definition.receive);
+            return receiveCommand(c, req.body, definition.receive,{captureConfiguration:Boolean(capability)&&atLeast(definition.manifest.minimumPlatformVersion,'0.15.0')});
         });
+        if(typeof result.providerConfigurationDigest==='string'&&/^[a-f0-9]{64}$/.test(result.providerConfigurationDigest))reply.header('x-steward-provider-configuration-digest',result.providerConfigurationDigest);
         return reply.code(result.httpStatus).send(result.value);
     });
     app.post<{

@@ -6,7 +6,7 @@ import type {ModuleFormField as Field, ScreenContribution} from '@steward/module
 import {ModuleFormField,ModuleReferenceValue} from '../module-field.js';
 import {ModuleScreen,ModuleEvidenceValue} from '../modules.js';
 import {screenGroup} from '../presentation.js';
-import {moduleDateTimeDisplay,moduleDateTimeValue,moduleFormBody,moduleListQuery,moduleFormDefaults,moduleEditValues,moduleFieldDefault,moduleFieldVisible,moduleReferenceFields,exactMoneyDisplay} from '../module-fields.js';
+import {moduleDateTimeDisplay,moduleDateTimeValue,moduleFormBody,moduleListQuery,moduleFormDefaults,moduleEditValues,moduleFieldDefault,moduleFieldVisible,moduleHasEditableMoney,moduleReferenceCurrencyReady,moduleFormCurrency,moduleReferenceFields,exactMoneyDisplay} from '../module-fields.js';
 const item:Field={name:'entry',label:'Component',type:'object',required:true,fields:[{name:'offering',label:'Offering',type:'string',required:true,reference:{operationId:'choices',valueField:'id',labelField:'name'}},{name:'amount',label:'Amount',type:'number',format:'money',minimum:0,required:true},{name:'enabled',label:'Enabled',type:'boolean',required:true,default:true}]};
 const components:Field={name:'components',label:'Components',type:'array',required:true,maxItems:3,items:item};
 const render=(field:Field,value:any)=>renderToStaticMarkup(createElement(ModuleFormField,{field,value,currency:'USD',onChange:()=>{}}));
@@ -89,4 +89,43 @@ test('only exact semantically named evidence hashes collapse while business stri
  const hash='ab'.repeat(32),display=(name:string,value:unknown)=>renderToStaticMarkup(createElement(ModuleEvidenceValue,{name,value,currency:'USD'}));
  for(const name of ['proof','hash','digest','factsDigest','origin_hash','sourceProof']){const html=display(name,hash);assert.match(html,/<details><summary>Evidence \u00b7 abababab<\/summary><code>/);assert(html.includes(hash));assert(!html.includes('<details open'));}
  for(const [name,value] of [['sku',hash],['name',hash],['proof',hash.slice(1)],['proof','z'.repeat(64)],['proof','ordinary human evidence']] as const){assert(!display(name,value).includes('<details>'));assert(display(name,value).includes(value));}
+});
+
+
+test('only visible editable money controls gate an authorized reference currency',()=>{
+ const amount:Field={name:'amountCents',label:'Assessment amount',type:'number',required:false,format:'money',visibleWhen:{field:'kind',equals:'assessment'}};
+ assert.equal(moduleHasEditableMoney([amount],{kind:'discover'}),false);
+ assert.equal(moduleHasEditableMoney([amount],{kind:'assessment'}),true);
+ assert.equal(moduleHasEditableMoney([{...amount,readOnly:true}],{kind:'assessment'}),false);
+ const fields:Field[]=[{name:'kind',label:'Operation',type:'string',required:true,default:'discover',enum:['discover','assessment']},{name:'modelId',label:'Currency source',type:'string',required:false,reference:{operationId:'models',valueField:'id',labelField:'name',currencyField:'currency'}},amount];
+ const module={moduleId:'example.estimates',version:'1.0.0',name:'Estimates',api:[{operationId:'create',method:'POST' as const,path:'/inputs',permission:'example.estimates.configure'},{operationId:'models',method:'GET' as const,path:'/models',permission:'example.estimates.read'}],ui:[]};
+ const screen:ScreenContribution={screenId:'inputs',title:'Inputs',navigationLabel:'Inputs',workspace:'business',formVersion:1,createOperation:'create',currencyReference:'modelId',fields,columns:[]};
+ const renderScreen=(value:ScreenContribution)=>renderToStaticMarkup(createElement(ModuleScreen,{api:async()=>{throw Error('SSR must not fetch');},module,screen:value,currency:'USD'}));
+ const independent=renderScreen(screen);assert(!independent.match(/<button[^>]*type="submit"[^>]*>/)![0]!.includes('disabled'));assert(!independent.includes('Assessment amount'));
+ const monetary=renderScreen({...screen,fields:fields.map(f=>f.name==='kind'?{...f,default:'assessment'}:f)});assert(monetary.match(/<button[^>]*type="submit"[^>]*>/)![0]!.includes('disabled'));assert(monetary.includes('Choose an authorized currency source first'));assert(!monetary.includes('Amount in USD'));
+});
+test('currency visibility follows nested objects and actual array rows without assuming missing costs',()=>{
+ const nested:Field={name:'details',label:'Details',type:'object',required:false,visibleWhen:{field:'mode',equals:'edit'},fields:[{name:'priced',label:'Known amount',type:'boolean',required:false},{name:'unitCostCents',label:'Unit amount',type:'number',required:false,visibleWhen:{field:'priced',equals:true}}]};
+ assert.equal(moduleHasEditableMoney([nested],{mode:'view',details:{priced:true}}),false);
+ assert.equal(moduleHasEditableMoney([nested],{mode:'edit',details:{priced:false}}),false);
+ assert.equal(moduleHasEditableMoney([nested],{mode:'edit',details:{priced:true,unitCostCents:0}}),true);
+ const{visibleWhen:condition,...rowItem}=nested;const rows:Field={name:'rows',label:'Rows',type:'array',required:false,items:rowItem};
+ assert.equal(moduleHasEditableMoney([rows],{rows:[]}),false);
+ assert.equal(moduleHasEditableMoney([rows],{rows:[{priced:false}]}),false);
+ assert.equal(moduleHasEditableMoney([rows],{rows:[{priced:false},{priced:true}]}),true);
+ assert.equal(moduleHasEditableMoney([{...rows,readOnly:true}],{rows:[{priced:true}]}),false);
+});
+
+
+test('reference-derived currency locks only its declared client control and rejects a stale currency frame',()=>{
+ const currencyField:Field={name:'currency',label:'Currency',type:'string',required:true,enum:['USD','EUR']};
+ const editable=renderToStaticMarkup(createElement(ModuleFormField,{field:currencyField,value:'EUR',currency:'EUR',onChange:()=>{}}));assert(!editable.includes('disabled'));
+ const locked=renderToStaticMarkup(createElement(ModuleFormField,{field:currencyField,value:'EUR',currency:'EUR',locked:true,onChange:()=>{}}));assert.match(locked,/<select disabled=""/);assert(locked.includes('value="EUR" selected=""'));
+ const model:Field={name:'modelId',label:'Model',type:'string',required:true,reference:{operationId:'models',valueField:'id',labelField:'name',currencyField:'currency'}},amount:Field={name:'amountCents',label:'Amount',type:'number',required:true,format:'money'};
+ const screen:ScreenContribution={screenId:'assessment',title:'Assessment',navigationLabel:'Assessment',workspace:'business',formVersion:1,currencyReference:'modelId',fields:[model,currencyField,amount],columns:[]};
+ const values={modelId:'known',currency:'USD',amountCents:'1.25'},choices={modelId:{status:'ready' as const,choices:[{value:'known',label:'Known',currency:'USD'}],truncated:false,message:''}};
+ assert.equal(moduleReferenceCurrencyReady(screen,values,choices,'EUR'),true);assert.deepEqual(moduleFormBody(screen.fields,values,choices),{modelId:'known',currency:'USD',amountCents:125});
+ const changed={modelId:{...choices.modelId,choices:[{value:'known',label:'Known',currency:'EUR'}]}};assert.equal(moduleReferenceCurrencyReady(screen,values,changed,'USD'),false);
+ assert.equal(moduleReferenceCurrencyReady(screen,values,{},'USD'),false);assert.equal(moduleFormCurrency(screen,values,{},'USD'),undefined);
+ const readonlyField={...currencyField,readOnly:true};assert(!Object.hasOwn(moduleFormBody([readonlyField],{currency:'USD'}, {}),'currency'));
 });

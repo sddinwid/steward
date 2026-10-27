@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.pricing.management",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Pricing Management",
   "description": "Independent entity-owned price lists, immutable proposals, separate human reviews and activation, deterministic resolution and historical evidence. No external publishing or payment execution.",
   "minimumPlatformVersion": "0.15.0",
@@ -376,6 +376,98 @@
       "method": "POST",
       "path": "/resolve/:id",
       "permission": "steward.pricing.management.read"
+    },
+    {
+      "operationId": "listCostModel",
+      "method": "GET",
+      "path": "/cost-models",
+      "permission": "steward.pricing.management.cost.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createCostModel",
+      "method": "POST",
+      "path": "/cost-models",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "updateCostModel",
+      "method": "PUT",
+      "path": "/cost-models/:id",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "listCostInput",
+      "method": "GET",
+      "path": "/cost-inputs",
+      "permission": "steward.pricing.management.cost.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createCostInput",
+      "method": "POST",
+      "path": "/cost-inputs",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "costObservationChoices",
+      "method": "GET",
+      "path": "/cost-observation-choices",
+      "permission": "steward.pricing.management.cost.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "requestCostInput",
+      "method": "POST",
+      "path": "/request-cost-input/:id",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "nextCostPage",
+      "method": "POST",
+      "path": "/next-cost-page/:id",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "deactivateCostInput",
+      "method": "POST",
+      "path": "/deactivate-cost-input/:id",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "costInputOverview",
+      "method": "GET",
+      "path": "/cost-input-overview",
+      "permission": "steward.pricing.management.cost.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "contributionPreview",
+      "method": "POST",
+      "path": "/contribution-preview",
+      "permission": "steward.pricing.management.cost.read"
     }
   ],
   "ui": [
@@ -1020,6 +1112,17 @@
           "maxLength": 200
         },
         {
+          "name": "priceListId",
+          "label": "Planned price list (metadata only)",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listPriceList",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
           "name": "startsAt",
           "label": "Promotion starts",
           "type": "string",
@@ -1049,6 +1152,7 @@
       "columns": [
         "name",
         "campaignReference",
+        "priceListId",
         "startsAt",
         "endsAt",
         "status"
@@ -2254,6 +2358,534 @@
           "confirmation": "Deactivate this price for new resolutions? Existing accepted transaction snapshots remain unchanged."
         }
       ]
+    },
+    {
+      "screenId": "cost-models",
+      "title": "Estimated Cost Models",
+      "navigationLabel": "Estimated Cost Models",
+      "navigationGroup": "Pricing Management",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listCostModel",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Creation request reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Cost model name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "subjectKind",
+          "label": "Price subject",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "sku",
+            "catalog"
+          ],
+          "default": "sku"
+        },
+        {
+          "name": "sku",
+          "label": "Standalone SKU",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "visibleWhen": {
+            "field": "subjectKind",
+            "equals": "sku"
+          }
+        },
+        {
+          "name": "catalogSubjectId",
+          "label": "Verified Catalog offering or variant",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "verifiedSubjects",
+            "valueField": "id",
+            "labelField": "name"
+          },
+          "visibleWhen": {
+            "field": "subjectKind",
+            "equals": "catalog"
+          }
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR",
+            "GBP",
+            "CAD",
+            "AUD",
+            "CHF"
+          ],
+          "default": "USD"
+        },
+        {
+          "name": "priceListId",
+          "label": "Price list (optional configured default)",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listPriceList",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "unitOfMeasure",
+          "label": "Explicit model quantity unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "acquisitionMode",
+          "label": "Required acquisition cost source",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "supplier",
+            "production"
+          ]
+        },
+        {
+          "name": "requiredCategories",
+          "label": "Required variable cost categories (acquisition is always required)",
+          "type": "array",
+          "required": true,
+          "minItems": 1,
+          "maxItems": 7,
+          "items": {
+            "name": "category",
+            "label": "Required category",
+            "type": "string",
+            "required": true,
+            "enum": [
+              "supplier",
+              "production",
+              "fulfillment",
+              "packaging",
+              "transaction-fee",
+              "channel-fee",
+              "other-variable"
+            ]
+          }
+        },
+        {
+          "name": "scopeReason",
+          "label": "Human cost scope and coverage reason",
+          "type": "string",
+          "required": true,
+          "format": "multiline",
+          "maxLength": 1000
+        },
+        {
+          "name": "status",
+          "label": "Cost model status (analysis only)",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "active",
+            "inactive"
+          ],
+          "default": "active"
+        }
+      ],
+      "columns": [
+        "name",
+        "subjectKind",
+        "currency",
+        "unitOfMeasure",
+        "acquisitionMode",
+        "requiredCategories",
+        "status"
+      ],
+      "createOperation": "createCostModel",
+      "updateOperation": "updateCostModel"
+    },
+    {
+      "screenId": "cost-inputs",
+      "title": "Cost Evidence and Human Assumptions",
+      "navigationLabel": "Cost Evidence and Human Assumptions",
+      "navigationGroup": "Pricing Management",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "costInputOverview",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Creation request reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "kind",
+          "label": "Evidence or explicit human assumption",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "discover",
+            "provider",
+            "assessment",
+            "not-applicable"
+          ],
+          "default": "discover"
+        },
+        {
+          "name": "provider",
+          "label": "Original cost provider",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "procurement",
+            "printify"
+          ],
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "discover"
+          }
+        },
+        {
+          "name": "query",
+          "label": "Source quote, SKU or product search",
+          "type": "string",
+          "required": false,
+          "maxLength": 160,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "discover"
+          }
+        },
+        {
+          "name": "modelId",
+          "label": "Cost model (required except discovery)",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listCostModel",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "observationId",
+          "label": "Observed original cost evidence",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "costObservationChoices",
+            "valueField": "id",
+            "labelField": "choiceLabel"
+          },
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "provider"
+          }
+        },
+        {
+          "name": "name",
+          "label": "Cost input name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "category",
+          "label": "Human category (supplier/production need provider evidence or explicit N/A)",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "supplier",
+            "production",
+            "fulfillment",
+            "packaging",
+            "transaction-fee",
+            "channel-fee",
+            "other-variable"
+          ]
+        },
+        {
+          "name": "assessmentBasis",
+          "label": "Human assessment basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "estimate",
+            "unknown"
+          ],
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "currency",
+          "label": "Assessment currency (derived from selected model)",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR",
+            "GBP",
+            "CAD",
+            "AUD",
+            "CHF"
+          ],
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "amountCents",
+          "label": "Human estimate amount (leave blank for unknown)",
+          "type": "number",
+          "required": false,
+          "minimum": 0,
+          "maximum": 1000000000000,
+          "format": "money",
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "chargeBasis",
+          "label": "Explicit assessment charge basis",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "per-unit",
+            "per-order",
+            "per-shipment"
+          ],
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "unitOfMeasure",
+          "label": "Explicit assessment quantity unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "minimumQuantity",
+          "label": "Minimum assessment quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 1,
+          "maximum": 100000000,
+          "default": 1,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "maximumQuantity",
+          "label": "Maximum assessment quantity",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "maximum": 100000000,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "exactQuantity",
+          "label": "Exact assessment quantity (optional)",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "maximum": 100000000,
+          "visibleWhen": {
+            "field": "kind",
+            "equals": "assessment"
+          }
+        },
+        {
+          "name": "validUntil",
+          "label": "Human assessment or N/A validity end",
+          "type": "string",
+          "required": false,
+          "format": "date-time"
+        },
+        {
+          "name": "reason",
+          "label": "Human reason (evidence binding, assessment or explicit N/A)",
+          "type": "string",
+          "required": false,
+          "format": "multiline",
+          "maxLength": 1000
+        },
+        {
+          "name": "status",
+          "label": "Analysis evidence lifecycle",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currentStatus",
+          "label": "Current evidence availability",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Unavailable evidence reason",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "nextOffset",
+          "label": "Next source page",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "kind",
+        "name",
+        "modelId",
+        "observationId",
+        "category",
+        "currentStatus",
+        "reason",
+        "nextOffset"
+      ],
+      "createOperation": "createCostInput",
+      "currencyReference": "modelId",
+      "actions": [
+        {
+          "label": "Request governed cost evidence",
+          "operationId": "requestCostInput",
+          "confirmation": "Read source estimates from the approved original provider? A discovered observation is not an activated analysis binding; an exact constrained read is required. This creates no financial or production obligation."
+        },
+        {
+          "label": "Read next cost source page",
+          "operationId": "nextCostPage",
+          "confirmation": "Read the next bounded page from this same source? No quote, cost or price is changed."
+        },
+        {
+          "label": "Deactivate analysis input",
+          "operationId": "deactivateCostInput",
+          "confirmation": "Stop this input being used for new prospective analyses? Original supplier quotes, provider observations and historical evidence remain unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "contribution-preview",
+      "title": "Estimated Contribution and Scenario Preview",
+      "navigationLabel": "Estimated Contribution Preview",
+      "navigationGroup": "Pricing Management",
+      "workspace": "business",
+      "formVersion": 1,
+      "currencyReference": "modelId",
+      "preview": {
+        "version": 1,
+        "operationId": "contributionPreview",
+        "submitLabel": "Preview estimated contribution"
+      },
+      "fields": [
+        {
+          "name": "modelId",
+          "label": "Cost model",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listCostModel",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "currency",
+          "label": "Scenario currency (derived from selected model)",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR",
+            "GBP",
+            "CAD",
+            "AUD",
+            "CHF"
+          ]
+        },
+        {
+          "name": "promotionId",
+          "label": "Promotion context (approved rules only)",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listPromotion",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "quantity",
+          "label": "Evaluated quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 1,
+          "maximum": 100000000,
+          "default": 1
+        },
+        {
+          "name": "shipmentCount",
+          "label": "Explicit planned shipment count",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "maximum": 100000000
+        },
+        {
+          "name": "scenarioUnitPriceCents",
+          "label": "Prospective scenario unit price (not an approved price)",
+          "type": "number",
+          "required": false,
+          "minimum": 0,
+          "maximum": 1000000000000,
+          "format": "money"
+        }
+      ],
+      "columns": []
     }
   ],
   "configurationSchema": {
@@ -2263,6 +2895,18 @@
       "integrationsEnabled"
     ],
     "properties": {
+      "costReadEnabled": {
+        "type": "boolean",
+        "default": true,
+        "description": "Permit governed read-only cost evidence and prospective contribution analysis. This does not activate prices or create financial records."
+      },
+      "costMaxAgeSeconds": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 86400,
+        "default": 300,
+        "description": "Maximum accepted cost observation age; original source leases and human assumption validity are never extended."
+      },
       "integrationsEnabled": {
         "type": "boolean",
         "default": false,
@@ -2279,11 +2923,15 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "migrations": [
       {
         "version": 1,
         "sha256": "82bf80254133b65190eb73115df58585ecd178188ee0d0b6aab25fb170908e0f"
+      },
+      {
+        "version": 2,
+        "sha256": "1a91113c5b3986ad79ee8e34f45d58c4060b730e98542182d682e262b41e4eab"
       }
     ],
     "destructiveRollback": false
@@ -5433,6 +6081,2140 @@
         "optional": true,
         "configuration": {
           "integrationsEnabled": true
+        }
+      },
+      {
+        "capabilityId": "costs.procurement.read",
+        "contract": "steward.cost-evidence",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "cost-evidence.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "observations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "optionId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "category": {
+                        "type": "string",
+                        "enum": [
+                          "supplier",
+                          "production",
+                          "fulfillment",
+                          "packaging",
+                          "transaction-fee",
+                          "channel-fee",
+                          "other-variable"
+                        ]
+                      },
+                      "amount": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "amountCents": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              "currency": {
+                                "type": "string",
+                                "enum": [
+                                  "USD",
+                                  "EUR",
+                                  "GBP",
+                                  "CAD",
+                                  "AUD",
+                                  "CHF"
+                                ]
+                              },
+                              "scale": {
+                                "const": 2
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "amountCents",
+                              "currency",
+                              "scale"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "enum": [
+                          "unknown",
+                          "estimate",
+                          "recorded"
+                        ]
+                      },
+                      "chargeBasis": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "per-unit",
+                              "per-order",
+                              "per-shipment"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "basisQuantity": {
+                        "anyOf": [
+                          {
+                            "const": 1
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "unitDefinition": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "unitOfMeasure": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40,
+                                    "pattern": "\\S"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "quantityScale": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "configurationDigest": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "unitOfMeasure",
+                              "quantityScale",
+                              "configurationDigest"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minimumQuantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "maximumQuantity": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "exactQuantity": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "source": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "moduleId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "streamId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "recordId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "observedAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "entityId",
+                          "moduleId",
+                          "streamId",
+                          "recordId",
+                          "revision",
+                          "provider",
+                          "observedAt"
+                        ]
+                      },
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "supplier-quote",
+                              "production-variant",
+                              "human-assessment"
+                            ]
+                          },
+                          "mode": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "live",
+                                  "simulator"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "originDigest": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "connectionId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "accountId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "productId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "externalVariantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "supplierRecordId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mode",
+                          "originDigest",
+                          "connectionId",
+                          "accountId",
+                          "productId",
+                          "externalVariantId",
+                          "supplierRecordId"
+                        ]
+                      },
+                      "sourceCode": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 512,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "factsDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "reason": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "optionId",
+                      "name",
+                      "category",
+                      "amount",
+                      "basis",
+                      "chargeBasis",
+                      "basisQuantity",
+                      "unitDefinition",
+                      "minimumQuantity",
+                      "maximumQuantity",
+                      "exactQuantity",
+                      "source",
+                      "origin",
+                      "sourceCode",
+                      "observedAt",
+                      "expiresAt",
+                      "factsDigest",
+                      "reason"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "observations",
+                "nextOffset"
+              ]
+            }
+          },
+          {
+            "name": "cost-evidence.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "optionId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "optionId",
+                "expectedDigest"
+              ]
+            },
+            "output": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "found"
+                    },
+                    "observation": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "optionId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "category": {
+                          "type": "string",
+                          "enum": [
+                            "supplier",
+                            "production",
+                            "fulfillment",
+                            "packaging",
+                            "transaction-fee",
+                            "channel-fee",
+                            "other-variable"
+                          ]
+                        },
+                        "amount": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "amountCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 1000000000000
+                                },
+                                "currency": {
+                                  "type": "string",
+                                  "enum": [
+                                    "USD",
+                                    "EUR",
+                                    "GBP",
+                                    "CAD",
+                                    "AUD",
+                                    "CHF"
+                                  ]
+                                },
+                                "scale": {
+                                  "const": 2
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "amountCents",
+                                "currency",
+                                "scale"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basis": {
+                          "type": "string",
+                          "enum": [
+                            "unknown",
+                            "estimate",
+                            "recorded"
+                          ]
+                        },
+                        "chargeBasis": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "per-unit",
+                                "per-order",
+                                "per-shipment"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basisQuantity": {
+                          "anyOf": [
+                            {
+                              "const": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "unitDefinition": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "unitOfMeasure": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 40,
+                                      "pattern": "\\S"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "quantityScale": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 6
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "configurationDigest": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^[a-f0-9]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "unitOfMeasure",
+                                "quantityScale",
+                                "configurationDigest"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "minimumQuantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100000000
+                        },
+                        "maximumQuantity": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100000000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "exactQuantity": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100000000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "source": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "contractVersion": {
+                              "const": 1
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "moduleId": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 120,
+                              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                            },
+                            "streamId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 120,
+                              "pattern": "\\S"
+                            },
+                            "recordId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "pattern": "\\S"
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 2147483647
+                            },
+                            "provider": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "workerInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "entityId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "moduleId": {
+                                  "type": "string",
+                                  "minLength": 3,
+                                  "maxLength": 120,
+                                  "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                },
+                                "moduleInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "packageDigest": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "workerInstallationId",
+                                "entityId",
+                                "moduleId",
+                                "moduleInstallationId",
+                                "packageDigest"
+                              ]
+                            },
+                            "observedAt": {
+                              "type": "string",
+                              "minLength": 20,
+                              "maxLength": 35,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                            }
+                          },
+                          "required": [
+                            "contractVersion",
+                            "entityId",
+                            "moduleId",
+                            "streamId",
+                            "recordId",
+                            "revision",
+                            "provider",
+                            "observedAt"
+                          ]
+                        },
+                        "origin": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "supplier-quote",
+                                "production-variant",
+                                "human-assessment"
+                              ]
+                            },
+                            "mode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "live",
+                                    "simulator"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "originDigest": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "connectionId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "accountId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "productId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "externalVariantId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "supplierRecordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "mode",
+                            "originDigest",
+                            "connectionId",
+                            "accountId",
+                            "productId",
+                            "externalVariantId",
+                            "supplierRecordId"
+                          ]
+                        },
+                        "sourceCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512,
+                              "pattern": "\\S"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "observedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "factsDigest": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        },
+                        "reason": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500,
+                              "pattern": "\\S"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "optionId",
+                        "name",
+                        "category",
+                        "amount",
+                        "basis",
+                        "chargeBasis",
+                        "basisQuantity",
+                        "unitDefinition",
+                        "minimumQuantity",
+                        "maximumQuantity",
+                        "exactQuantity",
+                        "source",
+                        "origin",
+                        "sourceCode",
+                        "observedAt",
+                        "expiresAt",
+                        "factsDigest",
+                        "reason"
+                      ]
+                    },
+                    "reason": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "observation",
+                    "reason"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "not_found",
+                        "source_changed",
+                        "unavailable"
+                      ]
+                    },
+                    "observation": {
+                      "type": "null"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "pattern": "\\S"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "observation",
+                    "reason"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true,
+        "configuration": {
+          "costReadEnabled": true
+        }
+      },
+      {
+        "capabilityId": "costs.printify.read",
+        "contract": "steward.cost-evidence",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "cost-evidence.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "observations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "optionId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "category": {
+                        "type": "string",
+                        "enum": [
+                          "supplier",
+                          "production",
+                          "fulfillment",
+                          "packaging",
+                          "transaction-fee",
+                          "channel-fee",
+                          "other-variable"
+                        ]
+                      },
+                      "amount": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "amountCents": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000000000000
+                              },
+                              "currency": {
+                                "type": "string",
+                                "enum": [
+                                  "USD",
+                                  "EUR",
+                                  "GBP",
+                                  "CAD",
+                                  "AUD",
+                                  "CHF"
+                                ]
+                              },
+                              "scale": {
+                                "const": 2
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "amountCents",
+                              "currency",
+                              "scale"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "basis": {
+                        "type": "string",
+                        "enum": [
+                          "unknown",
+                          "estimate",
+                          "recorded"
+                        ]
+                      },
+                      "chargeBasis": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "per-unit",
+                              "per-order",
+                              "per-shipment"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "basisQuantity": {
+                        "anyOf": [
+                          {
+                            "const": 1
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "unitDefinition": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "unitOfMeasure": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 40,
+                                    "pattern": "\\S"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "quantityScale": {
+                                "anyOf": [
+                                  {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 6
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "configurationDigest": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "pattern": "^[a-f0-9]{64}$"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              }
+                            },
+                            "required": [
+                              "unitOfMeasure",
+                              "quantityScale",
+                              "configurationDigest"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "minimumQuantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "maximumQuantity": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "exactQuantity": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "source": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "moduleId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "streamId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "recordId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "observedAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "entityId",
+                          "moduleId",
+                          "streamId",
+                          "recordId",
+                          "revision",
+                          "provider",
+                          "observedAt"
+                        ]
+                      },
+                      "origin": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "supplier-quote",
+                              "production-variant",
+                              "human-assessment"
+                            ]
+                          },
+                          "mode": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "enum": [
+                                  "live",
+                                  "simulator"
+                                ]
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "originDigest": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "connectionId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 120,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "accountId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "productId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "externalVariantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "supplierRecordId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "mode",
+                          "originDigest",
+                          "connectionId",
+                          "accountId",
+                          "productId",
+                          "externalVariantId",
+                          "supplierRecordId"
+                        ]
+                      },
+                      "sourceCode": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 512,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "factsDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "reason": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 500,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "optionId",
+                      "name",
+                      "category",
+                      "amount",
+                      "basis",
+                      "chargeBasis",
+                      "basisQuantity",
+                      "unitDefinition",
+                      "minimumQuantity",
+                      "maximumQuantity",
+                      "exactQuantity",
+                      "source",
+                      "origin",
+                      "sourceCode",
+                      "observedAt",
+                      "expiresAt",
+                      "factsDigest",
+                      "reason"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "observations",
+                "nextOffset"
+              ]
+            }
+          },
+          {
+            "name": "cost-evidence.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "optionId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "optionId",
+                "expectedDigest"
+              ]
+            },
+            "output": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "found"
+                    },
+                    "observation": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "optionId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "category": {
+                          "type": "string",
+                          "enum": [
+                            "supplier",
+                            "production",
+                            "fulfillment",
+                            "packaging",
+                            "transaction-fee",
+                            "channel-fee",
+                            "other-variable"
+                          ]
+                        },
+                        "amount": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "amountCents": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 1000000000000
+                                },
+                                "currency": {
+                                  "type": "string",
+                                  "enum": [
+                                    "USD",
+                                    "EUR",
+                                    "GBP",
+                                    "CAD",
+                                    "AUD",
+                                    "CHF"
+                                  ]
+                                },
+                                "scale": {
+                                  "const": 2
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "amountCents",
+                                "currency",
+                                "scale"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basis": {
+                          "type": "string",
+                          "enum": [
+                            "unknown",
+                            "estimate",
+                            "recorded"
+                          ]
+                        },
+                        "chargeBasis": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "per-unit",
+                                "per-order",
+                                "per-shipment"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "basisQuantity": {
+                          "anyOf": [
+                            {
+                              "const": 1
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "unitDefinition": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "unitOfMeasure": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "minLength": 1,
+                                      "maxLength": 40,
+                                      "pattern": "\\S"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "quantityScale": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 0,
+                                      "maximum": 6
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "configurationDigest": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^[a-f0-9]{64}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "unitOfMeasure",
+                                "quantityScale",
+                                "configurationDigest"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "minimumQuantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100000000
+                        },
+                        "maximumQuantity": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100000000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "exactQuantity": {
+                          "anyOf": [
+                            {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 100000000
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "source": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "contractVersion": {
+                              "const": 1
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "moduleId": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 120,
+                              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                            },
+                            "streamId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 120,
+                              "pattern": "\\S"
+                            },
+                            "recordId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "pattern": "\\S"
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 2147483647
+                            },
+                            "provider": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "workerInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "entityId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "moduleId": {
+                                  "type": "string",
+                                  "minLength": 3,
+                                  "maxLength": 120,
+                                  "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                },
+                                "moduleInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "packageDigest": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "workerInstallationId",
+                                "entityId",
+                                "moduleId",
+                                "moduleInstallationId",
+                                "packageDigest"
+                              ]
+                            },
+                            "observedAt": {
+                              "type": "string",
+                              "minLength": 20,
+                              "maxLength": 35,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                            }
+                          },
+                          "required": [
+                            "contractVersion",
+                            "entityId",
+                            "moduleId",
+                            "streamId",
+                            "recordId",
+                            "revision",
+                            "provider",
+                            "observedAt"
+                          ]
+                        },
+                        "origin": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "kind": {
+                              "type": "string",
+                              "enum": [
+                                "supplier-quote",
+                                "production-variant",
+                                "human-assessment"
+                              ]
+                            },
+                            "mode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "live",
+                                    "simulator"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "originDigest": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "connectionId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 120,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "accountId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "productId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "externalVariantId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "supplierRecordId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "kind",
+                            "mode",
+                            "originDigest",
+                            "connectionId",
+                            "accountId",
+                            "productId",
+                            "externalVariantId",
+                            "supplierRecordId"
+                          ]
+                        },
+                        "sourceCode": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 512,
+                              "pattern": "\\S"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "observedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "factsDigest": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        },
+                        "reason": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 500,
+                              "pattern": "\\S"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "optionId",
+                        "name",
+                        "category",
+                        "amount",
+                        "basis",
+                        "chargeBasis",
+                        "basisQuantity",
+                        "unitDefinition",
+                        "minimumQuantity",
+                        "maximumQuantity",
+                        "exactQuantity",
+                        "source",
+                        "origin",
+                        "sourceCode",
+                        "observedAt",
+                        "expiresAt",
+                        "factsDigest",
+                        "reason"
+                      ]
+                    },
+                    "reason": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "observation",
+                    "reason"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "not_found",
+                        "source_changed",
+                        "unavailable"
+                      ]
+                    },
+                    "observation": {
+                      "type": "null"
+                    },
+                    "reason": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "pattern": "\\S"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "observation",
+                    "reason"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true,
+        "configuration": {
+          "costReadEnabled": true
         }
       }
     ],
