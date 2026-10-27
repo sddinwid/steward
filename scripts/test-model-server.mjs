@@ -19,6 +19,7 @@ export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_T
    if(prompt.includes('[fixture:undeclared]'))return calls([{name:'delete_database',arguments:{}}]);
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
+   if(b.instructions.includes('ECONOMIC RECOMMENDATION STEP'))return final({narrative:'Recommend reviewing the baseline conditionally under its declared budget hypotheses; source freshness and separate approvals remain required.',assumptions:[],humanDecisions:['Recheck protected reserves and restrictions; obtain separate contributor and recipient approval.']});
    if(b.tools?.some(t=>/economic/.test(t.name))||results.some(r=>r.structuredContent?.data?.economicCalculationId)){
     const rows=results.map(r=>r.structuredContent?.data).filter(Boolean),analysis=rows.find(d=>d.economicCalculationId);
     if(b.tools?.some(t=>t.name==='query_economic_outcomes')){if((b.input??[]).some(i=>i.role==='user'&&i.content?.startsWith('Write the final JSON recommendation now')))throw Error('Premature finalization directive during required evidence tool stage');const next=b.instructions.match(/Call query_economic_outcomes using exactly (\{.*?\})\./);if(!next)throw Error('Observed economic comparison reference missing');return calls([{name:'query_economic_outcomes',arguments:JSON.parse(next[1])}]);}

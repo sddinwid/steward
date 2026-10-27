@@ -358,3 +358,7 @@ Actual cost-aware investigation 66e93997-7b24-4859-ae04-4808a15d94be called all 
 ### Financial-only finalization preservation
 The rc10 current-planning trial reached real Python but failed final evidence qualification. No finding was created. The generalized recommendation-first prompt introduced during optional recorded-cost diagnostics also affected the legacy planning path. Financial-only finalization now uses the earlier qualification-first instructions and final reminder; cost-aware finalization remains separate. All 122 targeted tests pass after restoring that boundary. rc10 passed preservation/packaging/regressions but remains an unaccepted candidate. The updated source needs fresh real-model and release acceptance.
 
+
+### Bounded summary/recommendation composition checkpoint
+The combined cost-aware path now separates model-written factual evidence from model-written conditional advice. All 122 targeted backend/planning tests and 10 PostgreSQL/TLS/MCP/Python/browser integration checks pass. A real local Qwen recommendation-only diagnostic passed in 17,177 ms using retained actual MCP/Python evidence and a previously model-written, deterministically validated factual summary; it did not execute new MCP calls or publish. Its 4308-character input and original output are in phase14-economic-final-model-diagnostic.json. The complete deployed eight-model-turn/six-tool path, explicit seven-step failure, disclosure revocation and new release source still require actual acceptance. No cost-aware completion is claimed yet.
+
