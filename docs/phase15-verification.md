@@ -52,6 +52,8 @@ Standalone image attempt from source `6bfecfc`: Docker build and signed manifest
 
 The explicit-subnet retry exposed a harness assumption: internal Docker networks did not publish host ports on this system (`48dc6a9f-5bd8-4814-8ad9-1f2a2d2d79cb/acceptance.json`). The standalone fixture now uses a dedicated, collision-checked bridge with host ports bound only to `127.0.0.1`, as the existing database fixtures do. It does not claim production egress-isolation acceptance. Both attempts cleaned their private fixtures/networks and preserved all 52 selected operator containers. Production networks were unchanged.
 
+The next attempt passed real image health, migration, readiness, CRUD and permission gates, but the restart probe timed out (`5b130c9b-2c27-4d79-8213-15d52f609ac8/acceptance.json`). Docker assigned an ephemeral host port; the harness is corrected to re-inspect the loopback binding after restart and record both ports. Restart/persistence acceptance remains pending the rerun. Cleanup and operator preservation passed.
+
 ## Remaining gates
 
 15B standalone image acceptance is pending. 15C–15J remain pending: operational Pricing/resolution/approval, business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.
