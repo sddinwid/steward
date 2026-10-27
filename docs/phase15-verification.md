@@ -54,6 +54,16 @@ The explicit-subnet retry exposed a harness assumption: internal Docker networks
 
 The next attempt passed real image health, migration, readiness, CRUD and permission gates, but the restart probe timed out (`5b130c9b-2c27-4d79-8213-15d52f609ac8/acceptance.json`). Docker assigned an ephemeral host port; the harness is corrected to re-inspect the loopback binding after restart and record both ports. Restart/persistence acceptance remains pending the rerun. Cleanup and operator preservation passed.
 
+Final standalone signed-image acceptance **passed all six gates**: `artifacts/phase15b-catalog-package/c43d3244-62b5-4110-b286-0d67555213f5/acceptance.json`, command:
+
+```powershell
+node scripts/verify-catalog-package.mjs --reuse-package artifacts/phase15b-catalog-package/2cdb84d7-412c-43f8-a792-cfa336792e0c
+```
+
+Build source remains `6bfecfceccbb59e81e1c8ec422e8fcc9d92ff75c`; verification harness commit `37cf57cbd875cba187fb4e0a011d287ebfafb039`. The exact original image/signature was reused without rebuilding or re-signing version 1.0.0, and unchanged application inputs were checked. Actual host ports changed from 60141 to 60148 on restart, confirming the harness defect. The real nonprivileged module container preserved offering data, history, migration timestamps, identity and original creation receipts across restart/repeated migration. All fixture containers, network and private files were removed; operator IDs/images/start times were unchanged. Final single-stack verification passed with 52 selected containers.
+
+Checkpoint 15B is verified within the stated standalone/isolated scope. Actual ModuleManager installation and upgraded full deployment remain later acceptance gates.
+
 ## Remaining gates
 
-15B standalone image acceptance is pending. 15C–15J remain pending: operational Pricing/resolution/approval, business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.
+15C–15J remain pending: operational Pricing/resolution/approval, business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.

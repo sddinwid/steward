@@ -58,6 +58,8 @@ npm run test:catalog:module
 npm run test:catalog:browser
 ```
 
+`npm run verify:catalog:package` builds/signs and exercises the standalone image from clean committed source in a disposable loopback fixture. It retains public evidence under `artifacts/phase15b-catalog-package`. If a harness-only correction needs to retry the same immutable image, use `node scripts/verify-catalog-package.mjs --reuse-package <prior-public-evidence-directory>`; application build inputs must still match the original commit. `STEWARD_CATALOG_ACCEPTANCE_SUBNET` overrides the collision-checked private fixture subnet. No existing networks are pruned.
+
 After a compatible platform checkpoint is committed, the established publisher signs the independent image:
 
 ```powershell
