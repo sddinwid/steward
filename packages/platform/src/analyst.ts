@@ -18,7 +18,7 @@ import {profileInstructions,profileTools,commerceStageTools,simulationStageTools
 import {compactScientificCalculation,containsScientificAmount} from './scientific-context.js';
 import { investigationSummary } from './intelligence.js';
 import {missionAuthorization} from './mission-routes.js';
-import {authorizeMissionEvidence} from './mission-evidence.js';
+import {authorizeMissionEvidence,authorizeMissionEvidenceParts} from './mission-evidence.js';
 
 export const narrativeSchema=z.object({narrative:z.string().min(1).max(6000),assumptions:z.array(z.string().max(1000)).max(20),humanDecisions:z.array(z.string().max(1000)).min(1).max(20)}).strict();
 /** One protocol clarification, never a generated tool call or a budget reset. */
@@ -69,7 +69,7 @@ export function scientificCorrectionEvidence(calculations:any[]){
 }
 export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authentication,security:SecurityConfig){
   const masterId=(await pool.query('SELECT installation_id FROM platform_installation WHERE singleton')).rows[0]?.installation_id;
-  async function missionContext(accountId:string,row:any){const access=missionAuthorization(pool,masterId);const scopes=(await pool.query("SELECT detail->'scopes' scopes FROM analyst_activity WHERE investigation_id=$1 AND kind='mission_scope'",[row.investigation_id])).rows.flatMap(r=>r.scopes??[]);for(const s of scopes)await access.requireProgramme(accountId,s,'read',s.domain==='economic'?'economic_summaries_v1':'mission_aggregates_v1');for(const c of row.result?.analyses??[])if(c.missionCalculationId)await access.calculation(accountId,c.missionCalculationId);await authorizeMissionEvidence(pool,masterId,accountId,row.result);for(const r of(await pool.query('SELECT detail FROM analyst_activity WHERE investigation_id=$1',[row.investigation_id])).rows)await authorizeMissionEvidence(pool,masterId,accountId,r.detail);}
+  async function missionContext(accountId:string,row:any){const access=missionAuthorization(pool,masterId),activity=(await pool.query('SELECT kind,detail FROM analyst_activity WHERE investigation_id=$1',[row.investigation_id])).rows,scopes=new Map<string,any>();for(const r of activity)if(r.kind==='mission_scope')for(const scope of r.detail.scopes??[])scopes.set(canonical(scope),scope);for(const scope of scopes.values())await access.requireProgramme(accountId,scope,'read',scope.domain==='economic'?'economic_summaries_v1':'mission_aggregates_v1');await authorizeMissionEvidenceParts(pool,masterId,accountId,[row.result,...activity.map(r=>r.detail)]);}
   // Recover honestly after process death; never imply an unfinished run completed.
   await pool.query("UPDATE analyst_investigations SET status='interrupted',error_code='PROCESS_RESTARTED',updated_at=now() WHERE status='running'");
   let running=0;const controllers=new Set<AbortController>();

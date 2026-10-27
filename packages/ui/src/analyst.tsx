@@ -3,13 +3,14 @@ import { ProviderStatus } from './provider-status.js';
 import { FinancialReports } from './reports.js';
 import { InvestigationCatalog } from './investigation-catalog.js';
 import { ReadableValue } from './presentation.js';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 type Api=<T=any>(path:string,method?:string,body?:unknown)=>Promise<T>;
 export function AnalystWorkspace({api,mode='analyst',initialId}:{api:Api;mode?:'analyst'|'history'|'reports';initialId?:string|undefined}){
   const[includeRecordedOutcomes,setIncludeRecordedOutcomes]=useState(false);const[scientificReviewed,setScientificReviewed]=useState(false);const[capability,setCapability]=useState('resource-sharing');const[follow,setFollow]=useState(false);const[config,setConfig]=useState<any>();const[prompt,setPrompt]=useState('');const[list,setList]=useState<any[]>([]);const[id,setId]=useState(initialId??'');const[view,setView]=useState<any>();const[error,setError]=useState('');const[busy,setBusy]=useState(false);
-  async function refresh(){setList((await api('/v5/analyst/investigations')).investigations);if(id)setView(await api('/v5/analyst/investigations/'+id));}
+  const selectedId=useRef(id);selectedId.current=id;
+  async function refresh(){const target=id;if(!target)return;const value=await api('/v5/analyst/investigations/'+target);if(selectedId.current===target){setView(value);setError('');}}
   useEffect(()=>{void api('/v5/analyst/config').then(setConfig).catch(e=>setError(e.message));},[]);
-  useEffect(()=>{void refresh().catch(e=>setError(e.message));const t=setInterval(()=>void refresh().catch(e=>setError(e.message)),2000);return()=>clearInterval(t);},[id]);
+  useEffect(()=>{let live=true,pending=false;setView(undefined);setScientificReviewed(false);setError('');void api('/v5/analyst/investigations?limit=50').then(v=>{if(live)setList(v.investigations);}).catch(e=>{if(live)setError(e.message);});const poll=async()=>{if(pending||!live||!id)return;pending=true;try{await refresh();}catch(e){if(live)setError((e as Error).message);}finally{pending=false;}};void poll();const t=setInterval(()=>void poll(),2000);return()=>{live=false;clearInterval(t);};},[id]);
   async function investigate(e:React.FormEvent){e.preventDefault();setBusy(true);setError('');try{const r=await api('/v5/analyst/investigations','POST',{prompt,capability,...(capability==='economic-sustainability'?{includeRecordedOutcomes}:{}),...(follow&&id?{parentId:id}:{})});setId(r.investigationId);}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   const run=view?.investigation,result=run?.result;
   return <section aria-label="AI Analyst"><h2>AI Analyst</h2><ProviderStatus api={api}/>{mode==='reports'?<><h3>Existing Intelligence</h3><p>Browse completed investigations and reports independently of current AI availability.</p><a href="#/business/analyst">Run New Analysis</a><FinancialReports api={api}/></>:null}

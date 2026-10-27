@@ -31,7 +31,7 @@ export function SecurityConsole({ role }: { role: StewardRole }) {
     const response = await fetch(versioned ? `/api${path}` : `/api/v2${path}`, { method, credentials: 'same-origin', cache: 'no-store',
       headers: method === 'GET' ? {} : { 'content-type': 'application/json', 'x-csrf-token': csrf.current },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(versioned ? 90000 : 15000) });
-    const value = await response.json();
+    let value:any;try{value=await response.json();}catch{throw new Error(response.status===504?'Steward did not respond in time. Refresh the current record or investigation before retrying.':'Steward is temporarily unavailable. Refresh to check whether the original operation completed before retrying.');}
     if(!response.ok&&response.status===409&&value.error==='OPERATION_IN_PROGRESS'&&method==='GET'&&attempt<3){await new Promise(resolve=>setTimeout(resolve,350*(attempt+1)));continue;}
     if (!response.ok) throw new Error(value.error==='OPERATION_IN_PROGRESS'?'This application is processing another operation. Wait briefly and refresh before retrying.':value.error ?? 'Request failed');
     return value;
