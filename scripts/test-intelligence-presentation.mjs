@@ -48,6 +48,8 @@ test('failed package recovery distinguishes newer active-runtime replacement fro
  assert.deepEqual(moduleInstallIntent({version:'1.3.1',state:'failed'},'1.3.0'),{upgrade:false,recover:true});
  assert.deepEqual(moduleInstallIntent({version:'1.9.0',state:'failed'},'1.10.0'),{upgrade:true,recover:true});
  assert.deepEqual(moduleInstallIntent({version:'1.3.0',state:'active'},'1.3.2'),{upgrade:true});
+ assert.deepEqual(moduleInstallIntent({version:'1.3.2',state:'failed',operationId:'original-bound-request'},'1.3.2'),{upgrade:false,recover:true,operationId:'original-bound-request'});
+ assert.deepEqual(moduleInstallIntent({version:'1.3.2',state:'failed',operationId:'original-bound-request'},'1.3.3'),{upgrade:true,recover:true});
 });
 test('module save confirms persisted values and never presents rejected or stale saves as success',async()=>{
  const mode={mode:'live',currency:'USD'};let calls=0;

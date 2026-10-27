@@ -1,4 +1,4 @@
-import { createModuleBroker, configurationFailure } from './module-broker.js';
+import { createModuleBroker, configurationFailure, boundInstallationRecovery } from './module-broker.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { request } from 'node:https';
@@ -111,7 +111,8 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
       // A successful upgrade is now the installed version. Check its bound
       // request identity before requiring the candidate to be newer again.
       if(existing?.operation_id===req.body.operationId&&!['failed','installing'].includes(existing.state))return{state:existing.state,moduleId:m.moduleId,operationId:existing.operation_id};
-      if (req.body.upgrade && (!existing || !atLeast(m.version, existing.version) || m.version === existing.version)) fail(409, 'Upgrade requires a newer compatible package');
+      const recovery=boundInstallationRecovery(existing,req.body);
+      if (req.body.upgrade && !recovery && (!existing || !atLeast(m.version, existing.version) || m.version === existing.version)) fail(409, 'Upgrade requires a newer compatible package');
       if (existing && !req.body.upgrade && existing.state !== 'failed' && existing.state !== 'installing') {
         if (digest(canonical(existing.descriptor)) !== digest(canonical(descriptor)) || canonical(existing.configuration) !== canonical(req.body.configuration)) fail(409, 'Module is already installed with a different package or configuration');
         return { state: existing.state, moduleId: m.moduleId, operationId: existing.operation_id };
@@ -122,7 +123,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
         [m.moduleId, m.version, descriptor, req.body.configuration, req.body.operationId]);
       await audit(client, actor.account_id, 'module.install_started', m.moduleId, { version: m.version, operationId: req.body.operationId });
       try {
-        const result = await broker('install', descriptor, req.body.configuration, { upgrade: req.body.upgrade === true });
+        const result = await broker('install', descriptor, req.body.configuration, { upgrade: req.body.upgrade === true || recovery });
         if (result.status !== 200) throw new Error(result.value.error ?? 'MODULE_INSTALL_FAILED');
         await client.query("UPDATE module_installations SET state='installed',error_code=NULL,updated_at=now() WHERE module_id=$1", [m.moduleId]);
         await audit(client, actor.account_id, 'module.installed', m.moduleId, { version: m.version });

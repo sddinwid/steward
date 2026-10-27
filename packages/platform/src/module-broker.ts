@@ -12,7 +12,7 @@ export function configurationFailure(error:unknown):string {
 }
 export async function createModuleBroker(configFile:string,installation:InstallationConfig,key:string){
  const runtime=JSON.parse(await readFile(configFile,'utf8'));
-  async function broker(operation: string, descriptor: SignedModulePackage, configuration: unknown, extra = {}): Promise<{ status: number; value: any }> {
+  async function send(operation: string, descriptor: SignedModulePackage, configuration: unknown, extra = {}): Promise<{ status: number; value: any }> {
     const payload = { protocol: 'steward-module-control-v1', installationId: installation.installationId, nonce: randomUUID(), issuedAt: Date.now(), operation,
       moduleId: descriptor.payload.manifest.moduleId, version: descriptor.payload.manifest.version, configuration, ...extra };
     const body = JSON.stringify(signAssertion(payload, key));
@@ -28,5 +28,12 @@ export async function createModuleBroker(configFile:string,installation:Installa
     });
   }
 
- return broker;
+ return (operation:string,descriptor:SignedModulePackage,configuration:unknown,extra={})=>retryLifecycleContention(operation,()=>send(operation,descriptor,configuration,extra));
 }
+
+/** A 409 lock rejection precedes effects. Never retry an uncertain transport or a module business action. */
+export async function retryLifecycleContention<T extends {status:number;value:any}>(operation:string,send:()=>Promise<T>,pause:(ms:number)=>Promise<void>=ms=>new Promise(r=>setTimeout(r,ms))):Promise<T>{
+ const lifecycle=['install','activate','deactivate','configure'].includes(operation);for(let attempt=0;;attempt++){const result=await send();if(!lifecycle||result.status!==409||result.value?.error!=='OPERATION_IN_PROGRESS'||attempt>=7)return result;await pause(Math.min(100*2**attempt,800));}
+}
+/** Recovered upgrade authority is restricted to the original explicit immutable request identity. */
+export function boundInstallationRecovery(existing:{operation_id:string;state:string}|undefined,request:{operationId:string;recover?:boolean}){return !!existing&&request.recover===true&&existing.operation_id===request.operationId&&['failed','installing'].includes(existing.state);}
