@@ -38,3 +38,19 @@ Actual verification is recorded in `artifacts/phase14-economic-setup.json`, `pha
 Review the configured source resources/reserves and budgets through the independently contributed Business screens. The remaining normal-UI sequence must still be implemented/exercised: source review and named-account disclosure; reserve-aware Master alternatives; reviewed proposal delivery; contributor approval; independent recipient acceptance; synthetic-only settlement and receipt reconciliation; shared resource delivery/return; approved expenditure linked to real sealed service observations; evidence-based Master comparisons; genuine local Qwen/MCP investigation and affected-only finding acknowledgment. Do not describe these pending steps as successful validations or tag v0.14.0 until all mandatory gates pass.
 
 Retain all original data and secrets during recovery. There is no broad financial reset command. Do not delete databases, clear programme grants or edit immutable ledger/approval records to make a demonstration pass. Use the original bound Module Manager recovery operation for an interrupted package installation; its data and migration ledger remain authoritative.
+
+
+## Verified SSMA routing and Master source publication
+
+The following setup created original local resource/budget bindings and bilateral coordination grants for Worker1 → Worker3 food, Worker2 → Worker1 housing and Worker1 → Worker2 training. Each direction pins the original entity, Worker, programme, module installation, signed package and bounded financial operations. A separate coordination programme per route keeps approval scopes and workflow limits explicit. This reuses the existing SSMA registry/resolver and source/recipient approvals; it is not a second financial transport.
+
+```powershell
+node scripts/seed-phase14-coordination.mjs "$deployment"
+node scripts/publish-phase14-financial-summaries.mjs "$deployment"
+```
+
+Actual source/controller APIs reviewed and sealed **11** financial summaries (six coordination programmes, three budgets, two resource assessments). The source administrator issued a one-hour financial-only lease to the actual authenticated Master account. The runner verified the original source entity/installation/module/programme and signed named-account identity before explicit Master acceptance. All eleven current analytical copies arrived through ordinary durable synchronization. Budgets still have no receipts/commitments/expenditure and the source potential availability remains USD 18,000 per business. Analytical disclosure does not authorize any contribution.
+
+The initial publisher attempted to assert a field deliberately omitted from the Master lease-list DTO. It stopped before accepting the first lease. It now verifies the exact account against the source-issued proof and the account-filtered Master endpoint. No authorization or response privacy check was weakened. Existing source grants/snapshots are reused; a changed/expired source snapshot or expired lease fails rather than silently extending access. Evidence: `artifacts/phase14-coordination-setup.json` and `phase14-financial-publication.json`.
+
+Financial finding publication is currently paused while the code correction for recipient-scoped explanations is prepared for deployment. The authorized Master retains full analysis; a Worker must not receive another installation's programme identities/costs or a whole-ecosystem financial total merely because it is affected. No actual financial finding has been published yet. Continue with the corrected core candidate before the normal-UI plan/proposal demonstration.

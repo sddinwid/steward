@@ -29,3 +29,5 @@ try{await logins();const original={...sessions};for(const w of['worker-1','worke
  report.checks.push('Housing, food and training programme budgets separately submitted/reviewed/approved/activated by actual authenticated roles; requests are not receipts');report.status='passed';state.setupCompletedAt=new Date().toISOString();await persist();console.log('PASS controlled economic setup; no contribution, settlement or mission delivery was executed.');
 }catch(error){report.status='failed';report.error=error.message;process.exitCode=1;console.error('Controlled financial setup stopped: '+error.message);}
 finally{report.finishedAt=new Date().toISOString();await writeFile('artifacts/phase14-economic-setup.json',JSON.stringify(report,null,2)+'\n');}
+
+export {state,persist,dataset,actors,request,act,governance,report};
