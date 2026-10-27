@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {createHash} from 'node:crypto';
-import {PHASE14_GATES,RELEASE14_IMAGE_KINDS,RELEASE14_MODULE_IDS,validatePhase14Versions,validateReleaseVersions,assertPhase14Gates,assertImageBuildEvidence,assertBuildSource} from './release-contracts.mjs';
+import {PHASE14_GATES,RELEASE14_IMAGE_KINDS,RELEASE14_MODULE_IDS,validatePhase14Versions,validateReleaseVersions,assertPhase14Gates,assertImageBuildEvidence,assertBuildSource,platformMigrationVersionForRelease} from './release-contracts.mjs';
 test('Phase14 central versions identify eighteen independently packaged modules and new source-scoped services',async()=>{
  const value=validatePhase14Versions(JSON.parse(await readFile('docs/phase14-module-versions.json','utf8')));assert.equal(value.scientificVersion,'1.2.0');assert.equal(value.modules['cee.shopify'],'1.2.0');assert.equal(value.modules['cee.printify'],'1.1.2');assert.deepEqual(Object.keys(value.modules).sort(),RELEASE14_MODULE_IDS.slice().sort());
  const manifests=await Promise.all((await readdir('modules',{withFileTypes:true})).filter(d=>d.isDirectory()).map(async d=>{try{return JSON.parse(await readFile('modules/'+d.name+'/manifest.json','utf8'));}catch{return null;}}));
@@ -32,3 +32,5 @@ test('actual release CLI verifies a Phase14 candidate payload and rejects tamper
  try{await save();assert.match(run(),/PASS all release checksums: 0.14.0/);manifest.version='0.13.0';await save();assert.throws(run,e=>String(e.stderr).includes('version/compatibility/status contract mismatch'));manifest.version='0.14.0';await save();await writeFile(path.join(directory,'images.tar'),'tampered');assert.throws(run,e=>String(e.stderr).includes('checksum mismatch'));await writeFile(path.join(directory,'images.tar'),contents['images.tar']);manifest.acceptanceStatus='accepted';manifest.acceptanceEvidence={gates:JSON.parse(await readFile('docs/phase14-release-gates.json','utf8'))};if(manifest.acceptanceEvidence.gates.status==='passed')manifest.acceptanceEvidence.gates.status='unverified';await save();assert.throws(run,e=>String(e.stderr).includes('Mandatory Phase 14 acceptance gates remain open'));}
  finally{assert(path.resolve(directory).startsWith(path.resolve(tmpdir())+path.sep));assert(path.basename(directory).startsWith('steward-release14-'));await rm(directory,{recursive:true,force:true});}
 });
+
+test('current smoke verification expects eighteen core migrations and never silently assumes a legacy schema',()=>{assert.equal(platformMigrationVersionForRelease('0.14.0'),18);assert.equal(platformMigrationVersionForRelease('0.13.0'),18);assert.equal(platformMigrationVersionForRelease('0.12.0'),15);assert.equal(platformMigrationVersionForRelease('0.7.0'),6);assert.throws(()=>platformMigrationVersionForRelease('0.15.0'));});
