@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import type {ModuleFormField as Field, ScreenContribution} from '@steward/module-sdk';
-import {ModuleFormField} from '../module-field.js';
+import {ModuleFormField,ModuleReferenceValue} from '../module-field.js';
 import {ModuleScreen} from '../modules.js';
 import {screenGroup} from '../presentation.js';
 import {moduleDateTimeDisplay,moduleDateTimeValue,moduleFormBody,moduleListQuery,moduleFormDefaults,moduleEditValues,moduleFieldDefault,moduleFieldVisible,moduleReferenceFields,exactMoneyDisplay} from '../module-fields.js';
@@ -59,4 +59,21 @@ test('datetime controls retain typed local input and preserve persisted instants
   for(const instant of ['2026-11-01T08:30:00.000Z','2026-11-01T09:30:00.000Z']){assert.equal(moduleDateTimeDisplay(instant),'2026-11-01T01:30:00.000');assert.deepEqual(moduleFormBody([field],moduleEditValues({when:instant},[field]),{}),{when:instant});}
   assert.throws(()=>moduleDateTimeValue('2026-02-30T12:00'),/does not exist/);assert.throws(()=>moduleDateTimeValue('not-a-date'),/Choose a date/);
  }finally{if(original===undefined)delete process.env.TZ;else process.env.TZ=original;}
+});
+
+test('optional empty object groups omit blank visible values while preserving required groups and zero/false',()=>{
+ const field:Field={name:'dimensions',label:'Dimensions',type:'object',required:false,fields:[{name:'length',label:'Length',type:'number',required:true},{name:'unit',label:'Unit',type:'string',required:true}]};
+ const emptyMarkup=render(field,{});assert(!emptyMarkup.includes('required=""'));const partialMarkup=render(field,{length:0});assert(partialMarkup.includes('required=""'));
+ for(const dimensions of [undefined,null,'',{}, {length:'',unit:null}])assert.deepEqual(moduleFormBody([field],{dimensions},{}),{});
+ assert.deepEqual(moduleFormBody([field],{dimensions:{length:0,unit:'cm'}},{}),{dimensions:{length:0,unit:'cm'}});
+ assert.throws(()=>moduleFormBody([{...field,required:true}],{dimensions:{}},{}),/Enter Length/);
+ const group:Field={name:'options',label:'Options',type:'object',required:false,fields:[{name:'enabled',label:'Enabled',type:'boolean',required:false},{name:'hidden',label:'Hidden',type:'number',required:true,visibleWhen:{field:'enabled',equals:true}}]};
+ assert.deepEqual(moduleFormBody([group],{options:{enabled:false,hidden:'bad'}},{}),{options:{enabled:false}});
+ const absentController={...group,fields:[{...group.fields![0]!,readOnly:true},group.fields![1]!]};assert.deepEqual(moduleFormBody([absentController],{options:{enabled:false,hidden:'bad'}},{}),{});
+ const nested:Field={name:'outer',label:'Outer',type:'object',required:false,fields:[field]};assert.deepEqual(moduleFormBody([nested],{outer:{dimensions:{length:'',unit:''}}},{}),{});
+});
+
+test('absent related references show None while a nonempty unavailable identity stays unavailable',()=>{
+ for(const value of [undefined,null,'']){const markup=renderToStaticMarkup(createElement(ModuleReferenceValue,{value,reference:undefined}));assert.match(markup,/>None</);assert(!markup.includes('unavailable'));}
+ const unavailable=renderToStaticMarkup(createElement(ModuleReferenceValue,{value:'unavailable-nonempty-reference',reference:undefined}));assert.match(unavailable,/Related record unavailable/);assert(!unavailable.includes('>None<'));assert(!unavailable.includes('unavailable-nonempty-reference'));
 });

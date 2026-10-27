@@ -11,6 +11,7 @@ const editor:ScreenContribution={screenId:'editor',title:'Typed definitions',nav
  {name:'kind',label:'Kind',type:'string',required:true,enum:['product','service'],default:'product'},
  {name:'physical',label:'Physical details',type:'object',required:true,visibleWhen:{field:'kind',equals:'product'},fields:[{name:'weight',label:'Weight',type:'number',minimum:0,required:true}]},
  {name:'components',label:'Components',type:'array',required:true,minItems:1,maxItems:3,items:{name:'component',label:'Component',type:'object',required:true,fields:[{name:'reference',label:'Reference',type:'string',required:true,reference:{operationId:'choices',valueField:'id',labelField:'name'}},{name:'quantity',label:'Quantity',type:'number',minimum:1,required:true},{name:'amount',label:'Amount',type:'number',format:'money',required:true,minimum:0}]}},
+ {name:'measurements',label:'Optional measurements',type:'object',required:false,fields:[{name:'width',label:'Width',type:'number',required:true,minimum:0},{name:'unit',label:'Unit',type:'string',required:true,enum:['cm','in']}]},
  {name:'active',label:'Active',type:'boolean',required:true,default:false},
  {name:'when',label:'Effective time',type:'string',format:'date-time',required:true},
  {name:'currency',label:'Currency',type:'string',required:true,enum:['USD'],default:'USD'},

@@ -1,0 +1,3779 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.catalog.universal",
+  "version": "1.0.0",
+  "name": "Universal Catalog",
+  "description": "Entity-owned product and service definitions, variants, bundles, provenance and explicit external mappings. External catalogs remain provider-owned and read-only.",
+  "minimumPlatformVersion": "0.15.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listOffering",
+      "method": "GET",
+      "path": "/offerings",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createOffering",
+      "method": "POST",
+      "path": "/offerings",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateOffering",
+      "method": "PUT",
+      "path": "/offerings/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listVariant",
+      "method": "GET",
+      "path": "/variants",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createVariant",
+      "method": "POST",
+      "path": "/variants",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateVariant",
+      "method": "PUT",
+      "path": "/variants/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listCategory",
+      "method": "GET",
+      "path": "/categories",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createCategory",
+      "method": "POST",
+      "path": "/categories",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateCategory",
+      "method": "PUT",
+      "path": "/categories/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listAttributeDefinition",
+      "method": "GET",
+      "path": "/attribute-definitions",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createAttributeDefinition",
+      "method": "POST",
+      "path": "/attribute-definitions",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateAttributeDefinition",
+      "method": "PUT",
+      "path": "/attribute-definitions/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listAttribute",
+      "method": "GET",
+      "path": "/attributes",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createAttribute",
+      "method": "POST",
+      "path": "/attributes",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateAttribute",
+      "method": "PUT",
+      "path": "/attributes/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listBundleComponent",
+      "method": "GET",
+      "path": "/bundle-components",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createBundleComponent",
+      "method": "POST",
+      "path": "/bundle-components",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateBundleComponent",
+      "method": "PUT",
+      "path": "/bundle-components/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listMapping",
+      "method": "GET",
+      "path": "/mappings",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createMapping",
+      "method": "POST",
+      "path": "/mappings",
+      "permission": "steward.catalog.universal.map"
+    },
+    {
+      "operationId": "updateMapping",
+      "method": "PUT",
+      "path": "/mappings/:id",
+      "permission": "steward.catalog.universal.map"
+    },
+    {
+      "operationId": "listReadJob",
+      "method": "GET",
+      "path": "/read-jobs",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createReadJob",
+      "method": "POST",
+      "path": "/read-jobs",
+      "permission": "steward.catalog.universal.import"
+    },
+    {
+      "operationId": "updateReadJob",
+      "method": "PUT",
+      "path": "/read-jobs/:id",
+      "permission": "steward.catalog.universal.import"
+    },
+    {
+      "operationId": "listImportPlan",
+      "method": "GET",
+      "path": "/import-plans",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createImportPlan",
+      "method": "POST",
+      "path": "/import-plans",
+      "permission": "steward.catalog.universal.import"
+    },
+    {
+      "operationId": "updateImportPlan",
+      "method": "PUT",
+      "path": "/import-plans/:id",
+      "permission": "steward.catalog.universal.import"
+    },
+    {
+      "operationId": "listExtension",
+      "method": "GET",
+      "path": "/extensions",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createExtension",
+      "method": "POST",
+      "path": "/extensions",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "updateExtension",
+      "method": "PUT",
+      "path": "/extensions/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "listDirectory",
+      "method": "GET",
+      "path": "/directory",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "catalogView",
+      "method": "GET",
+      "path": "/catalog-view",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "overview",
+      "method": "GET",
+      "path": "/overview",
+      "permission": "steward.catalog.universal.read"
+    },
+    {
+      "operationId": "history",
+      "method": "GET",
+      "path": "/history",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "extensionDefinitions",
+      "method": "GET",
+      "path": "/extension-definitions",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "externalObservations",
+      "method": "GET",
+      "path": "/external-observations",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "importPreview",
+      "method": "GET",
+      "path": "/import-preview",
+      "permission": "steward.catalog.universal.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "previewImport",
+      "method": "POST",
+      "path": "/preview-import",
+      "permission": "steward.catalog.universal.read"
+    },
+    {
+      "operationId": "archive",
+      "method": "POST",
+      "path": "/archive/:id",
+      "permission": "steward.catalog.universal.write"
+    },
+    {
+      "operationId": "requestSource",
+      "method": "POST",
+      "path": "/request-source/:id",
+      "permission": "steward.catalog.universal.import"
+    },
+    {
+      "operationId": "applyImport",
+      "method": "POST",
+      "path": "/apply-import/:id",
+      "permission": "steward.catalog.universal.import"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "overview",
+      "title": "Catalog Overview",
+      "navigationLabel": "Catalog Overview",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "overview",
+      "fields": [
+        {
+          "name": "type",
+          "label": "Offering type",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "count",
+          "label": "Defined offerings",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "active",
+          "label": "Active offerings",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "type",
+        "count",
+        "active"
+      ]
+    },
+    {
+      "screenId": "directory",
+      "title": "Offering Directory",
+      "navigationLabel": "Offering Directory",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listDirectory",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Internal code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "name",
+          "label": "Offering",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "type",
+          "label": "Offering type",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Lifecycle status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "ownerEntityId",
+          "label": "Owning legal entity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordRevision",
+          "label": "Revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "code",
+        "type",
+        "status",
+        "recordRevision"
+      ],
+      "actions": [
+        {
+          "label": "Archive offering",
+          "operationId": "archive",
+          "confirmation": "Archive this offering? Historical references and accepted transactions remain retained."
+        }
+      ]
+    },
+    {
+      "screenId": "offering-editor",
+      "title": "Product and Service Editor",
+      "navigationLabel": "Product and Service Editor",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listDirectory",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "code",
+          "label": "Internal code or SKU",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Offering name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "description",
+          "label": "Description",
+          "type": "string",
+          "required": true,
+          "format": "multiline",
+          "maxLength": 2000
+        },
+        {
+          "name": "type",
+          "label": "Offering type (fixed after creation)",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "physical",
+            "digital",
+            "service",
+            "subscription",
+            "rental",
+            "bundle"
+          ],
+          "default": "physical"
+        },
+        {
+          "name": "status",
+          "label": "Lifecycle status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "draft",
+            "active",
+            "inactive",
+            "archived"
+          ],
+          "default": "draft"
+        },
+        {
+          "name": "categoryIds",
+          "label": "Categories",
+          "type": "array",
+          "required": true,
+          "maxItems": 20,
+          "items": {
+            "name": "categoryId",
+            "label": "Category",
+            "type": "string",
+            "required": true,
+            "reference": {
+              "operationId": "listCategory",
+              "valueField": "id",
+              "labelField": "name"
+            }
+          }
+        },
+        {
+          "name": "tags",
+          "label": "Tags",
+          "type": "array",
+          "required": true,
+          "maxItems": 20,
+          "items": {
+            "name": "tag",
+            "label": "Tag",
+            "type": "string",
+            "required": true,
+            "maxLength": 80
+          }
+        },
+        {
+          "name": "promotionEligibility",
+          "label": "Eligible for promotions",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "name": "promotionGroups",
+          "label": "Promotional groups",
+          "type": "array",
+          "required": true,
+          "maxItems": 20,
+          "items": {
+            "name": "group",
+            "label": "Promotional group",
+            "type": "string",
+            "required": true,
+            "maxLength": 80
+          }
+        },
+        {
+          "name": "campaignReferences",
+          "label": "Campaign references",
+          "type": "array",
+          "required": true,
+          "maxItems": 20,
+          "items": {
+            "name": "campaign",
+            "label": "Campaign reference",
+            "type": "string",
+            "required": true,
+            "maxLength": 200
+          }
+        },
+        {
+          "name": "media",
+          "label": "Media references",
+          "type": "array",
+          "required": true,
+          "maxItems": 20,
+          "items": {
+            "name": "media",
+            "label": "Media",
+            "type": "object",
+            "required": true,
+            "fields": [
+              {
+                "name": "kind",
+                "label": "Media type",
+                "type": "string",
+                "required": true,
+                "enum": [
+                  "image",
+                  "video",
+                  "document"
+                ],
+                "default": "image"
+              },
+              {
+                "name": "uri",
+                "label": "Media location",
+                "type": "string",
+                "required": true,
+                "maxLength": 2048
+              },
+              {
+                "name": "altText",
+                "label": "Accessible media description",
+                "type": "string",
+                "required": true,
+                "maxLength": 500
+              }
+            ]
+          }
+        },
+        {
+          "name": "availability",
+          "label": "Availability rules",
+          "type": "array",
+          "required": true,
+          "maxItems": 12,
+          "items": {
+            "name": "rule",
+            "label": "Availability rule",
+            "type": "object",
+            "required": true,
+            "fields": [
+              {
+                "name": "kind",
+                "label": "Rule type",
+                "type": "string",
+                "required": true,
+                "enum": [
+                  "always",
+                  "window"
+                ],
+                "default": "always"
+              },
+              {
+                "name": "startsAt",
+                "label": "Available from",
+                "type": "string",
+                "required": true,
+                "format": "date-time",
+                "visibleWhen": {
+                  "field": "kind",
+                  "equals": "window"
+                }
+              },
+              {
+                "name": "endsAt",
+                "label": "Available until",
+                "type": "string",
+                "required": true,
+                "format": "date-time",
+                "visibleWhen": {
+                  "field": "kind",
+                  "equals": "window"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "dimensions",
+          "label": "Physical dimensions (optional)",
+          "type": "object",
+          "required": false,
+          "fields": [
+            {
+              "name": "length",
+              "label": "Length",
+              "type": "number",
+              "required": true,
+              "minimum": 0.001
+            },
+            {
+              "name": "width",
+              "label": "Width",
+              "type": "number",
+              "required": true,
+              "minimum": 0.001
+            },
+            {
+              "name": "height",
+              "label": "Height",
+              "type": "number",
+              "required": true,
+              "minimum": 0.001
+            },
+            {
+              "name": "unit",
+              "label": "Dimension unit",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "mm",
+                "cm",
+                "m",
+                "in"
+              ]
+            }
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "physical"
+          }
+        },
+        {
+          "name": "unitOfMeasure",
+          "label": "Physical unit of measure",
+          "type": "string",
+          "required": false,
+          "maxLength": 40,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "physical"
+          }
+        },
+        {
+          "name": "digitalDeliveryMethod",
+          "label": "Digital delivery",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "download",
+            "access",
+            "other"
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "digital"
+          }
+        },
+        {
+          "name": "licenseDescription",
+          "label": "License description",
+          "type": "string",
+          "required": false,
+          "format": "multiline",
+          "maxLength": 2000,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "digital"
+          }
+        },
+        {
+          "name": "duration",
+          "label": "Service duration",
+          "type": "number",
+          "required": false,
+          "minimum": 0.001,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "service"
+          }
+        },
+        {
+          "name": "capacityUnit",
+          "label": "Service capacity unit",
+          "type": "string",
+          "required": false,
+          "maxLength": 40,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "service"
+          }
+        },
+        {
+          "name": "serviceDeliveryMethod",
+          "label": "Service delivery",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "onsite",
+            "remote",
+            "hybrid",
+            "other"
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "service"
+          }
+        },
+        {
+          "name": "recurring",
+          "label": "Recurring service",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "service"
+          }
+        },
+        {
+          "name": "interval",
+          "label": "Billing interval",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "day",
+            "week",
+            "month",
+            "year"
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "subscription"
+          }
+        },
+        {
+          "name": "intervalCount",
+          "label": "Billing interval count",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "subscription"
+          }
+        },
+        {
+          "name": "subscriptionDelivery",
+          "label": "Subscription delivery",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "physical",
+            "digital",
+            "service"
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "subscription"
+          }
+        },
+        {
+          "name": "rentalUnit",
+          "label": "Rental duration unit",
+          "type": "string",
+          "required": false,
+          "enum": [
+            "hour",
+            "day",
+            "week",
+            "month"
+          ],
+          "visibleWhen": {
+            "field": "type",
+            "equals": "rental"
+          }
+        },
+        {
+          "name": "ownerEntityId",
+          "label": "Owning legal entity",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordRevision",
+          "label": "Revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "code",
+        "type",
+        "status"
+      ],
+      "createOperation": "createOffering",
+      "updateOperation": "updateOffering"
+    },
+    {
+      "screenId": "variants",
+      "title": "Variants",
+      "navigationLabel": "Variants",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listVariant",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "code",
+          "label": "Variant SKU or code",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Variant name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "status",
+          "label": "Lifecycle status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "draft",
+            "active",
+            "inactive",
+            "archived"
+          ],
+          "default": "draft"
+        },
+        {
+          "name": "unitOfMeasure",
+          "label": "Unit of measure",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        }
+      ],
+      "columns": [
+        "name",
+        "offeringId",
+        "code",
+        "status"
+      ],
+      "createOperation": "createVariant",
+      "updateOperation": "updateVariant"
+    },
+    {
+      "screenId": "categories",
+      "title": "Categories",
+      "navigationLabel": "Categories",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listCategory",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Category name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "parentId",
+          "label": "Parent category",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listCategory",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        }
+      ],
+      "columns": [
+        "name",
+        "parentId"
+      ],
+      "createOperation": "createCategory",
+      "updateOperation": "updateCategory"
+    },
+    {
+      "screenId": "attribute-definitions",
+      "title": "Attribute Definitions",
+      "navigationLabel": "Attribute Definitions",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listAttributeDefinition",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "key",
+          "label": "Attribute key",
+          "type": "string",
+          "required": true,
+          "maxLength": 80
+        },
+        {
+          "name": "name",
+          "label": "Attribute name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "type",
+          "label": "Attribute value type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "text",
+            "number",
+            "boolean",
+            "choice"
+          ],
+          "default": "text"
+        },
+        {
+          "name": "required",
+          "label": "Required attribute",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "name": "scope",
+          "label": "Attribute applicability",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "offering",
+            "variant"
+          ],
+          "default": "offering"
+        },
+        {
+          "name": "offeringTypes",
+          "label": "Applicable offering types (add at least one)",
+          "type": "array",
+          "required": true,
+          "maxItems": 6,
+          "items": {
+            "name": "offeringType",
+            "label": "Offering type",
+            "type": "string",
+            "required": true,
+            "enum": [
+              "physical",
+              "digital",
+              "service",
+              "subscription",
+              "rental",
+              "bundle"
+            ]
+          },
+          "minItems": 1
+        },
+        {
+          "name": "choices",
+          "label": "Allowed choices",
+          "type": "array",
+          "required": false,
+          "maxItems": 40,
+          "items": {
+            "name": "choice",
+            "label": "Choice",
+            "type": "string",
+            "required": true,
+            "maxLength": 160
+          },
+          "visibleWhen": {
+            "field": "type",
+            "equals": "choice"
+          }
+        },
+        {
+          "name": "min",
+          "label": "Minimum value",
+          "type": "number",
+          "required": false,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "number"
+          }
+        },
+        {
+          "name": "max",
+          "label": "Maximum value",
+          "type": "number",
+          "required": false,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "number"
+          }
+        },
+        {
+          "name": "maxLength",
+          "label": "Maximum text length",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "visibleWhen": {
+            "field": "type",
+            "equals": "text"
+          }
+        }
+      ],
+      "columns": [
+        "name",
+        "key",
+        "type",
+        "required"
+      ],
+      "createOperation": "createAttributeDefinition",
+      "updateOperation": "updateAttributeDefinition"
+    },
+    {
+      "screenId": "attributes",
+      "title": "Offering and Variant Attributes",
+      "navigationLabel": "Offering and Variant Attributes",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listAttribute",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "variantId",
+          "label": "Variant",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listVariant",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "definitionId",
+          "label": "Attribute definition",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listAttributeDefinition",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "valueType",
+          "label": "Value type",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "text",
+            "number",
+            "boolean",
+            "choice"
+          ],
+          "default": "text"
+        },
+        {
+          "name": "valueText",
+          "label": "Text value",
+          "type": "string",
+          "required": false,
+          "maxLength": 2000,
+          "format": "multiline",
+          "visibleWhen": {
+            "field": "valueType",
+            "equals": "text"
+          }
+        },
+        {
+          "name": "valueNumber",
+          "label": "Numeric value",
+          "type": "number",
+          "required": false,
+          "visibleWhen": {
+            "field": "valueType",
+            "equals": "number"
+          }
+        },
+        {
+          "name": "valueBoolean",
+          "label": "Boolean value",
+          "type": "boolean",
+          "required": false,
+          "default": false,
+          "visibleWhen": {
+            "field": "valueType",
+            "equals": "boolean"
+          }
+        },
+        {
+          "name": "valueChoice",
+          "label": "Chosen value",
+          "type": "string",
+          "required": false,
+          "maxLength": 160,
+          "visibleWhen": {
+            "field": "valueType",
+            "equals": "choice"
+          }
+        }
+      ],
+      "columns": [
+        "offeringId",
+        "variantId",
+        "definitionId",
+        "valueType"
+      ],
+      "createOperation": "createAttribute",
+      "updateOperation": "updateAttribute"
+    },
+    {
+      "screenId": "bundles",
+      "title": "Bundle Components",
+      "navigationLabel": "Bundle Components",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listBundleComponent",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "componentOfferingId",
+          "label": "Component offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "componentVariantId",
+          "label": "Component variant",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listVariant",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "quantity",
+          "label": "Component quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 0.001
+        },
+        {
+          "name": "unitOfMeasure",
+          "label": "Component unit",
+          "type": "string",
+          "required": true,
+          "maxLength": 40
+        },
+        {
+          "name": "required",
+          "label": "Required component",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        }
+      ],
+      "columns": [
+        "offeringId",
+        "componentOfferingId",
+        "componentVariantId",
+        "quantity",
+        "unitOfMeasure"
+      ],
+      "createOperation": "createBundleComponent",
+      "updateOperation": "updateBundleComponent"
+    },
+    {
+      "screenId": "external-observations",
+      "title": "External Source Observations",
+      "navigationLabel": "External Source Observations",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "externalObservations",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Source offering",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "externalProvider",
+          "label": "External provider",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "accountId",
+          "label": "External account or store",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "productId",
+          "label": "External product",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "externalVariantId",
+          "label": "External variant",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedAt",
+          "label": "Observed at",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Observation status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "externalProvider",
+        "accountId",
+        "productId",
+        "externalVariantId",
+        "observedAt"
+      ]
+    },
+    {
+      "screenId": "provider-mappings",
+      "title": "Provider Mappings",
+      "navigationLabel": "Provider Mappings",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listMapping",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "variantId",
+          "label": "Variant",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listVariant",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "observationId",
+          "label": "External source observation",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "externalObservations",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "status",
+          "label": "Mapping status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "proposed",
+            "verified",
+            "inactive"
+          ],
+          "default": "proposed"
+        },
+        {
+          "name": "displayNameOverride",
+          "label": "Local display name override",
+          "type": "string",
+          "required": false,
+          "maxLength": 160
+        },
+        {
+          "name": "mapping",
+          "label": "Original provider identity and field authority",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "offeringId",
+        "variantId",
+        "observationId",
+        "status",
+        "displayNameOverride",
+        "mapping"
+      ],
+      "createOperation": "createMapping",
+      "updateOperation": "updateMapping"
+    },
+    {
+      "screenId": "source-reads",
+      "title": "Read-only Source Requests",
+      "navigationLabel": "Read-only Source Requests",
+      "workspace": "developer",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listReadJob",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "kind",
+          "label": "Read-only source request",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "observation",
+            "extension-definition"
+          ],
+          "default": "observation"
+        },
+        {
+          "name": "sourceRecordId",
+          "label": "External source record reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 200
+        },
+        {
+          "name": "sourceStreamId",
+          "label": "Declared external source stream",
+          "type": "string",
+          "required": true,
+          "maxLength": 120
+        },
+        {
+          "name": "status",
+          "label": "Request status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Source availability",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "kind",
+        "sourceRecordId",
+        "sourceStreamId",
+        "status",
+        "error"
+      ],
+      "createOperation": "createReadJob",
+      "updateOperation": "updateReadJob",
+      "actions": [
+        {
+          "label": "Request read-only source observation",
+          "operationId": "requestSource",
+          "confirmation": "Request a read-only observation from the approved original provider? This does not publish or change the external catalog."
+        }
+      ]
+    },
+    {
+      "screenId": "import-preview",
+      "title": "Import and Reconciliation Preview",
+      "navigationLabel": "Import and Reconciliation Preview",
+      "navigationGroup": "Universal Catalog",
+      "workspace": "business",
+      "formVersion": 1,
+      "preview": {
+        "version": 1,
+        "operationId": "previewImport",
+        "submitLabel": "Preview import"
+      },
+      "fields": [
+        {
+          "name": "observationId",
+          "label": "External source observation",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "externalObservations",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "targetOfferingId",
+          "label": "Existing target offering",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        }
+      ],
+      "columns": []
+    },
+    {
+      "screenId": "import-plans",
+      "title": "Reviewed Import Plans",
+      "navigationLabel": "Reviewed Import Plans",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listImportPlan",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "observationId",
+          "label": "External source observation",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "externalObservations",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "targetOfferingId",
+          "label": "Existing target offering",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "newCode",
+          "label": "New offering code",
+          "type": "string",
+          "required": false,
+          "maxLength": 80
+        },
+        {
+          "name": "newName",
+          "label": "New offering name",
+          "type": "string",
+          "required": false,
+          "maxLength": 160
+        },
+        {
+          "name": "status",
+          "label": "Import status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "result",
+          "label": "Import result",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "observationId",
+        "targetOfferingId",
+        "newCode",
+        "newName",
+        "status"
+      ],
+      "createOperation": "createImportPlan",
+      "updateOperation": "updateImportPlan",
+      "actions": [
+        {
+          "label": "Apply reviewed import",
+          "operationId": "applyImport",
+          "confirmation": "Apply this explicit import plan? Review source identity, duplicates and mapping conflicts first. External provider records remain unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "extension-definitions",
+      "title": "Verified Extension Definitions",
+      "navigationLabel": "Verified Extension Definitions",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "extensionDefinitions",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Definition",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "key",
+          "label": "Definition key",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "provider",
+          "label": "Original provider",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "attributes",
+          "label": "Validated attribute contract",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordRevision",
+          "label": "Definition revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "key",
+        "provider",
+        "attributes",
+        "recordRevision"
+      ]
+    },
+    {
+      "screenId": "extensions",
+      "title": "Offering Extensions",
+      "navigationLabel": "Offering Extensions",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "listExtension",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "definitionId",
+          "label": "Verified extension definition",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "extensionDefinitions",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "values",
+          "label": "Extension attribute values",
+          "type": "array",
+          "required": true,
+          "maxItems": 24,
+          "items": {
+            "name": "value",
+            "label": "Attribute value",
+            "type": "object",
+            "required": true,
+            "fields": [
+              {
+                "name": "key",
+                "label": "Declared attribute key",
+                "type": "string",
+                "required": true,
+                "maxLength": 80
+              },
+              {
+                "name": "valueType",
+                "label": "Value type",
+                "type": "string",
+                "required": true,
+                "enum": [
+                  "text",
+                  "number",
+                  "boolean",
+                  "choice"
+                ],
+                "default": "text"
+              },
+              {
+                "name": "valueText",
+                "label": "Text value",
+                "type": "string",
+                "required": false,
+                "maxLength": 2000,
+                "format": "multiline",
+                "visibleWhen": {
+                  "field": "valueType",
+                  "equals": "text"
+                }
+              },
+              {
+                "name": "valueNumber",
+                "label": "Numeric value",
+                "type": "number",
+                "required": false,
+                "visibleWhen": {
+                  "field": "valueType",
+                  "equals": "number"
+                }
+              },
+              {
+                "name": "valueBoolean",
+                "label": "Boolean value",
+                "type": "boolean",
+                "required": false,
+                "default": false,
+                "visibleWhen": {
+                  "field": "valueType",
+                  "equals": "boolean"
+                }
+              },
+              {
+                "name": "valueChoice",
+                "label": "Chosen value",
+                "type": "string",
+                "required": false,
+                "maxLength": 160,
+                "visibleWhen": {
+                  "field": "valueType",
+                  "equals": "choice"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "columns": [
+        "offeringId",
+        "definitionId",
+        "values"
+      ],
+      "createOperation": "createExtension",
+      "updateOperation": "updateExtension"
+    },
+    {
+      "screenId": "history",
+      "title": "Offering History",
+      "navigationLabel": "Offering History",
+      "workspace": "business",
+      "navigationGroup": "Universal Catalog",
+      "formVersion": 1,
+      "listOperation": "history",
+      "fields": [
+        {
+          "name": "offeringId",
+          "label": "Offering",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listOffering",
+            "valueField": "id",
+            "labelField": "name"
+          },
+          "readOnly": true
+        },
+        {
+          "name": "actor",
+          "label": "Actor",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "operation",
+          "label": "Change",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "recordRevision",
+          "label": "Revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "createdAt",
+          "label": "Recorded at",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "snapshot",
+          "label": "Immutable offering snapshot",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "offeringId",
+        "operation",
+        "actor",
+        "recordRevision",
+        "createdAt",
+        "snapshot"
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "integrationsEnabled"
+    ],
+    "properties": {
+      "sourceMaxAgeHours": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 168,
+        "default": 24,
+        "description": "Maximum accepted age of a verified provider observation."
+      },
+      "integrationsEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable explicitly approved SSMA read-only interoperability. Local catalog operations remain available independently."
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "654d233d05484c5f89c083094069551dabde37ad4706b5a2755ad235e0530b17"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "catalog.offerings.read",
+        "contract": "steward.catalog-offerings",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "catalog.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offeringId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "variantId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offeringId",
+                "variantId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offering": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "ownerEntityId": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "physical",
+                        "digital",
+                        "service",
+                        "subscription",
+                        "rental",
+                        "bundle"
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160,
+                      "pattern": "\\S"
+                    },
+                    "code": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "\\S"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "active",
+                        "inactive",
+                        "archived"
+                      ]
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 2147483647
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "code": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "active",
+                              "inactive",
+                              "archived"
+                            ]
+                          },
+                          "unitOfMeasure": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "revision",
+                          "status",
+                          "unitOfMeasure"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 20
+                    },
+                    "capabilityReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "capabilityId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "contract": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "version": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                          },
+                          "recordId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "enum": [
+                              "inventory",
+                              "production",
+                              "fulfillment",
+                              "availability",
+                              "supplier",
+                              "service",
+                              "resource"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "provider",
+                          "capabilityId",
+                          "contract",
+                          "version",
+                          "recordId",
+                          "purpose"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 12
+                    },
+                    "externalReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "externalProvider": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "accountId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "productId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "externalVariantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "variantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "proposed",
+                              "verified",
+                              "conflict",
+                              "inactive"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "externalProvider",
+                          "accountId",
+                          "productId",
+                          "externalVariantId",
+                          "variantId",
+                          "status"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 12
+                    },
+                    "variantsTruncated": {
+                      "type": "boolean"
+                    },
+                    "referencesTruncated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "id",
+                    "ownerEntityId",
+                    "type",
+                    "name",
+                    "code",
+                    "status",
+                    "revision",
+                    "variants",
+                    "capabilityReferences",
+                    "externalReferences",
+                    "variantsTruncated",
+                    "referencesTruncated"
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offering"
+              ]
+            },
+            "command": "catalog.lookup",
+            "permission": "steward.catalog.universal.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "catalog.read",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offeringId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offeringId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offering": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "ownerEntityId": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "physical",
+                        "digital",
+                        "service",
+                        "subscription",
+                        "rental",
+                        "bundle"
+                      ]
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 160,
+                      "pattern": "\\S"
+                    },
+                    "code": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80,
+                      "pattern": "\\S"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "active",
+                        "inactive",
+                        "archived"
+                      ]
+                    },
+                    "revision": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 2147483647
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "code": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "active",
+                              "inactive",
+                              "archived"
+                            ]
+                          },
+                          "unitOfMeasure": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "revision",
+                          "status",
+                          "unitOfMeasure"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 20
+                    },
+                    "capabilityReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "capabilityId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "contract": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "version": {
+                            "type": "string",
+                            "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                          },
+                          "recordId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "purpose": {
+                            "type": "string",
+                            "enum": [
+                              "inventory",
+                              "production",
+                              "fulfillment",
+                              "availability",
+                              "supplier",
+                              "service",
+                              "resource"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "provider",
+                          "capabilityId",
+                          "contract",
+                          "version",
+                          "recordId",
+                          "purpose"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 12
+                    },
+                    "externalReferences": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "externalProvider": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "accountId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "productId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "externalVariantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 200,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "variantId": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "proposed",
+                              "verified",
+                              "conflict",
+                              "inactive"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "externalProvider",
+                          "accountId",
+                          "productId",
+                          "externalVariantId",
+                          "variantId",
+                          "status"
+                        ]
+                      },
+                      "minItems": 0,
+                      "maxItems": 12
+                    },
+                    "variantsTruncated": {
+                      "type": "boolean"
+                    },
+                    "referencesTruncated": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "id",
+                    "ownerEntityId",
+                    "type",
+                    "name",
+                    "code",
+                    "status",
+                    "revision",
+                    "variants",
+                    "capabilityReferences",
+                    "externalReferences",
+                    "variantsTruncated",
+                    "referencesTruncated"
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offering"
+              ]
+            },
+            "command": "catalog.read",
+            "permission": "steward.catalog.universal.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "catalog.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "physical",
+                    "digital",
+                    "service",
+                    "subscription",
+                    "rental",
+                    "bundle",
+                    "any"
+                  ]
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "draft",
+                    "active",
+                    "inactive",
+                    "archived",
+                    "any"
+                  ]
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "type",
+                "status",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offerings": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "ownerEntityId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "physical",
+                          "digital",
+                          "service",
+                          "subscription",
+                          "rental",
+                          "bundle"
+                        ]
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "draft",
+                          "active",
+                          "inactive",
+                          "archived"
+                        ]
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      "variants": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "\\S"
+                            },
+                            "revision": {
+                              "type": "integer",
+                              "minimum": 1,
+                              "maximum": 2147483647
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "draft",
+                                "active",
+                                "inactive",
+                                "archived"
+                              ]
+                            },
+                            "unitOfMeasure": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 40,
+                              "pattern": "\\S"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "code",
+                            "revision",
+                            "status",
+                            "unitOfMeasure"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 20
+                      },
+                      "capabilityReferences": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "contractVersion": {
+                              "const": 1
+                            },
+                            "provider": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "workerInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "entityId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "moduleId": {
+                                  "type": "string",
+                                  "minLength": 3,
+                                  "maxLength": 120,
+                                  "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                },
+                                "moduleInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "packageDigest": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "workerInstallationId",
+                                "entityId",
+                                "moduleId",
+                                "moduleInstallationId",
+                                "packageDigest"
+                              ]
+                            },
+                            "capabilityId": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 120,
+                              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                            },
+                            "contract": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 120,
+                              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                            },
+                            "version": {
+                              "type": "string",
+                              "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+                            },
+                            "recordId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "pattern": "\\S"
+                            },
+                            "purpose": {
+                              "type": "string",
+                              "enum": [
+                                "inventory",
+                                "production",
+                                "fulfillment",
+                                "availability",
+                                "supplier",
+                                "service",
+                                "resource"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "contractVersion",
+                            "provider",
+                            "capabilityId",
+                            "contract",
+                            "version",
+                            "recordId",
+                            "purpose"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 12
+                      },
+                      "externalReferences": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "provider": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "contractVersion": {
+                                  "const": 1
+                                },
+                                "workerInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "entityId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "moduleId": {
+                                  "type": "string",
+                                  "minLength": 3,
+                                  "maxLength": 120,
+                                  "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                },
+                                "moduleInstallationId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "packageDigest": {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                }
+                              },
+                              "required": [
+                                "contractVersion",
+                                "workerInstallationId",
+                                "entityId",
+                                "moduleId",
+                                "moduleInstallationId",
+                                "packageDigest"
+                              ]
+                            },
+                            "externalProvider": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 120,
+                              "pattern": "\\S"
+                            },
+                            "accountId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "pattern": "\\S"
+                            },
+                            "productId": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 200,
+                              "pattern": "\\S"
+                            },
+                            "externalVariantId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 200,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "variantId": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "status": {
+                              "type": "string",
+                              "enum": [
+                                "proposed",
+                                "verified",
+                                "conflict",
+                                "inactive"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "provider",
+                            "externalProvider",
+                            "accountId",
+                            "productId",
+                            "externalVariantId",
+                            "variantId",
+                            "status"
+                          ]
+                        },
+                        "minItems": 0,
+                        "maxItems": 12
+                      },
+                      "variantsTruncated": {
+                        "type": "boolean"
+                      },
+                      "referencesTruncated": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "id",
+                      "ownerEntityId",
+                      "type",
+                      "name",
+                      "code",
+                      "status",
+                      "revision",
+                      "variants",
+                      "capabilityReferences",
+                      "externalReferences",
+                      "variantsTruncated",
+                      "referencesTruncated"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offerings",
+                "nextOffset"
+              ]
+            },
+            "command": "catalog.discover",
+            "permission": "steward.catalog.universal.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "catalog.import-preview",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "sources": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "entityId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "moduleId": {
+                        "type": "string",
+                        "minLength": 3,
+                        "maxLength": 120,
+                        "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                      },
+                      "streamId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "recordId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 200,
+                        "pattern": "\\S"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      "provider": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "workerInstallationId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "moduleId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "moduleInstallationId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "packageDigest": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "workerInstallationId",
+                          "entityId",
+                          "moduleId",
+                          "moduleInstallationId",
+                          "packageDigest"
+                        ]
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "entityId",
+                      "moduleId",
+                      "streamId",
+                      "recordId",
+                      "revision",
+                      "provider",
+                      "observedAt"
+                    ]
+                  },
+                  "minItems": 1,
+                  "maxItems": 10
+                },
+                "targetOfferingId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "sources",
+                "targetOfferingId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "source": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "contractVersion": {
+                            "const": 1
+                          },
+                          "entityId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "moduleId": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 120,
+                            "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                          },
+                          "streamId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 120,
+                            "pattern": "\\S"
+                          },
+                          "recordId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 200,
+                            "pattern": "\\S"
+                          },
+                          "revision": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 2147483647
+                          },
+                          "provider": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "contractVersion": {
+                                "const": 1
+                              },
+                              "workerInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "entityId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "moduleId": {
+                                "type": "string",
+                                "minLength": 3,
+                                "maxLength": 120,
+                                "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                              },
+                              "moduleInstallationId": {
+                                "type": "string",
+                                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                              },
+                              "packageDigest": {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              }
+                            },
+                            "required": [
+                              "contractVersion",
+                              "workerInstallationId",
+                              "entityId",
+                              "moduleId",
+                              "moduleInstallationId",
+                              "packageDigest"
+                            ]
+                          },
+                          "observedAt": {
+                            "type": "string",
+                            "minLength": 20,
+                            "maxLength": 35,
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                          }
+                        },
+                        "required": [
+                          "contractVersion",
+                          "entityId",
+                          "moduleId",
+                          "streamId",
+                          "recordId",
+                          "revision",
+                          "provider",
+                          "observedAt"
+                        ]
+                      },
+                      "result": {
+                        "type": "string",
+                        "enum": [
+                          "new",
+                          "already-mapped",
+                          "conflict",
+                          "unavailable"
+                        ]
+                      },
+                      "candidateOfferingIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "minItems": 0,
+                        "maxItems": 10
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500,
+                        "pattern": "\\S"
+                      }
+                    },
+                    "required": [
+                      "source",
+                      "result",
+                      "candidateOfferingIds",
+                      "reason"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 10
+                },
+                "mutationPerformed": {
+                  "const": false
+                }
+              },
+              "required": [
+                "contractVersion",
+                "items",
+                "mutationPerformed"
+              ]
+            },
+            "command": "catalog.import-preview",
+            "permission": "steward.catalog.universal.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "catalog.external-observations.read",
+        "contract": "steward.catalog-external-observations",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "optional": true,
+        "maximumSensitivity": "business",
+        "events": [],
+        "operations": [
+          {
+            "name": "catalog.source.read",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "sourceRecordId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "sourceStreamId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "sourceRecordId",
+                "sourceStreamId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "sourceRecordId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "sourceStreamId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "sourceRevision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                },
+                "externalProvider": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "productId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "externalVariantId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "pattern": "\\S"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 160,
+                  "pattern": "\\S"
+                },
+                "code": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "physical",
+                    "digital",
+                    "service",
+                    "subscription",
+                    "rental",
+                    "bundle"
+                  ]
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 35,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                },
+                "supportedCapabilities": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120,
+                    "pattern": "\\S"
+                  },
+                  "minItems": 0,
+                  "maxItems": 12
+                }
+              },
+              "required": [
+                "contractVersion",
+                "sourceRecordId",
+                "sourceStreamId",
+                "sourceRevision",
+                "externalProvider",
+                "accountId",
+                "productId",
+                "externalVariantId",
+                "name",
+                "code",
+                "type",
+                "observedAt",
+                "supportedCapabilities"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "capabilityId": "catalog.extension-definitions.read",
+        "contract": "steward.catalog-extension-definitions",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "optional": true,
+        "maximumSensitivity": "business",
+        "events": [],
+        "operations": [
+          {
+            "name": "catalog.definition.read",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "sourceRecordId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "sourceStreamId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "sourceRecordId",
+                "sourceStreamId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "sourceRecordId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "\\S"
+                },
+                "sourceStreamId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "sourceRevision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 35,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                },
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "attributes": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "key": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)*$"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "text",
+                          "number",
+                          "boolean",
+                          "choice"
+                        ]
+                      },
+                      "required": {
+                        "type": "boolean"
+                      },
+                      "choices": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "minItems": 1,
+                        "maxItems": 40
+                      },
+                      "min": {
+                        "type": "number",
+                        "minimum": -1000000000000,
+                        "maximum": 1000000000000
+                      },
+                      "max": {
+                        "type": "number",
+                        "minimum": -1000000000000,
+                        "maximum": 1000000000000
+                      },
+                      "maxLength": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2000
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "key",
+                      "name",
+                      "type",
+                      "required"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 24
+                }
+              },
+              "required": [
+                "contractVersion",
+                "sourceRecordId",
+                "sourceStreamId",
+                "sourceRevision",
+                "observedAt",
+                "key",
+                "attributes"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "integrationsEnabled": true
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}

@@ -1,3 +1,4 @@
+import {assertInstallationContinuity,assertRuntimeInstallation} from './installation-continuity.js';
 import {financialAuthorityHeaders,approvalAuthorityHeaders,publicContextHeaders} from './financial-context.js';
 import {protectSimulationRoute,rememberSimulationOrigin,recordSimulationDenial} from './simulation-routing.js';
 import {plannedConnectorEgress,connectorNetworkName,validateEgressNetwork,requireConnectorConfiguration} from './connector-egress.js';
@@ -352,12 +353,14 @@ async function integrations(){
        const acquired=(await deliveryClient.query('SELECT pg_try_advisory_lock_shared(hashtext($1)) acquired',[id])).rows[0].acquired;
        if(!acquired)throw new Error('INTEGRATION_PROVIDER_UNAVAILABLE');deliveryLocks.push(id);
       }
-      const fresh=(await metadataPool.query('SELECT module_id,descriptor,configuration,state FROM module_installations WHERE module_id=ANY($1::text[])',[[m.moduleId,target.module_id]])).rows;
-      if([source,target].some(old=>!fresh.some(r=>r.module_id===old.module_id&&r.state==='active'&&canonical(r.descriptor)===canonical(old.descriptor)&&canonical(r.configuration)===canonical(old.configuration))))throw new Error('INTEGRATION_PROVIDER_CHANGED');
+      const fresh=(await metadataPool.query('SELECT module_id,operation_id,descriptor,configuration,state FROM module_installations WHERE module_id=ANY($1::text[])',[[m.moduleId,target.module_id]])).rows;
+      assertInstallationContinuity([source,target],fresh);
       const targetManifest=verifyPackage(target.descriptor,trust).manifest;
       if(smart&&canonical(smart.manifest)!==canonical(targetManifest))throw new Error('INTEGRATION_PROVIDER_CHANGED');
       const targetRuntime=JSON.parse(await readFile(`${stateRoot}/${slug(target.module_id)}/runtime.json`,'utf8'));
       const liveSourceRuntime=JSON.parse(await readFile(`${stateRoot}/${slug(m.moduleId)}/runtime.json`,'utf8'));
+      assertRuntimeInstallation(source,liveSourceRuntime,config.installationId);
+      assertRuntimeInstallation(target,targetRuntime,config.installationId);
       const current=await state(target.module_id),sourceState=await state(m.moduleId);
       if(current?.phase!=='active'||current.version!==target.version||sourceState?.version!==m.version||sourceState?.phase!=='active'||canonical(targetRuntime.configuration)!==canonical(target.configuration)||canonical(liveSourceRuntime.configuration)!==canonical(source.configuration)){error='PEER_UNAVAILABLE';}
       else if(target.configuration.integrationsEnabled!==true&&!(wire.simulation&&targetManifest.simulation?.role==='participant'&&target.configuration.simulationEnabled===true)){error='PEER_DISABLED';}

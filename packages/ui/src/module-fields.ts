@@ -79,7 +79,15 @@ export function moduleFieldDefault(field:ModuleField):any{
 }
 export function moduleReferenceFields(fields:ModuleField[],prefix=''):Array<{field:ModuleField;path:string}>{return fields.flatMap(field=>{const path=prefix+field.name;return [...(field.reference?[{field,path}]:[]),...(field.fields?moduleReferenceFields(field.fields,path+'.'):[]),...(field.items?moduleReferenceFields([field.items],path+'[].'):[])];});}
 export function moduleFormBody(fields:ModuleField[],values:Record<string,any>,choices:Record<string,ReferenceChoices>,existing:Record<string,any>={},prefix=''):Record<string,any>{
- const output:Record<string,any>={};for(const f of fields){if(f.readOnly||!moduleFieldVisible(f,values))continue;const raw=values[f.name],path=prefix+f.name;if(!f.required&&(raw===undefined||raw===null||raw===''))continue;output[f.name]=moduleFieldValue(f,raw,choices,existing[f.name],path);}return output;
+ const output:Record<string,any>={};for(const f of fields){if(f.readOnly||!moduleFieldVisible(f,values))continue;const raw=values[f.name],path=prefix+f.name;if(!f.required&&(raw===undefined||raw===null||raw===''||f.type==='object'&&moduleObjectEmpty(f,raw)))continue;output[f.name]=moduleFieldValue(f,raw,choices,existing[f.name],path);}return output;
+}
+/** Optional groups remain absent until a visible declared value is entered. Zero and false count as entered. */
+export function moduleObjectEmpty(field:ModuleField,value:any):boolean{
+ if(value===undefined||value===null||value==='')return true;
+ if(!value||typeof value!=='object'||Array.isArray(value))return false;
+ return(field.fields??[]).filter(f=>!f.readOnly&&moduleFieldVisible(f,value)).every(f=>{
+  const child=value[f.name];return child===undefined||child===null||child===''||f.type==='object'&&moduleObjectEmpty(f,child);
+ });
 }
 function moduleFieldValue(f:ModuleField,raw:any,choices:Record<string,ReferenceChoices>,existing:any,path:string):any{
  if(f.reference&&!referenceSelectionValid(f,raw,choices[path],existing))throw Error('Choose an authorized related record for '+f.label+'.');

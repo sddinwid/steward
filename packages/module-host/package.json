@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/naming.test.js dist/connector-egress.test.js dist/replication.test.js dist/peer-delivery.test.js dist/financial-context.test.js"
+    "test": "node --test dist/naming.test.js dist/connector-egress.test.js dist/replication.test.js dist/peer-delivery.test.js dist/financial-context.test.js dist/installation-continuity.test.js"
   },
   "dependencies": {
     "@steward/module-sdk": "1.4.0",

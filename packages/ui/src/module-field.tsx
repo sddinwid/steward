@@ -1,8 +1,9 @@
 import {Money,ReadableValue,StructuredValue} from './presentation.js';
 import type {ModuleField,ReferenceChoices} from './module-fields.js';
-import {unavailableReference,moduleFieldDefault,moduleFieldVisible,moduleDateTimeDisplay} from './module-fields.js';
+import {unavailableReference,moduleFieldDefault,moduleFieldVisible,moduleDateTimeDisplay,moduleObjectEmpty} from './module-fields.js';
 
 export function ModuleReferenceValue({value,reference}:{value:unknown;reference:ReferenceChoices|undefined}){
+ if(value===null||value===undefined||value==='')return <span className="muted">None</span>;
  const choice=reference?.status==='ready'?reference.choices.find(c=>c.value===value):undefined;
  return choice?<details><summary>{choice.label}</summary><code>{String(value)}</code></details>:<span className="muted">{reference?.status==='loading'?'Loading related record…':'Related record unavailable'}</span>;
 }
@@ -13,7 +14,7 @@ export function ModuleFormField({field,value,currency,onChange,reference,onReloa
  const money=field.format==='money'||/Cents$/.test(field.name);
  const related=reference??references[path];
  if(field.readOnly)return <div className="module-field"><span>{label}</span>{money?<Money cents={value} currency={currency}/>:<ReadableValue value={value} name={field.name} currency={currency}/>}</div>;
- if(field.type==='object'){const object=value&&typeof value==='object'&&!Array.isArray(value)?value:{};return <fieldset className="module-object"><legend>{label}</legend>{(field.fields??[]).filter(f=>moduleFieldVisible(f,object)).map(f=><ModuleFormField key={f.name} field={f} value={object[f.name]} currency={currency} onChange={v=>onChange({...object,[f.name]:v})} references={references} path={path+'.'+f.name} labelPrefix={label+': '} onReload={onReload}/>)}</fieldset>;}
+ if(field.type==='object'){const object=value&&typeof value==='object'&&!Array.isArray(value)?value:{},groupRequired=field.required||!moduleObjectEmpty(field,object);return <fieldset className="module-object"><legend>{label}</legend>{(field.fields??[]).filter(f=>moduleFieldVisible(f,object)).map(f=><ModuleFormField key={f.name} field={{...f,required:f.required&&groupRequired}} value={object[f.name]} currency={currency} onChange={v=>onChange({...object,[f.name]:v})} references={references} path={path+'.'+f.name} labelPrefix={label+': '} onReload={onReload}/>)}</fieldset>;}
  if(field.type==='array'){const rows=Array.isArray(value)?value:[],item=field.items!;return <fieldset className="module-array"><legend>{label}</legend>{!rows.length?<p>No entries yet.</p>:null}{rows.map((row,i)=><div className="module-array-row" key={i}><ModuleFormField field={item} value={row} currency={currency} onChange={v=>onChange(rows.map((r,j)=>i===j?v:r))} references={references} path={path+'[].'+item.name} labelPrefix={label+' '+(i+1)+': '} onReload={onReload}/><button type="button" disabled={rows.length<=(field.minItems??0)} onClick={()=>onChange(rows.filter((_,j)=>j!==i))}>Remove {label.toLowerCase()} entry {i+1}</button></div>)}<button type="button" disabled={rows.length>=(field.maxItems??100)} onClick={()=>onChange([...rows,moduleFieldDefault(item)])}>Add {label.toLowerCase()} entry</button></fieldset>;}
  if(field.type==='boolean')return <div className="module-field"><label>{label}<select aria-label={label} value={value===true?'true':value===false?'false':''} required={field.required} onChange={e=>onChange(e.target.value==='true')}><option value="">Choose</option><option value="true">Yes</option><option value="false">No</option></select></label></div>;
  if(field.format==='multiline')return <div className="module-field"><label>{label}<textarea aria-label={label} maxLength={field.maxLength} required={field.required} value={value??''} onChange={e=>onChange(e.target.value)}/></label></div>;
