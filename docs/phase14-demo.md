@@ -80,3 +80,19 @@ Remove-Item Env:STEWARD_ECONOMIC_SNAPSHOT
 ```
 
 This explicitly creates a new reviewed snapshot/scenario generation, preserves original evidence, and reuses that generation on retries. The verified settled baseline proposes USD17000 of new contributions, using the already confirmed USD15000 receipts once. Existing source resources remain USD13000/8000 potentially available; these are neither income nor authorization. Repeat ledger acceptance verified eight databases, three original settlements/receipts/consumed holds and six balanced journals with no new intercompany income.
+
+
+## Genuine economic AI and shared-resource recovery
+
+The actual selected-deployment Qwen investigation and reviewed finding delivery/acknowledgments passed. This command uses the existing bounded TLS local-provider verifier and restores provider settings/unloads the model:
+
+```powershell
+node scripts/verify-phase14-economic-ollama.mjs "$deployment"
+# Separately inspect the actual narrative, retained calculation, references and assumptions.
+$env:STEWARD_REVIEWED_INVESTIGATION_ID = '<the independently reviewed investigation UUID>'
+node scripts/review-phase14-economic-ollama.mjs "$deployment"
+Remove-Item Env:STEWARD_REVIEWED_INVESTIGATION_ID
+node scripts/verify-phase14-shared-resource-outage.mjs "$deployment"
+```
+
+The outage helper deliberately stops only selected Master API/frontend services, performs original-provider noncash sharing/return, restarts all Worker APIs, proves a new module-owned financial summary queued offline, then restores Master in cleanup and verifies durable recovery/single-stack status. It retains all configuration, identities, records and unknown resource valuation. Its successful run required twelve normal UI actions and created no new cash settlement. Because source resources changed, the prior settled scenario is now historical and must not be used as current execution authority; another investigation requires a new explicit reviewed snapshot/scenario generation. Recorded service-cost comparisons and the final full demonstration remain unfinished.
