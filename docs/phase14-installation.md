@@ -1,6 +1,6 @@
 # Phase 14 installation implementation checkpoint
 
-The Phase14 release is not yet accepted. Candidate `artifacts/releases/steward-0.14.0-rc1` is checksummed and the selected operator core now runs it, preserving all existing accounts, identities, private configuration and module/business data. The seven new module packages are available but financial modules are not installed. Full financial UI/workflow, real Qwen, live catalog, outage, clean-installation and final release acceptance remain mandatory. See the actual upgrade results below.
+The Phase14 release is not yet accepted. Candidate `artifacts/releases/steward-0.14.0-rc2` is checksummed and the selected operator core now runs it, preserving existing accounts, identities, private configuration and business data. The four mission patches and eight independently packaged financial module instances are installed; their preservation/actual browser evidence is recorded below. Full financial UI/workflow, real Qwen, live catalog, outage, clean-installation and final release acceptance remain mandatory. See the actual upgrade results below.
 
 ## Additive API routing
 
@@ -94,3 +94,22 @@ node scripts/verify-single-stack.mjs
 The upgrade acceptance script is for explicit candidate redeployment verification, not routine startup. It snapshots protected data, invokes the existing release CLI backup/upgrade/start, and fails on preservation/image mismatches. It does not update module packages or restore a database automatically. Retain restricted backups and investigate any failure before making further changes. Routine operations remain `docker compose up -d`, `docker compose stop` and `docker compose ps` against the selected operator; they do not require another account, enrollment, stack or password file.
 
 Actual results and screenshots are in `docs/phase14-verification.md` and `artifacts/phase14-selected-upgrade.json`. Future module upgrades/installations use Module Manager and require their own preservation/authority checks. Do not promote/tag rc1 based only on core deployment acceptance.
+
+
+## Executed rc2 recovery and financial module installation
+
+The selected operator now runs rc2. Its lifecycle broker retries only explicit pre-effect lock conflicts and retains the original bound request on same-candidate recovery. An actual interrupted Housing patch upgrade was recovered and all four mission patch upgrades preserved their existing configuration and 34 original protected tables. A prior failed request must not be replaced with a new operation identity or an invented rollback.
+
+The following command performed eight actual browser installs and separate activations, preserving the common Worker core image throughout:
+
+```powershell
+$deployment = (Get-Content .steward/operator/selection.json | ConvertFrom-Json).directory
+$env:STEWARD_SEED_CREDENTIALS_FILE = (Resolve-Path "$deployment/demo/presenter.json").Path
+$env:STEWARD_DEMO_RETRY_LOGIN = '1'
+node scripts/verify-phase14-installation.mjs "$deployment"
+node scripts/verify-single-stack.mjs
+```
+
+Resource Availability is installed on Workers1/2; Budget and Coordination are installed on all three Workers. Each financial module has its own module database in its Worker's existing isolated PostgreSQL instance. They are synthetic-only and integration-enabled, but have no financial programme, policy or transaction authority until locally configured. The runner does not seed cash, approve policies/contributions, record settlements, or claim mission delivery. Current service count is **52** in the same selected stack; no separate stack is left running. Use the existing original credentials; installation did not change passwords.
+
+Snapshots and verification reports are private or under ignored `artifacts`; do not put backups, passwords or connector credentials into a release archive. rc1 remains a retained historical candidate and its failure evidence is preserved. rc2 is still not an accepted or tagged release.
