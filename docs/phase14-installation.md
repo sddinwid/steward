@@ -1,6 +1,6 @@
 # Phase 14 installation implementation checkpoint
 
-The Phase14 release is not yet accepted. The selected v0.13 operator deployment remains preserved. Signed financial package publication, clean-install/upgrade acceptance and release CLI integration are still mandatory; this document will be expanded with the verified release procedure after those gates pass.
+The Phase14 release is not yet accepted. Candidate `artifacts/releases/steward-0.14.0-rc1` is checksummed and the selected operator core now runs it, preserving all existing accounts, identities, private configuration and module/business data. The seven new module packages are available but financial modules are not installed. Full financial UI/workflow, real Qwen, live catalog, outage, clean-installation and final release acceptance remain mandatory. See the actual upgrade results below.
 
 ## Additive API routing
 
@@ -31,12 +31,12 @@ Only the reviewed economic scenario route accepts up to 64 KiB. The core request
 
 ## Pending deployment verification
 
-No operator routing overlay has been provisioned or applied by this checkpoint. Before upgrading the selected operator: prepare verified clean-source image evidence, back up configuration and all databases, preserve exact original account/identity/module/business records, and use the in-place upgrade path. Real Shopify/Printify settings and records must remain unchanged. A separate temporary full-stack acceptance environment requires stopping the selected stack including managed modules, retaining its volumes, and restoring it in cleanup. Run `node scripts/verify-single-stack.mjs` after deployment acceptance.
+At the earlier routing-only checkpoint, no operator overlay was applied. The subsequent candidate upgrade below has now applied it. For a further upgrade: prepare verified clean-source image evidence, back up configuration and all databases, preserve exact original account/identity/module/business records, and use the in-place upgrade path. Real Shopify/Printify settings and records must remain unchanged. A separate temporary full-stack acceptance environment requires stopping the selected stack including managed modules, retaining its volumes, and restoring it in cleanup. Run `node scripts/verify-single-stack.mjs` after deployment acceptance.
 
 
 ## Candidate release tooling (execution not yet accepted)
 
-The source is a v0.14.0 candidate. The version map is `docs/phase14-module-versions.json`; all 17 acceptance gates in `docs/phase14-release-gates.json` currently remain unverified. The following is the supported build/install procedure, not evidence that the artifacts or upgrade already exist.
+The source is a v0.14.0 candidate. The version map is `docs/phase14-module-versions.json`; all 17 acceptance gates in `docs/phase14-release-gates.json` currently remain unverified. The procedure below produced rc1 and performed the first selected-core upgrade. It does not establish acceptance of the remaining financial/business demonstration gates.
 
 From clean committed matching source:
 
@@ -79,3 +79,18 @@ Remove-Item Env:STEWARD_ACCEPTANCE_RELEASE
 ```
 
 No promotion or v0.14.0 tag is allowed until actual full installation, UI, financial coordination, outage, privacy, Qwen, live read-only catalog preservation and release redeployment gates pass. Credentials and backups stay private under `.steward`; never include them in an artifact or verification archive.
+
+
+## Executed rc1 upgrade and verification
+
+The selected operator was upgraded with the same URLs and PostgreSQL images, and remains the sole running application stack. The original credentials still authenticate. **336 original tables in 28 module databases** and **119 protected private files** match the before-upgrade snapshot. Master/Worker APIs, all four HTTPS frontends, module hosts and scientific 1.2 are healthy. Financial modules remain available only, so the container count remains **44**. The original v0.13 release/tag/artifacts remain preserved.
+
+```powershell
+$deployment = (Get-Content .steward/operator/selection.json | ConvertFrom-Json).directory
+node scripts/upgrade-phase14-selected.mjs "$deployment" artifacts/releases/steward-0.14.0-rc1
+node scripts/verify-single-stack.mjs
+```
+
+The upgrade acceptance script is for explicit candidate redeployment verification, not routine startup. It snapshots protected data, invokes the existing release CLI backup/upgrade/start, and fails on preservation/image mismatches. It does not update module packages or restore a database automatically. Retain restricted backups and investigate any failure before making further changes. Routine operations remain `docker compose up -d`, `docker compose stop` and `docker compose ps` against the selected operator; they do not require another account, enrollment, stack or password file.
+
+Actual results and screenshots are in `docs/phase14-verification.md` and `artifacts/phase14-selected-upgrade.json`. Future module upgrades/installations use Module Manager and require their own preservation/authority checks. Do not promote/tag rc1 based only on core deployment acceptance.
