@@ -1,6 +1,6 @@
 # Phase14 controlled demonstration checkpoint
 
-The demonstration is incomplete. Current code runs the rc2 candidate with four mission patches and eight financial module instances in the existing selected operator. The financial setup below is verified; contributions, settlements, funded services, current Master financial disclosures, genuine Qwen and remaining release gates are still pending. This is synthetic-only and is not production financial authorization or a complete general ledger.
+The selected operator runs a v0.14.0 candidate with four compatible mission patches and eight independently installed financial module instances. Three bilateral synthetic cash settlements, a two-workstation sharing/return, six-case housing/food/training services, posted cash expenses and dual-disclosure Master comparisons have been exercised through normal application controls. A genuine financial-planning Qwen investigation and affected-only acknowledgments passed separately. The latest cost-aware investigation, final clean-install/redeployment acceptance and release gates remain pending. This is synthetic-only and is not a complete general ledger or production financial authorization.
 
 ## Controlled configuration and accounts
 
@@ -96,3 +96,28 @@ node scripts/verify-phase14-shared-resource-outage.mjs "$deployment"
 ```
 
 The outage helper deliberately stops only selected Master API/frontend services, performs original-provider noncash sharing/return, restarts all Worker APIs, proves a new module-owned financial summary queued offline, then restores Master in cleanup and verifies durable recovery/single-stack status. It retains all configuration, identities, records and unknown resource valuation. Its successful run required twelve normal UI actions and created no new cash settlement. Because source resources changed, the prior settled scenario is now historical and must not be used as current execution authority; another investigation requires a new explicit reviewed snapshot/scenario generation. Recorded service-cost comparisons and the final full demonstration remain unfinished.
+
+
+## Recorded funded service checkpoint
+
+Three confirmed synthetic contributions funded Housing USD10000, Training USD3000 and Food USD2000. Subsequent approved linked cash expenditure is respectively USD10000, USD3000 and USD1120; Food has USD880 remaining. These are external programme operating/material expenses in a controlled synthetic scenario. Shared instruction, property and equipment valuations remain unknown; do not call USD14120 a complete economic cost or new ecosystem income.
+
+A separate six-case cohort recorded six housing placements, six meal services and six source-confirmed training completions after the actual ten-minute course ended. These are service events, not unique ecosystem beneficiaries, employment or thirty-day retention. Master Mission Outcomes comparisons require separately approved financial AND service disclosures. Ratios retain exact integer cents / six units; their different reporting periods prevent capacity-minus-observed-service subtraction. Training's separate operational cost observation remains unknown.
+
+Before presenting, inspect the current source policy, observation and one-hour named-account disclosure validity. Expiration or revocation requires explicit new source review and Master consent; rerunning a planning request does not renew authority. The controlled setup now preserves operator changes to reviewer module permissions. Never restore access by editing database rows or an old signed proof.
+
+The failed over-reserve proposal remains on Worker1's Coordination Overview with its source rejection reason. USD14000 exceeded USD13000 protected availability; no resource hold or synthetic payment was created. Historical successful proposals retain their own immutable settlement/receipt identities. Replaying the contribution verification preserves current recorded spending instead of expecting original receipts to remain unspent.
+
+The optional Analyst checkbox **Include recorded service cost comparisons** requires both disclosure domains. Missing or withheld comparisons must result in an explicit partial investigation and disabled publication. Financial-only investigation remains available separately. A scenario with no future generation does not establish recurring sustainability.
+
+
+Explicit review after expiry/revocation (new label; retained proof history is never restored):
+
+```powershell
+$env:STEWARD_FINANCIAL_DISCLOSURE_REVIEW = 'presenter-review-01'
+node scripts/verify-phase14-disclosure-consent.mjs "$deployment"
+$env:STEWARD_MISSION_DISCLOSURE_REVIEW = 'presenter-review-01'
+node scripts/renew-phase14-service-disclosures.mjs "$deployment"
+```
+
+These source and Master review steps intentionally issue new bounded leases. Reusing an expired/revoked review generation fails. Keep the same unexpired generation to verify it without extending its lifetime. Financial source observations and programme policies also have their own validity; a lease does not refresh them.

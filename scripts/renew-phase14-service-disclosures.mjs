@@ -1,0 +1,12 @@
+// Explicit review of a new one-hour named-account service disclosure generation.
+// Previous signed leases remain immutable, including revocations and expiry.
+import assert from 'node:assert/strict';
+import {writeFile} from 'node:fs/promises';
+import {state,persist,report as setup} from './seed-phase14-economy.mjs';
+import {api,sessions,waitFor,workerIdentity,entityId} from './phase13-acceptance-client.mjs';
+assert.equal(setup.status,'passed');const generation=process.env.STEWARD_MISSION_DISCLOSURE_REVIEW;assert(/^[a-z][a-z0-9-]{0,25}$/.test(generation??''),'Explicit reviewed disclosure generation required');const s=state.missionServices;assert(s?.serviceCostsCompletedAt);s.masterLeaseGenerations??={initial:structuredClone(s.masterLeases??{})};const current=s.masterLeaseGenerations[generation]??={};
+const report={generation,startedAt:new Date().toISOString(),status:'in-progress',leases:[]};
+try{for(const key of ['housing','food','training']){const p=s.programmes[key];let e=current[key];if(!e){const proof=(await api(p.worker,'/api/v13/mission/disclosures','POST',{moduleId:p.moduleId,programId:p.programId,masterAccountId:sessions.master.account.account_id,permissions:['read','calculate','publish'],leaseSeconds:3600,includeResources:false,reviewed:true})).value.proof;e=current[key]={grantId:proof.payload.grantId,expiresAt:proof.payload.expiresAt};await persist();}
+ assert(e.expiresAt>Date.now(),'This reviewed lease generation expired; retain it and review a new generation');const row=await waitFor(async()=>(await api('master','/api/v13/mission/disclosures')).value.records.find(r=>r.grant_id===e.grantId),'new original service disclosure',120000);assert.equal(row.state,'approved');assert.equal(row.source_entity_id,entityId(p.worker));assert.equal(row.source_installation_id,workerIdentity(p.worker).installationId);assert.equal(row.program_id,p.programId);if(row.master_approved_revision!==row.revision)await api('master','/api/v13/mission/disclosures/'+e.grantId+'/approve','POST',{reviewed:true,revision:row.revision});report.leases.push({key,grantId:e.grantId,expiresAt:e.expiresAt,reviewed:true});}
+ s.masterLeases=current;await persist();report.status='passed';
+}catch(e){report.status='failed';report.error=e.message;process.exitCode=1;console.error(e.message);}finally{report.finishedAt=new Date().toISOString();await writeFile('artifacts/phase14-mission-disclosures-'+generation+'.json',JSON.stringify(report,null,2)+'\n');console.log('Reviewed mission disclosures: '+report.status);}

@@ -1,6 +1,6 @@
 # Phase 14 financial source checkpoint
 
-These modules are unpublished 1.0.0 source implementations requiring platform 0.14.0. The selected operator remains the verified 0.13 deployment. The procedures below describe module API/declarative UI lifecycles exercised in isolated PostgreSQL tests; browser and deployed transport acceptance are pending.
+These independently published1.0.0 financial modules require platform0.14.0. Eight instances are installed in the retained selected operator. Actual browser/API/SSMA acceptance has exercised distinct contributor and receiver approvals, three confirmed synthetic cash settlements with receipts, original-owner workstation delivery/return, linked posted service expenditure and Master dual-disclosure comparisons. Final release acceptance remains in progress; see phase14-verification.md for exact evidence and remaining gates.
 
 Each programme has a separately activated entity policy, current named actors, delegated grants and immutable review evidence. A distinct reviewer activates the policy and approves authored terms. The configured quorum counts different currently authorized humans, never repeated clicks. Editing a policy invalidates prior policy-scoped grants/reviews. Its activation quorum cannot be weakened by the proposed edit. Master recommendations confer no financial authority.
 
