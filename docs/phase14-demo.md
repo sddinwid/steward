@@ -33,12 +33,23 @@ These are source-reviewed planning assumptions, not proof of operational capacit
 
 Actual verification is recorded in `artifacts/phase14-economic-setup.json`, `phase14-economic-setup-repeat.json` and `phase14-initial-ledger-evidence.json`. A real repeat preserved all eight financial module record hashes, immutable economic event counts and account/password hashes. No contribution, settlement, expense or mission delivery was executed by setup.
 
-## Pending presenter sequence
+## Presenter sequence and recovery
 
-Review the configured source resources/reserves and budgets through the independently contributed Business screens. The remaining normal-UI sequence must still be implemented/exercised: source review and named-account disclosure; reserve-aware Master alternatives; reviewed proposal delivery; contributor approval; independent recipient acceptance; synthetic-only settlement and receipt reconciliation; shared resource delivery/return; approved expenditure linked to real sealed service observations; evidence-based Master comparisons; genuine local Qwen/MCP investigation and affected-only finding acknowledgment. Do not describe these pending steps as successful validations or tag v0.14.0 until all mandatory gates pass.
+Use the selected operator and its original account files. Master is `https://master.localhost:26100`; Workers use ports 26201, 26202 and 26203. Navigate through the module-contributed Business screens; the renderer and SSDS forms remain dynamic.
 
-Retain all original data and secrets during recovery. There is no broad financial reset command. Do not delete databases, clear programme grants or edit immutable ledger/approval records to make a demonstration pass. Use the original bound Module Manager recovery operation for an interrupted package installation; its data and migration ledger remain authoritative.
+1. Worker1/2 Resource Availability: review USD18000 initial potential availability, protected reserves and restrictions. After the three recorded contributions, source availability is USD13000/8000. Availability is not transfer authority.
+2. Mission Budget: inspect approved plans, immutable posted expense parts and remaining funds. Housing received/spent USD10000/10000; Training USD3000/3000; Food USD2000/1120, leaving USD880. Do not replay or recreate settlements for presentation.
+3. Coordination: inspect separate contributor approval, receiver acceptance, synthetic instruction, confirmed receipt and reconciliation. Three original transfers total USD15000; intercompany entries do not create ecosystem income. The two-workstation delivery/return retains its original provider and unknown valuation.
+4. Master Economic Resources & Mission Funding: review explicit named-account disclosures, sealed source references and 30-day alternatives. Current six-case planning proposes USD6000 conservative, USD6000 baseline, USD4800 expansion and USD4500 sensitivity. These alternatives are mutually exclusive. Ninety-day and twelve-month cases remain infeasible with zero hypothetical future generation.
+5. Master Mission Outcomes: show the separately authorized six housing placements, six meals and six source-attested training completions. Exact posted-expense ratios are USD10000 / 6, USD1120 / 6 and USD3000 / 6. Training operational cost is unknown. Financial and service periods differ; no capacity subtraction, causal claim, unique-person count or thirty-day retention is established.
+6. AI Analyst: inspect actual native MCP activity, retained calculations and narrative. Only publish a completed, independently reviewed result. Financial-only Qwen delivery passed; the latest cost-aware end-to-end run remains unsuccessful pending correction. A focused model diagnostic is not acceptance.
+7. Findings: verify only own-installation source references reach each affected Worker, acknowledge locally and inspect the returned Master receipts.
 
+Keep full evidence/history during recovery. There is no broad financial reset. A failed request must be inspected by its original identity before using its supported retry/reconciliation action. Unknown settlement outcomes require reconciliation. An interrupted module operation uses the original bound Module Manager recovery; do not reinstall or edit the migration ledger.
+
+The acceptance outage scripts deliberately stop selected services, restart Workers and restore services in cleanup. They are not necessary for routine presentation. Python and Ollama availability never grants or removes Worker-local financial authority. Use `docker compose up -d` for routine selected-stack restoration, then `node scripts/verify-single-stack.mjs`. Never run a second full deployment concurrently.
+
+Historical checkpoints below are retained evidence, not instructions to recreate approved transactions or treat an old financial scenario as current.
 
 ## Verified SSMA routing and Master source publication
 
