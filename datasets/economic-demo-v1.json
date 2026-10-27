@@ -1,0 +1,57 @@
+{
+  "formatVersion": 1,
+  "synthetic": true,
+  "currency": "USD",
+  "codePrefix": "SYN-E14-G1",
+  "policyHours": 24,
+  "cash": {
+    "openingCashCents": 8000000,
+    "obligationsCents": 1500000,
+    "restrictedCents": 500000,
+    "futureCashRequirementCents": 1000000,
+    "dailyOperatingExpenseCents": 20000,
+    "minimumReserveCents": 3000000,
+    "liquidityBufferCents": 200000,
+    "reserveCoverageDays": 30
+  },
+  "programmes": [
+    {
+      "worker": "worker-1",
+      "service": "housing",
+      "name": "Synthetic housing support",
+      "amountCents": 2000000,
+      "minimumOperatingCents": 400000,
+      "unitCostCents": 100000,
+      "serviceUnit": "housing-placements",
+      "recordedOutcomeMetric": "capacity:housingPlacements",
+      "serviceCapacity": 16
+    },
+    {
+      "worker": "worker-2",
+      "service": "training",
+      "name": "Synthetic training support",
+      "amountCents": 600000,
+      "minimumOperatingCents": 100000,
+      "unitCostCents": 100000,
+      "serviceUnit": "training-completions",
+      "recordedOutcomeMetric": "capacity:trainingCompletions",
+      "serviceCapacity": 5
+    },
+    {
+      "worker": "worker-3",
+      "service": "food",
+      "name": "Synthetic meal support",
+      "amountCents": 800000,
+      "minimumOperatingCents": 100000,
+      "unitCostCents": 1000,
+      "serviceUnit": "meal-services",
+      "recordedOutcomeMetric": "capacity:deliveredMeals",
+      "serviceCapacity": 700
+    }
+  ],
+  "limits": {
+    "approvalCents": 10000000,
+    "delegationCents": 10000000
+  },
+  "assumption": "Controlled synthetic cash observations are independent of sales contribution estimates. Original source/recipient approval is required; no real payment or participant financial valuation."
+}
