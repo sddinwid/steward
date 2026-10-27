@@ -13,12 +13,14 @@ import {calculateCommerce} from '../packages/platform/dist/commerce-analysis.js'
 import { resourceSharing } from '../packages/platform/dist/analytical-capabilities.js';
 import {calculateProcurement,calculateWorkforce,canonicalBusinessPayload} from '../packages/platform/dist/business-analysis.js';
 import {calculateMissionSustainability} from '../packages/platform/dist/mission-analysis.js';
+import {validateEconomicScenarios} from '../packages/platform/dist/economic-validation.js';
+import {validateEconomicNarrative} from '../packages/platform/dist/economic-investigation.js';
 import {validateMissionNarrative} from '../packages/platform/dist/analyst.js';
 const capability=process.env.STEWARD_ANALYST_CAPABILITY??'resource-sharing';
 const missionCompare=capability==='mission-sustainability'&&process.env.STEWARD_OLLAMA_MISSION_COMPARE==='1';
 if(missionCompare)process.env.STEWARD_OLLAMA_REPORT??='artifacts/phase13-mission-ollama-comparison.json';
 if(missionCompare&&!process.env.STEWARD_ANALYST_PROMPT){const state=JSON.parse(await readFile(path.join(directory,'demo/phase13-mission.json'),'utf8')),ids=state.comparisonScenarioIds;assert(Array.isArray(ids)&&ids.length===2&&new Set(ids).size===2&&ids.every(id=>/^[a-f0-9-]{36}$/i.test(id)),'Run the explicit reviewed comparison acceptance helper first; two actual reviewed scenario IDs are required');process.env.STEWARD_ANALYST_PROMPT='Compare the existing reviewed mission scenarios '+ids.join(' and ')+', using authorized programme aggregate evidence and the comparison calculation. Report conditional alternatives, constraints and required human decisions. Keep unknown capacity and retention unknown. Do not execute a decision or publish a finding.';}
-assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing','scientific-procurement','mission-sustainability'].includes(capability));
+assert.ok(['resource-sharing','shared-procurement','workforce-opportunity','commerce-performance','simulation-purchasing','scientific-procurement','mission-sustainability','economic-sustainability'].includes(capability));
 
 const baseModel=process.env.STEWARD_OLLAMA_MODEL??'qwen2.5:7b';
 const context=Number(process.env.STEWARD_OLLAMA_CONTEXT??16384);
@@ -71,7 +73,7 @@ try{
   await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(port,'127.0.0.1',resolve);});
   await logins();
   await writeFile(keyPath,token+'\n');
-  await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:['scientific-procurement','mission-sustainability'].includes(capability)?20000:8000,maxContextChars:48000}));
+  await writeFile(configPath,JSON.stringify({provider:'ollama',model,endpoint:`https://host.docker.internal:${port}/api/chat`,apiKeyFile:'/etc/steward/analyst/api-key.txt',caFile:'/etc/steward/analyst/ca.pem',servername:'master.localhost',testModel:false,toolProfile:'compact',maxSteps:12,maxToolCalls:16,maxOutputTokens:1200,investigationTimeoutMs:600000,modelCallTimeoutMs:modelTimeout,toolTimeoutMs:['scientific-procurement','mission-sustainability','economic-sustainability'].includes(capability)?20000:8000,maxContextChars:48000}));
   if(process.env.STEWARD_VERIFY_PROVIDER_STATUS==='1'){report.providerStatus=(await api('master','/api/v5/analyst/provider-status')).value;assert.equal(report.providerStatus.state,'reachable');assert.equal(report.providerStatus.testModel,false);}
   if(process.env.STEWARD_OLLAMA_BROWSER==='1')browserSession=await(await import('./analyst-browser-session.mjs')).analystBrowserSession();
   const investigationStart=Date.now();
@@ -83,11 +85,18 @@ try{
   assert.equal(run.investigation.test_model,false);
   assert.equal(run.investigation.status,'completed',run.investigation.error_code??'Model did not complete');
   const tools=run.activity.filter(a=>a.kind==='tool'&&a.status==='success').map(a=>a.tool);
-  for(const name of capability==='mission-sustainability'?['query_mission_programmes','query_mission_aggregates','query_mission_scenarios',missionCompare?'compare_mission_scenarios':'analyze_mission_sustainability']:capability==='scientific-procurement'?['list_entities','query_scientific_datasets','forecast_demand','query_scientific_constraints','optimize_procurement','compare_procurement_scenarios']:capability==='simulation-purchasing'?['list_entities','query_simulation_purchasing','analyze_simulation_purchasing']:capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
+  for(const name of capability==='economic-sustainability'?['query_economic_summaries','query_economic_scenarios','analyze_economic_sustainability']:capability==='mission-sustainability'?['query_mission_programmes','query_mission_aggregates','query_mission_scenarios',missionCompare?'compare_mission_scenarios':'analyze_mission_sustainability']:capability==='scientific-procurement'?['list_entities','query_scientific_datasets','forecast_demand','query_scientific_constraints','optimize_procurement','compare_procurement_scenarios']:capability==='simulation-purchasing'?['list_entities','query_simulation_purchasing','analyze_simulation_purchasing']:capability==='commerce-performance'?['list_entities','query_commerce_evidence','analyze_commerce_by_id']:capability==='shared-procurement'?['list_entities','query_procurement_matches','analyze_shared_procurement_by_id']:capability==='workforce-opportunity'?['list_entities','query_workforce_matches','analyze_workforce_opportunity_by_id']:['query_resource_matches','query_business_relationships','analyze_resource_sharing_by_id'])assert.ok(tools.includes(name),'Real model must select '+name);
   report.checks.push('real model selected and invoked live MCP tools');
   if(capability==='mission-sustainability'){const actual=run.activity.find(a=>a.kind==='tool'&&a.tool==='query_mission_aggregates'&&a.status==='success')?.detail.result.structuredContent.data;assert(actual?.records.length,'Actual authorized fixed aggregate retrieval is required');report.missionObservedAggregates=actual.records.map(r=>({reference:r.reference,programId:r.release.programId,domain:r.release.domain,suppressed:r.release.suppressed,capacity:r.release.capacity,participantCounts:r.release.participantCounts}));report.checks.push('Real model retrieved authorized fixed programme capacity/outcome evidence; historical unknowns preserved.');}
   for(const analysis of report.result.analyses){
-    if(capability==='mission-sustainability'){
+    if(capability==='economic-sustainability'){
+      assert(analysis.economicCalculationId,'Retained actual economic calculation required');
+      const saved=(await api('master','/api/v14/economy/calculations/'+analysis.economicCalculationId)).value.calculation;
+      assert.equal(saved.result.status,'completed');assert.equal(saved.result.decisionExecuted,false);assert.deepEqual(analysis.calculation,saved.result);assert.deepEqual(analysis.supportingReferences,saved.source_references);
+      validateEconomicScenarios(saved.input.scientificRequest.parameters,saved.result.scientific.calculation);validateEconomicNarrative(report.result,report.result.analyses);
+      assert(saved.source_references.every(r=>r.streamId==='economic_summaries_v1'));assert(new Set(saved.source_references.map(r=>r.entityId)).size>=2);
+      report.economicCalculation={calculationId:saved.calculation_id,sourceReferences:saved.source_references,result:saved.result};
+    }else if(capability==='mission-sustainability'){
       assert(analysis.missionCalculationId,'Retained real mission calculation identity required');
       const saved=(await api('master','/api/v13/mission/calculations/'+analysis.missionCalculationId)).value.calculation;
       assert.equal(saved.result.status,'completed');assert.deepEqual(analysis.calculation,saved.result);
@@ -130,7 +139,7 @@ try{
       const recomputed=capability==='commerce-performance'?calculateCommerce(sources):capability==='shared-procurement'?calculateProcurement(sources[0],sources[1],sources[2],analysis.calculation.assumptions.internalTransferCents):calculateWorkforce(sources[0],sources[1],sources[2]);
       assert.deepEqual(analysis.calculation,recomputed);if(capability==='commerce-performance')assert.ok(analysis.supportingReferences.length>=2);else assert.equal(analysis.supportingReferences.length,3);assert(analysis.observed.sources.every(s=>s.sourceWorker&&s.observedAt));
     }
-    for(const ref of capability==='mission-sustainability'?[]:analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.entity_id===ref.entityId&&r.module_id===ref.moduleId&&r.stream_id===ref.streamId&&r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
+    for(const ref of ['mission-sustainability','economic-sustainability'].includes(capability)?[]:analysis.supportingReferences){const rows=(await api('master','/api/v4/analytics?entityId='+ref.entityId)).value.records;assert.ok(rows.some(r=>r.entity_id===ref.entityId&&r.module_id===ref.moduleId&&r.stream_id===ref.streamId&&r.record_id===ref.recordId&&Number(r.revision)===ref.revision));}
   }
   report.checks.push('deterministic calculations independently recomputed and source revisions rechecked');
   if((capability==='resource-sharing'&&process.env.STEWARD_OLLAMA_DEFER_PUBLICATION!=='1')||process.env.STEWARD_OLLAMA_PUBLISH_REVIEWED==='1'){
