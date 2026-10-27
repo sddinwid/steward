@@ -96,6 +96,14 @@ Commands: `npm run verify:catalog:package` and `npm run verify:pricing:package`.
 
 Both fixtures cleaned all containers, networks and private files; operator container IDs/images/start times were identical before/after. Final single-stack check passed with 52 selected containers. Checkpoint 15C is verified within this standalone scope. No previous module image was rebuilt/replaced, and no v0.15.0 release tag exists.
 
+## 15D1 — accepted Sales money correction (internal checkpoint)
+
+The accepted-price defect is corrected before new governed Sales integration. Sales now owns append-only acceptance snapshots, raw source observations and reconciliation decisions. Later source discounts or gross changes cannot rewrite accepted merchandise; refunds and fulfillment observations continue independently. Legacy backfill requires consistent successful confirmation receipts, including agreement on currency and gross lines. Missing, malformed or conflicting proof stays unknown and withdraws monetary projections at a higher revision; prior emitted envelopes remain intact. Human reconciliation records evidence now and never claims a recovered original receipt.
+
+Partial fulfillment allocation uses cumulative integer deltas: three one-unit fulfillments of a 100-cent net line allocate 33/33/34 cents, including across reporting periods. A SQL window retains preceding quantities without imposing the selected-period movement limit on all history.
+
+Root reran the Sales build and `node scripts/test-sales-catalog.mjs`: **9 actual PostgreSQL/HTTP groups passed**, `artifacts/phase15-d1-sales.log`. Includes upgrade from migrations 001–006, conflicting/malformed/currency/gross receipt quarantine, immutable evidence, denied reconciliation, standalone manual Sales, restart and more than 10,000 historical movements. Agent verification additionally passed existing business 7, commerce 15 and simulation-commerce 20 groups. Applied migrations 001–006 are unchanged. This checkpoint is source/isolated database verification, not deployed upgrade acceptance. The selected operator remains unchanged.
+
 ## Remaining gates
 
 15D–15J remain pending: business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.

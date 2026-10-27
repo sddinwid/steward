@@ -4,8 +4,9 @@ import {financialAssessment,intelligence,exceptions} from './intelligence.js';
 import { ensure, find, get, save, records, enqueue, enqueueCapability,publicRecord, object, text, amount, lines, uniqueLines, centsTotal, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {contracts} from '@steward/commerce-kit';
+import {acceptPrice,attachAccepted,knownLines,recordSourceObservation,reconciliation,priceReconciliation} from './accepted-price.js';
 export function sales(manifest: ModulePackageManifest): Definition {
-    return simulationSales({ manifest, resources: [financialAssessment,
+    return simulationSales({ manifest, resources: [financialAssessment,priceReconciliation,
             { kind: 'customer', path: '/customers', key: 'code', schema: object({ code: text(60), name: text(), reference: text(120) }) },
             { kind: 'order', path: '/orders', key: 'number', schema: object({ number: text(80), customerCode: text(60), currency: text(3), lines: lines() }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Only draft sales orders can be edited');
@@ -40,6 +41,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
             { path: '/confirm/:id', permission: 'cee.sales.write', kind: 'order', run: async (r, ctx) => {
                     ensure(r.data.status === 'draft', 'Only a draft order can be confirmed');
                     ensure(!r.data.channel||['paid','partially_refunded'].includes(r.data.financialStatus)&&!r.data.remoteCanceled,'Channel order must be paid and not canceled');
+                    await acceptPrice(ctx,r);
                     const active = ctx.config.integrationsEnabled === true;
                     const updated = await save(ctx, 'order', r.key, { ...r.data, status: 'confirmed', inventoryIntegration: active,smartInventory:ctx.config.smartInventory===true, stockStatus: active ? 'pending' : 'not_requested' }, r);
                     if (active)
@@ -87,17 +89,26 @@ export function sales(manifest: ModulePackageManifest): Definition {
             else if(command.command==='fulfillment.submit')await save(ctx,'order',order.key,{...order.data,productionStatus:status==='delivered'?'awaiting_authorization':'intent_rejected',productionJobId:result.jobId??null,productionProviderId:result._steward?.providerModuleId??null},order);
             else if(command.command==='fulfillment.cancel'){if(status==='delivered'&&result.canceled){await stock(ctx,order,'stock.release',{orderId:order.id});await save(ctx,'order',order.key,{...order.data,status:'canceled',stockStatus:'release_pending',productionStatus:'canceled'},order);}else await save(ctx,'order',order.key,{...order.data,reconciliationRequired:true},order);}
             else if(command.command==='channel.fulfillment')await save(ctx,'order',order.key,{...order.data,channelDeliveryStatus:status==='delivered'?'queued':'rejected'},order);
-        },receive:receiveCommerce,queries:[{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
+        },receive:receiveCommerce,queries:[{path:'/price-reconciliation',run:reconciliation},{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
 }
 async function salesReport(ctx:Context,query:Record<string,string>={}){
     const timestamp=(value:string|undefined)=>{if(value===undefined)return null;ensure(Number.isFinite(Date.parse(value)),'Invalid reporting timestamp',400);return new Date(value).toISOString();};
     const from=timestamp(query.from),to=timestamp(query.to);ensure(!from||!to||from<to,'Report from must precede exclusive to',400);
-    const orders=await records(ctx,'order'),byNumber=new Map(orders.map(r=>[r.key,r]));
-    const fulfilled=(await ctx.db.query("SELECT data FROM business_records WHERE kind='fulfillment' AND data->>'status'='completed' AND ($1::timestamptz IS NULL OR updated_at >= $1) AND ($2::timestamptz IS NULL OR updated_at < $2) ORDER BY id LIMIT 10001",[from,to])).rows;
-    ensure(fulfilled.length<=10000,'Reporting limit reached; narrow the time period',413);const totals=new Map<string,number>();
-    for(const row of fulfilled){const order=byNumber.get(row.data.orderNumber);ensure(order,'Source sales order unavailable');for(const line of row.data.lines){const price=order.data.lines.find((v:Data)=>v.sku===line.sku);ensure(price,'Source order line unavailable');const source=order.data.sourceLines?.find((v:Data)=>v.sku===line.sku);const lineAmount=source?Number(BigInt(source.lineRevenueCents)*BigInt(line.quantity)/BigInt(source.quantity)):line.quantity*price.unitPriceCents;const amount=(totals.get(order.data.currency)??0)+lineAmount;ensure(Number.isSafeInteger(amount),'Revenue exceeds supported bounds');totals.set(order.data.currency,amount);}}
+    const orders=await attachAccepted(ctx,await records(ctx,'order')),byNumber=new Map(orders.map(r=>[r.key,r]));
+    // Window over preceding completed quantities before filtering the requested
+    // period. Only the selected period is bounded/paginated into application memory.
+    const fulfilled=(await ctx.db.query(`WITH cumulative AS (
+      SELECT b.id,b.data,b.updated_at,l.value AS line,
+       sum((l.value->>'quantity')::bigint) OVER (PARTITION BY b.data->>'orderNumber',l.value->>'sku' ORDER BY b.updated_at,b.id ROWS UNBOUNDED PRECEDING) AS quantity_after
+      FROM business_records b CROSS JOIN LATERAL jsonb_array_elements(b.data->'lines') l
+      WHERE b.kind='fulfillment' AND b.data->>'status'='completed' AND ($2::timestamptz IS NULL OR b.updated_at<$2)
+     ), movements AS (
+      SELECT id,data,updated_at,jsonb_object_agg(line->>'sku',quantity_after::text) AS quantities FROM cumulative GROUP BY id,data,updated_at
+     ) SELECT * FROM movements WHERE ($1::timestamptz IS NULL OR updated_at >= $1) ORDER BY updated_at,id LIMIT 10001`,[from,to])).rows;
+    ensure(fulfilled.length<=10000,'Reporting limit reached; narrow the time period',413);const totals=new Map<string,number>();let unknownFulfillments=0;
+    for(const row of fulfilled){const order=byNumber.get(row.data.orderNumber);ensure(order,'Source sales order unavailable');const accepted=knownLines(order.data);if(!accepted){unknownFulfillments++;continue;}for(const line of row.data.lines){const price=accepted.find((v:Data)=>v.sku===line.sku);ensure(price,'Accepted order line unavailable');const after=BigInt(row.quantities[line.sku]),before=after-BigInt(line.quantity);ensure(after<=BigInt(price.quantity),'Fulfillment exceeds accepted quantity',409);const net=BigInt(price.lineRevenueCents),quantity=BigInt(price.quantity),lineAmount=Number(net*after/quantity-net*before/quantity);const amount=(totals.get(order.data.currency)??0)+lineAmount;ensure(Number.isSafeInteger(amount),'Revenue exceeds supported bounds');totals.set(order.data.currency,amount);}}
     const count=Number((await ctx.db.query("SELECT count(*) AS n FROM business_records WHERE kind='order' AND ($1::timestamptz IS NULL OR created_at >= $1) AND ($2::timestamptz IS NULL OR created_at < $2)",[from,to])).rows[0].n);
-    const currencies=[...totals.keys()];return{currency:currencies.length===1?currencies[0]:currencies.length?null:ctx.config.currency,revenueCents:currencies.length<=1?(totals.get(currencies[0]??'')??0):null,totalsByCurrency:[...totals].map(([currency,revenueCents])=>({currency,revenueCents})),orderCount:count,fulfillmentCount:fulfilled.length,period:{from,to,fromInclusive:true,toExclusive:true,revenueBasis:'Completed fulfillment updated_at',orderVolumeBasis:'Order created_at'},outstandingOrders:orders.filter(v=>['confirmed','partially_fulfilled'].includes(v.data.status)).slice(0,20).map(v=>({number:v.key,status:v.data.status,stockStatus:v.data.stockStatus})),records:[],source:'Actual completed fulfillment quantities at immutable order prices. Pending/rejected movements excluded. Outstanding orders are a current snapshot; monetary currencies are never combined.'};
+    const currencies=[...totals.keys()];return{currency:currencies.length===1?currencies[0]:currencies.length?null:ctx.config.currency,revenueCents:!unknownFulfillments&&currencies.length<=1?(totals.get(currencies[0]??'')??0):null,unknownFulfillments,totalsByCurrency:[...totals].map(([currency,revenueCents])=>({currency,revenueCents,coverage:unknownFulfillments?'known subtotal':'complete'})),orderCount:count,fulfillmentCount:fulfilled.length,period:{from,to,fromInclusive:true,toExclusive:true,revenueBasis:'Completed fulfillment updated_at; cumulative line allocation',orderVolumeBasis:'Order created_at'},outstandingOrders:orders.filter(v=>['confirmed','partially_fulfilled'].includes(v.data.status)).slice(0,20).map(v=>({number:v.key,status:v.data.status,stockStatus:v.data.stockStatus})),records:[],source:'Actual completed fulfillment quantities at immutable accepted prices. Unknown legacy acceptance is excluded from known subtotals and makes the total unknown. Pending/rejected movements excluded.'};
 }
 async function complete(ctx: Context, order: RecordValue, lines: Data[]) {
     const fulfilled = Object.assign(Object.create(null), order.data.fulfilled), reserved = Object.assign(Object.create(null), order.data.reserved);
@@ -116,14 +127,23 @@ async function receiveCommerce(command:import('@steward/module-sdk').Integration
  if(command.command==='commerce.order.import'){
   validateCapabilityValue(b,contracts.orders!.operations[0]!.input);ensure(b.currency===ctx.config.currency,'Channel currency mismatch');uniqueLines(b.lines);ensure(Number.isFinite(Date.parse(b.sourceUpdatedAt)),'Invalid source timestamp');
   ensure(Buffer.byteLength(JSON.stringify(b.lines))<=6500,'Channel order exceeds the bounded projection size; review or split its lines',422);
+  await recordSourceObservation(ctx,command);
   const key='CH-'+digest(command.sourceModuleId+':'+b.sourceId).slice(0,40),old=await find(ctx,'order',key);
+  const incoming=(ctx as Context&{incomingProviderIdentity?:Data}).incomingProviderIdentity;
+  if(old?.data.sourceProviderIdentity&&canonical(old.data.sourceProviderIdentity)!==canonical(incoming??null)){
+   await ctx.db.query('INSERT INTO sales_price_reconciliations(order_id,actor,decision) VALUES($1,$2,$3)',[old.id,ctx.actor,{kind:'source-provider-changed',commandId:command.commandId,provider:incoming??null}]);
+   await save(ctx,'order',old.key,{...old.data,priceReconciliationRequired:true},old);
+   return{orderId:old.id,status:old.data.status};
+  }
   if(old&&Date.parse(old.data.sourceUpdatedAt)>Date.parse(b.sourceUpdatedAt))return{orderId:old.id,status:old.data.status};
   const localLines=(b.lines as Data[]).map(l=>({sku:l.sku,quantity:l.quantity,unitPriceCents:l.unitPriceCents}));
   centsTotal(localLines);
-  if(old&&old.data.status!=='draft')ensure(canonical(old.data.lines)===canonical(localLines),'Confirmed order lines changed at source; reconcile before applying',409);
+  const accepted=old&&old.data.status!=='draft';
+  const commercialChange=accepted&&(canonical(old.data.lines)!==canonical(localLines)||canonical(old.data.sourceLines)!==canonical(b.lines)||old.data.currency!==b.currency);
   const customer='channel-'+digest(command.sourceModuleId+(ctx.simulation?':'+ctx.simulation.datasetId+':'+ctx.simulation.runId:'')).slice(0,16);if(!await find(ctx,'customer',customer))await save(ctx,'customer',customer,{code:customer,name:'Channel customer — no personal information imported',reference:'source-adapter'});
   ensure(Number.isFinite(Date.parse(b.sourceCreatedAt)),'Invalid source creation timestamp');
-  const data={status:b.canceled?'canceled':'draft',stockStatus:'not_requested',inventoryIntegration:false,reserved:{},fulfilled:{},reservationFailure:null,commerceApproved:false,createdAt:b.sourceCreatedAt,...old?.data,number:key,customerCode:customer,currency:b.currency,lines:localLines,sourceLines:b.lines,sourceId:b.sourceId,sourceModuleId:command.sourceModuleId,sourceUpdatedAt:b.sourceUpdatedAt,channel:b.channel,financialStatus:b.financialStatus,remoteFulfillmentStatus:b.fulfillmentStatus,remoteCanceled:b.canceled,refundCents:b.refundCents};
+  if(commercialChange)await ctx.db.query('INSERT INTO sales_price_reconciliations(order_id,actor,decision) VALUES($1,$2,$3)',[old!.id,ctx.actor,{kind:'source-commercial-change',commandId:command.commandId,sourceModuleId:command.sourceModuleId,sourceUpdatedAt:b.sourceUpdatedAt}]);
+  const data={status:b.canceled?'canceled':'draft',stockStatus:'not_requested',inventoryIntegration:false,reserved:{},fulfilled:{},reservationFailure:null,commerceApproved:false,createdAt:b.sourceCreatedAt,...(!old&&incoming?{sourceProviderIdentity:incoming}:{}),...old?.data,number:key,customerCode:customer,currency:accepted?old!.data.currency:b.currency,lines:accepted?old!.data.lines:localLines,sourceLines:accepted?old!.data.sourceLines:b.lines,...(commercialChange?{priceReconciliationRequired:true}:{}),sourceId:b.sourceId,sourceModuleId:command.sourceModuleId,sourceUpdatedAt:b.sourceUpdatedAt,channel:b.channel,financialStatus:b.financialStatus,remoteFulfillmentStatus:b.fulfillmentStatus,remoteCanceled:b.canceled,refundCents:b.refundCents};
   let r=await save(ctx,'order',key,data,old);
   if(b.canceled&&old&&!old.data.remoteCanceled){if(old.data.productionRequested){await enqueueCapability(ctx,old.data.simulation?simulationContracts.fulfillment.id:contracts.production!.id,'fulfillment.cancel',r.id,{orderId:r.id});}else if(old.data.inventoryIntegration){await stock(ctx,r,'stock.release',{orderId:r.id});r=await save(ctx,'order',key,{...r.data,status:'canceled',stockStatus:'release_pending'},r);}else r=await save(ctx,'order',key,{...r.data,status:'canceled'},r);}
   return{orderId:r.id,status:r.data.status};
