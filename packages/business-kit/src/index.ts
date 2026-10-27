@@ -41,6 +41,8 @@ export interface Context {
     /** Enrolled identity from the trusted runtime file, never module settings. */
     readonly entityId?: string;
     readonly providerIdentity?:ProviderIdentity;
+    /** Current sender attested by the host's locked local delivery, never a body field. */
+    readonly incomingProviderIdentity?:ProviderIdentity;
     /** Fresh, private Worker authentication context; never accepted from module API bodies. */
     readonly financialPrincipals?: {readonly issuedAt:number;readonly actors:readonly string[]};
     /** Current eligible accounts only; module-owned policies decide quorum and approval. */
@@ -94,6 +96,9 @@ export interface Action {
     run: (record: RecordValue, ctx: Context) => Promise<Data>;
 }
 export interface Definition {
+    /** Idempotent module-owned initialization in the schema migration transaction.
+     * Receives only trusted runtime configuration; never a public request body. */
+    afterMigrate?: (ctx:Context)=>Promise<void>;
     authorize?: (ctx: Context, access: AccessRequest) => Promise<void>;
     /** Runs in a separate committed transaction after the request transaction.
      * Receives no body, query strings, record contents or error text. Failure is
@@ -162,10 +167,11 @@ export async function enqueue(ctx: Context, targetModuleId: string, command: str
     await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)', [envelope.commandId, envelope]);
     return envelope.commandId;
 }
-export async function enqueueCapability(ctx:Context,capabilityId:string,operation:string,aggregateId:string,payload:Data) {
+export async function enqueueCapability(ctx:Context,capabilityId:string,operation:string,aggregateId:string,payload:Data,options:{expectedProvider?:ProviderIdentity}={}) {
     await inferSimulationContext(ctx,aggregateId);
     const last=Number((await ctx.db.query("SELECT COALESCE(max((envelope->>'sequence')::bigint),0) n FROM integration_outbox WHERE envelope->>'aggregateId'=$1 AND envelope->'capability'->>'capabilityId'=$2",[aggregateId,capabilityId])).rows[0].n);
-    const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation},...(ctx.simulation?{simulation:ctx.simulation}:{})};
+    const p=options.expectedProvider;
+    const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:ctx.moduleId,targetModuleId:'steward.capability',command:operation,version:1,aggregateId,sequence:last+1,occurredAt:new Date().toISOString(),payload,capability:{capabilityId,operation,...(p?{providerConstraint:{version:1,workerInstallationId:p.workerInstallationId,entityId:p.entityId,moduleId:p.moduleId,moduleInstallationId:p.moduleInstallationId,packageDigest:p.packageDigest}}:{})},...(ctx.simulation?{simulation:ctx.simulation}:{})};
     validateCommand(envelope);await ctx.db.query('INSERT INTO integration_outbox(command_id,envelope) VALUES($1,$2)',[envelope.commandId,envelope]);return envelope.commandId;
 }
 export async function receiveCommand(ctx: Context, command: IntegrationCommand, receive: NonNullable<Definition['receive']>): Promise<{
@@ -251,6 +257,12 @@ function providerContext(runtime:Data,moduleId:string):{providerIdentity?:Provid
     const p=runtime.providerIdentity;if(p===undefined)return{};
     ensure(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===5&&Object.keys(p).every(k=>['workerInstallationId','entityId','moduleId','moduleInstallationId','packageDigest'].includes(k))&&p.workerInstallationId===runtime.installationId&&p.entityId===runtime.entityId&&p.moduleId===moduleId&&['workerInstallationId','entityId','moduleInstallationId'].every(k=>typeof p[k]==='string'&&new RegExp(uuidPattern).test(p[k]))&&typeof p.packageDigest==='string'&&/^[a-f0-9]{64}$/.test(p.packageDigest),'Module provider identity unavailable',503);
     return{providerIdentity:Object.freeze({...p}) as ProviderIdentity};
+}
+function incomingProviderContext(request:FastifyRequest,ctx:Context,command:IntegrationCommand):void{
+    const raw=request.headers['x-steward-source-identity'];if(raw===undefined)return;
+    let p:any;try{ensure(typeof raw==='string'&&raw.length<=2048,'Integration source identity unavailable',403);p=JSON.parse(raw);}catch{throw new BusinessError(403,'Integration source identity unavailable');}
+    ensure(p&&typeof p==='object'&&!Array.isArray(p)&&Object.keys(p).length===5&&Object.keys(p).every(k=>['workerInstallationId','entityId','moduleId','moduleInstallationId','packageDigest'].includes(k))&&p.workerInstallationId===ctx.installationId&&p.entityId===ctx.entityId&&p.moduleId===command.sourceModuleId&&['workerInstallationId','entityId','moduleInstallationId'].every(k=>typeof p[k]==='string'&&new RegExp(uuidPattern).test(p[k]))&&typeof p.packageDigest==='string'&&/^[a-f0-9]{64}$/.test(p.packageDigest),'Integration source identity unavailable',403);
+    Object.defineProperty(ctx,'incomingProviderIdentity',{value:Object.freeze({...p}),enumerable:true,writable:false});
 }
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
@@ -447,6 +459,7 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
             ensure(!req.body.simulation||definition.manifest.simulation&&!definition.manifest.connector&&runtime.configuration.mode!=='live','SIMULATION_LIVE_PROVIDER_DENIED',403);
             ensure(!['engine','provider'].includes(definition.manifest.simulation?.role??'')||req.body.simulation,'SIMULATION_PROVENANCE_REQUIRED',403);
             ensure(req.headers['x-steward-integration-source'] === req.body.sourceModuleId && req.headers['x-steward-installation'] === c.installationId, 'Integration identity mismatch', 403);
+            incomingProviderContext(req,c,req.body);
             const peer = definition.manifest.integration?.peers.find(p => p.moduleId === req.body.sourceModuleId);
             // This header is supplied only by the authenticated local host after
             // verifying a persisted SSMA approval. Ordinary gateway APIs cannot
@@ -500,6 +513,7 @@ export async function startBusinessModule(definition: Definition, background?: (
                 await db.query('INSERT INTO module_migrations(version,sha256) VALUES($1,$2)', [i + 1, sha]);
             }
         }
+        if(definition.afterMigrate)await definition.afterMigrate({db,config:runtime.configuration,installationId:runtime.installationId,moduleId:definition.manifest.moduleId,actor:'module-runtime',permissions:[],...(typeof runtime.entityId==='string'?{entityId:runtime.entityId}:{}),...providerContext(runtime,definition.manifest.moduleId)});
         return migrations.length;
     });
     const ready = async () => { const identity = (await pool.query('SELECT * FROM module_identity')).rows[0], latest = (await pool.query('SELECT max(version) AS version FROM module_migrations')).rows[0]; ensure(identity?.installation_id === runtime.installationId && identity?.module_id === definition.manifest.moduleId && latest.version === runtime.persistence.schemaVersion, 'Schema or identity mismatch'); };

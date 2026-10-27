@@ -70,7 +70,7 @@ try{
        const r=await find(ctx,'stock',c.payload.sku);ensure(r&&r.data.quantity>=c.payload.quantity,'Insufficient stock',409);
        await save(ctx,'stock',r.key,{...r.data,quantity:r.data.quantity-c.payload.quantity},r);return{sku:r.key,reserved:c.payload.quantity};
      }};
-     const app=createBusinessServer(pool,token,{installationId,configuration:{integrationsEnabled:true}},definition,async()=>1,async()=>{});apps.push(app);modules.set(id,{app,token,pool});
+   const app=createBusinessServer(pool,token,{installationId,entityId,configuration:{integrationsEnabled:true}},definition,async()=>1,async()=>{});apps.push(app);modules.set(id,{app,token,pool});
      const result=await app.inject({method:'POST',url:'/stocks',headers:{authorization:'Bearer '+token,'x-steward-permissions':JSON.stringify([id+'.write'])},payload:{sku:'SYN-1',quantity:20}});assert.equal(result.statusCode,201,result.body);
    }
  }
@@ -163,6 +163,31 @@ try{
    const second=await bind('example.stock-b');await workflow(second);await assert.rejects(routeSmartCommand(db,{...command,commandId:randomUUID(),sequence:2},source,trust,installationId),/APPROVAL_REQUIRED/);
    const fresh={...command,commandId:randomUUID(),aggregateId:randomUUID()},next=await routeSmartCommand(db,fresh,source,trust,installationId);assert.equal(next.command.targetModuleId,'example.stock-b');
    assert.equal((await db.query('SELECT provider_id FROM smart_obligations WHERE aggregate_id=$1',[aggregateId])).rows[0].provider_id,'example.stock-a');
+ });
+ await test('expected provider restricts approved routing before writes and remains absent from legacy receiver wire',async()=>{
+   const binding=await bind('example.stock-a');await workflow(binding);
+   const source=descriptors['example.checkout'].payload.manifest;
+   const providerConstraint={version:1,workerInstallationId:installationId,entityId,moduleId:binding.provider_id,moduleInstallationId:binding.provider_installation_id,packageDigest:binding.package_digest};
+   const aggregateId=randomUUID(),command={protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:source.moduleId,targetModuleId:'steward.capability',command:'reserve',version:1,aggregateId,sequence:1,occurredAt:new Date().toISOString(),payload:{sku:'SYN-1',quantity:1,orderId:aggregateId},capability:{capabilityId:requirement.capabilityId,operation:'reserve',providerConstraint}};
+   const before=await value('example.stock-a');
+   for(const change of [{workerInstallationId:randomUUID()},{entityId:randomUUID()},{moduleId:'example.stock-b'},{moduleInstallationId:randomUUID()},{packageDigest:'f'.repeat(64)}]){
+     await assert.rejects(routeSmartCommand(db,{...command,capability:{...command.capability,providerConstraint:{...providerConstraint,...change}}},source,trust,installationId),/PROVIDER_CHANGED/);
+     assert.equal((await db.query('SELECT 1 FROM smart_obligations WHERE aggregate_id=$1',[aggregateId])).rowCount,0);
+     assert.equal((await db.query('SELECT 1 FROM smart_routes WHERE command_id=$1',[command.commandId])).rowCount,0);
+     assert.equal(await value('example.stock-a'),before);
+   }
+   const routed=await routeSmartCommand(db,command,source,trust,installationId);
+   assert.deepEqual(routed.command.capability,{capabilityId:requirement.capabilityId,operation:'reserve'});
+   assert.deepEqual((await db.query('SELECT original_envelope FROM smart_routes WHERE command_id=$1',[command.commandId])).rows[0].original_envelope,command);
+   const headers={'x-steward-integration-source':source.moduleId,'x-steward-installation':installationId,'x-steward-capability':requirement.capabilityId};
+   const sourceRow=(await db.query('SELECT * FROM module_installations WHERE module_id=$1',[source.moduleId])).rows[0];
+   const incomingIdentity={workerInstallationId:installationId,entityId,moduleId:source.moduleId,moduleInstallationId:sourceRow.operation_id,packageDigest:digest(canonical(sourceRow.descriptor))};
+   for(const change of [{workerInstallationId:randomUUID()},{entityId:randomUUID()},{moduleId:'example.other'},{moduleInstallationId:'bad'},{packageDigest:'bad'},{extra:'forged'}]){
+     assert.equal((await call(routed.command.targetModuleId,'POST','/integration-inbox',routed.command,{...headers,'x-steward-source-identity':JSON.stringify({...incomingIdentity,...change})})).status,403);
+     assert.equal(await value('example.stock-a'),before);
+   }
+   assert.equal((await call(routed.command.targetModuleId,'POST','/integration-inbox',routed.command,{...headers,'x-steward-source-identity':JSON.stringify(incomingIdentity)})).status,200);assert.equal(await value('example.stock-a'),before-1);
+   await assert.rejects(routeSmartCommand(db,{...command,capability:{capabilityId:requirement.capabilityId,operation:'reserve'}},source,trust,installationId),/IDENTITY_MISMATCH/);
  });
  await test('malformed results suspend without fabricated completion and safe transport failures exhaust a bounded retry budget',async()=>{
    const b=await bind('example.stock-b'),w=await workflow(b),bad=await enqueue(w),before=await value('example.stock-b');

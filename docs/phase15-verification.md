@@ -106,4 +106,6 @@ Root reran the Sales build and `node scripts/test-sales-catalog.mjs`: **9 actual
 
 ## Remaining gates
 
+15D routing preparation additionally passed: SDK/host contracts **11**, actual SSMA governance **10** (`artifacts/phase15-d-routing.log`), and Pricing **44** PostgreSQL groups (`artifacts/phase15-d-pricing-identity.log`). Provider constraints reject mismatches before obligation/routing writes or stock changes; delivered wire remains compatible with legacy receivers. Malformed or foreign private sender identities are rejected before module effects. New Pricing quote jobs bind exact attested consumer installation/package across retries; legacy jobs remain supported. See ADR 0039. These source changes have not been deployed to the selected operator.
+
 15D–15J remain pending: business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.

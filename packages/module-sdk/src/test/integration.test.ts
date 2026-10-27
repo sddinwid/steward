@@ -5,6 +5,13 @@ import {authorizeCommand,validateCommand,validateIntegration,INTEGRATION_PROTOCO
 const manifest=(id:string,peer:string,sends:string[],receives:string[]):ModulePackageManifest=>({manifestVersion:1,sdkVersion:1,name:id,description:'Contract test',minimumPlatformVersion:'0.7.0',dependencies:[],requiredPermissions:[],ui:[],configurationSchema:{type:'object',additionalProperties:false},persistence:{isolation:'dedicated-database',destructiveRollback:false,schemaVersion:1,migrations:[{version:1,sha256:'a'.repeat(64)}]},integrationEvents:[],analyticalCapabilities:[],moduleId:id,version:'1.0.0',api:[],integration:{version:1,outboxPath:'/integration-outbox',acknowledgmentPath:'/integration-acks',inboxPath:'/integration-inbox',peers:[{moduleId:peer,minimumVersion:'1.0.0',sends:sends.map(command=>({command,version:1})),receives:receives.map(command=>({command,version:1}))}]}});
 const source=manifest('example.sales','example.stock',['reserve'],[]),target=manifest('example.stock','example.sales',[],['reserve']);
 const command:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId:randomUUID(),sourceModuleId:source.moduleId,targetModuleId:target.moduleId,command:'reserve',version:1,aggregateId:randomUUID(),sequence:1,occurredAt:new Date().toISOString(),payload:{sku:'sample',quantity:2}};
+test('provider restrictions are closed, versioned and bound into the command digest',()=>{
+ const providerConstraint={version:1 as const,workerInstallationId:randomUUID(),entityId:randomUUID(),moduleId:'example.stock',moduleInstallationId:randomUUID(),packageDigest:'a'.repeat(64)};
+ const wire={...command,capability:{capabilityId:'inventory.stock.reserve',operation:'reserve',providerConstraint}};
+ assert.notEqual(validateCommand(wire),validateCommand(command));
+ assert.notEqual(validateCommand(wire),validateCommand({...wire,capability:{...wire.capability,providerConstraint:{...providerConstraint,packageDigest:'b'.repeat(64)}}}));
+ for(const update of [{version:2},{entityId:'unknown'},{moduleInstallationId:randomUUID()+'x'},{packageDigest:'secret'},{moduleId:'../module'},{authority:true}])assert.throws(()=>validateCommand({...wire,capability:{...wire.capability,providerConstraint:{...providerConstraint,...update}}} as IntegrationCommand));
+});
 test('signed bilateral versioned contracts require both enabled peers and exact identities',()=>{
  authorizeCommand(command,source,target,{source:true,target:true});
  for(const flags of [{source:false,target:true},{source:true,target:false}])assert.throws(()=>authorizeCommand(command,source,target,flags),/DISABLED/);

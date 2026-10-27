@@ -20,4 +20,4 @@ export async function approvalAuthorityHeaders(db:Pick<pg.Pool,'query'>,manifest
 }
 
 /** Caller-provided context never supplies either private authentication snapshot. */
-export function publicContextHeaders(context:Record<string,string>){return Object.fromEntries(Object.entries(context).filter(([key])=>!['x-steward-financial-principals','x-steward-approval-principals'].includes(key.toLowerCase())));}
+export function publicContextHeaders(context:Record<string,string>){return Object.fromEntries(Object.entries(context).filter(([key])=>!['x-steward-financial-principals','x-steward-approval-principals','x-steward-source-identity'].includes(key.toLowerCase())));}

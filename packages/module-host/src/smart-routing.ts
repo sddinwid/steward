@@ -52,6 +52,10 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
     const g=grant?.payload;
     if(remote&&(!g||g.sourceInstallationId!==installationId||g.sourceEntityId!==local.entity_id||g.destinationInstallationId!==remote.peerInstallationId||g.consumerModuleId!==source.moduleId||g.consumerInstallationId!==consumer.operation_id||g.consumerPackageDigest!==digest(canonical(consumer.descriptor))||g.providerModuleId!==row.module_id||g.providerInstallationId!==row.operation_id||g.providerPackageDigest!==binding.package_digest||g.sourceProgramId!==binding.source_program_id||g.destinationProgramId!==binding.destination_program_id||g.purpose!==binding.purpose||g.capabilityId!==reference.capabilityId||!g.operations.includes(reference.operation)||g.expiresAt<=Date.now()))throw new Error('INTEGRATION_APPROVAL_REVOKED');
     const targetEntity=remote?g.destinationEntityId:local.entity_id;
+    // A caller may narrow the approved binding, never replace its selection.
+    // Check before creating obligations/routes and before any module side effect.
+    const expected=reference.providerConstraint;
+    if(expected&&(expected.workerInstallationId!==(remote?.peerInstallationId??installationId)||expected.entityId!==targetEntity||expected.moduleId!==row.module_id||expected.moduleInstallationId!==row.operation_id||expected.packageDigest!==binding.package_digest))throw new Error('INTEGRATION_PROVIDER_CHANGED');
     if((source.programServices||source.economicServices)){
       if(!authorizeDispatch)throw new Error('INTEGRATION_PROGRAM_APPROVAL_REQUIRED');
       await authorizeDispatch(binding.actor_id,command,{sourceProgramId:binding.source_program_id,destinationProgramId:binding.destination_program_id,destinationInstallationId:remote?.peerInstallationId??installationId,destinationEntityId:targetEntity,providerModuleId:row.module_id});
@@ -71,7 +75,9 @@ export async function routeSmartCommand(pool:pg.Pool,command:IntegrationCommand,
         if(command.sequence<=prior||command.sequence-prior>1000||!Array.from({length:command.sequence-prior-1},(_,i)=>prior+i+1).every(n=>skipped.includes(n)))throw new Error('INTEGRATION_SEQUENCE_GAP');
       }
       const n=Number((await db.query("SELECT COALESCE(max((envelope->>'sequence')::bigint),0) n FROM smart_routes WHERE consumer_id=$1 AND aggregate_id=$2 AND provider_id=$3 AND peer_installation_id IS NOT DISTINCT FROM $4::uuid",[source.moduleId,command.aggregateId,row.module_id,remote?.peerInstallationId??null])).rows[0].n);
-      routed={...command,targetModuleId:row.module_id,command:operation.command,sequence:n+1};validateCommand(routed);
+      // This host-only restriction stays in original_envelope and its digest.
+      // Legacy independently packaged receivers retain their closed wire ABI.
+      routed={...command,capability:{capabilityId:reference.capabilityId,operation:reference.operation},targetModuleId:row.module_id,command:operation.command,sequence:n+1};validateCommand(routed);
       await db.query('INSERT INTO smart_routes(command_id,digest,consumer_id,aggregate_id,provider_id,binding_id,capability_id,source_sequence,envelope,workflow_id,peer_installation_id,peer_grant_id,original_envelope) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',[command.commandId,hash,source.moduleId,command.aggregateId,row.module_id,binding.binding_id,reference.capabilityId,command.sequence,routed,workflowId,remote?.peerInstallationId??null,remote?.grantId??null,command]);
     }
     const scope=binding.source_program_id&&!remote?{sourceEntityId:local.entity_id,sourceInstallationId:installationId,sourceProgramId:binding.source_program_id,destinationEntityId:local.entity_id,destinationInstallationId:installationId,destinationProgramId:binding.destination_program_id,consumerModuleId:source.moduleId,purpose:binding.purpose,grantId:binding.binding_id,providerInstallationId:row.operation_id,packageDigest:binding.package_digest,expiresAt:new Date(binding.expires_at).getTime(),sourceActorId:binding.actor_id,destinationActorId:binding.actor_id}:null;

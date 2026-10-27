@@ -79,9 +79,10 @@ async function connectorSecret(id:string){
  if(!config.connectorSecretsRoot)return;
  try{const data=await readFile(`${config.connectorSecretsRoot}/${slug(id)}.json`,'utf8');if(Buffer.byteLength(data)>131072)failure('CONNECTOR_SECRET_INVALID');await atomicJson(`${stateRoot}/${slug(id)}/connector.json`,JSON.parse(data),0o444);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')failure('CONNECTOR_SECRET_INVALID');}
 }
-async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000) {
+async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000,incomingIdentity?:Record<string,string>) {
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
   const headers:Record<string,string>=publicContextHeaders(context);headers.authorization='Bearer '+token;
+  if(incomingIdentity)headers['x-steward-source-identity']=JSON.stringify(incomingIdentity);
   if(!['/health','/ready','/internal/migrate'].includes(path)){
     Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
     const installed=(await metadataPool.query('SELECT descriptor FROM module_installations WHERE module_id=$1',[id])).rows[0];
@@ -367,7 +368,10 @@ async function integrations(){
       else{
        await protectSimulationRoute(metadataPool,wire,m,targetManifest,target.configuration);
        if(!smart)authorizeCommand(command,m,targetManifest,{source:true,target:true});
-       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{}),...(smart?.scope?{'x-steward-peer-scope':JSON.stringify(smart.scope)}:{})},4000);
+       const enrolled=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];
+       if(enrolled&&typeof liveSourceRuntime.entityId==='string'&&liveSourceRuntime.entityId!==enrolled.entity_id)throw new Error('INTEGRATION_IDENTITY_MISMATCH');
+       const incomingIdentity=enrolled?{workerInstallationId:config.installationId,entityId:enrolled.entity_id,moduleId:m.moduleId,moduleInstallationId:source.operation_id,packageDigest:digest(canonical(source.descriptor))}:undefined;
+       const response=await callModule(target.module_id,'POST',targetManifest.integration!.inboxPath,wire,{'x-steward-integration-source':m.moduleId,'x-steward-installation':config.installationId,...(smart?{'x-steward-capability':command.capability.capabilityId}:{}),...(smart?.scope?{'x-steward-peer-scope':JSON.stringify(smart.scope)}:{})},4000,incomingIdentity);
        if(response.status>=200&&response.status<300){if(smart)validateCapabilityValue(response.value,smart.operation.output);if(wire.simulation)for(const aggregate of [response.value.orderId,response.value.jobId].filter(v=>typeof v==='string'&&/^[0-9a-f-]{36}$/.test(v)))await rememberSimulationOrigin(metadataPool,target.module_id,aggregate,wire.simulation);status='delivered';result=smart?{...response.value,_steward:{providerModuleId:target.module_id,providerInstallationId:target.operation_id??null,packageDigest:digest(canonical(target.descriptor)),...(smart.scope?{destinationEntityId:smart.scope.destinationEntityId,destinationInstallationId:smart.scope.destinationInstallationId,destinationProgramId:smart.scope.destinationProgramId,sourceProgramId:smart.scope.sourceProgramId,grantId:smart.scope.grantId}:{})}}:response.value;}
        else if([400,403,409,422].includes(response.status)){status='rejected';error='PEER_COMMAND_REJECTED';result=response.value;}
        else error='PEER_UNAVAILABLE';

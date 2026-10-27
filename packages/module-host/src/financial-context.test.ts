@@ -20,7 +20,7 @@ test('approval snapshots are opt-in, closed to undeclared review permissions, an
  await assert.rejects(approvalAuthorityHeaders(db(()=>({rows:Array.from({length:257},()=>({account_id:randomUUID()}))})),manifest),/APPROVAL_PRINCIPAL_LIMIT_REACHED/);
 });
 test('host strips private snapshots case-insensitively and preserves ordinary context',()=>{
- assert.deepEqual(publicContextHeaders({'X-Steward-Approval-Principals':'forged','x-steward-financial-principals':'forged','x-steward-actor':'actor'}),{'x-steward-actor':'actor'});
+ assert.deepEqual(publicContextHeaders({'X-Steward-Source-Identity':'forged','X-Steward-Approval-Principals':'forged','x-steward-financial-principals':'forged','x-steward-actor':'actor'}),{'x-steward-actor':'actor'});
 });
 test('existing financial snapshot remains gated by economicServices and admin permission',async()=>{
  assert.deepEqual(await financialAuthorityHeaders(db(()=>({rows:[{descriptor:{payload:{manifest}}}]})),'test.pricing'),{});
