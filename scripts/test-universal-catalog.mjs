@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import pg from 'pg';
 import {createBusinessServer} from '../packages/business-kit/dist/index.js';
 import {canonical,digest,validateManifest,validateCommand,validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
-import {catalogOperations} from '../packages/catalog-kit/dist/index.js';
+import {catalogOperations,catalogPricingOperations} from '../packages/catalog-kit/dist/index.js';
 import {privateDirectory} from '../tools/installer/dist/security.js';
 import {catalog} from '../modules/catalog/dist/definition.js';
 import {externalObservationSchema} from '../modules/catalog/dist/source-contract.js';
@@ -74,23 +74,23 @@ try{
   await q('GET','/offerings',undefined,403,[]);await q('POST','/offerings',makeInput('service'),403,[]);
  });
  await test('Search, field selection and pagination remain bounded and permissioned',async()=>{
-  const f=offerings.get('physical');const found=await q('GET','/directory?q='+encodeURIComponent(f.input.code));assert(found.records.some(r=>r.id===f.record.id));const selected=await q('GET','/offerings?fields=code,name');assert(selected.records.length);assert.deepEqual(Object.keys(selected.records[0]).sort(),['code','name']);await q('GET','/offerings?limit=0',undefined,400);await q('GET','/offerings?fields=providerSecrets',undefined,400);
+  const f=offerings.get('physical');const found=await q('GET','/directory?q='+encodeURIComponent(f.input.code));assert(found.records.some(r=>r.id===f.record.id));const named=await q('GET','/offerings?q='+encodeURIComponent(f.input.name)+'&status=draft&limit=1');assert.equal(named.records.length,1);assert.equal(named.records[0].id,f.record.id);assert.equal((await q('GET','/offerings?q='+encodeURIComponent(f.input.code)+'&status=active')).records.length,0);assert.equal((await q('GET','/offerings?q=missing-human-code')).records.length,0);const selected=await q('GET','/offerings?fields=code,name');assert(selected.records.length);assert.deepEqual(Object.keys(selected.records[0]).sort(),['code','name']);await q('GET','/offerings?limit=0',undefined,400);await q('GET','/offerings?fields=providerSecrets',undefined,400);
  });
 
  await test('Categories reject hierarchy cycles and offering variants retain parent identity and unique codes',async()=>{
   const categoryInput={recordKey:randomUUID(),name:'Synthetic products'},category=(await q('POST','/categories',categoryInput,201)).record,childInput={recordKey:randomUUID(),name:'Synthetic child',parentId:category.id},child=(await q('POST','/categories',childInput,201)).record;
-  await update('/categories',categoryInput,category,{parentId:child.id},409);
+  await update('/categories',categoryInput,category,{parentId:child.id},409);assert.equal((await q('GET','/categories?q='+encodeURIComponent(childInput.name))).records[0].id,child.id);
   const f=offerings.get('physical');f.record=await current('/offerings',f.record.id);f.input.categoryIds=[category.id];f.record=(await update('/offerings',f.input,f.record)).record;
   const variantInput={recordKey:randomUUID(),offeringId:f.record.id,code:'SYN-BLUE',name:'Synthetic blue',status:'draft',unitOfMeasure:'item'},variant=(await q('POST','/variants',variantInput,201)).record;
   assert.equal(variant.offeringId,f.record.id);assert.equal(variant.unitOfMeasure,'item');assert.equal((await q('POST','/variants',variantInput,201)).record.id,variant.id);
   await q('POST','/variants',{...variantInput,recordKey:randomUUID()},409);
   await q('POST','/variants',{...variantInput,recordKey:randomUUID(),offeringId:offerings.get('service').record.id},422);
-  const edited=(await update('/variants',variantInput,variant,{name:'Synthetic blue revised'})).record;assert.equal(edited.revision,2);await update('/variants',variantInput,variant,{name:'Stale variant edit'},409);
+  const edited=(await update('/variants',variantInput,variant,{name:'Synthetic blue revised'})).record;assert.equal(edited.revision,2);const foundVariant=await q('GET','/variants?q='+encodeURIComponent(variantInput.code)+'&status=draft');assert.equal(foundVariant.records.length,1);assert.equal(foundVariant.records[0].id,variant.id);assert.equal((await q('GET','/variants?q='+encodeURIComponent(variantInput.code)+'&status=active')).records.length,0);await update('/variants',variantInput,variant,{name:'Stale variant edit'},409);
   await q('POST','/variants',{...variantInput,recordKey:randomUUID(),offeringId:randomUUID()},404);
  });
 
  await test('Typed offering and variant attributes enforce definitions, bounds and activation requirements',async()=>{
-  const f=offerings.get('physical'),definitionInput={recordKey:randomUUID(),key:'material',name:'Material',type:'choice',required:true,scope:'offering',offeringTypes:['physical'],choices:['cotton','wool']},definition=(await q('POST','/attribute-definitions',definitionInput,201)).record;
+  const f=offerings.get('physical'),definitionInput={recordKey:randomUUID(),key:'material',name:'Material',type:'choice',required:true,scope:'offering',offeringTypes:['physical'],choices:['cotton','wool']},definition=(await q('POST','/attribute-definitions',definitionInput,201)).record;assert.equal((await q('GET','/attribute-definitions?q=material')).records[0].id,definition.id);
   f.record=await current('/offerings',f.record.id);await update('/offerings',f.input,f.record,{status:'active'},422);
   const valueInput={recordKey:randomUUID(),offeringId:f.record.id,definitionId:definition.id,valueType:'choice',valueChoice:'cotton'};
   await q('POST','/attributes',{...valueInput,valueChoice:'plastic'},422);await q('POST','/attributes',{...valueInput,valueType:'boolean',valueBoolean:true},422);await q('POST','/attributes',{...valueInput,valueText:'cotton'},422);
@@ -133,7 +133,7 @@ try{
  await test('Archiving is audited, idempotent per request and leaves immutable offering history',async()=>{
   const f=offerings.get('service');f.record=await current('/offerings',f.record.id);const requestId=randomUUID(),archived=await action('/archive',f.record,requestId);assert.equal(archived.record.status,'archived');assert.deepEqual(await action('/archive',f.record,requestId),archived);f.record=archived.record;
   await update('/offerings',f.input,f.record,{name:'Illegal archived edit'},409);await action('/archive',f.record,randomUUID(),409);
-  const rows=(await q('GET','/history?q='+f.record.id)).records;assert.equal(rows.length,3);assert.deepEqual(rows.map(r=>r.revision).sort((a,b)=>a-b),[1,2,3]);const first=rows.find(r=>r.revision===1),last=rows.find(r=>r.revision===3);assert.equal(first.snapshot.name,'Synthetic service');assert.equal(last.snapshot.status,'archived');assert(rows.every(r=>r.actor===actor));
+  const rows=(await q('GET','/history?q='+f.record.id)).records;assert.equal(rows.length,3);assert.deepEqual(rows.map(r=>r.revision).sort((a,b)=>a-b),[1,2,3]);const first=rows.find(r=>r.revision===1),last=rows.find(r=>r.revision===3);assert.equal(first.snapshot.name,'Synthetic service');assert.equal(last.snapshot.status,'archived');assert(rows.every(r=>r.actor===actor));const nameHistory=await q('GET','/history?q='+encodeURIComponent('Synthetic service')+'&limit=1');assert.equal(nameHistory.records.length,1);assert.equal(nameHistory.records[0].offeringId,f.record.id);assert.equal(nameHistory.records[0].revision,1);assert.equal((await q('GET','/history?q=missing-catalog-history')).records.length,0);
   await assert.rejects(pool.query("UPDATE catalog_history SET operation='rewritten' WHERE offering_id=$1",[f.record.id]));assert.deepEqual((await q('GET','/history?q='+f.record.id)).records,rows);
  });
 
@@ -148,11 +148,19 @@ try{
   await q('POST','/integration-inbox',{...command,commandId:randomUUID(),aggregateId:randomUUID(),payload:{...command.payload,ownerEntityId:entityId}},422,[],actor,headers);
  });
 
+ await test('Catalog 1.1 pricing-subject capability preserves legacy ABI and returns requested variant beyond the compact preview',async()=>{
+  const f=await make('physical',{promotionEligibility:true,promotionGroups:['synthetic-cooperation']});let variant;
+  for(let n=0;n<22;n++)variant=(await q('POST','/variants',{recordKey:randomUUID(),offeringId:f.record.id,code:'PRICING-VARIANT-'+n,name:'Pricing variant '+n,status:'draft',unitOfMeasure:'item'},201)).record;
+  const call=async(operation,capabilityId)=>{const command={protocol:'steward-module-integration-v1',commandId:randomUUID(),sourceModuleId:'test.catalog.pricing-consumer',targetModuleId:manifest.moduleId,command:operation.name,version:1,aggregateId:randomUUID(),sequence:1,occurredAt:new Date().toISOString(),payload:{contractVersion:1,offeringId:f.record.id,variantId:variant.id},capability:{capabilityId,operation:operation.name}};const result=await q('POST','/integration-inbox',command,200,[],actor,{'x-steward-installation':installationId,'x-steward-integration-source':command.sourceModuleId,'x-steward-capability':capabilityId});validateCapabilityValue(result,operation.output);assert.equal(result.offering.variants[0].id,variant.id);assert.equal(result.offering.variantsTruncated,true);return result;};
+  const legacy=await call(catalogOperations.find(o=>o.name==='catalog.lookup'),'catalog.offerings.read');assert.equal(Object.hasOwn(legacy,'promotionEligibility'),false);assert.equal(Object.hasOwn(legacy,'promotionGroups'),false);
+  const extended=await call(catalogPricingOperations[0],'catalog.pricing-subjects.read');assert.equal(extended.promotionEligibility,true);assert.deepEqual(extended.promotionGroups,['synthetic-cooperation']);assert.equal(Object.hasOwn(extended,'price'),false);
+ });
+
  await test('Source observations require an actual queued read receipt and private well-formed host attestation',async()=>{
   const source=observation(),read=await beginRead(source);await finishRead(read,source,null,403);await finishRead(read,source,{...sourcePin,providerInstallationId:'forged'},403);await finishRead(read,source,{...sourcePin,packageDigest:'forged'},403);await finishRead(read,{...source,sourceStreamId:'wrong_declared_stream'},sourcePin,409);
   await finishRead(read,source,{...sourcePin,destinationEntityId:randomUUID(),destinationInstallationId:installationId},403);await finishRead(read,source,{...sourcePin,destinationEntityId:entityId,destinationInstallationId:randomUUID()},403);
   assert.equal((await current('/read-jobs',read.job.id)).status,'pending');assert.equal((await listing('/external-observations')).length,0);
-  await finishRead(read);const saved=await current('/read-jobs',read.job.id),stored=(await listing('/external-observations')).find(r=>r.id===saved.observationId);assert(stored);assert.equal(stored.source.provider.moduleInstallationId,sourcePin.providerInstallationId);assert.equal(stored.source.provider.packageDigest,sourcePin.packageDigest);assert.equal(stored.source.streamId,source.sourceStreamId);assert.equal(stored.source.recordId,source.sourceRecordId);
+  await finishRead(read);const saved=await current('/read-jobs',read.job.id),stored=(await listing('/external-observations')).find(r=>r.id===saved.observationId);assert(stored);assert.equal(stored.source.provider.moduleInstallationId,sourcePin.providerInstallationId);assert.equal(stored.source.provider.packageDigest,sourcePin.packageDigest);assert.equal(stored.source.streamId,source.sourceStreamId);assert.equal(stored.source.recordId,source.sourceRecordId);const observedSearch=await q('GET','/external-observations?q='+encodeURIComponent(source.sourceRecordId)+'&limit=1');assert.equal(observedSearch.records.length,1);assert.equal(observedSearch.records[0].id,stored.id);assert.equal((await q('GET','/external-observations?q=missing-provider-observation')).records.length,0);
   await finishRead(read);assert.equal((await listing('/external-observations')).length,1);
   await q('POST','/mappings',{recordKey:randomUUID(),offeringId:offerings.get('physical').record.id,observationId:randomUUID(),status:'verified'},404);await q('POST','/read-jobs',{recordKey:randomUUID(),sourceRecordId:'forged',sourceStreamId:'external_products',verified:true,provider:providerIdentity},400);
   const invalidReplay=await inject('POST','/integration-ack',{commandId:read.command.commandId,digest:'c'.repeat(64),status:'delivered',result:{...source,_steward:sourcePin}});assert.equal(invalidReplay.statusCode,409);
@@ -202,7 +210,7 @@ try{
  });
 
  await test('Extension definitions require attested reads and cannot smuggle authority through typed values',async()=>{
-  const source={contractVersion:1,sourceRecordId:'extension-'+randomUUID(),sourceStreamId:'catalog_extension_definitions',sourceRevision:1,observedAt:new Date().toISOString(),key:'support-terms',attributes:[{contractVersion:1,key:'warranty',name:'Warranty description',type:'text',required:true,maxLength:40}]},read=await beginRead(source,'extension-definition');await finishRead(read);const job=await current('/read-jobs',read.job.id),definition=(await listing('/extension-definitions')).find(d=>d.id===job.definitionId);assert(definition);assert.equal(definition.definition.provider.moduleInstallationId,sourcePin.providerInstallationId);
+  const source={contractVersion:1,sourceRecordId:'extension-'+randomUUID(),sourceStreamId:'catalog_extension_definitions',sourceRevision:1,observedAt:new Date().toISOString(),key:'support-terms',attributes:[{contractVersion:1,key:'warranty',name:'Warranty description',type:'text',required:true,maxLength:40}]},read=await beginRead(source,'extension-definition');await finishRead(read);const job=await current('/read-jobs',read.job.id),definition=(await listing('/extension-definitions')).find(d=>d.id===job.definitionId);assert(definition);assert.equal(definition.definition.provider.moduleInstallationId,sourcePin.providerInstallationId);assert.equal((await q('GET','/extension-definitions?q=warranty&limit=1')).records[0].id,definition.id);assert.equal((await q('GET','/extension-definitions?q=missing-extension-definition')).records.length,0);
   const f=offerings.get('digital'),input={recordKey:randomUUID(),offeringId:f.record.id,definitionId:definition.id,values:[{key:'warranty',valueType:'text',valueText:'Synthetic support terms'}]};
   await q('POST','/extension-definitions',{...source,verified:true},403);await q('POST','/extensions',{...input,definitionId:randomUUID()},404);await q('POST','/extensions',{...input,values:[{key:'execute',valueType:'text',valueText:'arbitrary code'}]},422);
   for(const patch of [{provider:providerIdentity},{moduleId:manifest.moduleId},{definitionRevision:99},{permissions:['admin']}])await q('POST','/extensions',{...input,...patch},400);

@@ -1,6 +1,6 @@
 # Universal Catalog module
 
-Module: `steward.catalog.universal`, version `1.0.0`, minimum platform `0.15.0`.
+Module: `steward.catalog.universal`, current source version `1.1.0`, minimum platform `0.15.0`. The signed 1.0.0 checkpoint image remains preserved. Version 1.1 adds a separate read-only pricing-subject capability without changing the original closed lookup ABI or migration 001.
 The Phase 15 operator upgrade is not yet accepted; these instructions do not imply that the preserved v0.14.0 operator can install a v0.15.0 module.
 
 ## Authority and storage

@@ -1,5 +1,5 @@
 import type {ApiContribution,ModuleFormField,ModulePackageManifest,ScreenContribution} from '@steward/module-sdk';
-import {catalogCapability,OFFERING_TYPES} from '@steward/catalog-kit';
+import {catalogCapability,catalogPricingCapability,OFFERING_TYPES} from '@steward/catalog-kit';
 import {sourceCapabilityRequirement,extensionCapabilityRequirement} from './source-contract.js';
 
 export const catalogModuleId='steward.catalog.universal';
@@ -12,22 +12,23 @@ const choices=(name:string,label:string,values:readonly string[],defaultValue?:s
 const ref=(name:string,label:string,operationId:string,required=true):ModuleFormField=>scalar(name,label,required,{reference:{operationId,valueField:'id',labelField:'name'}});
 const list=(name:string,label:string,item:ModuleFormField,maxItems=20):ModuleFormField=>({name,label,type:'array',required:true,maxItems,items:item});
 const forType=(field:ModuleFormField,type:string):ModuleFormField=>({...field,visibleWhen:{field:'type',equals:type}});
-const recordKey=():ModuleFormField=>scalar('recordKey','Record identity',true,{generate:'uuid'});
+const recordKey=():ModuleFormField=>scalar('recordKey','Creation request reference',true,{generate:'uuid'});
 const status=()=>choices('status','Lifecycle status',['draft','active','inactive','archived'],'draft');
 const offering=()=>ref('offeringId','Offering','listOffering');
 const variant=(required=false)=>ref('variantId','Variant','listVariant',required);
 const observation=()=>ref('observationId','External source observation','externalObservations');
 const query:NonNullable<ApiContribution['query']>=['limit','offset','fields','status','q'];
+const resourceQuery=(name:string):NonNullable<ApiContribution['query']>=>query.filter(key=>key!=='q'||['Offering','Variant','Category','AttributeDefinition','Attribute','ReadJob'].includes(name)).filter(key=>key!=='status'||['Offering','Variant','Mapping','ReadJob','ImportPlan'].includes(name));
 const resources=[['Offering','/offerings','write'],['Variant','/variants','write'],['Category','/categories','write'],['AttributeDefinition','/attribute-definitions','write'],['Attribute','/attributes','write'],['BundleComponent','/bundle-components','write'],['Mapping','/mappings','map'],['ReadJob','/read-jobs','import'],['ImportPlan','/import-plans','import'],['Extension','/extensions','write']] as const;
 export const catalogApi:ApiContribution[]=[
- ...resources.flatMap(([name,path,write])=>[{operationId:'list'+name,method:'GET' as const,path,permission:permission('read'),query},{operationId:'create'+name,method:'POST' as const,path,permission:permission(write)},{operationId:'update'+name,method:'PUT' as const,path:path+'/:id',permission:permission(write)}]),
- {operationId:'listDirectory',method:'GET',path:'/directory',permission:permission('read'),query},
+ ...resources.flatMap(([name,path,write])=>[{operationId:'list'+name,method:'GET' as const,path,permission:permission('read'),query:resourceQuery(name)},{operationId:'create'+name,method:'POST' as const,path,permission:permission(write)},{operationId:'update'+name,method:'PUT' as const,path:path+'/:id',permission:permission(write)}]),
+ {operationId:'listDirectory',method:'GET',path:'/directory',permission:permission('read'),query:['limit','offset','status','q']},
  {operationId:'catalogView',method:'GET',path:'/catalog-view',permission:permission('read'),query:['q']},
  {operationId:'overview',method:'GET',path:'/overview',permission:permission('read')},
- {operationId:'history',method:'GET',path:'/history',permission:permission('read'),query},
- {operationId:'extensionDefinitions',method:'GET',path:'/extension-definitions',permission:permission('read'),query},
- {operationId:'externalObservations',method:'GET',path:'/external-observations',permission:permission('read'),query},
- {operationId:'importPreview',method:'GET',path:'/import-preview',permission:permission('read'),query},
+ {operationId:'history',method:'GET',path:'/history',permission:permission('read'),query:['limit','offset','q']},
+ {operationId:'extensionDefinitions',method:'GET',path:'/extension-definitions',permission:permission('read'),query:['limit','offset','q']},
+ {operationId:'externalObservations',method:'GET',path:'/external-observations',permission:permission('read'),query:['limit','offset','q']},
+ {operationId:'importPreview',method:'GET',path:'/import-preview',permission:permission('read'),query:['q']},
  {operationId:'previewImport',method:'POST',path:'/preview-import',permission:permission('read')},
  {operationId:'archive',method:'POST',path:'/archive/:id',permission:permission('write')},
  {operationId:'requestSource',method:'POST',path:'/request-source/:id',permission:permission('import')},
@@ -61,4 +62,4 @@ catalogScreens.find(s=>s.screenId==='source-reads')!.actions=[{label:'Request re
 catalogScreens.find(s=>s.screenId==='import-plans')!.actions=[{label:'Apply reviewed import',operationId:'applyImport',confirmation:'Apply this explicit import plan? Review source identity, duplicates and mapping conflicts first. External provider records remain unchanged.'}];
 export const catalogConfigurationSchema={type:'object',additionalProperties:false,required:['integrationsEnabled'],properties:{sourceMaxAgeHours:{type:'integer',minimum:1,maximum:168,default:24,description:'Maximum accepted age of a verified provider observation.'},integrationsEnabled:{type:'boolean',default:false,description:'Enable explicitly approved SSMA read-only interoperability. Local catalog operations remain available independently.'}}};
 /** Pure source manifest factory. Publication rechecks migration bytes and pins the independent image. */
-export function catalogManifest(migrations:{version:number;sha256:string}[]):ModulePackageManifest{return{manifestVersion:1,sdkVersion:1,moduleId:catalogModuleId,version:'1.0.0',name:'Universal Catalog',description:'Entity-owned product and service definitions, variants, bundles, provenance and explicit external mappings. External catalogs remain provider-owned and read-only.',minimumPlatformVersion:'0.15.0',dependencies:[],requiredPermissions:['storage.own-database'],api:catalogApi,ui:catalogScreens,configurationSchema:catalogConfigurationSchema,persistence:{isolation:'dedicated-database',schemaVersion:migrations.length,migrations,destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],integration:{version:1,outboxPath:'/integration-outbox',inboxPath:'/integration-inbox',acknowledgmentPath:'/integration-ack',peers:[]},smart:{version:1,provides:[catalogCapability(catalogModuleId)],consumes:[sourceCapabilityRequirement,extensionCapabilityRequirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};}
+export function catalogManifest(migrations:{version:number;sha256:string}[]):ModulePackageManifest{return{manifestVersion:1,sdkVersion:1,moduleId:catalogModuleId,version:'1.1.0',name:'Universal Catalog',description:'Entity-owned product and service definitions, variants, bundles, provenance and explicit external mappings. External catalogs remain provider-owned and read-only.',minimumPlatformVersion:'0.15.0',dependencies:[],requiredPermissions:['storage.own-database'],api:catalogApi,ui:catalogScreens,configurationSchema:catalogConfigurationSchema,persistence:{isolation:'dedicated-database',schemaVersion:migrations.length,migrations,destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],integration:{version:1,outboxPath:'/integration-outbox',inboxPath:'/integration-inbox',acknowledgmentPath:'/integration-ack',peers:[]},smart:{version:1,provides:[catalogCapability(catalogModuleId),catalogPricingCapability(catalogModuleId)],consumes:[sourceCapabilityRequirement,extensionCapabilityRequirement],prerequisites:{configuration:{integrationsEnabled:true},requiresActive:true,requiresHealthy:true}}};}

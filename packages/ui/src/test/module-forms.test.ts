@@ -77,3 +77,10 @@ test('absent related references show None while a nonempty unavailable identity 
  for(const value of [undefined,null,'']){const markup=renderToStaticMarkup(createElement(ModuleReferenceValue,{value,reference:undefined}));assert.match(markup,/>None</);assert(!markup.includes('unavailable'));}
  const unavailable=renderToStaticMarkup(createElement(ModuleReferenceValue,{value:'unavailable-nonempty-reference',reference:undefined}));assert.match(unavailable,/Related record unavailable/);assert(!unavailable.includes('>None<'));assert(!unavailable.includes('unavailable-nonempty-reference'));
 });
+
+test('opaque generated UUID controls collapse without changing values or hiding meaningful synthetic references',()=>{
+ const uuid='00000000-0000-4000-8000-000000000001',field:Field={name:'requestId',label:'Creation request reference',type:'string',required:true,generate:'uuid'};
+ const markup=render(field,uuid);assert.match(markup,/<details class="module-field"><summary>Creation request reference<\/summary>/);assert(!markup.includes('<details open'));assert.match(markup,/aria-label="Creation request reference"/);assert.match(markup,/readOnly=""/i);assert(markup.includes('value="'+uuid+'"'));
+ assert.deepEqual(moduleFormBody([field],{requestId:uuid},{}),{requestId:uuid});
+ for(const generate of ['synthetic-participant','synthetic-reference'] as const){const meaningful=render({...field,generate},'SYN-REFERENCE');assert(!meaningful.includes('<details'));assert(meaningful.includes('SYN-REFERENCE'));}
+});

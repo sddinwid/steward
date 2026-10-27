@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {canonical,digest,resolveCapability,validateCapabilityValue,type CapabilityProvider} from '@steward/module-sdk';
 import type {ProviderReference,CatalogSourceReference} from '../catalog.js';
+import {priceSubjectCovers} from '../pricing.js';
 import {SUPPORTED_PRICING_CURRENCIES,MAX_PRICE_CENTS,validateMoney,validatePriceSubject,validatePriceList,validatePricingApprovalPolicy,validatePriceRuleRevision,validateNewPriceRuleRevision,validatePriceRuleRevisionTransition,priceRuleTermsDigest,validatePriceApproval,validateNewPriceApproval,validatePriceApprovals,validatePriceResolutionRequest,validatePricePreviewRequest,validateResolvedPriceDecision,validatePriceResolutionPreview,validateAcceptedPriceSnapshot,validateAcceptedPriceSnapshotUnchanged,validatePricingCostComponent,pricingCapability,pricingRequirement,pricingOperations,type Money,type PriceList,type PricingApprovalPolicy,type PriceRuleRevision,type PriceApproval,type PriceResolutionRequest,type ResolvedPriceDecision,type PriceResolutionPreview,type AcceptedPriceSnapshot,type PricingCostComponent,type CatalogPriceSubject,type PriceDecisionValidationContext} from '../pricing.js';
 
 const id=(n:number)=>`00000000-0000-4000-8000-${n.toString().padStart(12,'0')}`;
@@ -32,6 +33,17 @@ test('catalog subjects require exact currently verified offering, variant and pr
  for(const patch of [{offeringRevision:2},{variantRevision:1},{variantId:null},{offeringId:id(99)},{provider:{...catalogProvider,moduleInstallationId:id(99)}},{provider:{...catalogProvider,packageDigest:'c'.repeat(64)}},{provider:{...catalogProvider,entityId:id(99)}}])assert.throws(()=>validatePriceSubject({...f.subject,...patch},f.context));
  assert.throws(()=>validatePriceSubject(f.subject,{...f.context,catalogSubjects:[]}));
  assert.throws(()=>validatePriceSubject({...f.subject,providerVerified:true},f.context));
+});
+test('offering-wide price fallback covers only the exact verified offering and selected variant',()=>{
+ const f=fixture(),wide={...f.subject,variantId:null,variantRevision:null};assert.equal(priceSubjectCovers(wide,f.subject),true);assert.equal(priceSubjectCovers(f.subject,wide),false);
+ for(const patch of [{offeringRevision:2},{offeringId:id(99)},{provider:{...f.subject.provider,moduleInstallationId:id(99)}},{provider:{...f.subject.provider,packageDigest:'d'.repeat(64)}}])assert.equal(priceSubjectCovers({...wide,...patch},f.subject),false);
+ assert.equal(priceSubjectCovers(f.subject,{...f.subject,variantRevision:99}),false);assert.equal(priceSubjectCovers(f.subject,{...f.subject,variantId:id(99)}),false);assert.equal(priceSubjectCovers({kind:'sku',sku:'ONE'},{kind:'sku',sku:'TWO'}),false);assert.equal(priceSubjectCovers({kind:'sku',sku:'ONE'},f.subject),false);assert.equal(priceSubjectCovers({kind:'sku',sku:'ONE'},{kind:'sku',sku:'ONE'}),true);
+ f.rule.subject=wide;f.context.catalogSubjects=[wide,f.subject];refresh(f);validateResolvedPriceDecision(f.decision,f.context);
+ const unknown={...f.subject,variantId:id(99)};assert.throws(()=>validateResolvedPriceDecision({...f.decision,subject:unknown},{...f.context,request:{...f.request,subject:unknown}}),/CATALOG_SOURCE_CHANGED/);
+});
+test('an offering-wide fixed base can support one approved variant-specific discount',()=>{
+ const f=fixture(),wide={...f.subject,variantId:null,variantRevision:null};f.rule.subject=wide;f.context.catalogSubjects=[wide,f.subject];refresh(f);
+ const discount:PriceRuleRevision={...structuredClone(f.rule),id:id(50),subject:f.subject,priority:20,adjustment:{kind:'basis-point-discount',discountBasisPoints:1000,baseRuleId:f.rule.id,baseRuleRevision:1}},review={...structuredClone(f.approval),id:id(51),ruleId:discount.id,termsDigest:priceRuleTermsDigest(discount)};f.context.rules.push(discount);f.context.approvals.push(review);f.decision.ruleSources.push(ref(discount.id,1,'pricing_rules_v1'));f.decision.approvalSources.push(ref(review.id,1,'pricing_approvals_v1'));f.decision.discount=money(299);f.decision.resolvedPrice=money(2700);refresh(f);validateResolvedPriceDecision(f.decision,f.context);
 });
 test('Pricing alone supports legacy SKU without Catalog and rejects caller authority fields',()=>{
  const f=fixture();const request={...f.request,subject:{kind:'sku',sku:'SERVICE-HOURLY'}};assert.doesNotThrow(()=>validatePriceResolutionRequest(request,{...f.context,catalogSubjects:[]}));

@@ -64,6 +64,27 @@ Build source remains `6bfecfceccbb59e81e1c8ec422e8fcc9d92ff75c`; verification ha
 
 Checkpoint 15B is verified within the stated standalone/isolated scope. Actual ModuleManager installation and upgraded full deployment remain later acceptance gates.
 
+## 15C: independent Pricing Management
+
+Implemented Pricing Management 1.0.0 (41 APIs, 17 generic SSDS screens), immutable rule/review/decision ledgers, separate human activation, configurable quorum/separation, exact currency/discount arithmetic, deterministic precedence/conflicts, scheduled family revisions, customer eligibility, promotions, independent SKU operation and pinned durable Catalog quotes. See [pricing guide](phase15-pricing.md) and [resolution specification](adr/0038-governed-pricing-decisions.md).
+
+Catalog 1.1 adds a separate promotion-eligibility read capability without changing its original closed lookup contract or published migration 001. The signed 1.0 image remains retained. Discovery alone cannot authorize a price; exact lookups and current reviewer facts are required. Old observed source changes invalidate stale evidence even when a selected variant falls outside compact discovery results. A database generation orders reads independently of clock equality/backdating.
+
+Verified corrections include future revisions initially disabling today's price too early; monotonic effective cutoffs now preserve the current version until replacement and never revive canceled versions. Earlier transitions invalidate overlong outstanding quotes. Tightened freshness applies to existing cache; relaxation cannot extend old leases. Derived quote views show current authorization separately from unchanged historical decisions. Retained offering/variant names replace ambiguous generic labels.
+
+Declared UI filters were audited: unsupported parameters were removed, and supported human-name/current-status filters now work. Optional server-owned `Resource.searchFields` adds parameterized text search while retaining scope before pagination and unchanged legacy key-only behavior. Actual PostgreSQL tests verify literal wildcard handling, injection safety, empty/foreign scopes and pagination. Opaque generated creation tokens are collapsed without changing form values, contracts or meaningful synthetic references.
+
+Actual results:
+
+- `npm run build`: passed; `artifacts/phase15-c-build.log`. Final library/UI/module corrections also received targeted builds.
+- `npm test`: **657 tests across 43 Node suite summaries passed**, zero failures/cancellations; `artifacts/phase15-c-regression-tests.log`. Includes applicable existing business, commerce, simulation, mission, finance, Python/MCP test-provider coverage.
+- Included new contract suite: **71 passed**; Pricing PostgreSQL: **43 groups passed**; Catalog PostgreSQL: **26 groups passed**. Focused Pricing log is an explicitly labeled excerpt of the full run: `artifacts/phase15-c-pricing-tests.log`.
+- Actual generic search/read-only PostgreSQL fixture: **4 passed**; `artifacts/phase15-c-search-database.log`. Initial harness requests lacked declared query metadata and were corrected; no production authorization check was bypassed.
+- UI helper/legacy checks: **20 passed**. Actual Catalog Chromium: **8 groups passed**; Pricing Chromium: **9 groups passed**, fourteen Pricing screenshots. Reports `artifacts/phase15b-catalog-browser.json` and `artifacts/phase15c-pricing-browser.json` have zero page/cleanup errors. Screenshots were inspected, including true same-family $25-now/$28-future scheduling, canceled futures, denied review, current revocation, named Catalog variants and truthful filtering.
+- Final single-stack verification passed with the selected **52 containers**; `artifacts/phase15-c-single-stack.log`. No operator deployment, credentials, identities or business databases were modified.
+
+Boundary: browser/module tests use real code and PostgreSQL with explicitly synthetic private gateway, actor/reviewer and host-ACK fixtures. They do not prove real Worker account lookup, installed SSMA routing, ModuleManager installation or live provider connectivity. Both standalone signed-image gates must run from clean committed source before checkpoint 15C advances. Accepted Sales integration and revenue corrections remain checkpoint 15D, and cost/contribution remains 15F.
+
 ## Remaining gates
 
-15C–15J remain pending: operational Pricing/resolution/approval, business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.
+15C standalone signed-image gates are pending. 15D–15J remain pending: business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.

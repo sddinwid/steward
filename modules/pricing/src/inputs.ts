@@ -1,0 +1,15 @@
+import {closedSchema,arraySchema,textSchema,uuidSchema,choiceSchema,timestampSchema,priceCentsSchema,currencySchema,type Schema} from '@steward/catalog-kit';
+const keyed=(p:Record<string,unknown>,required:string[])=>closedSchema({recordKey:uuidSchema,...p},['recordKey',...required]);
+const statuses=choiceSchema(['draft','active','inactive','archived']);
+export const priceListInput=keyed({name:textSchema(),kind:choiceSchema(['retail','wholesale','customer','channel','promotion']),currency:currencySchema,status:statuses},['name','kind','currency','status']);
+export const policyInput=keyed({name:textSchema(),reviewRequired:{type:'boolean'},quorum:{type:'integer',minimum:0,maximum:16},separationOfDuties:{type:'boolean'},maximumAuthorizationSeconds:{type:'integer',minimum:1,maximum:86400}},['name','reviewRequired','quorum','separationOfDuties','maximumAuthorizationSeconds']);
+export const defaultListInput=keyed({currency:currencySchema,priceListId:uuidSchema},['currency','priceListId']);
+export const eligibilityInput=keyed({customerReference:textSchema(120),category:textSchema(120),validFrom:timestampSchema,validTo:timestampSchema,status:choiceSchema(['active','inactive'])},['customerReference','category','validFrom','validTo','status']);
+export const promotionInput=keyed({name:textSchema(),campaignReference:textSchema(200),startsAt:timestampSchema,endsAt:timestampSchema,status:choiceSchema(['draft','active','inactive'])},['name','startsAt','endsAt','status']);
+export const subjectProperties={subjectKind:choiceSchema(['sku','catalog']),sku:textSchema(80),catalogSubjectId:uuidSchema};
+export const ruleInput=keyed({...subjectProperties,name:textSchema(),priceListId:uuidSchema,policyId:uuidSchema,supersedesRuleRecordId:uuidSchema,adjustmentKind:choiceSchema(['fixed','basis-point-discount']),amountCents:priceCentsSchema,discountBasisPoints:{type:'integer',minimum:1,maximum:10000},baseRuleRecordId:uuidSchema,priority:{type:'integer',minimum:0,maximum:1000000},validFrom:timestampSchema,validTo:timestampSchema,channel:textSchema(120),customerCategory:textSchema(120),promotionId:uuidSchema},['name','subjectKind','priceListId','policyId','adjustmentKind','priority','validFrom']);
+export const reviewInput=keyed({ruleRecordId:uuidSchema,decision:choiceSchema(['approve','reject']),reason:textSchema(500)},['ruleRecordId','decision','reason']);
+export const catalogJobInput=keyed({kind:choiceSchema(['discover','lookup']),query:{type:'string',maxLength:160},offeringType:choiceSchema(['any','physical','digital','service','subscription','rental','bundle']),offeringId:uuidSchema,variantId:uuidSchema},['kind']);
+export const quoteProperties={...subjectProperties,priceListId:uuidSchema,currency:currencySchema,channel:textSchema(120),customerReference:textSchema(120),promotionId:uuidSchema,quantity:{type:'integer',minimum:1,maximum:100000000}};
+export const quoteInput=keyed(quoteProperties,['subjectKind','currency','quantity']);
+export const previewInput:Schema=closedSchema({...quoteProperties,hypotheticalAt:timestampSchema},['subjectKind','currency','quantity']);

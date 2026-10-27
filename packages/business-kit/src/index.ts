@@ -72,6 +72,8 @@ export interface Resource {
     authorize?: (ctx: Context, access: AccessRequest) => Promise<void>;
     /** UUID allowlist applied in SQL before pagination/search; no browser SQL. */
     listScope?: (ctx: Context) => Promise<{ ids: string[] }>;
+    /** Module-owned top-level text fields searched alongside the immutable key. */
+    searchFields?: string[];
     /** Deterministic private identity namespace; legacy resources use input[key]. */
     deriveKey?: (ctx: Context, input: Data) => Promise<string> | string;
     /** Optional logical configuration revision; background state keeps its own row revision. */
@@ -310,6 +312,8 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
     if(definition.webhook)app.post<{Body:Data}>('/connector-webhook',async req=>transaction(pool,db=>definition.webhook!(req.body,ctx(db))));
     for (const resource of definition.resources) {
         const validate = ajv.compile(resource.schema);
+        const searchable=resource.searchFields??[];
+        ensure(Array.isArray(searchable)&&searchable.length<=20&&new Set(searchable).size===searchable.length&&searchable.every(name=>typeof name==='string'&&/^[a-z][a-zA-Z0-9_]{0,49}$/.test(name)&&resource.schema.properties?.[name]?.type==='string'),'Invalid module search fields',500);
         app.get<{
             Querystring: Record<string, string>;
         }>(resource.path, async (req) => transaction(pool, async (db) => {
@@ -322,7 +326,8 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             ensure(!fields || fields.every(f => allowed.includes(f)), 'Unknown selected field', 400);
             const scope = resource.listScope ? await resource.listScope(c) : undefined;
             ensure(!scope || Array.isArray(scope.ids) && scope.ids.length <= 10000 && scope.ids.every(id => typeof id === 'string' && new RegExp(uuidPattern).test(id)), 'Invalid module record scope', 500);
-            const rows = (await db.query("SELECT * FROM business_records WHERE kind=$1 AND ($2='' OR data->>'status'=$2) AND ($3='' OR key ILIKE $3 ESCAPE '!')" + (scope ? ' AND id=ANY($6::uuid[])' : '') + ' ORDER BY key LIMIT $4 OFFSET $5', [resource.kind, q.status ?? '', q.q ? '%' + q.q.replace(/[!%_]/g, '!$&') + '%' : '', limit + 1, offset, ...(scope ? [scope.ids] : [])])).rows;
+            const textSearch=searchable.length?" OR EXISTS (SELECT 1 FROM jsonb_each_text(data) AS search_value WHERE search_value.key=ANY($"+(scope?7:6)+"::text[]) AND search_value.value ILIKE $3 ESCAPE '!')":'';
+            const rows = (await db.query("SELECT * FROM business_records WHERE kind=$1 AND ($2='' OR data->>'status'=$2) AND ($3='' OR key ILIKE $3 ESCAPE '!'"+textSearch+")" + (scope ? ' AND id=ANY($6::uuid[])' : '') + ' ORDER BY key LIMIT $4 OFFSET $5', [resource.kind, q.status ?? '', q.q ? '%' + q.q.replace(/[!%_]/g, '!$&') + '%' : '', limit + 1, offset, ...(scope ? [scope.ids] : []),...(searchable.length?[searchable]:[])])).rows;
             const audit = accesses.get(req);
             if (audit) audit.recordIds = rows.slice(0, limit).map(r => r.id);
             return { records: rows.slice(0, limit).map(r => { const value = resourceRecord(resource,convert(r)); return fields ? Object.fromEntries(fields.map(f => [f, value[f]])) : value; }), nextOffset: rows.length > limit ? offset + limit : null, summary: 'Module-owned records; quantities and money use the declared units.' };

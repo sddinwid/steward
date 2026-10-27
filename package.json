@@ -12,8 +12,8 @@
     "npm": ">=10"
   },
   "scripts": {
-    "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/catalog-kit && npm run build -w @steward/business-kit && npm run build -w @steward/commerce-kit && npm run build -w @steward/simulation-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/mission-kit && npm run build -w @steward/economy-kit && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build -w @steward/commerce-simulator && npm run build:business && npm run build:mission && npm run build:finance && npm run build:catalog",
-    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business && npm run test:smart && npm run test:commerce && npm run test:shopify-live && npm run test:presentation && npm run test:compose && npm run test:simulation && npm run test:mission:contracts && npm run test:program-access && npm run test:mission:modules && npm run test:mission:analytics && npm run test:release:contracts && npm run test:economy && npm run test:catalog:contracts && npm run test:module:previews && npm run test:catalog:module",
+    "build": "npm run build -w @steward/module-sdk && npm run build -w @steward/catalog-kit && npm run build -w @steward/business-kit && npm run build -w @steward/commerce-kit && npm run build -w @steward/simulation-kit && npm run build -w @steward/module-host && npm run build -w @steward/contracts && npm run build -w @steward/mission-kit && npm run build -w @steward/economy-kit && npm run build -w @steward/platform && npm run build -w @steward/ui && npm run build -w @steward/master-api && npm run build -w @steward/worker-api && npm run build -w @steward/master-web && npm run build -w @steward/worker-web && npm run build -w @steward/installer && npm run build -w @steward/commerce-simulator && npm run build:business && npm run build:mission && npm run build:finance && npm run build:catalog && npm run build:pricing",
+    "test": "npm run test -w @steward/module-sdk && npm run test -w @steward/module-host && npm run test -w @steward/platform && npm run test -w @steward/installer && npm run test:inventory && npm run test:operations && npm run test:business && npm run test:smart && npm run test:commerce && npm run test:shopify-live && npm run test:presentation && npm run test:compose && npm run test:simulation && npm run test:mission:contracts && npm run test:program-access && npm run test:mission:modules && npm run test:mission:analytics && npm run test:release:contracts && npm run test:economy && npm run test:catalog:contracts && npm run test:module:previews && npm run test:catalog:module && npm run test:pricing:module",
     "test:smart": "node scripts/test-smart-modules.mjs",
     "test:smart:browser": "node scripts/test-smart-modules.mjs --browser",
     "provision": "node tools/installer/dist/cli.js provision",
@@ -77,7 +77,11 @@
     "build:catalog": "npm run build --prefix modules/catalog",
     "test:catalog:module": "node scripts/test-universal-catalog.mjs",
     "test:catalog:browser": "node scripts/test-universal-catalog-browser.mjs",
-    "verify:catalog:package": "node scripts/verify-catalog-package.mjs"
+    "verify:catalog:package": "node scripts/verify-catalog-package.mjs",
+    "build:pricing": "npm run build --prefix modules/pricing",
+    "test:pricing:module": "node scripts/test-pricing-management.mjs",
+    "test:pricing:browser": "node scripts/test-pricing-management-browser.mjs",
+    "verify:pricing:package": "node scripts/verify-pricing-package.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

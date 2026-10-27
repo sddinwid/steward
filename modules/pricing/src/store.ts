@@ -1,0 +1,29 @@
+import {ensure,get,records,save,publicRecord,type Context,type Data,type RecordValue} from '@steward/business-kit';
+import {canonical} from '@steward/module-sdk';
+import type {ProviderReference,CatalogSourceReference,PriceSubject,PricingValidationContext,PriceList,PricingApprovalPolicy,PriceRuleRevision,PriceApproval} from '@steward/catalog-kit';
+export const MODULE_ID='steward.pricing.management';
+export const stamp=()=>new Date().toISOString();
+export const equal=(a:unknown,b:unknown)=>canonical(a)===canonical(b);
+export function owner(ctx:Context){const p=ctx.providerIdentity;ensure(p&&p.entityId===ctx.entityId&&p.workerInstallationId===ctx.installationId&&p.moduleId===MODULE_ID,'Trusted Pricing identity unavailable',503);return ctx.entityId!;}
+export function provider(ctx:Context):ProviderReference{return{contractVersion:1,...(owner(ctx),ctx.providerIdentity!)};}
+export function human(ctx:Context){ensure(/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(ctx.actor),'Authenticated human pricing actor required',403);}
+export function owned(ctx:Context,r:RecordValue){ensure(r.data.ownerEntityId===owner(ctx),'Pricing record unavailable',404);return r;}
+export async function record(ctx:Context,kind:string,id:string){return owned(ctx,await get(ctx,kind,id));}
+/** Nonlocking reads are also used by PostgreSQL-enforced read-only previews. */
+export async function all(ctx:Context,kind:string){return(await records(ctx,kind)).map(r=>owned(ctx,r));}
+export async function read(ctx:Context,kind:string,id:string){const r=(await all(ctx,kind)).find(r=>r.id===id);ensure(r,'Pricing record unavailable',404);return r;}
+export function identity(ctx:Context,data:Data,p:RecordValue|null){human(ctx);return{...data,ownerEntityId:owner(ctx),provider:provider(ctx),createdAt:p?.data.createdAt??stamp(),createdBy:p?.data.createdBy??ctx.actor,updatedAt:stamp(),updatedBy:ctx.actor};}
+export function list(r:RecordValue):PriceList {const d=r.data;return{contractVersion:1,id:r.id,ownerEntityId:d.ownerEntityId,provider:d.provider,name:d.name,kind:d.kind,currency:d.currency,scale:2,status:d.status,revision:r.revision};}
+export function policy(r:RecordValue):PricingApprovalPolicy {const d=r.data;return{contractVersion:1,id:r.id,ownerEntityId:d.ownerEntityId,provider:d.provider,revision:r.revision,reviewRequired:d.reviewRequired,reviewerPermission:MODULE_ID+'.review',quorum:d.quorum,separationOfDuties:d.separationOfDuties,maximumAuthorizationSeconds:d.maximumAuthorizationSeconds};}
+export function context(ctx:Context,subjects:PriceSubject[]=[],now=stamp()):PricingValidationContext{return{ownerEntityId:owner(ctx),provider:provider(ctx),now,reviewerPermission:MODULE_ID+'.review',catalogSubjects:subjects.filter((s):s is Extract<PriceSubject,{kind:'catalog'}>=>s.kind==='catalog'),...(ctx.approvalPrincipals?{reviewerSnapshot:ctx.approvalPrincipals}:{})};}
+export function source(ctx:Context,r:RecordValue,streamId:string,id=r.id,revision=r.revision):CatalogSourceReference {return{contractVersion:1,entityId:owner(ctx),moduleId:MODULE_ID,streamId,recordId:id,revision,provider:r.data.terms?.provider??r.data.provider??provider(ctx),observedAt:r.data.terms?.proposedAt??r.data.updatedAt??r.data.createdAt??stamp()};}
+export async function history(ctx:Context,r:RecordValue,operation:string){await ctx.db.query('INSERT INTO pricing_history(record_id,kind,revision,owner_entity_id,actor_id,operation,snapshot) VALUES($1,$2,$3,$4,$5,$6,$7)',[r.id,r.kind,r.revision,owner(ctx),ctx.actor,operation,publicRecord(r)]);}
+export async function rules(ctx:Context){return all(ctx,'price-rule');}
+/** Published lifecycle is separate from the immutable terms' intended interval. */
+export function effectiveEnd(row:RecordValue){return Math.min(row.data.terms.validTo?Date.parse(row.data.terms.validTo):Infinity,row.data.effectiveUntil?Date.parse(row.data.effectiveUntil):Infinity);}
+export function effectiveStatus(row:RecordValue,at=Date.now()):'current'|'scheduled'|'superseded'|'expired'|'proposed'|'inactive'{if(row.data.status!=='active')return row.data.status==='proposed'?'proposed':'inactive';const t=row.data.terms,termEnd=t.validTo?Date.parse(t.validTo):Infinity,cutoff=row.data.effectiveUntil?Date.parse(row.data.effectiveUntil):Infinity;if(cutoff<=Date.parse(t.validFrom)||cutoff<=termEnd&&at>=cutoff)return'superseded';if(at>=termEnd)return'expired';return at<Date.parse(t.validFrom)?'scheduled':'current';}
+export async function approvals(ctx:Context,terms:PriceRuleRevision):Promise<{row:RecordValue;approval:PriceApproval}[]>{return(await all(ctx,'review')).filter(r=>r.data.approval.ruleId===terms.id&&r.data.approval.ruleRevision===terms.revision).map(row=>({row,approval:row.data.approval}));}
+export function finiteTime(value:string){const n=Date.parse(value);ensure(Number.isFinite(n)&&new Date(n).toISOString()===value.replace(/(?:\.(\d{1,3}))?Z$/,(_m,f)=>'.'+(f??'').padEnd(3,'0')+'Z'),'Invalid UTC timestamp');return n;}
+export function interval(from:string,to?:string|null){ensure(finiteTime(from)<(to?finiteTime(to):Infinity),'Invalid half-open effective period');}
+export function paginate(rows:Data[],q:Record<string,string>={}){const limit=Number(q.limit??20),offset=Number(q.offset??0);ensure(Number.isInteger(limit)&&limit>=1&&limit<=20&&Number.isInteger(offset)&&offset>=0&&offset<=100000,'Invalid pagination',400);return{records:rows.slice(offset,offset+limit),nextOffset:offset+limit<rows.length?offset+limit:null};}
+export async function saveState(ctx:Context,r:RecordValue,patch:Data,operation:string){const next=await save(ctx,r.kind,r.key,{...r.data,...patch,updatedAt:stamp(),updatedBy:ctx.actor},r);await history(ctx,next,operation);return next;}
