@@ -1,7 +1,7 @@
 {
   "version": "0.14.0",
   "releaseTag": "v0.14.0",
-  "status": "verified_candidate_ready_for_promotion",
+  "status": "accepted",
   "sourceCommit": "65a4604ab0140441a606f48d326ded6ada33768b",
   "candidateManifestSha256": "6b833d90cb266539980b6d7a5a489818da7e66a348178bdc82f1e279ca53be7f",
   "bundle": "artifacts/releases/steward-0.14.0-rc15",
@@ -69,5 +69,12 @@
   },
   "verificationArchive": "artifacts/releases/steward-0.14.0-verification.zip",
   "verificationArchiveChecksumFile": "artifacts/releases/steward-0.14.0-verification.zip.sha256",
-  "privateDeploymentsIncluded": false
+  "privateDeploymentsIncluded": false,
+  "acceptanceEvidenceCommit": "07724640a40cf50277d2b73d82227f08bc17355a",
+  "acceptedManifestSha256": "802cb0acaca889e3b8f4946260bbcdc40c55cd8f2c4729c970f2fa02da2e8b65",
+  "verificationArchiveSha256": "846bcb29b3f7e720984cb3616d0609d8e941c3259e745d8887d60980f9758c53",
+  "verificationArchiveBytes": 20254453,
+  "verificationArchiveFiles": 595,
+  "installedManifestSha256": "802cb0acaca889e3b8f4946260bbcdc40c55cd8f2c4729c970f2fa02da2e8b65",
+  "acceptedSelectionEvidence": "artifacts/phase14-accepted-selection.json"
 }
