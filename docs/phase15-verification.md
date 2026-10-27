@@ -48,6 +48,8 @@ Host review also identified a lifecycle race: identical package/configuration af
 
 Boundary: module/browser tests use real Catalog code/PostgreSQL, with explicit private gateway/account and source-ACK fixtures. They do not establish signed ModuleManager installation, installed SSMA routing, a platform upgrade or live Shopify/Printify compatibility. Standalone signed-image acceptance must run from the committed clean source before checkpoint 15B advances.
 
+Standalone image attempt from source `6bfecfc`: Docker build and signed manifest/image verification passed. Image `sha256:9bb4dd8d71f17c755fab14604cac34c0e923d65a2cd559da622b73bfe5a9b6c7`, descriptor digest `e98f98934cc8c47685ff7666a29f42ddc38337fc134d54a0711587d57bc9f263`. Runtime acceptance then failed because Docker's default address pools were fully allocated. Evidence: `artifacts/phase15b-catalog-package/2cdb84d7-412c-43f8-a792-cfa336792e0c/acceptance.json`. Cleanup passed and selected operator container IDs/images/start times remained unchanged. Existing networks and retained archives were not pruned. The runtime gate remains open until retried with an explicit nonoverlapping fixture subnet, reusing the exact signed image.
+
 ## Remaining gates
 
 15B standalone image acceptance is pending. 15C–15J remain pending: operational Pricing/resolution/approval, business integration and accepted Sales correction, live read-only external discovery/mapping, contribution calculations, Master projections/science, MCP/real Qwen, synthetic/deployed browser/outage acceptance and clean/install-preserving release acceptance. Contract and isolated module tests alone do not establish these outcomes.

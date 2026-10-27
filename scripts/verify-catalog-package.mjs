@@ -14,13 +14,15 @@ import {canonical,digest,verifyPackage,validateConfiguration} from '../packages/
 import {privateDirectory} from '../tools/installer/dist/security.js';
 
 const root=fileURLToPath(new URL('..',import.meta.url));process.chdir(root);
+const args=process.argv.slice(2);assert(args.length===0||args.length===1&&args[0]==='--self-test'||args.length===2&&args[0]==='--reuse-package','Usage: node scripts/verify-catalog-package.mjs [--reuse-package <public-evidence-directory>] | --self-test');
+const reuseDirectory=args[0]==='--reuse-package'?path.resolve(args[1]):null;
 const runId=randomUUID(),fixtureParent=path.resolve(root,'.steward/phase15-catalog-package'),fixture=path.join(fixtureParent,runId);
 const output=path.resolve(root,'artifacts/phase15b-catalog-package',runId),evidenceFile=path.join(output,'acceptance.json');
 const names={database:'steward-catalog-package-db-'+runId,module:'steward-catalog-package-module-'+runId,network:'steward-catalog-package-'+runId};
 const label='steward.acceptance.run',moduleId='steward.catalog.universal';
 const adminPassword=randomBytes(32).toString('hex'),databasePassword=randomBytes(32).toString('hex'),gateway=randomBytes(32).toString('base64url');
 const workerInstallationId=randomUUID(),entityId=randomUUID(),moduleInstallationId=randomUUID(),actorId=randomUUID();
-const evidence={schemaVersion:1,runId,startedAt:new Date().toISOString(),status:'failed',boundary:'Standalone signed module image with disposable PostgreSQL. Not ModuleManager installation, core upgrade, full-stack, or live provider acceptance.',sourceCommit:null,moduleId,gates:[],cleanup:{containersRemoved:false,networkRemoved:false,privateFixtureRemoved:false},limitations:['No installed-provider SSMA routing or substitution acceptance.','No Shopify/Printify connection or external mutation.','No Master/Worker core upgrade or in-place operator deployment.']};
+const evidence={schemaVersion:1,runId,startedAt:new Date().toISOString(),status:'failed',boundary:'Standalone signed module image with disposable PostgreSQL. Not ModuleManager installation, core upgrade, full-stack, or live provider acceptance.',sourceCommit:null,buildSourceCommit:null,verificationCommit:null,moduleId,gates:[],cleanup:{containersRemoved:false,networkRemoved:false,privateFixtureRemoved:false},limitations:['No installed-provider SSMA routing or substitution acceptance.','No Shopify/Printify connection or external mutation.','No Master/Worker core upgrade or in-place operator deployment.']};
 let admin,moduleDb,before,privateKey='',failure;
 const docker=(args,options={})=>execFileSync('docker',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe'],maxBuffer:8*1024*1024,...options});
 const git=args=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
@@ -34,24 +36,47 @@ async function request(base,url,{method='GET',body,permissions=[],authenticated=
 async function expect(base,url,status,options={}){const response=await request(base,url,options);assert.equal(response.status,status,options.method+' '+url+' HTTP status');return response.value;}
 async function waitHealth(base){const deadline=Date.now()+60000;while(Date.now()<deadline){try{if((await request(base,'/health',{authenticated:false})).status===200)return;}catch{}await delay(300);}throw Error('MODULE_HEALTH_TIMEOUT');}
 function redact(error){let message=error instanceof Error?error.message:String(error);for(const value of [adminPassword,databasePassword,gateway,privateKey].filter(Boolean))message=message.replaceAll(value,'<redacted>');return message.replace(/-----BEGIN [^-]*PRIVATE KEY-----[\s\S]*?-----END [^-]*PRIVATE KEY-----/g,'<redacted private key>').slice(0,2000);}
+function ipv4Range(cidr){const match=/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})\/(\d{1,2})$/.exec(cidr);assert(match,'INVALID_IPV4_CIDR');const octets=match.slice(1,5).map(Number),prefix=Number(match[5]);assert(octets.every((v,i)=>v>=0&&v<=255&&String(v)===match[i+1])&&prefix>=0&&prefix<=32,'INVALID_IPV4_CIDR');const address=octets.reduce((n,v)=>n*256+v,0),size=2**(32-prefix),start=address-address%size;return{start,end:start+size-1,prefix,address,octets};}
+function privateSubnet(cidr){const range=ipv4Range(cidr),[a,b]=range.octets;assert(range.prefix>=24&&range.prefix<=28&&range.address===range.start,'ACCEPTANCE_SUBNET_MUST_BE_ALIGNED_SLASH24_TO_SLASH28');assert(a===10||a===172&&b>=16&&b<=31||a===192&&b===168,'ACCEPTANCE_SUBNET_MUST_BE_PRIVATE_RFC1918');return range;}
+function assertNoOverlap(cidr,subnets){const range=privateSubnet(cidr);for(const other of subnets){if(!other||other.includes(':'))continue;const existing=ipv4Range(other);assert(range.end<existing.start||existing.end<range.start,'ACCEPTANCE_SUBNET_COLLIDES_WITH_DOCKER_IPAM: '+other);}return range;}
+function checkedSubnet(){const subnet=process.env.STEWARD_CATALOG_ACCEPTANCE_SUBNET??'10.237.255.0/28';privateSubnet(subnet);const ids=docker(['network','ls','-q']).trim().split(/\s+/).filter(Boolean),networks=ids.length?JSON.parse(docker(['network','inspect',...ids])):[];assertNoOverlap(subnet,networks.flatMap(n=>(n.IPAM?.Config??[]).map(c=>c.Subnet)));evidence.network={subnet,checkedDockerNetworks:networks.length,collisionFree:true,checkScope:'All Docker IPv4 IPAM subnets; no networks pruned'};return subnet;}
+
+if(args[0]==='--self-test'){
+ assertNoOverlap('10.237.255.0/28',['10.0.0.0/24','172.16.0.0/24','172.31.144.0/20','fd00::/64']);
+ for(const subnet of ['10.237.255.0/28','10.237.255.0/24','172.20.0.0/28','192.168.50.0/28'])assert.doesNotThrow(()=>privateSubnet(subnet));
+ for(const subnet of ['8.8.8.0/28','10.237.255.1/28','10.237.0.0/16','10.237.255.0/30','10.999.0.0/28','10.023.0.0/28','not-a-cidr'])assert.throws(()=>privateSubnet(subnet));
+ for(const occupied of ['10.237.255.0/28','10.237.0.0/16','10.0.0.0/8','10.237.255.8/29'])assert.throws(()=>assertNoOverlap('10.237.255.0/28',[occupied]),/COLLIDES/);
+ console.log('PASS catalog package private-subnet validation and Docker IPAM overlap cases (no Docker/build/publication calls)');process.exit(0);
+}
 
 await mkdir(output,{recursive:true});
 try{
- evidence.sourceCommit=cleanSource();git(['ls-files','--error-unmatch','scripts/verify-catalog-package.mjs','modules/catalog/Dockerfile','modules/catalog/manifest.json']);
+ evidence.verificationCommit=cleanSource();evidence.sourceCommit=evidence.verificationCommit;evidence.buildSourceCommit=evidence.verificationCommit;git(['ls-files','--error-unmatch','scripts/verify-catalog-package.mjs','modules/catalog/Dockerfile','modules/catalog/manifest.json']);
  const dockerignore=await readFile('.dockerignore','utf8');assert(dockerignore.split(/\r?\n/).includes('.steward'),'PRIVATE_FIXTURE_MUST_BE_EXCLUDED_FROM_BUILD_CONTEXT');assert(dockerignore.split(/\r?\n/).includes('artifacts'),'EVIDENCE_MUST_BE_EXCLUDED_FROM_BUILD_CONTEXT');
  before=operatorSnapshot();evidence.operatorBefore={runningContainers:before.length,digest:digest(canonical(before))};gate('clean committed source and private Docker context');
  await mkdir(fixture,{recursive:true,mode:0o700});privateDirectory(fixture);
- const keys=generateKeyPairSync('ed25519');privateKey=keys.privateKey.export({type:'pkcs8',format:'pem'}).toString();const publicKey=keys.publicKey.export({type:'spki',format:'pem'}).toString();
- const trust={publishers:[{publisherId:'local-operator',publicKey}]};await privateFile(path.join(fixture,'security/module-publisher-key.pem'),privateKey);await privateFile(path.join(fixture,'modules/public/catalog.json'),JSON.stringify({catalogVersion:1,packages:[]})+'\n');
- await writeFile(path.join(output,'publisher-trust.json'),JSON.stringify(trust,null,2)+'\n');
- // Existing publisher performs the real independent Docker build and signature.
- execFileSync(process.execPath,[path.join(root,'scripts/publish-module.mjs'),path.join(root,'modules/catalog'),fixture],{cwd:root,stdio:'inherit',timeout:20*60000});
- cleanSource(evidence.sourceCommit);
- const packages=JSON.parse(await readFile(path.join(fixture,'modules/public/catalog.json'),'utf8')).packages;assert.equal(packages.length,1);const descriptor=packages[0],payload=verifyPackage(descriptor,trust),manifest=payload.manifest;
+ let descriptor,trust;
+ if(reuseDirectory){
+  const previous=JSON.parse(await readFile(path.join(reuseDirectory,'acceptance.json'),'utf8'));descriptor=JSON.parse(await readFile(path.join(reuseDirectory,'descriptor.json'),'utf8'));trust=JSON.parse(await readFile(path.join(reuseDirectory,'publisher-trust.json'),'utf8'));
+  assert(previous.gates?.some(g=>g.name==='published signature, image digest and committed manifest verified'&&g.status==='passed'),'PREVIOUS_SIGNED_IMAGE_GATE_REQUIRED');
+  const buildCommit=previous.buildSourceCommit??previous.sourceCommit;assert.match(buildCommit,/^[a-f0-9]{40}$/);git(['cat-file','-e',buildCommit+'^{commit}']);
+  // A committed harness-only fix may reuse an immutable package. Any change to
+  // application build inputs requires a separately versioned signed package.
+  try{git(['diff','--quiet',buildCommit,evidence.verificationCommit,'--','packages','modules/catalog','apps','tools','package.json','package-lock.json','tsconfig.base.json','.dockerignore']);}catch{throw Error('REUSED_PACKAGE_APPLICATION_INPUTS_CHANGED');}
+  assert.equal(previous.package?.sourceCommit,buildCommit,'PREVIOUS_PACKAGE_SOURCE_COMMIT_MISMATCH');assert.equal(previous.package?.descriptorDigest,digest(canonical(descriptor)),'PREVIOUS_DESCRIPTOR_DIGEST_MISMATCH');assert.equal(previous.package?.imageId,descriptor.payload?.imageId,'PREVIOUS_IMAGE_DIGEST_MISMATCH');
+  evidence.sourceCommit=buildCommit;evidence.buildSourceCommit=buildCommit;evidence.reusedPackageFrom=path.relative(root,reuseDirectory);
+ }else{
+  const keys=generateKeyPairSync('ed25519');privateKey=keys.privateKey.export({type:'pkcs8',format:'pem'}).toString();const publicKey=keys.publicKey.export({type:'spki',format:'pem'}).toString();trust={publishers:[{publisherId:'local-operator',publicKey}]};await privateFile(path.join(fixture,'security/module-publisher-key.pem'),privateKey);await privateFile(path.join(fixture,'modules/public/catalog.json'),JSON.stringify({catalogVersion:1,packages:[]})+'\n');
+  // Existing publisher performs the real independent Docker build and signature.
+  execFileSync(process.execPath,[path.join(root,'scripts/publish-module.mjs'),path.join(root,'modules/catalog'),fixture],{cwd:root,stdio:'inherit',timeout:20*60000});
+  const packages=JSON.parse(await readFile(path.join(fixture,'modules/public/catalog.json'),'utf8')).packages;assert.equal(packages.length,1);descriptor=packages[0];
+ }
+ cleanSource(evidence.verificationCommit);await writeFile(path.join(output,'publisher-trust.json'),JSON.stringify(trust,null,2)+'\n');
+ const payload=verifyPackage(descriptor,trust),manifest=payload.manifest;
  assert.equal(manifest.moduleId,moduleId);const sourceManifest=JSON.parse(await readFile('modules/catalog/manifest.json','utf8'));assert.equal(canonical(manifest),canonical(sourceManifest),'SIGNED_MANIFEST_DIFFERS_FROM_COMMITTED_SOURCE');
  const image=JSON.parse(docker(['image','inspect',payload.imageId]))[0];assert.equal(image.Id,payload.imageId);assert.equal(image.Config.Labels?.['steward.module.id'],moduleId);assert.equal(image.Config.Labels?.['steward.module.version'],manifest.version);assert.equal(image.Config.Labels?.['steward.module.sdk'],String(manifest.sdkVersion));
  const descriptorDigest=digest(canonical(descriptor));evidence.package={version:manifest.version,imageId:image.Id,descriptorDigest,signatureVerified:true,publisherId:payload.publisherId,sourceCommit:evidence.sourceCommit};await writeFile(path.join(output,'descriptor.json'),JSON.stringify(descriptor,null,2)+'\n');gate('published signature, image digest and committed manifest verified');
- docker(['network','create','--internal','--label',label+'='+runId,names.network]);assert.equal(ownedInspect(names.network,'network').Internal,true);
+ const subnet=checkedSubnet();docker(['network','create','--internal','--subnet',subnet,'--label',label+'='+runId,names.network]);const network=ownedInspect(names.network,'network');assert.equal(network.Internal,true);assert(network.IPAM.Config.some(c=>c.Subnet===subnet));
  const databaseEnv=path.join(fixture,'database.env');await privateFile(databaseEnv,'POSTGRES_PASSWORD='+adminPassword+'\n');
  docker(['run','-d','--name',names.database,'--label',label+'='+runId,'--network',names.network,'--env-file',databaseEnv,'--tmpfs','/var/lib/postgresql/data:rw,noexec,nosuid,size=268435456','-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const databaseContainer=ownedInspect(names.database),databasePort=Number(databaseContainer.NetworkSettings.Ports['5432/tcp'][0].HostPort);assert(Number.isInteger(databasePort)&&databasePort>0);
@@ -77,7 +102,7 @@ try{
  const replay=(await expect(base,'/offerings',201,{method:'POST',body:input,permissions})).record;assert.equal(replay.id,created.id);assert.equal(replay.revision,1);assert.deepEqual((await expect(base,'/catalog-view?q='+created.id,200,{permissions})).records[0],view);
  await expect(base,'/internal/migrate',200,{method:'POST',body:{}});assert.deepEqual((await moduleDb.query('SELECT version,sha256,applied_at FROM module_migrations ORDER BY version')).rows,migrations);assert.deepEqual((await expect(base,'/history?q='+created.id,200,{permissions})).records,history);
  evidence.runtime={workerInstallationId,entityId,moduleInstallationId,databaseRole:'catalog_fixture',nonprivileged:true,acceptedOfferingId:created.id,preservedOfferingDigest:digest(canonical(view)),migrationCount:migrations.length};gate('container restart, repeated migration and original creation-receipt persistence');
- cleanSource(evidence.sourceCommit);evidence.status='passed';
+ cleanSource(evidence.verificationCommit);evidence.status='passed';
 }catch(error){failure=error;evidence.failure={gate:evidence.gates.at(-1)?.name??'clean committed source preflight',message:redact(error)};}
 finally{
  await moduleDb?.end().catch(()=>{});await admin?.end().catch(()=>{});
