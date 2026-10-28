@@ -1,6 +1,8 @@
 # CEE Steward platform
 
-Steward is a modular business and mission operations platform with an independently deployable Master and multiple independent Workers. Workers retain local operational authority and availability when Master is offline. Separately signed modules contribute capabilities, navigation, forms and operations through SSMA and the Steward Shared Design System (SSDS).
+Steward helps organizations manage independently operated businesses, coordinate authorized work between companies, monitor performance, and investigate opportunities using scientific analytics and AI-assisted evidence review. It also supports humanitarian service organizations, including CEE’s housing, employment and essential-services mission. CEE membership is not required.
+
+Each Worker Steward runs local business operations through independently installed modules and retains its own authoritative records. Master Steward maintains the entity registry and analyzes authorized synchronized projections. Workers continue operating when Master is unavailable. Separately signed modules contribute capabilities, navigation, forms and operations through SSMA and the Steward Shared Design System (SSDS).
 
 **Accepted release: v0.15.0 — Universal Catalog and Pricing Management.** All eighteen mandatory acceptance gates passed. The selected operator installation was upgraded in place, preserving accounts, identities, credentials, module databases, provider obligations and volumes. This is a verified synthetic MVP, not a claim of commercial production readiness.
 
@@ -16,8 +18,8 @@ See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint s
 | Accepted build source | `4c07ffb0980e891f917f1755ff380e4241219f40`; build and acceptance-evidence commits are distinct |
 | Selected operator | Accepted v0.15.0; last verified topology: one stack, 60 containers (16 core and 44 module containers) |
 | Catalog / Pricing | Catalog 1.4.0 and Pricing Management 1.3.1 installed on all three Workers |
-| Phase 16 source | Governed workflow definitions, designer, execution, event subscriptions/recovery and Sales continuation contracts implemented in source; acceptance incomplete |
-| Phase 16 installation | Business Automation is not installed on the selected operator; source Sales 1.6.0 is not a claim of an installed upgrade |
+| Phase 16 source | Governed definitions, generic designer/preview, durable parallel execution, events, Sales/Inventory/Procurement and internal notifications implemented in source; installed acceptance incomplete |
+| Phase 16 installation | Business Automation is packaged but not installed; signed Inventory 1.7.0, Sales 1.6.0 and Procurement 1.4.0 candidates do not imply installed upgrades |
 
 Release acceptance and preservation evidence: [Phase 15 final acceptance](docs/phase15-final-acceptance.md), [release gates](docs/phase15-release-gates.json), [installation and upgrade procedure](docs/phase15-release.md), and [presenter guide](docs/phase15-demo.md). Some procedural documents retain candidate-stage instructions; the final acceptance report and accepted distribution manifest establish release status.
 
@@ -69,6 +71,44 @@ For a new installation or an in-place upgrade, use a verified accepted distribut
 
 Module availability and configuration vary by Worker; a package's presence in a release does not mean it is installed or enabled everywhere.
 
+## Architecture and authority
+
+```mermaid
+flowchart TB
+  subgraph W1[Worker Steward 1]
+    R1[Local authorization and SSMA runtime]
+    M1[Independently installed modules]
+    D1[(Module-owned operational databases)]
+    R1 -->|approved capabilities| M1
+    M1 -->|authoritative writes| D1
+  end
+  subgraph W2[Worker Steward 2 and other independent Workers]
+    R2[Local authorization and SSMA runtime]
+    M2[Independently installed modules]
+    D2[(Separate operational databases)]
+    R2 -->|approved capabilities| M2
+    M2 -->|authoritative writes| D2
+  end
+  R1 <-->|explicit authorized peer requests| R2
+  M1 -->|durable authorized projections| Master
+  M2 -->|durable authorized projections| Master
+  subgraph Master[Master Steward]
+    Registry[Entity registry and trusted enrollment]
+    Projections[(Analytical projections)]
+    MCP[Scoped MCP tools and AI Analyst]
+    Projections -->|governed evidence| MCP
+  end
+  MCP -->|deterministic calculations| Science[Optional scientific analytics service]
+  MCP <-->|bounded investigation calls| Model[Configured local or cloud model]
+  Master -->|reviewed findings and durable delivery| R1
+  Master -->|reviewed findings and durable delivery| R2
+```
+
+Master holds analytical projections, not direct authority over Worker databases.
+Each Worker authorizes its own operations and peer requests. Scientific analytics
+and a language model are optional analytical services, not Worker availability
+requirements. Models cannot grant permissions or authorize business operations.
+
 ## Documentation
 
 | Topic | Guide |
@@ -78,6 +118,7 @@ Module availability and configuration vary by Worker; a package's presence in a 
 | Intelligence and AI | [Master intelligence](docs/phase15-master-intelligence.md), [AI investigations](docs/phase15-ai-investigations.md), [contribution methodology](docs/phase15-contribution-methodology.md) |
 | Mission operations | [Phase 13 presenter guide](docs/phase13-presenter.md), [acceptance](docs/phase13-final-acceptance.md) |
 | Economic sustainability | [Financial workflows](docs/phase14-financial-workflows.md), [presenter guide](docs/phase14-demo.md), [acceptance](docs/phase14-final-acceptance.md) |
+| Workflow development and operation | [Developer guide](docs/phase16-workflow-development.md), [operations and recovery](docs/phase16-workflow-operations.md), [candidate release procedure](docs/phase16-release.md) |
 | Phase 16 development | [Directive](docs/phase16-instructions.md), [workflow contracts](docs/phase16-workflow-contracts.md), [verification ledger](docs/phase16-verification.md) |
 | Release and patch history | [Changelog](CHANGELOG.md) |
 

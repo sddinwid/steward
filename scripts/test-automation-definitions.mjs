@@ -87,7 +87,14 @@ try{
   await request('GET','/publications?limit=21',undefined,400);await request('GET','/publications?offset=-1',undefined,400);
  });
  await check('trigger discovery cannot turn an undeclared event or user-supplied schema into publication authority',async()=>{
-  const choices=await request('GET','/trigger-contracts');assert.deepEqual(choices.records.map(r=>r.id),['manual']);
+  const choices=await request('GET','/trigger-contracts');
+  assert.deepEqual(choices.records.map(r=>r.id),['manual','sales.orders.workflow/sales.order.changed','procurement.workflow.requests/purchase.status.changed','inventory.replenishment.observe/inventory.replenishment.changed']);
+  for(const choice of choices.records.filter(r=>r.id!=='manual')){
+   const requirement=manifest.smart.consumes.find(r=>r.capabilityId===choice.trigger.capabilityId);
+   const declared=requirement?.events.find(e=>e.name===choice.trigger.eventName);
+   assert(declared,'Every exposed trigger must be declared in the signed consumer contract');
+   assert.deepEqual(choice.trigger.input,declared.schema);assert.equal(choice.sensitivity,requirement.maximumSensitivity);
+  }
   await request('POST','/workflows',{...draft,recordKey:randomUUID(),triggerSource:'unapproved.source/private.changed'},422);
   await request('POST','/workflows',{...draft,recordKey:randomUUID(),trigger:{kind:'event',input:{}}},400);
  });

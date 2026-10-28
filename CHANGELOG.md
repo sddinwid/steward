@@ -30,10 +30,18 @@ Branch: `codex/phase16-business-automation`. No accepted Phase 16 release, opera
 | `8afcfc3` | Preserve active-intake limits during resume; resolve lost subscription responses by original identity | Admission/recovery checks and seven component browser checks |
 | `d3c3d1d` | Register replay migration 24 as its own migration; type migration entries and verify the replay index | Corrected actual upgrade test; subsequent uninterrupted full regression passed |
 | `3b3dafa` | Sales-owned workflow continuation with original stock/provider and accepted-price authority | Six new domain, 24 Catalog integration, seven business and eight publication tests |
+| `d477cd1` | Procurement-owned draft requests and authorized internal notifications | Isolated provider and receipt tests; no live purchases or external messaging |
+| `be44a7b` | Bounded durable parallel branches with independent retries and retained successful receipts | 25 isolated runtime checks; installed outage acceptance remains separate |
+| `06f4319` | Bind historical release checks to accepted Phase 15 package identities | Preserves historical metadata as current modules advance |
+| `4b8cff6` | Generic synthetic previews, guided conditions and unbound draft templates | Eight designer browser checks; preview has no execution authority |
+| `7f604c1` | Inventory-owned workflow shortage observations | Seven isolated checks; existing obligations retain their original route |
+| `3e43847` | Make changed-source Pricing regression select its exact original quote | Two fresh 44-test reruns; no financial validation weakened |
+| `075ff2c` | Preserve primitive constant output fields for workflow discovery | 61 SDK and eight publication tests |
+| `3bcd8ea` | Gated candidate packaging, additive HTTPS workflow routing and verified inventory tooling | 30 release, 18 installer, seven Compose and seven preservation contract tests |
 
 The first recovery full run failed the migration registration check (217 passed, one failed). The corrected uninterrupted run at `d3c3d1d` passed **1,222 tests / 76 summaries**, with no failures, cancellations or skips. This full run predates the Sales changes. Existing SQL bytes and deployed state were preserved.
 
-Still pending: remaining provider capabilities, bounded parallel dispatch, designer refinements, installed scenarios, outage/recovery and substitution acceptance, final build/regressions, release packaging and retained-deployment upgrade. See the [Phase 16 verification ledger](docs/phase16-verification.md) and [contracts](docs/phase16-workflow-contracts.md).
+Procurement, internal notifications, bounded parallel dispatch, designer previews and Inventory shortage capabilities are implemented in source. Still pending: installed scenarios, outage/recovery and substitution acceptance, final regression completion, accepted release packaging and retained-deployment upgrade. See the [Phase 16 verification ledger](docs/phase16-verification.md) and [contracts](docs/phase16-workflow-contracts.md).
 
 ## v0.15.0 — Universal Catalog and Pricing Management
 

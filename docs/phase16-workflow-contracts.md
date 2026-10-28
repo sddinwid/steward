@@ -1,7 +1,7 @@
 # Phase 16 workflow contracts (development checkpoint)
 
-This document describes implemented SDK/UI helpers, not a completed automation
-module or deployed workflow service. Release status is in
+This document describes the implemented SDK, generic SSDS designer, Automation
+module and Worker execution contracts. Installed acceptance and release status are in
 [phase16-verification.md](phase16-verification.md).
 
 ## Data-only graph
@@ -27,7 +27,8 @@ action state, not a loop drawn into the business graph.
 `validateWorkflowGraph` rejects invalid graphs. Neither resolves a provider,
 approves a binding nor authenticates a user. Published definitions must also be
 checked against current signed operation contracts and module ownership by the
-governed coordinator. That integration remains pending.
+governed coordinator. Source integration is implemented; installed acceptance
+remains a separate release gate.
 
 ## Rules and evidence
 
@@ -107,9 +108,9 @@ It re-reads the module-owned publication and checks current Worker permissions
 before and after transport, source continuity, entity, chronology and separate
 review. A new approval does not silently renew an existing execution pin.
 
-This precondition is implemented and tested independently. Graph execution,
-activation APIs and per-action checks must call it as part of the existing SSMA
-coordinator; those integrations are not yet complete.
+Graph execution, activation APIs and per-action checks now call this precondition
+through the existing SSMA coordinator. Their isolated regression evidence is
+recorded separately from installed business and release acceptance.
 
 
 ## Coordinator graph progress (development)
@@ -127,10 +128,11 @@ before subsequent progress. Waiting uses persisted timestamps, explicit rejectio
 and expiry paths. Graph action history omits raw provider payloads. Effects require
 host lifecycle locks; missing guards stop before dispatch.
 
-This kernel is exercised with synthetic durable provider receipts. Public graph
-admission, activation, decision APIs and installed business workflows are still
-pending. Actions are currently serialized, so simultaneous bounded provider calls
-are not yet verified. Do not describe these kernel tests as release acceptance.
+This kernel is exercised with synthetic durable provider receipts, real isolated
+PostgreSQL persistence and public admission/activation/decision route tests. Bounded
+parallel dispatch is implemented as described below. Installed business workflows
+and real container recovery remain separate acceptance gates; isolated kernel tests
+do not establish release acceptance.
 
 
 ## Current governance API and UI

@@ -17,10 +17,10 @@ inbox/outbox and transactional acknowledgment hooks. Replication outboxes and
 the host dispatcher provide existing durable transport. MCP already exposes
 read-only governed workflow status. SSDS renders signed data-only screens.
 
-The current coordinator lacks graph dataflow, wait/approval nodes, event
-subscriptions and execution visualization. Event declarations alone do not
-constitute a working subscription API. These gaps must be implemented and tested,
-not described as existing features.
+At the initial Phase 16 inspection, the coordinator lacked graph dataflow, wait/approval nodes, event
+subscriptions and execution visualization. Event declarations alone did not
+constitute a working subscription API. Subsequent implementation and verification
+are recorded in the Phase 16 ledger; the initial gap analysis is retained here.
 
 ## Decision
 

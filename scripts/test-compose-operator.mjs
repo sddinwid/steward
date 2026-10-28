@@ -27,3 +27,26 @@ test('ownership mismatch or stop failure never deletes a container',async()=>{
 import {unexpectedStewardContainers} from './verify-single-stack.mjs';
 test('single-stack audit accepts selected core and owned dynamic modules',()=>{const selected={project:'steward-current',instances:[{installationId}]};const c=Labels=>({Config:{Labels}});assert.deepEqual(unexpectedStewardContainers([c({'com.docker.compose.project':'steward-current'}),c({'steward.managed-by':'module-host-v1','steward.installation':installationId}),c({'com.docker.compose.project':'unrelated-app'})],selected),[]);});
 test('single-stack audit detects obsolete stacks and orphaned module services',()=>{const selected={project:'steward-current',instances:[{installationId}]};const old={Config:{Labels:{'com.docker.compose.project':'steward-old'}}},orphan={Config:{Labels:{'steward.managed-by':'module-host-v1','steward.installation':'other'}}};assert.deepEqual(unexpectedStewardContainers([old,orphan],selected),[old,orphan]);});
+
+
+test('Workflow secure routing is additive after Catalog and before the release image overlay',()=>{
+ const directory=path.resolve('isolated-workflow-overlay-order');
+ const base=new Set(['compose.yaml','security/compose.yaml','catalog/compose.yaml','release/compose.yaml']);
+ const available=p=>base.has(path.relative(directory,p).replaceAll('\\','/'));
+ const legacy=deploymentOverlayFiles(directory,available);
+ assert(!legacy.includes('automation/compose.yaml'));
+ base.add('automation/compose.yaml');const current=deploymentOverlayFiles(directory,available);
+ assert.deepEqual(current.filter(f=>f!=='automation/compose.yaml'),legacy);
+ assert.equal(current.indexOf('automation/compose.yaml'),current.indexOf('catalog/compose.yaml')+1);
+ assert.equal(current.indexOf('release/compose.yaml'),current.indexOf('automation/compose.yaml')+1);
+});
+
+
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {randomUUID} from 'node:crypto';
+test('shared acceptance helper fails before Docker when an explicit deployment is missing',()=>{
+ const missing=path.join(tmpdir(),'steward-missing-'+randomUUID()),library=new URL('./lib.mjs',import.meta.url).href;
+ const script=`process.argv[2]=${JSON.stringify(missing)};const {compose}=await import(${JSON.stringify(library)});try{compose('up','-d');process.exit(2);}catch(error){if(!error.message.includes('Existing deployment Compose configuration required'))throw error;}`;
+ execFileSync(process.execPath,['--input-type=module','-e',script],{env:{...process.env,PATH:''},stdio:'pipe'});
+});

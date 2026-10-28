@@ -931,3 +931,75 @@ Actual validation:
 No candidate image build, actual upgraded deployment, installed workflow browser
 acceptance, final regression pass or release promotion is established by these
 checks. Historical failure evidence remains retained.
+
+
+### Candidate source 3bcd8ea and retained failed full gate
+
+At `3bcd8eaf84a69f6ec0fdc4f14fef35a4c6de0202`, the monorepo build
+passed. The uninterrupted full regression completed **1,212 passed / 1 failed**
+(**1,213 Node tests, 76 summaries**, zero cancelled/skipped), stopping at Automation
+definitions. Logs: `phase16-release-full-build.log`,
+`phase16-release-full-regressions.log`, `phase16-release-full-result.json`.
+This is a failed full gate, not a completed regression acceptance.
+
+The old trigger-discovery test expected only manual triggers, predating the signed
+Sales, Procurement and Inventory event declarations. The corrected test requires
+exactly the four declared choices, checks each returned input schema and sensitivity
+against its signed consumer declaration, and retains rejection of undeclared events
+and caller-supplied schemas. Corrected Automation suite **13/13 passed**
+(`phase16-automation-trigger-correction.log`); the original failure report is retained
+as `phase16-automation-definitions-full-failure-3bcd8ea.json`. Remaining workflow
+suites were run separately: runtime **25/25**, governance **14/14**, events
+**16/16**, notifications **7/7** (`phase16-release-*-tail.log`). These do not
+replace a fresh uninterrupted full run.
+
+The source-bound core candidate image build and checksummed candidate packaging
+passed. Artifacts: `artifacts/releases/steward-0.16.0-candidate-3bcd8ea`,
+`core-images-0.16.0-3bcd8eaf84a69f6ec0fdc4f14fef35a4c6de0202.json`,
+`phase16-candidate-3bcd8ea-build-result.json`,
+`phase16-candidate-3bcd8ea-pack-result.json`,
+`phase16-candidate-3bcd8ea-verify.log`. Scientific/PostgreSQL retain the exact
+accepted identities. This development candidate is not promoted or deployed.
+
+Inventory 1.7.0, Sales 1.6.0, Procurement 1.4.0 and Business Automation 1.0.0
+were built and signed from that commit through the existing publication tool.
+The selected catalogue retains its prior descriptors. None of these packages has
+been installed by this checkpoint. `phase16-publish-*.log` and
+`phase16-module-publication-result.json` retain the actual image identities.
+Migration/source ancestry **10/10 passed** (`phase16-candidate-source-migrations.log`).
+Candidate inventory generation verified all 21 designated packages against the
+checksummed bundle and signed installed snapshots; it labels the candidate and
+retained older Worker versions (`phase16-candidate-module-inventory.md`).
+
+Read-only upgrade snapshot passed for **44 module databases / 165 protected files**
+(`phase16-read-only-upgrade-snapshot.log`). This private snapshot is not a backup.
+The selected deployment remains v0.15.0, with **60 running containers and zero
+unexpected stacks** (`phase16-release-preupgrade-single-stack.log`). No business
+records, credentials, module installation identities or volumes were reset.
+
+Component browser checks: **8 designer + 7 governance passed**, with captures under
+`artifacts/phase16-browser-3bcd8ea`; narrow-screen designer capture visually inspected.
+These remain component evidence, not installed workflow acceptance. Separate
+Scientific regression: **88 Python tests passed**, one upstream Starlette deprecation
+warning, **28 governance checks passed**, and authenticated network-isolated HTTP
+calculation passed (`phase16-scientific-service.log`,
+`phase16-scientific-governance.log`, `phase16-scientific-http.json`). The accepted
+Scientific image and runtime inputs were not replaced.
+
+### Documentation and acceptance-helper correction
+
+README now explains independent business/mission operations and includes a repository
+Mermaid diagram distinguishing operational authority and analytical projections.
+Curated CHANGELOG checkpoints are preserved under Unreleased. Developer, workflow
+operations/recovery and candidate release guides were added. Stale contract/ADR
+wording now distinguishes initial gaps from subsequently implemented source.
+**62 local documentation links resolve** (`phase16-documentation-links.json`).
+No accepted v0.16 inventory or release entry is claimed before mandatory gates pass.
+
+The shared acceptance Compose helper used a stale overlay list. It now uses the
+existing central selection list, including additive Workflow routing, and explicitly
+rejects a missing deployment before invoking Docker (no root/default-stack fallback).
+**9 Compose checks passed** (`phase16-shared-overlay-correction.log`). The release
+source allowlist now includes CHANGELOG.md, which the older candidate omitted;
+actual inclusion must be verified in the next packaged candidate. Release contracts
+remain **30/30 passed** (`phase16-release-docs-correction.log`).
