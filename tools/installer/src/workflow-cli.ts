@@ -1,0 +1,2 @@
+import {provisionWorkflowRouting} from './workflow-routing.js';
+try{if(!process.argv[2])throw Error('Usage: node tools/installer/dist/workflow-cli.js EXISTING_DEPLOYMENT_DIRECTORY');const result=await provisionWorkflowRouting(process.argv[2]);console.log('Workflow secure API routing '+result.status+' for '+result.installations+' existing installations. No accounts, secrets, databases, policies or module configuration changed.');}catch(error){console.error('Workflow routing provisioning failed: '+(error as Error).message);process.exitCode=1;}

@@ -1,0 +1,133 @@
+{
+  "$schema": "phase16-release-gates.schema.json",
+  "version": "0.16.0",
+  "status": "unverified",
+  "gates": [
+    {
+      "id": "contracts",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "designer",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "events",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "sales",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "procurement",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "notifications",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "parallel",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "security",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "mcp",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "installed-scenarios",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "browser",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "outage",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "provider-substitution",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "installation",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "upgrade",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "preservation",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "regressions",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "science",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "live-catalog",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "documentation",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "release",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    }
+  ]
+}

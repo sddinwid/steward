@@ -894,3 +894,40 @@ channel/status field extraction passed, and authoritative publication **8/8**
 passed (`phase16-constant-fields-build.log`, `phase16-constant-fields-tests.log`,
 `phase16-constant-notification-contract.log`, `phase16-constant-publication-tests.log`).
 No deployment or package authority changed.
+
+
+### Additive release tooling checkpoint (not release acceptance)
+
+The source version is now `0.16.0` for candidate preparation. This does not
+promote the installed v0.15.0 deployment or mark any release gate passed.
+The central map designates 21 independent module packages; all 21 mandatory
+Phase 16 gates remain explicitly unverified. Candidate images are source-bound,
+with the original Scientific and PostgreSQL image identities retained.
+
+The installer adds a separate HTTPS `/api/v16/` routing overlay after Catalog,
+without modifying prior private routing or granting module permissions. Release,
+selection and Compose tooling include that overlay. Read-only inventory tooling
+verifies actual installed signed descriptors and can compare a generated README
+inventory to checksummed candidate/accepted package metadata.
+
+Actual validation:
+
+- Installer TypeScript build passed; **18/18** installer tests passed
+  (`phase16-release-installer-build.log`, `phase16-release-installer-tests.log`).
+- Initial integrated release contracts: **27 passed / 3 failed**. Historical
+  tests still expected the newly supported 0.16 version to be rejected. They now
+  assert exact Scientific 1.2, Automation 1.0 and migration 24 contracts while
+  rejecting unknown 0.17. Corrected suite: **30/30 passed**
+  (`phase16-release-contracts-integrated.log`,
+  `phase16-release-contracts-corrected.log`).
+- Compose lifecycle/selection contracts **7/7 passed**
+  (`phase16-release-compose-tests.log`).
+- Existing strict connector-preservation contracts **7/7 passed**
+  (`phase16-upgrade-preservation-contracts.log`).
+- Signed installed identities read successfully from all three selected Workers
+  (`phase16-installed-module-inventory-before.json`). No private configuration
+  or credentials are included in that report.
+
+No candidate image build, actual upgraded deployment, installed workflow browser
+acceptance, final regression pass or release promotion is established by these
+checks. Historical failure evidence remains retained.

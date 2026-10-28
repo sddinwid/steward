@@ -1,0 +1,12 @@
+// Read only selected Worker metadata; never print private configuration or credentials.
+import assert from 'node:assert/strict';import {readFile,writeFile} from 'node:fs/promises';import {execFileSync} from 'node:child_process';import {parseArgs} from 'node:util';import path from 'node:path';
+import {canonical,digest,verifyPackage} from '../packages/module-sdk/dist/index.js';
+const {values}=parseArgs({options:{output:{type:'string'}}});assert(values.output,'Specify a public inventory report with --output');
+const selection=JSON.parse(await readFile('.steward/operator/selection.json','utf8')),directory=path.resolve(selection.directory),manifest=JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8')),trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8'));assert.equal(manifest.project,selection.project);
+const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','pipe','pipe'],maxBuffer:16*1024*1024,timeout:60000}).trim();
+const workers=[];for(const instance of manifest.instances.filter(i=>i.role==='worker')){
+ assert(/^worker-[1-9][0-9]*$/.test(instance.key));const ids=docker(['ps','-q','--filter','label=com.docker.compose.project='+selection.project,'--filter','label=com.docker.compose.service='+instance.key+'-db']).split(/\s+/).filter(Boolean);assert.equal(ids.length,1,'Exactly one selected Worker database must be running');
+ const rows=JSON.parse(docker(['exec','-e','PGOPTIONS=-c default_transaction_read_only=on',ids[0],'psql','-U','postgres','-d','steward','-At','-v','ON_ERROR_STOP=1','-c',"SELECT coalesce(jsonb_agg(jsonb_build_object('moduleId',module_id,'version',version,'state',state,'descriptor',descriptor) ORDER BY module_id),'[]') FROM module_installations"]));
+ const modules=rows.map(row=>{const verified=verifyPackage(row.descriptor,trust);assert.equal(verified.manifest.moduleId,row.moduleId);assert.equal(verified.manifest.version,row.version);return{moduleId:row.moduleId,version:row.version,state:row.state,packageDigest:digest(canonical(row.descriptor))};});workers.push({key:instance.key,modules});
+}
+await writeFile(values.output,JSON.stringify({formatVersion:1,status:'passed',source:'selected-worker-databases',selectedProject:selection.project,capturedAt:new Date().toISOString(),workers},null,2)+'\n');console.log('Verified signed installed identities for '+workers.length+' selected Workers; no credentials or configurations included.');

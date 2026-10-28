@@ -4,7 +4,7 @@ Steward is a modular business and mission operations platform with an independen
 
 **Accepted release: v0.15.0 — Universal Catalog and Pricing Management.** All eighteen mandatory acceptance gates passed. The selected operator installation was upgraded in place, preserving accounts, identities, credentials, module databases, provider obligations and volumes. This is a verified synthetic MVP, not a claim of commercial production readiness.
 
-**Development: Phase 16 — Business Automation & Workflow Designer, targeting v0.16.0.** Implementation is in progress on `codex/phase16-business-automation`; there is no v0.16.0 release or accepted Phase 16 deployment. The root package version remains 0.15.0; development source on this branch is not the accepted release payload.
+**Development: Phase 16 — Business Automation & Workflow Designer, targeting v0.16.0.** Implementation is in progress on `codex/phase16-business-automation`; there is no v0.16.0 release or accepted Phase 16 deployment. The root package version is 0.16.0 for candidate preparation; development source on this branch is not an accepted release payload.
 
 See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint summaries. Detailed verification ledgers retain failed attempts, corrected reruns and exact evidence identities.
 

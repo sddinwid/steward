@@ -5,7 +5,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-export function deploymentOverlayFiles(directory,available=existsSync){return ['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml','mission/compose.yaml','economy/compose.yaml','catalog/compose.yaml','release/compose.yaml'].filter(f=>available(path.join(directory,f)));}
+export function deploymentOverlayFiles(directory,available=existsSync){return ['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml','mission/compose.yaml','economy/compose.yaml','catalog/compose.yaml','automation/compose.yaml','release/compose.yaml'].filter(f=>available(path.join(directory,f)));}
 export function operatorConfig(config,manifest,hook){
  if(config.name!==manifest.project)throw Error('Compose project does not match the installed identity');
  for(const i of manifest.instances){const api=config.services?.[i.key+'-api'],web=config.services?.[i.key+'-web'];

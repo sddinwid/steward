@@ -1,0 +1,31 @@
+{
+  "formatVersion": 1,
+  "platformVersion": "0.16.0",
+  "scientificVersion": "1.2.0",
+  "commerceSimulatorVersion": "1.0.1",
+  "commerceSimulatorTag": "steward-commerce-simulator:0.16.0",
+  "postgresImage": "postgres:17.9-alpine",
+  "modules": {
+    "cee.assets": "1.1.0",
+    "cee.inventory": "1.7.0",
+    "cee.operations": "1.0.0",
+    "cee.procurement": "1.4.0",
+    "cee.sales": "1.6.0",
+    "cee.workforce": "1.3.0",
+    "cee.shopify": "1.3.0",
+    "cee.printify": "1.3.0",
+    "cee.stock-ledger": "1.2.0",
+    "steward.simulation.commerce": "1.1.3",
+    "steward.simulation.fulfillment": "1.0.1",
+    "steward.housing.management": "1.0.3",
+    "steward.housing.services": "1.0.4",
+    "steward.employment.pathways": "1.1.1",
+    "steward.services.food": "1.0.3",
+    "steward.finance.resource-availability": "1.0.0",
+    "steward.finance.mission-budget": "1.0.0",
+    "steward.finance.resource-coordination": "1.0.0",
+    "steward.catalog.universal": "1.4.0",
+    "steward.pricing.management": "1.3.1",
+    "steward.automation": "1.0.0"
+  }
+}

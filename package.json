@@ -1,6 +1,6 @@
 {
   "name": "steward-platform",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "workspaces": [
     "packages/*",
@@ -55,7 +55,7 @@
     "build:mission": "npm run build --prefix modules/housing-management && npm run build --prefix modules/participant-services && npm run build --prefix modules/employment-pathways && npm run build --prefix modules/services-food",
     "test:mission:modules": "node scripts/test-retention-integrity.mjs && node scripts/test-housing-assets.mjs && node scripts/test-housing-management.mjs && node scripts/test-participant-services.mjs && node scripts/test-workforce-services.mjs && node scripts/test-employment-pathways.mjs && node scripts/test-food-services.mjs",
     "test:mission:analytics": "node --test scripts/test-mission-operational.mjs && node scripts/test-mission-analytics.mjs",
-    "test:release:contracts": "node --test scripts/test-phase13-release.mjs scripts/test-phase14-release.mjs scripts/test-phase13-governance.mjs scripts/test-phase15-release.mjs",
+    "test:release:contracts": "node --test scripts/test-phase13-release.mjs scripts/test-phase14-release.mjs scripts/test-phase13-governance.mjs scripts/test-phase15-release.mjs scripts/test-phase16-release.mjs scripts/test-release-module-inventory.mjs",
     "mission:provision": "node tools/installer/dist/mission-cli.js",
     "test:economy:contracts": "npm test -w @steward/economy-kit",
     "build:finance": "npm run build --prefix modules/resource-availability && npm run build --prefix modules/mission-budget && npm run build --prefix modules/resource-coordination",
