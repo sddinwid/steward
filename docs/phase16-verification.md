@@ -859,3 +859,24 @@ The first standalone migration invocation omitted required catalog/trust inputs:
 its ten tests passed but the gate correctly reported incomplete. The rerun with
 trusted provenance passed; the incomplete report/log are retained. Full final
 regression and installed human-reviewed Procurement acceptance remain required.
+
+
+### Full regression attempt at 7f604c1 and Pricing fixture correction
+
+The complete monorepo build passed. The uninterrupted suite stopped in Pricing
+Management: **790 passed / 1 failed, 791 Node tests across 49 summaries**
+(`phase16-inventory-full-build.log`, `phase16-inventory-full-regressions.log`,
+`phase16-inventory-full-result.json`). Separate scientific check counts are not
+folded into this Node total. This is not a passed full regression gate.
+
+The failing overview check selected the first resolved Catalog quote from a
+collection containing both changed and still-valid offerings. It could therefore
+expect `source_changed` for an unrelated valid quote. The fixture now records the
+exact original quote ID when created, asserts its original Catalog subject, and
+checks that quote after the offering/revision change. It retains the strict
+`source_changed`, unavailable-decision and immutable-evidence assertions. No
+Pricing implementation, financial authority or business data was relaxed.
+Two fresh isolated runs each passed **44/44**
+(`phase16-pricing-overview-correction-first.log`,
+`phase16-pricing-overview-correction-second.log`). The original failure is retained.
+A full final rerun remains mandatory.
