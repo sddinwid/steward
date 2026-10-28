@@ -1,28 +1,22 @@
-import { execFileSync } from 'node:child_process';
-import { readFile, writeFile, readdir } from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {readFile,writeFile,mkdir,rmdir} from 'node:fs/promises';
+import {createPrivateKey,createPublicKey} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
 import path from 'node:path';
-import { canonical, digest, signPackage } from '../packages/module-sdk/dist/index.js';
-const source = path.resolve(process.argv[2] ?? 'modules/inventory');
-const directory = path.resolve(process.argv[3] ?? '.steward/dev');
-try {
-  const sourcePackage=JSON.parse(await readFile(path.join(source,'package.json'),'utf8'));
-  if(['steward-platform','@steward/platform'].some(name=>sourcePackage.dependencies?.[name]))throw new Error('Independent module packages must not depend on the Steward core');
-  const manifest = JSON.parse(await readFile(path.join(source, 'manifest.json'), 'utf8'));
-  if(sourcePackage.version!==manifest.version)throw new Error('Source package and manifest versions must agree before publication');
-  const migrations = (await readdir(path.join(source, 'migrations'))).filter(f => /^\d{3}-[a-z-]+\.sql$/.test(f)).sort();
-  manifest.persistence.migrations = await Promise.all(migrations.map(async (f, i) => ({ version: i + 1, sha256: digest(await readFile(path.join(source, 'migrations', f), 'utf8')) })));
-  manifest.persistence.schemaVersion = migrations.length;
-  const image = `${manifest.moduleId}:${manifest.version}`;
-  execFileSync('docker', ['build', '-f', path.join(source, 'Dockerfile'), '-t', image, process.cwd()], { stdio: 'inherit' });
-  const metadata = JSON.parse(execFileSync('docker', ['image', 'inspect', image], { encoding: 'utf8' }))[0],imageId=metadata.Id;
-  if(metadata.Config.Labels?.['steward.module.id']!==manifest.moduleId||metadata.Config.Labels?.['steward.module.version']!==manifest.version||metadata.Config.Labels?.['steward.module.sdk']!==String(manifest.sdkVersion))throw new Error('Built image identity labels do not match the manifest; package was not signed or published');
-  const descriptor = signPackage({ formatVersion: 1, publisherId: 'local-operator', imageId, manifest }, await readFile(path.join(directory, 'security', 'module-publisher-key.pem'), 'utf8'));
-  const catalogFile = path.join(directory, 'modules/public/catalog.json');
-  const catalog = JSON.parse(await readFile(catalogFile, 'utf8'));
-  const existing = catalog.packages.find(d => d.payload.manifest.moduleId === manifest.moduleId && d.payload.manifest.version === manifest.version);
-  if (existing && canonical(existing) !== canonical(descriptor)) throw new Error('A published version is immutable; publish a new version');
-  if (!existing) catalog.packages.push(descriptor);
-  // The directory is mounted read-only into runtimes. Write existing inode so all readers see publication.
-  await writeFile(catalogFile, JSON.stringify(catalog, null, 2) + '\n');
-  console.log(`Published signed package ${manifest.moduleId}@${manifest.version}, image ${imageId}. No Worker core was rebuilt or restarted.`);
-} catch (e) { console.error(e.message); process.exitCode = 1; }
+import {canonical,signPackage} from '../packages/module-sdk/dist/index.js';
+import {prepareModulePublication,verifyModuleSource,verifyImageIdentity,sourceSha256} from './module-source-integrity.mjs';
+const repository=fileURLToPath(new URL('..',import.meta.url));
+const execute=(command,args,options={})=>execFileSync(command,args,{cwd:repository,encoding:'utf8',stdio:['ignore','pipe','pipe'],...options});
+function inspectImage(ref){try{return JSON.parse(execute('docker',['image','inspect',ref]))[0];}catch(error){if(/No such (?:image|object)/i.test(String(error.stderr)))return null;throw Error('Docker image inspection failed; publication was not attempted');}}
+export function committedSource(root,source,files){const relative=path.relative(root,source);if(relative.startsWith('..')||path.isAbsolute(relative))throw Error('Publication requires source tracked in this repository');const git=args=>execute('git',args,{cwd:root}).trim();if(git(['status','--porcelain']))throw Error('Publication requires a clean committed source checkout; no build was attempted');git(['ls-files','--error-unmatch',...['package.json','manifest.json','Dockerfile',...files.map(f=>'migrations/'+f.file)].map(f=>path.join(relative,f).replaceAll('\\','/'))]);return git(['rev-parse','HEAD']);}
+export async function publishModule({source,directory,root=repository,inspect=inspectImage,build,sourceCommit=committedSource,log=console.log}){
+ // All checksum, signature, version and existing-tag decisions precede Docker build.
+ const plan=await prepareModulePublication({source,directory,inspectImage:inspect});if(plan.action==='reuse'){log('Reused trusted immutable '+plan.manifest.moduleId+'@'+plan.manifest.version+', image '+plan.imageId+'. Current source was not rebuilt; catalog and image tags are unchanged.');return plan;}
+ const commit=sourceCommit(root,source,plan.migrations),key=await readFile(path.join(directory,'security/module-publisher-key.pem'),'utf8');if(createPrivateKey(key).asymmetricKeyType!=='ed25519')throw Error('Ed25519 module publisher key required before build');try{const trust=JSON.parse(await readFile(path.join(directory,'modules/public/trust.json'),'utf8')),operator=trust.publishers?.find(p=>p.publisherId==='local-operator');if(!operator||!createPublicKey(operator.publicKey).export({type:'spki',format:'der'}).equals(createPublicKey(key).export({type:'spki',format:'der'})))throw Error('Module publisher key differs from the approved local operator trust');}catch(error){if(error.code!=='ENOENT')throw error;}
+ const lock=plan.catalogFile+'.publish-lock';let locked=false;try{try{await mkdir(lock);locked=true;}catch(error){if(error.code==='EEXIST')throw Error('Another module publication is in progress; no build was attempted');throw error;}if(sourceSha256(await readFile(plan.catalogFile))!==plan.catalogFingerprint||await inspect(plan.imageTag))throw Error('Publication catalog or local image tag changed before build; retry with a new version');
+ await (build??((tag)=>execute('docker',['build','-f',path.join(source,'Dockerfile'),'-t',tag,root],{stdio:'inherit'})))(plan.imageTag);const metadata=await inspect(plan.imageTag),imageId=verifyImageIdentity(metadata,plan.manifest);if(sourceCommit(root,source,plan.migrations)!==commit)throw Error('Committed source changed during publication');const after=await verifyModuleSource(source);if(canonical(after.manifest)!==canonical(plan.manifest)||sourceSha256(await readFile(plan.catalogFile))!==plan.catalogFingerprint)throw Error('Source declaration or publication catalog changed during build; package was not signed');const descriptor=signPackage({formatVersion:1,publisherId:'local-operator',imageId,manifest:plan.manifest},key);plan.catalog.packages.push(descriptor);
+ // Retain the existing inode mounted read-only into running gateways.
+ await writeFile(plan.catalogFile,JSON.stringify(plan.catalog,null,2)+'\n');log('Published signed package '+plan.manifest.moduleId+'@'+plan.manifest.version+', image '+imageId+', committed source '+commit+'. No Worker core was rebuilt or restarted.');return{...plan,imageId,descriptor,sourceCommit:commit};
+ }finally{if(locked)await rmdir(lock);}
+}
+if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url))try{await publishModule({source:path.resolve(process.argv[2]??'modules/inventory'),directory:path.resolve(process.argv[3]??'.steward/dev')});}catch(error){console.error(error.message);process.exitCode=1;}

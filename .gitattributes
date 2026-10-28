@@ -22,3 +22,22 @@ modules/participant-services/migrations/001-foundation.sql -text
 # Preserve their recorded applied hashes in fresh checkouts as well.
 modules/printify/migrations/003-operational-conditions.sql text eol=crlf
 modules/printify/migrations/004-publication-gate.sql text eol=crlf
+
+# Phase 15 signed/applied migration bytes are immutable. Checkout policy only:
+# never regenerate their manifest hashes or rebuild an already published version.
+modules/catalog/migrations/001-foundation.sql text eol=crlf
+modules/catalog/migrations/002-operational-references.sql text eol=crlf
+modules/catalog/migrations/004-analytical-publications.sql text eol=crlf
+modules/pricing/migrations/001-foundation.sql text eol=crlf
+modules/pricing/migrations/003-analytical-publications.sql text eol=crlf
+modules/inventory/migrations/006-verified-stock.sql text eol=crlf
+modules/stock-ledger/migrations/003-verified-stock.sql text eol=crlf
+modules/shopify/migrations/005-external-catalog.sql text eol=crlf
+modules/printify/migrations/005-external-catalog.sql text eol=crlf
+modules/printify/migrations/006-cost-evidence.sql text eol=crlf
+modules/sales/migrations/009-analytical-publications.sql text eol=crlf
+
+# These two were signed with mixed CRLF/LF endings, like Participant 001 above.
+# Preserve their existing exact working bytes in Git; no text conversion is safe.
+modules/catalog/migrations/003-external-catalog.sql -text
+modules/pricing/migrations/002-cost-evidence.sql -text

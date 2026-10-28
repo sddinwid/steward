@@ -5,6 +5,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+export function deploymentOverlayFiles(directory,available=existsSync){return ['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml','mission/compose.yaml','economy/compose.yaml','catalog/compose.yaml','release/compose.yaml'].filter(f=>available(path.join(directory,f)));}
 export function operatorConfig(config,manifest,hook){
  if(config.name!==manifest.project)throw Error('Compose project does not match the installed identity');
  for(const i of manifest.instances){const api=config.services?.[i.key+'-api'],web=config.services?.[i.key+'-web'];
@@ -21,7 +22,7 @@ export async function selectDeployment(input){
  const directory=path.resolve(input),manifest=JSON.parse(await readFile(path.join(directory,'manifest.json'),'utf8'));
  if(!/^[a-z0-9][a-z0-9_-]*$/.test(manifest.project??'')||!Array.isArray(manifest.instances)||!manifest.instances.length)throw Error('Invalid installed deployment');
  for(const file of ['security/compose.yaml','release/compose.yaml'])if(!existsSync(path.join(directory,file)))throw Error('Select a secured, installed release; missing '+file+'. No state was changed.');
- const files=['compose.yaml','network/compose.yaml','security/compose.yaml','modules/compose.yaml','data/compose.yaml','analyst/compose.yaml','scientific/compose.yaml','commerce/compose.yaml','mission/compose.yaml','economy/compose.yaml','release/compose.yaml'].filter(f=>existsSync(path.join(directory,f)));
+ const files=deploymentOverlayFiles(directory);
  const args=['compose','-p',manifest.project,...files.flatMap(f=>['-f',path.join(directory,f)]),'config','--format','json'];
  const config=operatorConfig(JSON.parse(execFileSync('docker',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']})),manifest,path.join(root,'scripts/compose-stop-modules.mjs').replaceAll('\\','/'));
  const target=path.join(root,'.steward/operator');await mkdir(target,{recursive:true,mode:0o700});

@@ -1,0 +1,2 @@
+import {provisionCatalogRouting} from './catalog.js';
+try{if(!process.argv[2])throw Error('Usage: node tools/installer/dist/catalog-cli.js EXISTING_DEPLOYMENT_DIRECTORY');const result=await provisionCatalogRouting(process.argv[2]);console.log('Catalog secure API routing '+result.status+' for '+result.installations+' existing installations. No accounts, secrets, databases, policies or module configuration changed.');}catch(error){console.error('Catalog routing provisioning failed: '+(error as Error).message);process.exitCode=1;}

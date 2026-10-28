@@ -1,6 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {operatorConfig,selectionEnv} from './select-deployment.mjs';
+import {operatorConfig,selectionEnv,deploymentOverlayFiles} from './select-deployment.mjs';
+import path from 'node:path';
+test('Catalog secure routing is optional for legacy deployments and follows economy before release',()=>{const directory=path.resolve('isolated-overlay-order'),base=new Set(['compose.yaml','security/compose.yaml','mission/compose.yaml','economy/compose.yaml','release/compose.yaml']),available=p=>base.has(path.relative(directory,p).replaceAll('\\','/'));const legacy=deploymentOverlayFiles(directory,available);assert(!legacy.includes('catalog/compose.yaml'));base.add('catalog/compose.yaml');const current=deploymentOverlayFiles(directory,available);assert.deepEqual(current.filter(f=>f!=='catalog/compose.yaml'),legacy);assert.equal(current.indexOf('catalog/compose.yaml'),current.indexOf('economy/compose.yaml')+1);assert.equal(current.indexOf('release/compose.yaml'),current.indexOf('catalog/compose.yaml')+1);});
 import {stopOwnedModules} from './compose-stop-modules.mjs';
 test('selection requires secure web/API configuration and preserves existing resource identities',()=>{
  const manifest={project:'existing',instances:[{key:'worker-1',webPort:5201}]};

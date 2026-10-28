@@ -8,7 +8,7 @@ import path from 'node:path';
 import {provision} from '../provision.js';
 import {provisionSecurity} from '../security.js';
 import {scientificVersionForPlatform} from '../scientific-version.js';
-test('scientific service versions are explicit and historical tags are not inferred from new source',()=>{assert.equal(scientificVersionForPlatform('0.12.0'),'1.0.0');assert.equal(scientificVersionForPlatform('0.13.0'),'1.1.0');assert.equal(scientificVersionForPlatform('0.14.0'),'1.2.0');assert.throws(()=>scientificVersionForPlatform('0.15.0'));});
+test('scientific service versions are explicit and historical tags are not inferred from new source',()=>{assert.equal(scientificVersionForPlatform('0.12.0'),'1.0.0');assert.equal(scientificVersionForPlatform('0.13.0'),'1.1.0');assert.equal(scientificVersionForPlatform('0.14.0'),'1.2.0');assert.equal(scientificVersionForPlatform('0.15.0'),'1.2.0');assert.throws(()=>scientificVersionForPlatform('0.16.0'));});
 test('optional scientific provisioning is isolated and repeatable without replacing private setup',async()=>{
  const base=await mkdtemp(path.join(tmpdir(),'steward-scientific-provision-')),directory=path.join(base,'deployment'),expectedService=scientificVersionForPlatform(PLATFORM_RELEASE);
  try{

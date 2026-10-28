@@ -211,3 +211,14 @@ The successful provider run and all failed/diagnostic reports remain under `arti
 ## Remaining gates
 
 Checkpoint 15H is verified within its documented source/isolated-runtime scope. 15I–15J remain pending: actual selected-operator upgrade and module installation, synthetic/deployed browser/outage acceptance, clean installation and release acceptance. Clean-checkout migration preservation is an explicitly open gate; see phase15-preservation-plan.md.
+
+
+## 15I release foundation checkpoint (acceptance still pending)
+
+The source release contract is now 0.15.0, core schema 19, with twenty independently versioned module packages. Candidate core images are named by their complete committed source hash; publication refuses to overwrite an existing module image/version. PostgreSQL remains the selected 17.9 image, and Scientific 1.2.0 is reused only with its original image/revision and verified unchanged runtime inputs. All eighteen final release gates remain explicitly unverified. No v0.15.0 tag or final image aliases have been created.
+
+Root verification: release contracts 6/6 (`artifacts/phase15i-release-root-tests.log`); previous-release, Compose and Catalog routing compatibility 23/23 (`artifacts/phase15i-compat-root.log`); migration/publication integrity 10/10 (`artifacts/phase15i-integrity-root.log`). Integrity verifies 84 declared migrations plus four unchanged legacy migrations against the selected deployment's existing public signed descriptors. Actual isolated Git checkout filters reproduce all 88 byte hashes. Explicit per-file Git attributes preserve existing CRLF and mixed-line-ending SQL; no applied SQL bytes or declarations were changed. The final committed checkout gate must be repeated after committing these attributes.
+
+An additional read-only private preservation snapshot completed: 36 module databases, 141 protected files, seven volumes, and core authority/enrollment records. This is a comparison snapshot, not a database backup. The selected operator remains v0.14.0 until candidate packaging, complete private backups, and the explicit in-place upgrade. The upgrade runner uses the existing release CLI and checks old migration ancestry, protected records, module pins, private files and volume/image identities. Actual installed-module/business/browser/outage/release acceptance is pending.
+
+Root full monorepo `npm run build` passed (`artifacts/phase15i-build.log`). This verifies source compilation, not deployment acceptance.

@@ -1,0 +1,115 @@
+{
+  "$schema": "./phase15-release-gates.schema.json",
+  "version": "0.15.0",
+  "status": "unverified",
+  "gates": [
+    {
+      "id": "contracts",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "catalog",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "pricing",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "commerce",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "external-catalog",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "contribution",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "intelligence",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "analyst",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "synthetic-demonstration",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "security",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "financial",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "science",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "browser",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "outage",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "installation",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "upgrade",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "regressions",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    },
+    {
+      "id": "release",
+      "mandatory": true,
+      "status": "unverified",
+      "evidence": []
+    }
+  ]
+}
