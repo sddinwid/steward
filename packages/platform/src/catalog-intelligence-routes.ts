@@ -1,3 +1,4 @@
+import {catalogIntelligenceFindingRoutes} from './catalog-intelligence-findings.js';
 import {randomUUID} from 'node:crypto';
 import type pg from 'pg';
 import {z} from 'zod';
@@ -13,7 +14,7 @@ import {ScientificClient,ScientificError,validateScientificResult} from './scien
 import {transaction,audit} from './security/store.js';
 
 export async function catalogIntelligenceRoutes(app:SecureApp,pool:pg.Pool,auth:Authentication,identity:InstallationConfig,science:AnalyticalService=new ScientificClient()){
- if(identity.role!=='master')return;const access=catalogIntelligenceAccess(pool);
+ if(identity.role!=='master')return;catalogIntelligenceFindingRoutes(app,pool,auth);const access=catalogIntelligenceAccess(pool);
  async function pricingProof(accountId:string,view:IntelligenceView){if(view.projection.kind!=='pricing')fail(400,'Select Pricing contribution publications');const set=await access.pricingEvidence(accountId,view);if(!set.complete)fail(409,set.reason!);return{publication:view.projection as PricingPublication,calculation:recomputePublishedContribution(view.projection,set.evidence),evidence:set.evidence};}
  async function salesClassification(accountId:string,view:IntelligenceView){if(view.projection.kind!=='sales')return;const p=view.projection as SalesPublication,b=p.body,ref=b.catalogPublicationReference;if(!ref){if(p.purpose==='business')fail(409,'Business sales require original Catalog classification evidence');return;}
   const c=(await access.resolve(accountId,[ref],view.current)).records[0]!.projection;if(c.kind!=='catalog'||digest(canonical(c))!==b.catalogPublicationDigest||canonical(c.body.subject)!==canonical(b.catalogSubject))fail(409,'Original Catalog classification evidence differs from the sales attribution');if(p.purpose==='business'&&(c.containsSimulator||c.purpose!=='business'))fail(409,'Simulator classification cannot become business sales');

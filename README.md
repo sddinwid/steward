@@ -24,6 +24,8 @@ The [prospective contribution methodology](docs/phase15-contribution-methodology
 
 The [reviewed Master intelligence guide](docs/phase15-master-intelligence.md) describes explicit analytical publications, exact Worker-scoped evidence, bounded reports, deterministic comparison and scientific descriptive statistics. Phase 15 deployment, MCP/Qwen and release acceptance remain in progress.
 
+The [Catalog AI investigation guide](docs/phase15-ai-investigations.md) covers bounded MCP tools, separate business/simulation audiences and reviewed finding delivery. Real local Qwen passed the isolated evidence/calculation/finding workflow; deployed acceptance remains required. The [preservation plan](docs/phase15-preservation-plan.md) records the retained operator and open clean-checkout migration gate.
+
 ## Shopify development stores
 
 The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.

@@ -10,6 +10,9 @@ import Fastify from 'fastify';
 import {PostgresDatabase} from '../../packages/platform/dist/database.js';
 import {authentication} from '../../packages/platform/dist/security/auth.js';
 import {passwordHash,hash,publicKey,signAssertion} from '../../packages/platform/dist/security/crypto.js';
+import {mcpRoutes} from '../../packages/platform/dist/mcp.js';
+import {analystRoutes} from '../../packages/platform/dist/analyst.js';
+import {missionMasterRoutes} from '../../packages/platform/dist/mission-routes.js';
 import {catalogIntelligenceRoutes} from '../../packages/platform/dist/catalog-intelligence-routes.js';
 import {synchronizationRoutes,batchEvents} from '../../packages/platform/dist/synchronization.js';
 import {privateDirectory} from '../../tools/installer/dist/security.js';
@@ -30,7 +33,10 @@ export async function createCatalogMasterFixture(options={}){
   for(const e of data.entities)await db.pool.query("INSERT INTO legal_entities(entity_id,name,classification,enrollment_eligible) VALUES($1,$2,'isolated-fixture',true)",[e.entityId,e.name]);
   await db.pool.query('INSERT INTO entity_authorizations(account_id,entity_id) VALUES($1,$2)',[actors.scoped,data.entities[0].entityId]);
   const keys=new Map();for(const w of data.workers){const privateKey=key(),pub=publicKey(privateKey),requestId=randomUUID();keys.set(w.installationId,privateKey);await db.pool.query('INSERT INTO worker_candidates VALUES($1,$2,$3)',[w.installationId,pub,hash(pub)]);await db.pool.query("INSERT INTO enrollment_requests(request_id,installation_id,user_code,status,entity_id,expires_at) VALUES($1,$2,$3,'enrolled',$4,now()+interval '1 hour')",[requestId,w.installationId,randomUUID(),w.entityId]);await db.pool.query('INSERT INTO enrolled_workers(installation_id,entity_id,key_thumbprint,request_id,certificate) VALUES($1,$2,$3,$4,$5)',[w.installationId,w.entityId,hash(pub),requestId,{}]);}
-  app=Fastify();app.setErrorHandler((e,_req,reply)=>reply.code(e.code==='23505'?409:e.statusCode??500).send({error:e.statusCode&&e.statusCode<500?e.message:'Request failed'}));const auth=authentication(app,db.pool,origin);await catalogIntelligenceRoutes(app,db.pool,auth,identity,options.science);await synchronizationRoutes(app,db.pool,auth,identity,masterKey,{publicOrigin:origin});
+  app=Fastify(options.appOptions??{});app.setErrorHandler((e,_req,reply)=>reply.code(e.code==='23505'?409:e.statusCode??500).send({error:e.statusCode&&e.statusCode<500?e.message:'Request failed'}));const auth=authentication(app,db.pool,origin);await catalogIntelligenceRoutes(app,db.pool,auth,identity,options.science);await synchronizationRoutes(app,db.pool,auth,identity,masterKey,{publicOrigin:origin});
+  if(options.mcp){await missionMasterRoutes(app,db.pool,auth,identity,options.science);await mcpRoutes(app,db.pool,auth,identity,origin);}
+  if(options.analyst)await analystRoutes(app,db.pool,auth,{publicOrigin:origin,...options.analystSecurity});
+  if(options.configureApp)await options.configureApp({app,db,auth,identity,origin,directory});
   async function login(name){const r=await app.inject({method:'POST',url:'/api/v2/auth/login',headers:{origin,'content-type':'application/json'},payload:{username:'fixture-'+name,password:loginPassword}});assert.equal(r.statusCode,200,r.body);return{origin,'content-type':'application/json',cookie:r.headers['set-cookie'].split(';')[0],'x-csrf-token':r.json().csrfToken};}
   const headers={registry:await login('registry'),scoped:await login('scoped'),unscoped:await login('unscoped')};
   async function request(method,url,payload,which='registry',expected=200){const r=await app.inject({method,url,headers:typeof which==='string'?headers[which]:which,...(payload===undefined?{}:{payload})});assert.equal(r.statusCode,expected,r.body);return r.json();}

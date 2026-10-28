@@ -47,6 +47,7 @@ export function resourcePage(records:any[], raw:unknown) {
 export function modelToolResult(name:string,result:any,compact=false) {
   if(!result.structuredContent)return result;
   let data=result.structuredContent.data;
+  if(name.includes('catalog')||data?.catalogCalculationId){const {scopeReferences,report,...view}=data;if(view.calculation){const {report,...calculation}=view.calculation;view.calculation=calculation;}return{...(result.isError?{isError:true}:{}),structuredContent:{...result.structuredContent,data:view}};}
   if(name==='query_economic_outcomes'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicOutcomes(data)}};
   if(name==='query_economic_summaries'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicSummaries(data)}};
   if(data?.economicCalculationId)return{structuredContent:{...result.structuredContent,data:{economicCalculationId:data.economicCalculationId,calculation:compactEconomicCalculation(data.calculation),supportingReferences:data.supportingReferences,affectedEntities:data.affectedEntities,decisionExecuted:false}}};

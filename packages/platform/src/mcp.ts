@@ -1,3 +1,4 @@
+import {registerCatalogIntelligenceTools} from './catalog-intelligence-mcp.js';
 import {economicAuthorization,economicReferenceSchema} from './economic-authorization.js';
 import {canonical} from '@steward/module-sdk';
 import {randomUUID} from 'node:crypto';
@@ -93,6 +94,7 @@ export async function mcpRoutes(app: SecureApp, pool: pg.Pool, auth: Authenticat
       }
       if (installation.role === 'master') {
         if (!['registry_admin','enrollment_admin'].includes(actor.role)) fail(403, 'Analytical administrator required');
+        registerCatalogIntelligenceTools(tool,api);
         const economicSources=(await economicAuthorization(pool,installation.installationId).page(actor.account_id,1,0)).records;
         if(economicSources.length){
           tool('query_economic_summaries','Discover a bounded page of current/historical source-approved financial and noncash summaries shared explicitly with this named account. Potential cash availability is not approval, profit, settlement or funding. No participant cases or bank data.',z.object({limit:z.number().int().min(1).max(4).default(3),offset:z.number().int().min(0).max(1000).default(0)}).strict(),async i=>api('/api/v14/economy/summaries?limit='+i.limit+'&offset='+i.offset));
