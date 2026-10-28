@@ -651,3 +651,49 @@ original Inventory installation constraint, and the accepted-price snapshot is
 byte-equivalent after fulfillment. The expanded Sales Catalog suite passed
 **24 tests** (`phase16-sales-workflow-catalog-final.log`). No live connector or
 operator record was involved.
+
+### Completion directive and provider checkpoint
+
+Resumed from `3b3dafa`. Preserved and committed the updated README/changelog and
+the completion directive in `e109e64`. The selected deployment remains accepted
+0.15.0; its single-stack preflight passed. No operator mutations occurred.
+
+Procurement source 1.4.0 adds optional `procurement.workflow.requests`: durable
+replenishment drafts, purchasing proposals and original-source status inspection.
+Creation never approves or places a purchase; actual Procurement actions retain
+human permission checks. Request identities are serialized in the original module
+transaction, source installation/package/entity are retained, and status events
+reuse `purchase_commitments`. No migration SQL was changed or added.
+
+Automation source adds an internal notification provider and its SSDS inbox.
+Recipients must be current local administrators or authorized workflow reviewers;
+only the intended recipient can list/acknowledge a notice. Fixed notice categories
+and opaque references prevent copying arbitrary business/participant payloads.
+Delivery to the local inbox, acknowledgment and expiry are separate states; no
+email/SMS is implemented. Current recipient authority is checked even on cached
+receipt replay, and source ownership is rechecked after the per-intent lock.
+
+Actual targeted results:
+- Procurement TypeScript build passed; **5** request/status/event tests passed
+  (`phase16-procurement-workflow-event-tests.log`).
+- Automation TypeScript build passed; **7** notification checks passed, including
+  concurrent producer isolation (`phase16-notification-source-lock-tests.log`).
+- Earlier business **7**, Sales workflow **6**, Procurement workflow **5** passed
+  in `phase16-provider-business-regression.log`.
+- Actual publication **8**, graph runtime **19**, event admission **16** passed
+  (`phase16-notifications-authority-rerun.log`,
+  `phase16-notification-runtime-regression.log`,
+  `phase16-notification-event-regression.log`). These precede the final added
+  notification source-lock check; final full regression is still required.
+
+Retained failures: optional query typing failed the first notification build;
+missing declarative UI `required` flags failed manifest validation. Both corrected.
+The recipient-denial fixture initially expected 403 instead of the existing
+record-hiding 404. A transport fixture incorrectly expected a business header to
+invalidate a valid private host token; it now checks a wrong token is rejected
+and the private route is absent from public manifest operations. Original logs
+are retained; no authorization or validation guard was weakened.
+
+These are isolated real-module API/database checks with injected host context,
+not installed/browser/release acceptance. Parallel dispatch, installed scenarios,
+final regression, documentation inventory, packaging and upgrade remain open.

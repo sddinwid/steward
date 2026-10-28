@@ -1,3 +1,4 @@
+import {withWorkflowNotifications} from './notifications.js';
 import {randomUUID} from 'node:crypto';
 import {ensure,save,object,text,publicRecord,BusinessError,type Definition,type Context,type RecordValue} from '@steward/business-kit';
 import {canonical,digest,inspectWorkflowGraph,validateWorkflowGraph,validateWorkflowInput,workflowFieldsFromSchema,type ModulePackageManifest,type WorkflowGraph,type WorkflowFields} from '@steward/module-sdk';
@@ -37,7 +38,7 @@ function validatePublication(manifest:ModulePackageManifest,ctx:Context,graph:un
  return fields;
 }
 export function automation(manifest:ModulePackageManifest):Definition{
- return{
+ return withWorkflowNotifications({
   manifest,
   authorize:async(ctx,access)=>{human(ctx);owner(ctx);if(access.record)owned(ctx,access.record);if(access.kind==='review'&&['create','update'].includes(access.operation))currentReviewer(ctx,manifest.moduleId);},
   resources:[{
@@ -84,5 +85,5 @@ export function automation(manifest:ModulePackageManifest):Definition{
    const rows=(await ctx.db.query("SELECT id,data->>'name' name,data->>'status' status,COALESCE((data->>'publicationVersion')::integer,0) version FROM business_records WHERE kind='workflow' AND data->>'ownerEntityId'=$1 ORDER BY updated_at DESC LIMIT 20",[owner(ctx)])).rows;
    return{records:rows,summary:'Definition status only. Publication does not activate or execute a workflow.'};
   }}]
- };
+ });
 }

@@ -78,6 +78,28 @@
       "query": [
         "q"
       ]
+    },
+    {
+      "operationId": "notificationRecipients",
+      "method": "GET",
+      "path": "/notification-recipients",
+      "permission": "steward.automation.notify"
+    },
+    {
+      "operationId": "listNotifications",
+      "method": "GET",
+      "path": "/notifications",
+      "permission": "steward.automation.approve",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "acknowledgeNotification",
+      "method": "POST",
+      "path": "/acknowledge-notification/:id",
+      "permission": "steward.automation.approve"
     }
   ],
   "ui": [
@@ -245,6 +267,64 @@
         "status",
         "version"
       ]
+    },
+    {
+      "screenId": "notifications",
+      "title": "My workflow notifications",
+      "navigationLabel": "Workflow notifications",
+      "navigationGroup": "Automation",
+      "listOperation": "listNotifications",
+      "fields": [
+        {
+          "name": "title",
+          "label": "Notice",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "referenceId",
+          "label": "Source reference",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Delivery status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "Expires",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "acknowledgedAt",
+          "label": "Acknowledged",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "title",
+        "referenceId",
+        "status",
+        "expiresAt",
+        "acknowledgedAt"
+      ],
+      "actions": [
+        {
+          "label": "Acknowledge notice",
+          "operationId": "acknowledgeNotification",
+          "confirmation": "Acknowledge this internal notice? This does not approve or execute a business action."
+        }
+      ]
     }
   ],
   "approvalServices": {
@@ -268,6 +348,11 @@
         "type": "integer",
         "minimum": 1,
         "maximum": 4
+      },
+      "notificationsEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable governed internal notifications to current local administrators and workflow reviewers. No external email or SMS delivery."
       }
     }
   },
@@ -293,7 +378,152 @@
   ],
   "smart": {
     "version": 1,
-    "provides": [],
+    "provides": [
+      {
+        "capabilityId": "workflow.notifications",
+        "contract": "steward.internal-workflow-notifications",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "workflow.notification.send",
+            "command": "workflow.notification.send",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "approval",
+                    "exception",
+                    "failure",
+                    "completed",
+                    "deadline"
+                  ]
+                },
+                "referenceId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "kind",
+                "referenceId",
+                "expiresAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "available",
+                    "acknowledged",
+                    "expired"
+                  ]
+                },
+                "channel": {
+                  "const": "internal"
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "status",
+                "channel"
+              ]
+            },
+            "permission": "steward.automation.notify",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "workflow.notification.status",
+            "command": "workflow.notification.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "notificationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "available",
+                    "acknowledged",
+                    "expired"
+                  ]
+                },
+                "channel": {
+                  "const": "internal"
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "status",
+                "channel"
+              ]
+            },
+            "permission": "steward.automation.notify",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "notificationsEnabled": true
+        }
+      }
+    ],
     "consumes": [
       {
         "capabilityId": "inventory.stock.reserve",
@@ -1167,6 +1397,517 @@
         ],
         "maximumSensitivity": "business",
         "optional": true
+      },
+      {
+        "capabilityId": "procurement.workflow.requests",
+        "contract": "steward.procurement-workflow-requests",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "procurement.workflow.replenish",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "sku": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "requestId",
+                "sku",
+                "quantity",
+                "reason"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            }
+          },
+          {
+            "name": "procurement.workflow.propose",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "supplierCode": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "pattern": "\\S"
+                },
+                "currency": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "unitPriceCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity",
+                      "unitPriceCents"
+                    ]
+                  }
+                },
+                "shippingCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "requestId",
+                "supplierCode",
+                "currency",
+                "lines",
+                "shippingCents"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            }
+          },
+          {
+            "name": "procurement.workflow.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "requestId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            }
+          }
+        ],
+        "events": [
+          {
+            "name": "purchase.status.changed",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "projection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "number": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "supplierCode": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "pattern": "\\S"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "lines": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 40,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sku": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          "unitPriceCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000000000
+                          }
+                        },
+                        "required": [
+                          "sku",
+                          "quantity",
+                          "unitPriceCents"
+                        ]
+                      }
+                    },
+                    "shippingCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "submitted",
+                        "approved",
+                        "ordered",
+                        "partially_received",
+                        "received",
+                        "canceled"
+                      ]
+                    },
+                    "received": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "maxProperties": 40
+                    }
+                  },
+                  "required": [
+                    "number",
+                    "supplierCode",
+                    "currency",
+                    "lines",
+                    "shippingCents",
+                    "status",
+                    "received"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projection"
+              ]
+            }
+          }
+        ],
+        "maximumSensitivity": "business",
+        "optional": true
+      },
+      {
+        "capabilityId": "workflow.notifications",
+        "contract": "steward.internal-workflow-notifications",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "workflow.notification.send",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "approval",
+                    "exception",
+                    "failure",
+                    "completed",
+                    "deadline"
+                  ]
+                },
+                "referenceId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "maxLength": 40
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "kind",
+                "referenceId",
+                "expiresAt"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "available",
+                    "acknowledged",
+                    "expired"
+                  ]
+                },
+                "channel": {
+                  "const": "internal"
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "status",
+                "channel"
+              ]
+            }
+          },
+          {
+            "name": "workflow.notification.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "notificationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "notificationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recipientId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "available",
+                    "acknowledged",
+                    "expired"
+                  ]
+                },
+                "channel": {
+                  "const": "internal"
+                }
+              },
+              "required": [
+                "notificationId",
+                "recipientId",
+                "status",
+                "channel"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true
       }
     ],
     "prerequisites": {
@@ -1178,5 +1919,12 @@
   "workflowServices": {
     "contractVersion": 1,
     "publicationOperationId": "listPublications"
+  },
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "acknowledgmentPath": "/integration-ack",
+    "inboxPath": "/integration-inbox",
+    "peers": []
   }
 }

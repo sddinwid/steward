@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.procurement",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "name": "Procurement",
   "description": "Independent persistent procurement business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.15.0",
+  "minimumPlatformVersion": "0.16.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -275,7 +275,7 @@
   "ui": [
     {
       "screenId": "supplier",
-      "title": "Procurement — supplier",
+      "title": "Procurement \u2014 supplier",
       "navigationLabel": "procurement supplier",
       "listOperation": "listSupplier",
       "createOperation": "createSupplier",
@@ -322,7 +322,7 @@
     },
     {
       "screenId": "requisition",
-      "title": "Procurement — requisition",
+      "title": "Procurement \u2014 requisition",
       "navigationLabel": "procurement requisition",
       "listOperation": "listRequisition",
       "createOperation": "createRequisition",
@@ -419,7 +419,7 @@
     },
     {
       "screenId": "order",
-      "title": "Procurement — order",
+      "title": "Procurement \u2014 order",
       "navigationLabel": "procurement order",
       "listOperation": "listOrder",
       "createOperation": "createOrder",
@@ -495,7 +495,7 @@
     },
     {
       "screenId": "receipt",
-      "title": "Procurement — receipt",
+      "title": "Procurement \u2014 receipt",
       "navigationLabel": "procurement receipt",
       "listOperation": "listReceipt",
       "createOperation": "createReceipt",
@@ -544,7 +544,7 @@
     },
     {
       "screenId": "quote",
-      "title": "Procurement — quote",
+      "title": "Procurement \u2014 quote",
       "navigationLabel": "procurement quote",
       "listOperation": "listQuote",
       "createOperation": "createQuote",
@@ -1076,6 +1076,11 @@
         "maximum": 86400,
         "default": 3600,
         "description": "Maximum age of supplier cost evidence. Source validity may expire earlier; a quote is not an incurred expense."
+      },
+      "workflowEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Allow governed local workflow draft requests and original-source status reads. Human purchasing approval remains required."
       }
     }
   },
@@ -2662,6 +2667,405 @@
         "ownership": "provider",
         "configuration": {
           "costReadEnabled": true
+        }
+      },
+      {
+        "capabilityId": "procurement.workflow.requests",
+        "contract": "steward.procurement-workflow-requests",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "procurement.workflow.replenish",
+            "command": "procurement.workflow.replenish",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "sku": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 80,
+                  "pattern": "\\S"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100000000
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "pattern": "\\S"
+                }
+              },
+              "required": [
+                "requestId",
+                "sku",
+                "quantity",
+                "reason"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            },
+            "permission": "cee.procurement.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "procurement.workflow.propose",
+            "command": "procurement.workflow.propose",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "supplierCode": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60,
+                  "pattern": "\\S"
+                },
+                "currency": {
+                  "type": "string",
+                  "minLength": 3,
+                  "maxLength": 3
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      },
+                      "unitPriceCents": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity",
+                      "unitPriceCents"
+                    ]
+                  }
+                },
+                "shippingCents": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000000000
+                }
+              },
+              "required": [
+                "requestId",
+                "supplierCode",
+                "currency",
+                "lines",
+                "shippingCents"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            },
+            "permission": "cee.procurement.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "procurement.workflow.status",
+            "command": "procurement.workflow.status",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "requestId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "requisition",
+                    "order"
+                  ]
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 40,
+                  "pattern": "\\S"
+                },
+                "approvalRequired": {
+                  "type": "boolean"
+                },
+                "financialCommitment": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "requestId",
+                "recordId",
+                "kind",
+                "revision",
+                "status",
+                "approvalRequired",
+                "financialCommitment"
+              ]
+            },
+            "permission": "cee.procurement.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [
+          {
+            "name": "purchase.status.changed",
+            "streamId": "purchase_commitments",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "projection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "number": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "supplierCode": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 60,
+                      "pattern": "\\S"
+                    },
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "lines": {
+                      "type": "array",
+                      "minItems": 1,
+                      "maxItems": 40,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sku": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80,
+                            "pattern": "\\S"
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          "unitPriceCents": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000000000000
+                          }
+                        },
+                        "required": [
+                          "sku",
+                          "quantity",
+                          "unitPriceCents"
+                        ]
+                      }
+                    },
+                    "shippingCents": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000000000
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "submitted",
+                        "approved",
+                        "ordered",
+                        "partially_received",
+                        "received",
+                        "canceled"
+                      ]
+                    },
+                    "received": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "maxProperties": 40
+                    }
+                  },
+                  "required": [
+                    "number",
+                    "supplierCode",
+                    "currency",
+                    "lines",
+                    "shippingCents",
+                    "status",
+                    "received"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projection"
+              ]
+            }
+          }
+        ],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "workflowEnabled": true
         }
       }
     ],

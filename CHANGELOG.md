@@ -17,6 +17,9 @@ Branch: `codex/phase16-business-automation`. No accepted Phase 16 release, opera
 - Subscription suspension/resumption and explicit replay UI/API with current authorization and stable replay-request identities.
 - Sales source package 1.6.0: optional `sales.orders.workflow` inspection/reservation/fulfillment and existing-stream event contracts. Default-off configuration defers local reservations to approved workflows; existing Sales/Inventory and Catalog/Pricing authority is retained. Commercial channel production is excluded. This package is not yet installed on the selected operator.
 
+- Procurement source package 1.4.0: optional duplicate-safe replenishment/proposal drafts, original-source status inspection and existing-stream status events. Financial approval and purchasing transitions remain human-controlled.
+- Business Automation internal notification inbox: authorized reviewers, recipient-only reads/acknowledgments, expiry, duplicate-safe delivery and source isolation. No external email/SMS and no arbitrary participant/business payloads. Installed acceptance remains pending.
+
 ### Fixes and material checkpoints
 
 | Commit | Change | Verification boundary |

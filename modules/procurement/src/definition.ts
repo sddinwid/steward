@@ -1,3 +1,4 @@
+import {withProcurementWorkflow} from './workflow.js';
 import {withProcurementCosts} from './cost-evidence.js';
 import {supplierReferenceReceive,supplierReferenceQuery} from './supplier-references.js';
 import { ensure, find, get, save, records, enqueue, publicRecord, object, text, quantity, amount, choice, lines, uniqueLines, centsTotal, type Definition, type Context, type RecordValue, type Data } from '@steward/business-kit';
@@ -9,7 +10,7 @@ async function project(ctx: Context, r: RecordValue, stream: 'procurement_demand
     await ctx.db.query(`INSERT INTO ${stream}(id,revision,projection) VALUES($1,1,$2) ON CONFLICT(id) DO UPDATE SET revision=${stream}.revision+1,projection=excluded.projection`, [r.id, data]);
 }
 export function procurement(manifest: ModulePackageManifest): Definition {
-    return withProcurementCosts({ manifest,authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command==='service-replenishment.draft')await authorizeServiceReplenishment(a.command,ctx);},auditAccess:async(e,db)=>{await db.query('INSERT INTO procurement_service_audit(actor_id,operation,status_code) VALUES($1,$2,$3)',[e.actor,e.operationId,e.statusCode]);},queries:[{path:'/supplier-references',run:supplierReferenceQuery},{path:'/program-authority',run:serviceProgramAuthority}], resources: [serviceSource,privateReplenishments,
+    return withProcurementWorkflow(withProcurementCosts({ manifest,authorize:async(ctx,a)=>{if(a.operation==='integration-receive'&&a.command?.command==='service-replenishment.draft')await authorizeServiceReplenishment(a.command,ctx);},auditAccess:async(e,db)=>{await db.query('INSERT INTO procurement_service_audit(actor_id,operation,status_code) VALUES($1,$2,$3)',[e.actor,e.operationId,e.statusCode]);},queries:[{path:'/supplier-references',run:supplierReferenceQuery},{path:'/program-authority',run:serviceProgramAuthority}], resources: [serviceSource,privateReplenishments,
             { kind: 'supplier', path: '/suppliers', key: 'code', schema: object({ code: text(60), name: text(), relationship: choice(['external', 'ecosystem']) }) },
             { kind: 'requisition', path: '/requisitions', key: 'number', schema: object({ number: text(80), supplierCode: text(60), sku: text(80), quantity, reason: text(500), currency: text(3), unitPriceCents: amount, shippingCents: amount, transitionCents: amount }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Published requisition is immutable; create a new revision document');
@@ -92,5 +93,5 @@ export function procurement(manifest: ModulePackageManifest): Definition {
             const committedCents = committed.reduce((n, r) => n + total(r), 0), receivedCents = orders.filter(r => r.data.status === 'received').reduce((n, r) => n + total(r), 0);
             ensure(Number.isSafeInteger(committedCents) && Number.isSafeInteger(receivedCents), 'Purchasing total exceeds supported bounds');
             return { currency: ctx.config.currency, committedCents, receivedCents, outstandingOrderCount: committed.length, outstandingOrders: committed.slice(0, 20).map(r => ({ number: r.key, status: r.data.status, totalCents: total(r) })), pendingStockReceipts: receipts.filter(r => r.data.stockStatus === 'pending').length, source: 'module-owned purchase orders; external and ecosystem supplier costs are not automatically consolidated', records: [] };
-        } });
+        } }));
 }

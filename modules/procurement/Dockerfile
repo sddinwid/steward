@@ -20,5 +20,5 @@ COPY modules/procurement/package.json modules/procurement/manifest.json ./
 COPY modules/procurement/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="cee.procurement" steward.module.version="1.3.0" steward.module.sdk="1"
+LABEL steward.module.id="cee.procurement" steward.module.version="1.4.0" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

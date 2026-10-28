@@ -256,3 +256,33 @@ This capability cannot submit live Shopify/Printify production or fulfillment.
 Catalog/Pricing acceptance and verified Inventory provider pins remain enforced
 by the original Sales code. The new source package has not yet been installed or
 accepted as an end-to-end workflow deployment.
+
+## Procurement requests and internal notifications
+
+Procurement 1.4.0 source declares `procurement.workflow.requests` v1. Its
+`procurement.workflow.replenish` and `.propose` operations create module-owned
+drafts using a caller request UUID, not a financial approval. `.status` returns
+actual current state for the original source installation/package/entity. A
+second command with matching intent is idempotent; changed terms conflict.
+Explicit `workflowEnabled` configuration and an approved SSMA binding are
+required. Existing Procurement human approval/placement operations remain
+unchanged. `purchase.status.changed` uses the original `purchase_commitments`
+projection, so it adds no independent transport or authoritative shadow records.
+
+Automation declares `workflow.notifications` v1 with durable
+`workflow.notification.send` and `.status`. It is an internal inbox provider,
+not email/SMS. `notificationsEnabled` is explicit and default-off. Recipients are
+the current local administrators and accounts holding `steward.automation.approve`,
+from the existing fresh private host authority snapshot. Only the recipient can
+read or acknowledge the notice; revoked accounts cannot receive cached replays.
+Messages select a fixed approval/exception/failure/completed/deadline category and
+an opaque reference UUID, not arbitrary text or private record fields. Following
+that reference grants no source-module access. Notices expire within 31 days.
+
+Sender intents preserve the original source identity and terms, including under
+concurrent delivery. Status distinguishes internal availability, acknowledgment
+and expiry. Acknowledgment is not approval, execution, financial authority or a
+business outcome. Audit records and inbox receipts use the existing module
+transaction infrastructure. Notifications are not replicated as Master evidence.
+Self-provider use still requires registry discovery and an approved SSMA binding;
+no module-local shortcut substitutes for Worker governance.
