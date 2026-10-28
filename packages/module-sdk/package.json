@@ -11,7 +11,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "node --test dist/test/manifest.test.js dist/test/integration.test.js dist/test/capabilities.test.js dist/test/economic.test.js"
+    "test": "node --test dist/test/manifest.test.js dist/test/integration.test.js dist/test/capabilities.test.js dist/test/economic.test.js dist/test/workflow-rules.test.js dist/test/workflow-graph.test.js"
   },
   "dependencies": {
     "ajv": "8.20.0"
