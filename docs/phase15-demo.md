@@ -84,3 +84,6 @@ node scripts/inspect-phase15-installed-catalog-analyst.mjs --execute-authorized 
 ```
 
 The explicit `Pricing131` case creates distinct definitions, lists, policies, approvals, cost models, assumptions and publications in a separate ledger. It retains the V1 ledger and expired/withdrawn evidence. It never extends an old review window or transfers an accepted order/reservation. Run the native investigation immediately after current publications reach Master, then inspect the same investigation and delivered finding in the UI. A failed or expired case requires explicit reconciliation; successful fixture tests do not establish installed native-model success. The final verification report records which commands actually passed.
+
+
+An explicit `--service-case NativeReview` uses a separate `phase15-i-browser-native-review.json` ledger after the Pricing131 native narrative failure. It creates separately reviewed synthetic service intent; it does not renew old publications or rewrite their evidence. Execute only after the installed correction and readiness checks, then pass this exact ledger to the installed Qwen verifier. Expired cases remain preserved; never edit their saved validity windows to force acceptance.

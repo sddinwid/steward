@@ -12,8 +12,8 @@ export function phase15DemoPlan(generation='V1'){
 /** Explicit reviewed recovery case; never changes the original V1 ledger or leases. */
 export function phase15ServiceCase(name,sourceGeneration='V1'){
  if(name===undefined)return null;
- assert.equal(name,'Pricing131','Unknown explicit reviewed service case');
+ assert(['Pricing131','NativeReview'].includes(name),'Unknown explicit reviewed service case');
  phase15DemoPlan(sourceGeneration);
- const generation=sourceGeneration+'-PRICING131';phase15DemoPlan(generation);
- return{name,generation,ledgerName:'phase15-i-browser-pricing131.json',pricingVersion:'1.3.1',artifactSuffix:'pricing131'};
+ const suffix=name==='Pricing131'?'pricing131':'native-review',generation=sourceGeneration+'-'+suffix.toUpperCase();phase15DemoPlan(generation);
+ return{name,generation,ledgerName:'phase15-i-browser-'+suffix+'.json',pricingVersion:'1.3.1',artifactSuffix:suffix};
 }

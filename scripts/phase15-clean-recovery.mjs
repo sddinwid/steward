@@ -7,3 +7,6 @@ export async function stopSelectedWithRecovery({recovery,verifySingleStack,persi
  await persistRecovery(recovery); // Must finish before stopping even the first original container.
  await stopSelected();
 }
+
+/** Bounded project identity is independent of the longer private audit directory. */
+export function cleanAcceptanceProject(runId){assert(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(runId),'Valid acceptance run identity required');return 'steward-p15-clean-'+runId.replaceAll('-','').slice(0,20);}

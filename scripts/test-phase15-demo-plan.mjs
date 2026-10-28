@@ -18,3 +18,5 @@ test('explicit Pricing131 case separates new service intent from V1 records and 
  for(const w of ['worker-1','worker-2']){assert.notEqual(next.services[w].offering.code,original.services[w].offering.code);validateCapabilityValue({recordKey:randomUUID(),...next.services[w].offering},offeringInput);}
  assert.equal(next.purpose,'simulation');assert.equal(c.artifactSuffix,'pricing131');assert(!Object.hasOwn(c,'validUntil'));assert.throws(()=>phase15ServiceCase('Pricing131','A'.repeat(23)),/generation/);
 });
+
+test('explicit native review retains separate ledgers and names without renewing the expired prior case',()=>{const prior=phase15ServiceCase('Pricing131'),next=phase15ServiceCase('NativeReview');assert.notEqual(next.ledgerName,prior.ledgerName);assert.notEqual(next.generation,prior.generation);assert.equal(next.pricingVersion,'1.3.1');assert(!Object.hasOwn(next,'validUntil'));assert.equal(next.artifactSuffix,'native-review');assert.notEqual(phase15DemoPlan(next.generation).publicationName,phase15DemoPlan(prior.generation).publicationName);});

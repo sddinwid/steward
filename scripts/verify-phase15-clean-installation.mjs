@@ -7,7 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {parseArgs} from 'node:util';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {stopSelectedWithRecovery} from './phase15-clean-recovery.mjs';
+import {stopSelectedWithRecovery,cleanAcceptanceProject} from './phase15-clean-recovery.mjs';
 const root=path.resolve(fileURLToPath(new URL('..',import.meta.url)));process.chdir(root);
 const{values}=parseArgs({options:{'execute-authorized':{type:'boolean'},directory:{type:'string'},bundle:{type:'string'},'network-prefix':{type:'string'}}});
 if(!values['execute-authorized'])throw Error('Explicit clean-installation readiness required; this acceptance temporarily stops the selected operator stack.');
@@ -15,7 +15,7 @@ const runId=randomUUID(),target=path.resolve(values.directory??'.steward/phase15
 assert(target.startsWith(path.resolve('.steward')+path.sep)&&/^phase15-clean-[a-z0-9-]+$/.test(path.basename(target)));assert(values.bundle||process.env.STEWARD_RELEASE_BUNDLE,'Select the actual Phase15 candidate bundle explicitly');assert(/^10\.(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/.test(prefix??''),'Explicit private network prefix required; existing Docker networks are never pruned');
 try{await access(target);throw Error('Clean acceptance requires a genuinely new directory');}catch(e){if(e.code!=='ENOENT')throw e;}
 const selectionFile=path.join(root,'.steward/operator/selection.json'),selectionBytes=await readFile(selectionFile),selected=JSON.parse(selectionBytes),selectedDirectory=path.resolve(selected.directory);assert.notEqual(target,selectedDirectory);
-const selectedManifest=JSON.parse(await readFile(path.join(selectedDirectory,'manifest.json'),'utf8')),project='steward-'+path.basename(target),toolkit=path.join(bundle,'toolkit'),lock=path.join(root,'.steward/full-stack-acceptance.lock');
+const selectedManifest=JSON.parse(await readFile(path.join(selectedDirectory,'manifest.json'),'utf8')),project=cleanAcceptanceProject(runId),toolkit=path.join(bundle,'toolkit'),lock=path.join(root,'.steward/full-stack-acceptance.lock');
 assert.equal(selectedManifest.project,selected.project);assert.equal(selectedManifest.instances.length,4);const release=JSON.parse(await readFile(path.join(bundle,'release.json'),'utf8'));assert.equal(release.version,'0.15.0');assert.equal(release.platformCompatibility,'0.15.0');
 for(const required of['scripts/release.mjs','scripts/verify-phase15-clean-modules.mjs','docs/phase15-module-versions.json'])await access(path.join(toolkit,required));
 const docker=args=>execFileSync('docker',args,{encoding:'utf8',maxBuffer:128*1024*1024,stdio:['ignore','pipe','pipe']}).trim();
