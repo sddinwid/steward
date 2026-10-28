@@ -335,3 +335,30 @@ Final targeted reruns: publication/governance **14 passed**, publication/kernel
 Selected existing deployment smoke checks passed for Master and all three Workers,
 including distinct databases and identical Worker images
 (`phase16-governance-selected-smoke.log`). This did not deploy Phase 16.
+
+## Governed shared-outbox receipt checkpoint
+
+Additive core migration 21 adds subscriber receipts, per-record ordering cursors
+and append-only delivery history alongside the existing SSMA infrastructure.
+No applied migration was rewritten. The receipt implementation revalidates signed
+consumer event schemas, approved binding revision, source/consumer installations
+and packages, current administrator authority, configuration, entity and workflow
+state. Source persistence time determines the activation cutoff; user-controlled
+event timestamps cannot backdate admission. Master acknowledgments are untouched.
+
+Actual isolated PostgreSQL verification: **11 delivery tests passed**, including
+concurrent/lost-ACK deduplication, conflicting revisions, causal ordering, stale
+revision suppression, transactional enqueue rollback, bounded retries/dead-letter,
+explicit authorized replay, non-starvation, revocation, substitution denial and
+append-only history (`phase16-events-delivery-rerun.log`). Earlier nine-check run
+also passed (`phase16-events-delivery-first.log`). Shared capture regression:
+**7 passed** (`phase16-events-capture-regression.log`). Legacy SSMA regression:
+**11 passed** (`phase16-events-legacy-regression.log`), including in-place migration
+to version 21 with existing identities and records preserved in the test database.
+Host/platform builds passed (`phase16-events-{host,platform}-build-rerun.log`).
+
+This checkpoint uses signed synthetic event providers and explicit fixture
+subscription admission/enqueue. The production subscription API, exact publication
+event-trigger admission and host polling integration are still pending. It does
+not claim a deployed event-driven business workflow. No selected operator database
+or installed package was changed.

@@ -9,7 +9,7 @@ ALTER TABLE sync_outbox ADD COLUMN IF NOT EXISTS local_captured_at timestamptz;
 CREATE INDEX IF NOT EXISTS sync_outbox_local_due ON sync_outbox(created_at,event_id) WHERE local_captured_at IS NULL;
 `;
 export interface SharedEventCapture {
-  eventId:string;envelope:Record<string,any>;digest:string;
+  sourceCreatedAt:Date;eventId:string;envelope:Record<string,any>;digest:string;
   sourceModuleInstallationId:string;sourcePackageDigest:string;
 }
 export interface SharedEventCaptureScope {
@@ -44,7 +44,7 @@ export async function captureSharedEvents(pool:pg.Pool,scope:SharedEventCaptureS
     await client.query('BEGIN');
     const identity=(await client.query('SELECT installation_id,module_id FROM module_identity WHERE singleton')).rows[0];
     if(identity?.installation_id!==scope.installationId||identity?.module_id!==manifest.moduleId)throw Error('EVENT_CAPTURE_IDENTITY_INVALID');
-    const rows=(await client.query("SELECT event_id,envelope FROM sync_outbox WHERE local_captured_at IS NULL AND created_at >= $1 AND envelope->>'streamId'=ANY($2::text[]) ORDER BY created_at,event_id FOR UPDATE SKIP LOCKED LIMIT 10",[scope.from,scope.streamIds])).rows;
+    const rows=(await client.query("SELECT event_id,envelope,created_at FROM sync_outbox WHERE local_captured_at IS NULL AND created_at >= $1 AND envelope->>'streamId'=ANY($2::text[]) ORDER BY created_at,event_id FOR UPDATE SKIP LOCKED LIMIT 10",[scope.from,scope.streamIds])).rows;
     if(!rows.length){await client.query('COMMIT');return 0;}
     boundReplicationEvents(manifest,rows.map(r=>r.envelope),scope.installationId);
     const deliveries:SharedEventCapture[]=rows.map(row=>{
@@ -60,7 +60,7 @@ export async function captureSharedEvents(pool:pg.Pool,scope:SharedEventCaptureS
         ||typeof e.occurredAt!=='string'||!Number.isFinite(Date.parse(e.occurredAt))
         ||Buffer.byteLength(canonical(e))>32768)throw Error('EVENT_CAPTURE_IDENTITY_INVALID');
       validateCapabilityValue(e.payload,schemas.get(e.streamId)!);
-      return{eventId:e.eventId,envelope:e,digest:digest(canonical(e)),sourceModuleInstallationId:scope.moduleInstallationId,sourcePackageDigest:digest(canonical(scope.descriptor))};
+      return{sourceCreatedAt:row.created_at,eventId:e.eventId,envelope:e,digest:digest(canonical(e)),sourceModuleInstallationId:scope.moduleInstallationId,sourcePackageDigest:digest(canonical(scope.descriptor))};
     });
     await persistAuthorizedDelivery(deliveries);
     await client.query('UPDATE sync_outbox SET local_captured_at=now() WHERE event_id=ANY($1::uuid[])',[deliveries.map(e=>e.eventId)]);

@@ -170,3 +170,26 @@ npm run test:smart:browser
 
 These isolated fixtures do not substitute for signed installation, operator
 upgrade or the six required real-business acceptance scenarios.
+
+### Shared outbox receipt semantics
+
+The Phase 16 receipt store extends SSMA metadata; it is not a separate transport.
+The existing module `sync_outbox` remains the event source. Local receipt commit
+precedes local capture acknowledgment and never alters Master acknowledgment.
+Subscriptions pin the binding revision, source installation/package and consumer
+installation/package. Signed consumer and provider event schemas must agree.
+Programme/economic and peer-scoped subscriptions are denied until their established
+disclosure and bilateral governance paths are explicitly integrated.
+
+Delivery queues the existing execution within its metadata transaction; external
+effects must occur only through the existing coordinator afterward. Five failed
+attempts produce a dead letter. An authenticated explicit replay may retry that
+same failed receipt, preserving its event identity and payload; delivered or
+superseded receipts cannot be replayed as fresh work. A known failed earlier
+revision blocks later revisions of that record while unrelated records proceed.
+An already delivered higher revision supersedes a late older snapshot. This is
+ordering of observed snapshots, not a claim that every intermediate revision was
+observed. The payload is bounded event evidence, not an editable shadow record.
+
+These storage functions are verified with PostgreSQL fixtures; production
+subscription admission, event publication contracts and polling are not yet wired.
