@@ -423,3 +423,43 @@ uninterrupted full regression. Single-stack audit at 19:42 UTC confirmed the
 selected operator's **60 containers**, zero unexpected Steward containers
 (`phase16-receipts-single-stack.log`). No operator mutation, live commerce action,
 Phase 16 tag or push occurred.
+
+## Authenticated event subscription admission checkpoint
+
+Worker administrators can now admit an event subscription through
+`POST /api/v16/workflows/event-subscriptions` using real session/CSRF governance
+and the signed module broker. Admission reads the exact module publication and
+separate review, requires one explicitly approved source binding, checks current
+roles/configuration/entity scope, holds the existing module lifecycle locks, and
+rechecks publication authority after lock acquisition. Retries preserve one
+subscriber identity and immutable source installation/package/binding pins.
+`GET` returns bounded subscription and delivery metadata without raw event bodies.
+Import/activation validate the declared source stream; the manual execution API
+rejects event workflows. The coordinator currently requires event receipt
+admission and refuses invented event executions; polling/receipt-to-execution
+integration remains the next checkpoint.
+
+The SDK now checks that a provider's event schema matches its own declared
+replication projection, including required identity/revision fields and types.
+An event cannot claim a schema that the actual shared outbox cannot emit.
+
+Actual tests: publication plus event admission **14 passed**
+(`phase16-event-api-tests.log`), including real Worker sessions/CSRF, authoritative
+module review APIs, idempotent admission, current account checks, review revocation
+during lifecycle acquisition, runtime/entity denials, and manual-execution denial.
+Source/provider installation, activation and module health remain explicit signed
+fixtures; host transport is injected, not installed-container acceptance. SDK
+**53 passed**, shared capture **7 passed**, subscriber delivery **14 passed**, host
+**31 passed**, legacy SSMA **11 passed**, existing graph governance **14 passed**,
+and graph runtime **19 passed** (`phase16-event-{schema,api}-*.log`). SDK, host and
+platform builds passed. Root regressions now include the event-admission suite.
+
+Retained failures: the initial source fixture used a camel-case replication column
+(`phase16-event-admission-projection-fixture-failure.json`); the corrected fixture
+uses valid SQL column names and a complete projection schema. A subsequent fixture
+expected a role denial after an earlier missing read-permission denial
+(`phase16-event-admission-permission-fixture-failure.json`). Tests now verify both
+permission and role boundaries explicitly. No validator or permission was relaxed.
+
+No operator upgrade, live connector call, installed Automation acceptance, final
+full regression, release tag or Phase 16 GitHub push is claimed.

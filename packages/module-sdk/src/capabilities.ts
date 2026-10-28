@@ -86,8 +86,15 @@ export function validateSmartManifest(m: ModulePackageManifest) {
 function events(values: { name: string; schema: JsonSchema; streamId?:string }[],manifest?:ModulePackageManifest) {
   check(unique(values, e => e.name, 12), 'events'); for (const e of values) {
     check(closed(e,['name','schema','streamId']) && id.test(e.name), 'event'); schema(e.schema);
-    if(e.streamId!==undefined)check(manifest&&atLeast(manifest.minimumPlatformVersion,'0.16.0')
-      &&typeof e.streamId==='string'&&manifest.replication?.streams.some(s=>s.streamId===e.streamId),'signed event stream');
+    if(e.streamId!==undefined){
+      check(manifest&&atLeast(manifest.minimumPlatformVersion,'0.16.0')
+        &&typeof e.streamId==='string'&&manifest.replication?.streams.some(s=>s.streamId===e.streamId),'signed event stream');
+      const stream=manifest!.replication!.streams.find(s=>s.streamId===e.streamId)!,properties=e.schema.properties as Record<string,JsonSchema>|undefined,required=e.schema.required;
+      check(e.schema.type==='object'&&e.schema.additionalProperties===false&&properties
+        &&canonical(Object.keys(properties).sort())===canonical([...stream.columns].sort())
+        &&Array.isArray(required)&&required.includes(stream.idColumn)&&required.includes(stream.revisionColumn)
+        &&properties[stream.idColumn]?.type==='string'&&properties[stream.revisionColumn]?.type==='integer','event projection schema');
+    }
   }
 }
 export function capabilityFingerprint(c: CapabilityContract) { return digest(canonical(c)); }

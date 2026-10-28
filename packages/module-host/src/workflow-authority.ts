@@ -1,5 +1,5 @@
 import type pg from 'pg';
-import {canonical,digest,verifyPackage,validateWorkflowGraph,type PublisherTrust,type WorkflowGraph,type WorkflowFields,type WorkflowPublicationReference} from '@steward/module-sdk';
+import {canonical,digest,verifyPackage,validateWorkflowGraph,type PublisherTrust,type WorkflowGraph,type WorkflowFields,type WorkflowPublicationReference,type WorkflowTrigger} from '@steward/module-sdk';
 
 /** An execution projection retains these exact identities. A later approval,
  * package or installation is not silently substituted into existing work. */
@@ -7,7 +7,7 @@ export type WorkflowPublicationPin = WorkflowPublicationReference;
 type Call=(id:string,method:string,path:string,body?:unknown,headers?:Record<string,string>,timeout?:number)=>Promise<{status:number;value:any}>;
 export interface VerifiedWorkflowPublication {
   contractVersion:1;workflowId:string;version:number;name:string;description:string;
-  graph:WorkflowGraph;fields:WorkflowFields;trigger:{kind:'manual';input:Record<string,unknown>};consumerId:string;
+  graph:WorkflowGraph;fields:WorkflowFields;trigger:WorkflowTrigger;consumerId:string;
 }
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const hash=/^[0-9a-f]{64}$/;
@@ -57,7 +57,11 @@ export async function verifyWorkflowPublication(db:Pick<pg.Pool,'query'>,trust:P
     &&published<=reviewed&&reviewed<=now&&expires>now&&expires-reviewed<=31*86400000,'WORKFLOW_REVIEW_EXPIRED_OR_INVALID');
   requireAuthority(definition.contractVersion===1&&definition.consumerId===p.moduleId&&uuid.test(definition.workflowId)
     &&Number.isSafeInteger(definition.version)&&definition.version>0&&definition.version<=10000
-    &&definition.trigger?.kind==='manual'&&definition.trigger.input?.type==='object','WORKFLOW_PUBLICATION_DEFINITION_INVALID');
+    &&['manual','event'].includes(definition.trigger?.kind)&&definition.trigger.input?.type==='object','WORKFLOW_PUBLICATION_DEFINITION_INVALID');
+  if(definition.trigger.kind==='event'){
+    const trigger=definition.trigger,requirement=manifest.smart?.consumes.find(c=>c.capabilityId===trigger.capabilityId);
+    requireAuthority(Object.keys(trigger).length===4&&requirement?.events.some(e=>e.name===trigger.eventName&&canonical(e.schema)===canonical(trigger.input)),'WORKFLOW_EVENT_CONTRACT_NOT_DECLARED');
+  }else requireAuthority(Object.keys(definition.trigger).length===2,'WORKFLOW_PUBLICATION_DEFINITION_INVALID');
   validateWorkflowGraph(definition.graph,definition.fields);
   // Revalidate after the network boundary; revoked permission is never retained
   // merely because a previous query or a cached publication succeeded.

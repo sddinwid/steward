@@ -9,7 +9,7 @@ export interface EventDeliveryScope {installationId:string;entityId:string;trust
 /** Reuses approved SSMA bindings, signed consumer event requirements and current
  * accounts. A discovered event, or a receipt, does not grant execution authority. */
 export async function verifyEventSubscription(db:Db,scope:EventDeliveryScope,subscription:any,acceptingNew=true){
- const s=subscription;
+ const s=subscription;requireValue(s?.state==='active','EVENT_SUBSCRIPTION_UNAVAILABLE');
  const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND (state='approved' OR NOT $2 AND state='retained')",[s.binding_id,acceptingNew])).rows[0];
  requireValue(binding&&binding.entity_id===scope.entityId&&!binding.peer_grant_id&&!binding.source_program_id&&!binding.destination_program_id,'EVENT_BINDING_UNAVAILABLE');
  requireValue((binding.revision===s.binding_revision||!acceptingNew&&binding.state==='retained'&&binding.revision>s.binding_revision)&&binding.provider_installation_id===s.source_module_installation_id&&binding.package_digest===s.source_package_digest,'EVENT_BINDING_CHANGED');

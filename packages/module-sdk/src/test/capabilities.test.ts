@@ -12,9 +12,11 @@ const provider:CapabilityProvider={moduleId:'example.stock',moduleVersion:'1.0.0
 const context={entityId,permissions:['example.stock.read','other.stock.read']};
 test('local event capture requires a signed declared stream and versioned provider metadata',()=>{
  const base=JSON.parse(readFileSync(new URL('../../../../modules/inventory/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
- const stream=base.replication!.streams[0]!.streamId,provided=base.smart!.provides[0]!;
- const current={...base,minimumPlatformVersion:'0.16.0',smart:{...base.smart!,provides:[{...provided,events:[{name:'stock.changed',streamId:stream,schema:input}]}]}};
+ const projection=base.replication!.streams[0]!,stream=projection.streamId,provided=base.smart!.provides[0]!;
+ const eventSchema={type:'object',additionalProperties:false,required:projection.columns,properties:Object.fromEntries(projection.columns.map(k=>[k,{type:['revision','quantity','reserved_quantity','min_stock'].includes(k)?'integer':'string'}]))};
+ const current={...base,minimumPlatformVersion:'0.16.0',smart:{...base.smart!,provides:[{...provided,events:[{name:'stock.changed',streamId:stream,schema:eventSchema}]}]}};
  validateManifest(current);
+ for(const schema of [input,{...eventSchema,required:[]},{...eventSchema,properties:{...eventSchema.properties,[projection.revisionColumn]:{type:'string'}}}])assert.throws(()=>validateManifest({...current,smart:{...current.smart,provides:[{...current.smart.provides[0]!,events:[{name:'stock.changed',streamId:stream,schema}]}]}}));
  assert.throws(()=>validateManifest({...current,minimumPlatformVersion:'0.15.0'}));
  assert.throws(()=>validateManifest({...current,smart:{...current.smart,provides:[{...current.smart.provides[0]!,events:[{name:'stock.changed',streamId:'undeclared_private_stream',schema:input}]}]}}));
  assert.throws(()=>validateManifest({...current,smart:{...current.smart,consumes:[{...requirement,events:[{name:'stock.changed',schema:input,streamId:stream}]}]}} as unknown as ModulePackageManifest));

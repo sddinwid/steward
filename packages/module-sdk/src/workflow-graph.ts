@@ -118,3 +118,10 @@ export interface WorkflowPublicationReference {
   publicationId:string;definitionDigest:string;reviewId:string;reviewerId:string;
   reviewExpiresAt:string;
 }
+
+/** Trigger input is frozen with the module publication, never supplied by an
+ * event sender or inferred by an AI agent. Event transport scope is governed
+ * separately by an approved binding and subscriber receipt. */
+export type WorkflowTrigger =
+  | {kind:'manual';input:Record<string,unknown>}
+  | {kind:'event';capabilityId:string;eventName:string;input:Record<string,unknown>};

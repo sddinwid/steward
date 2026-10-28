@@ -32,8 +32,13 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
   const currentSource=(await db.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[manifest.moduleId])).rows[0];
   if(!currentSource||currentSource.operation_id!==source.operation_id||canonical(currentSource.descriptor)!==canonical(source.descriptor)||canonical(currentSource.configuration)!==canonical(source.configuration))fail(409,'Workflow source changed during admission');
   if(!Object.entries(manifest.smart?.prerequisites.configuration??{}).every(([key,value])=>source.configuration[key]===value))fail(409,'Consumer configuration prerequisite is not satisfied');
-  for(const node of graph.nodes){
-   if(!['action','notification'].includes(node.kind))continue;
+  const actionNodes:any[]=graph.nodes.filter(n=>['action','notification'].includes(n.kind));
+  if(definition.trigger.kind==='event'){
+   const eventBinding=(await db.query("SELECT binding_id FROM smart_bindings WHERE consumer_id=$1 AND capability_id=$2 AND state='approved'",[manifest.moduleId,definition.trigger.capabilityId])).rows;
+   if(eventBinding.length!==1)fail(409,'Event trigger requires one explicitly approved source binding');
+   actionNodes.push({kind:'event',bindingId:eventBinding[0].binding_id});
+  }
+  for(const node of actionNodes){
    const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state='approved'",[node.bindingId,manifest.moduleId])).rows[0];
    if(!binding||binding.entity_id!==entityId||binding.peer_grant_id||binding.source_program_id||binding.destination_program_id)fail(409,'Graph action requires an approved local entity binding; scoped peer workflows retain their existing governed path');
    if(byCapability.has(binding.capability_id)&&byCapability.get(binding.capability_id)!==binding.binding_id)fail(409,'One capability must retain one provider binding throughout an execution');byCapability.set(binding.capability_id,binding.binding_id);
@@ -45,8 +50,13 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
    if(!requirement||!capability||canonical(requirement)!==canonical(binding.requirement)||!consumerCapabilityConfigured(manifest,source.configuration,requirement))fail(409,'Signed consumer requirement or configuration changed');
    const candidate={moduleId:provider.moduleId,moduleVersion:provider.version,installationId:target.operation_id,entityId,packageDigest:binding.package_digest,state:'active' as const,configured:capabilityConfigured(provider,target.configuration,capability),capability};
    if(!resolveCapability(requirement,[candidate],{entityId,permissions:capability.operations.map(o=>o.permission)}).selected)fail(409,'Provider is not compatible with the signed requirement');
-   const operation=capability.operations.find(o=>o.name===node.operation);if(!operation)fail(409,'Operation is not declared by the selected provider');
-   try{validateWorkflowInput({object:node.inputs!},operation.input,definition.fields);}catch{fail(422,'Workflow input mapping does not match its bound provider schema');}
+   if(node.kind==='event'){
+    const event=capability.events.find(e=>e.name===definition.trigger.eventName);
+    if(!event?.streamId||canonical(event.schema)!==canonical(definition.trigger.input))fail(409,'Event source does not declare the exact authorized stream schema');
+   }else{
+    const operation=capability.operations.find(o=>o.name===node.operation);if(!operation)fail(409,'Operation is not declared by the selected provider');
+    try{validateWorkflowInput({object:node.inputs!},operation.input,definition.fields);}catch{fail(422,'Workflow input mapping does not match its bound provider schema');}
+   }
    if(!checked.has(target.module_id)){const health=await broker('inspect',target.descriptor,target.configuration);if(health.status!==200)fail(409,'Bound provider is unavailable');checked.add(target.module_id);}
    rows.push(binding);
   }
@@ -54,6 +64,20 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
   return rows;
  }
  const history=(db:pg.PoolClient,workflowId:string,actorId:string,event:string,detail:unknown,executionId?:string)=>db.query('INSERT INTO smart_history(workflow_id,actor_id,event,detail,execution_id) VALUES($1,$2,$3,$4,$5)',[workflowId,actorId,event,detail,executionId??null]);
+ app.post<{Body:{workflowId:string;subscriptionId:string;reason:string}}>('/api/v16/workflows/event-subscriptions',{schema:{body:object({workflowId:uuid,subscriptionId:uuid,reason})}},async req=>{
+  const actor=await admin(req,true),w=(await pool.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND accepting_new",[req.body.workflowId])).rows[0];
+  if(w?.definition.format!=='module-graph-v1')fail(409,'Active module workflow required');
+  const source=(await pool.query("SELECT * FROM module_installations WHERE module_id=$1 AND state='active'",[w.consumer_id])).rows[0];if(!source)fail(409,'Workflow source unavailable');trusted(source.descriptor,await trust());
+  const result=await broker('workflow.subscribe',source.descriptor,source.configuration,{...req.body,actorId:actor.account_id});
+  if(result.status!==200){const code=result.value?.error;fail(result.status===503?503:409,typeof code==='string'&&/^(EVENT|WORKFLOW)_[A-Z_]+$/.test(code)?code:'Event subscription admission unavailable');}
+  return result.value;
+ });
+ app.get('/api/v16/workflows/event-subscriptions',async req=>{
+  await admin(req);return{
+   subscriptions:(await pool.query('SELECT s.subscription_id,s.workflow_id,s.binding_id,s.binding_revision,s.source_module_installation_id,s.source_package_digest,s.event_name,s.stream_id,s.state,s.created_at,b.provider_id,b.capability_id,w.accepting_new FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) ORDER BY s.created_at DESC LIMIT 100')).rows,
+   deliveries:(await pool.query('SELECT subscription_id,event_id,record_id,record_revision,state,attempts,execution_id,error_code,created_at,updated_at FROM smart_event_deliveries ORDER BY created_at DESC LIMIT 100')).rows,
+   counts:(await pool.query('SELECT state,count(*)::integer count FROM smart_event_deliveries GROUP BY state ORDER BY state')).rows};
+ });
  app.post<{Body:{publication:WorkflowPublicationReference;reason:string}}>('/api/v16/workflows/import',{schema:{body:object({publication:pinSchema,reason})}},async req=>{
   const actor=await admin(req,true),pin=req.body.publication,verified=await publication(pin,actor.account_id);
   return transaction(pool,async db=>{
@@ -77,7 +101,7 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
  });
  app.post<{Body:{workflowId:string;executionId:string;input:Record<string,unknown>}}>('/api/v16/workflows/execute',{schema:{body:object({workflowId:uuid,executionId:uuid,input:{type:'object',maxProperties:32}})}},async req=>{
   const actor=await admin(req,true),b=req.body,found=(await pool.query('SELECT * FROM smart_workflows WHERE workflow_id=$1',[b.workflowId])).rows[0];if(found?.definition.format!=='module-graph-v1')fail(404,'Module graph not found');
-  const verified=await publication(found.definition.publication,actor.account_id);try{validateCapabilityValue(b.input,verified.definition.trigger.input);}catch{fail(422,'Manual trigger input does not match the published schema');}
+  const verified=await publication(found.definition.publication,actor.account_id);if(verified.definition.trigger.kind!=='manual')fail(409,'Event workflows require governed source delivery, not a manual start');try{validateCapabilityValue(b.input,verified.definition.trigger.input);}catch{fail(422,'Manual trigger input does not match the published schema');}
   return transaction(pool,async db=>{
    await db.query('SELECT pg_advisory_xact_lock(hashtext($1))',['workflow-execution:'+b.executionId]);
    const w=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1 FOR UPDATE',[b.workflowId])).rows[0];if(w.state!=='active'||!w.accepting_new)fail(409,'Workflow is not accepting new executions');

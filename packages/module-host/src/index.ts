@@ -1,3 +1,4 @@
+import {registerWorkflowSubscription} from './workflow-event-admission.js';
 import {verifyWorkflowPublication} from './workflow-authority.js';
 import {assertInstallationContinuity,assertRuntimeInstallation} from './installation-continuity.js';
 import {installedProviderHeaders} from './installed-providers.js';
@@ -206,7 +207,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     // Outbox reads/acknowledgments use only committed module database rows.
     // They share lifecycle protection with application requests, rather than
     // briefly excluding user mutations on every synchronization poll.
-    const lock = await client.query(['proxy','inspect','workflow.verify','peer.deliver','peer.acknowledge','outbox.read','outbox.complete'].includes(p.operation)
+    const lock = await client.query(['proxy','inspect','workflow.verify','workflow.subscribe','peer.deliver','peer.acknowledge','outbox.read','outbox.complete'].includes(p.operation)
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
@@ -223,9 +224,18 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
-    if(p.operation==='workflow.verify'||p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'||p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
+    if(p.operation==='workflow.verify'||p.operation==='workflow.subscribe'||p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'||p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
       const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
       if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
+    }
+    if(p.operation==='workflow.subscribe'){
+      if(current.phase!=='active')failure('WORKFLOW_SOURCE_UNAVAILABLE');
+      const entity=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];if(!entity)failure('ENROLLMENT_REQUIRED');
+      try{return await registerWorkflowSubscription(metadataPool,{installationId:config.installationId,entityId:entity.entity_id,trust},callModule,async(id,configuration)=>{
+        const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
+        return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);
+      },lockWorkflowModules,{workflowId:p.workflowId,subscriptionId:p.subscriptionId,actorId:p.actorId,consumerId:p.moduleId,reason:p.reason});}
+      catch(error){const code=(error as Error).message;failure(/^(EVENT|WORKFLOW)_[A-Z_]+$/.test(code)?code:'EVENT_SUBSCRIPTION_UNAVAILABLE');}
     }
     if(p.operation==='workflow.verify'){
       if(current.phase!=='active'||p.publication?.moduleId!==p.moduleId)failure('WORKFLOW_PUBLICATION_SCOPE_MISMATCH');

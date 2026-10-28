@@ -17,6 +17,7 @@ import {automation} from '../modules/business-automation/dist/definition.js';
 const directory='.steward/phase16-authority-tests',container='steward-authority-test-'+randomUUID(),secretFile=directory+'/'+container+'.env';
 const password=randomBytes(32).toString('hex'),token=randomBytes(32).toString('hex'),installationId=randomUUID(),entityId=randomUUID(),author=randomUUID(),reviewer=randomUUID(),moduleInstallationId=randomUUID();
 const manifest=JSON.parse(await readFile('modules/business-automation/manifest.json','utf8')),permissions=[...new Set(manifest.api.map(a=>a.permission))];
+if(process.argv.includes('--events'))manifest.smart.consumes.push({capabilityId:'fixture.stock.observe',contract:'fixture.stock.observe',minimumVersion:'1.0.0',maximumMajor:1,operations:[{name:'observe',input:{type:'object',additionalProperties:false,properties:{}},output:{type:'object',additionalProperties:false,properties:{}}}],events:[{name:'stock.changed',schema:{type:'object',additionalProperties:false,required:['id','revision','item_id','quantity'],properties:{id:{type:'string'},revision:{type:'integer',minimum:1},item_id:{type:'string'},quantity:{type:'integer',minimum:0}}}}],maximumSensitivity:'business',optional:true});
 const keys=generateKeyPairSync('ed25519'),trust={publishers:[{publisherId:'test-only',publicKey:keys.publicKey.export({type:'spki',format:'pem'}).toString()}]};
 const descriptor=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'a'.repeat(64),manifest},keys.privateKey.export({type:'pkcs8',format:'pem'}).toString());
 const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']});
@@ -92,8 +93,15 @@ try{
     publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();return pin;
   }});
  }
+ if(process.argv.includes('--events')){
+  const {exerciseWorkflowEventAdmission}=await import('./workflow-event-admission-checks.mjs');
+  await exerciseWorkflowEventAdmission({check,metadata,installationId,entityId,author,reviewer,manifest,descriptor,keys,trust,transport,api,publish:async graph=>{
+   const created=(await api('POST','/workflows',{recordKey:randomUUID(),name:'Event '+randomUUID(),description:'Signed synthetic event admission fixture; no installed provider.',triggerSource:'fixture.stock.observe/stock.changed',graph})).record;
+   publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();return pin;
+  }});
+ }
  report.status=report.checks.every(c=>c.status==='passed')?'passed':'failed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{
  await app?.close();await metadata?.end();await moduleDb?.end();try{docker(['rm','-f',container]);}catch{}await unlink(secretFile).catch(()=>{});
- await mkdir('artifacts',{recursive:true});await writeFile(process.argv.includes('--runtime')?'artifacts/phase16-graph-runtime.json':process.argv.includes('--governance')?'artifacts/phase16-workflow-governance.json':'artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
+ await mkdir('artifacts',{recursive:true});await writeFile(process.argv.includes('--events')?'artifacts/phase16-workflow-event-admission.json':process.argv.includes('--runtime')?'artifacts/phase16-graph-runtime.json':process.argv.includes('--governance')?'artifacts/phase16-workflow-governance.json':'artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
 }

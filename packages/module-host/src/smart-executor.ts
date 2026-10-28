@@ -32,6 +32,9 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
         if(!local)throw Error('ENTITY_SCOPE_MISMATCH');
         publication=await verifyWorkflowPublication(db,trust,call,runtimeMatches,{pin,installationId,entityId:local.entity_id,actorId:e.actor_id});
+        // Event publication alone is not admission. Until a governed receipt is
+        // attached by the shared delivery path, refuse all event execution.
+        if(publication.trigger.kind==='event')throw Error('WORKFLOW_EVENT_ADMISSION_REQUIRED');
         graphFrame=await prepareGraphStep(db,e,publication,{entityId:local.entity_id,installationId,moduleInstallationId:pin.moduleInstallationId,packageDigest:pin.packageDigest});
         if(!graphFrame){await db.query('COMMIT');return;}
         e.step=graphFrame.index;step=graphFrame.node;
