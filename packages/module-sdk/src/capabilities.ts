@@ -7,7 +7,7 @@ export interface CapabilityContract {
   configuration?:Record<string,string|number|boolean>;
   capabilityId: string; contract: string; version: string;
   operations: { name: string; command: string; input: JsonSchema; output: JsonSchema; permission: string; mode: 'sync' | 'durable'; idempotency: 'required'; retry: 'safe' | 'reconcile' }[];
-  events: { name: string; schema: JsonSchema }[];
+  events: { name: string; schema: JsonSchema; streamId?:string }[];
   sensitivity: Sensitivity; scope: 'entity'; ownership: 'provider';
 }
 export interface CapabilityRequirement {
@@ -73,7 +73,7 @@ export function validateSmartManifest(m: ModulePackageManifest) {
         else check((o.input.properties as Record<string,any>)?.requestId?.type==='string','synchronous command idempotency field');
       }
     }
-    events(c.events);
+    events(c.events,m);
   }
   for (const c of s.consumes) {
     check(closed(c, ['capabilityId','contract','minimumVersion','maximumMajor','operations','events','maximumSensitivity','optional','configuration']) && id.test(c.capabilityId) && id.test(c.contract) && semver.test(c.minimumVersion) && Number.isSafeInteger(c.maximumMajor) && c.maximumMajor === Number(c.minimumVersion.split('.')[0]) && typeof c.optional === 'boolean' && levels.includes(c.maximumSensitivity), 'requirement');
@@ -83,8 +83,12 @@ export function validateSmartManifest(m: ModulePackageManifest) {
     events(c.events);
   }
 }
-function events(values: { name: string; schema: JsonSchema }[]) {
-  check(unique(values, e => e.name, 12), 'events'); for (const e of values) { check(closed(e,['name','schema']) && id.test(e.name), 'event'); schema(e.schema); }
+function events(values: { name: string; schema: JsonSchema; streamId?:string }[],manifest?:ModulePackageManifest) {
+  check(unique(values, e => e.name, 12), 'events'); for (const e of values) {
+    check(closed(e,['name','schema','streamId']) && id.test(e.name), 'event'); schema(e.schema);
+    if(e.streamId!==undefined)check(manifest&&atLeast(manifest.minimumPlatformVersion,'0.16.0')
+      &&typeof e.streamId==='string'&&manifest.replication?.streams.some(s=>s.streamId===e.streamId),'signed event stream');
+  }
 }
 export function capabilityFingerprint(c: CapabilityContract) { return digest(canonical(c)); }
 export function evaluateProvider(requirement: CapabilityRequirement, provider: CapabilityProvider, context: ResolutionContext): ProviderEvaluation {

@@ -85,6 +85,29 @@ No workflow effect, subscription, publication, installation or deployment is
 claimed from these component checks. The full module/runtime integration and
 all six end-to-end scenarios remain pending.
 
+## Shared outbox capture checkpoint
+
+Signed provider events may explicitly identify an existing signed replication
+stream through optional `streamId` metadata, gated to platform 0.16. Legacy event
+contracts remain unchanged. Consumers cannot declare a provider stream mapping.
+The new capture helper uses the existing `sync_outbox` with additive local progress
+metadata; it never changes `acknowledged_at` or Master delivery retry state.
+An authorized, idempotent local receipt commit must precede source acknowledgment.
+Sensitive mission/economic sources are rejected without a scoped disclosure path.
+
+**7/7 isolated PostgreSQL tests passed**, using separate source and receipt
+databases, signed synthetic source metadata, actual row locks/transactions and a
+synthetic idempotent receipt callback. They verify repeated metadata setup, Master
+ACK independence, interruption between commits, concurrent claims, rejected
+subscriber acceptance, package/source identity and entity isolation.
+Evidence: `phase16-shared-event-capture.json`, original and corrected-build rerun
+logs. SDK now passes **48/48** tests including signed event mapping constraints.
+
+This helper is not wired into the production host loop yet. The real governed
+subscription transaction, dead-letter/reconciliation policy, module-owned
+publications, execution continuation and event-triggered business scenarios remain
+to be implemented. No operator module database schema was changed by this work.
+
 ## Pending acceptance
 
 All Phase 16 implementation, six business acceptance scenarios, new security and

@@ -10,6 +10,15 @@ const requirement:CapabilityRequirement={capabilityId:c.capabilityId,contract:c.
 const entityId=randomUUID(),installationId=randomUUID();
 const provider:CapabilityProvider={moduleId:'example.stock',moduleVersion:'1.0.0',installationId,entityId,packageDigest:'a'.repeat(64),state:'active',configured:true,capability:c};
 const context={entityId,permissions:['example.stock.read','other.stock.read']};
+test('local event capture requires a signed declared stream and versioned provider metadata',()=>{
+ const base=JSON.parse(readFileSync(new URL('../../../../modules/inventory/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
+ const stream=base.replication!.streams[0]!.streamId,provided=base.smart!.provides[0]!;
+ const current={...base,minimumPlatformVersion:'0.16.0',smart:{...base.smart!,provides:[{...provided,events:[{name:'stock.changed',streamId:stream,schema:input}]}]}};
+ validateManifest(current);
+ assert.throws(()=>validateManifest({...current,minimumPlatformVersion:'0.15.0'}));
+ assert.throws(()=>validateManifest({...current,smart:{...current.smart,provides:[{...current.smart.provides[0]!,events:[{name:'stock.changed',streamId:'undeclared_private_stream',schema:input}]}]}}));
+ assert.throws(()=>validateManifest({...current,smart:{...current.smart,consumes:[{...requirement,events:[{name:'stock.changed',schema:input,streamId:stream}]}]}} as ModulePackageManifest));
+});
 test('signed independent consumer gates are versioned, configured and cannot widen legacy disable controls',()=>{
  const base=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
  const r={...requirement,configuration:{governedSalesEnabled:true}},m={...base,smart:{...base.smart!,consumes:[r]}};validateManifest(m);
