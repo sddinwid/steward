@@ -193,3 +193,10 @@ observed. The payload is bounded event evidence, not an editable shadow record.
 
 These storage functions are verified with PostgreSQL fixtures; production
 subscription admission, event publication contracts and polling are not yet wired.
+
+Receipt execution identities are deterministically derived from both subscription
+and source event, so independent subscribers cannot merge work. Admission must
+use an approved current binding; previously captured work may use its original
+explicitly retained binding after substitution. The original provider installation
+and package must still match, and a disabled binding denies continuation. Stopping
+new intake for an old workflow version does not erase its accepted receipts.

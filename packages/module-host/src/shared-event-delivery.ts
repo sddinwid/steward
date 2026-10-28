@@ -8,11 +8,11 @@ export interface EventDeliveryScope {installationId:string;entityId:string;trust
 
 /** Reuses approved SSMA bindings, signed consumer event requirements and current
  * accounts. A discovered event, or a receipt, does not grant execution authority. */
-export async function verifyEventSubscription(db:Db,scope:EventDeliveryScope,subscription:any){
+export async function verifyEventSubscription(db:Db,scope:EventDeliveryScope,subscription:any,acceptingNew=true){
  const s=subscription;
- const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND state='approved'",[s.binding_id])).rows[0];
+ const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND (state='approved' OR NOT $2 AND state='retained')",[s.binding_id,acceptingNew])).rows[0];
  requireValue(binding&&binding.entity_id===scope.entityId&&!binding.peer_grant_id&&!binding.source_program_id&&!binding.destination_program_id,'EVENT_BINDING_UNAVAILABLE');
- requireValue(binding.revision===s.binding_revision&&binding.provider_installation_id===s.source_module_installation_id&&binding.package_digest===s.source_package_digest,'EVENT_BINDING_CHANGED');
+ requireValue((binding.revision===s.binding_revision||!acceptingNew&&binding.state==='retained'&&binding.revision>s.binding_revision)&&binding.provider_installation_id===s.source_module_installation_id&&binding.package_digest===s.source_package_digest,'EVENT_BINDING_CHANGED');
  for(const actor of [s.actor_id,binding.actor_id])requireValue((await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[actor])).rowCount,'EVENT_APPROVER_REVOKED');
  const rows=(await db.query('SELECT * FROM module_installations WHERE module_id=ANY($1::text[])',[ [binding.consumer_id,binding.provider_id] ])).rows;
  const source=rows.find(r=>r.module_id===binding.provider_id),consumer=rows.find(r=>r.module_id===binding.consumer_id);
@@ -28,7 +28,7 @@ export async function verifyEventSubscription(db:Db,scope:EventDeliveryScope,sub
  requireValue(event?.streamId===s.stream_id&&canonical(event?.schema)===canonical(s.event_schema)
   &&requirement!.events.some(e=>e.name===s.event_name&&canonical(e.schema)===canonical(s.event_schema)),'EVENT_SCHEMA_NOT_AUTHORIZED');
  requireValue(resolveCapability(requirement!,[{moduleId:provider.moduleId,moduleVersion:provider.version,installationId:source.operation_id,entityId:scope.entityId,packageDigest:binding.package_digest,state:'active',configured:capabilityConfigured(provider,source.configuration,capability!),capability:capability!}],{entityId:scope.entityId,permissions:capability!.operations.map(o=>o.permission)}).selected,'EVENT_PROVIDER_INCOMPATIBLE');
- const workflow=(await db.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND accepting_new",[s.workflow_id])).rows[0];
+ const workflow=(await db.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND (accepting_new OR NOT $2)",[s.workflow_id,acceptingNew])).rows[0];
  requireValue(workflow?.consumer_id===consumer.module_id&&workflow.definition?.format==='module-graph-v1','EVENT_WORKFLOW_UNAVAILABLE');
  requireValue(workflow.definition.publication.moduleInstallationId===s.consumer_installation_id&&workflow.definition.publication.packageDigest===s.consumer_package_digest,'EVENT_WORKFLOW_SOURCE_CHANGED');
  return{binding,source,consumer,workflow};
@@ -44,7 +44,7 @@ export async function persistSharedEventDeliveries(pool:pg.Pool,scope:EventDeliv
    const e=event.envelope;
    requireValue(e.source?.installationId===scope.installationId&&e.source?.entity?.entityId===scope.entityId
     &&event.digest===digest(canonical(e)),'EVENT_SCOPE_INVALID');
-   const subscriptions=(await db.query("SELECT s.* FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) WHERE s.state='active' AND b.provider_id=$1 AND s.stream_id=$2 AND s.created_at<=$3 ORDER BY s.subscription_id FOR UPDATE OF s",[e.moduleId,e.streamId,event.sourceCreatedAt])).rows;
+   const subscriptions=(await db.query("SELECT s.* FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) WHERE s.state='active' AND b.state='approved' AND w.state='active' AND w.accepting_new AND b.provider_id=$1 AND s.stream_id=$2 AND s.created_at<=$3 ORDER BY s.subscription_id FOR UPDATE OF s",[e.moduleId,e.streamId,event.sourceCreatedAt])).rows;
    for(const s of subscriptions){
     const {source,binding}=await verifyEventSubscription(db,scope,s);
     requireValue(source.operation_id===event.sourceModuleInstallationId&&binding.package_digest===event.sourcePackageDigest,'EVENT_SOURCE_CHANGED');
@@ -57,6 +57,11 @@ export async function persistSharedEventDeliveries(pool:pg.Pool,scope:EventDeliv
   }
   await db.query('COMMIT');
  }catch(error){await db.query('ROLLBACK');throw error;}finally{db.release();}
+}
+
+export function eventExecutionId(subscriptionId:string,eventId:string){
+ const h=digest('steward-shared-event-execution-v1:'+subscriptionId+':'+eventId);
+ return `${h.slice(0,8)}-${h.slice(8,12)}-5${h.slice(13,16)}-a${h.slice(17,20)}-${h.slice(20,32)}`;
 }
 
 /** Delivery callback must enqueue the existing SSMA execution and obligations on
@@ -74,7 +79,7 @@ export async function deliverSharedEvent(pool:pg.Pool,scope:EventDeliveryScope,
   if(!d){await db.query('COMMIT');return false;}
   await db.query('SAVEPOINT event_attempt');
   try{
-   await verifyEventSubscription(db,scope,s);
+   await verifyEventSubscription(db,scope,s,false);
    requireValue(d.source_module_installation_id===s.source_module_installation_id&&d.source_package_digest===s.source_package_digest&&d.digest===digest(canonical(d.envelope)),'EVENT_RECEIPT_CHANGED');
    const cursor=(await db.query('SELECT revision FROM smart_event_cursors WHERE subscription_id=$1 AND record_id=$2',[s.subscription_id,d.record_id])).rows[0];
    if(cursor&&BigInt(cursor.revision)>=BigInt(d.record_revision)){
@@ -83,7 +88,8 @@ export async function deliverSharedEvent(pool:pg.Pool,scope:EventDeliveryScope,
    }else{
     validateCapabilityValue(d.envelope.payload,s.event_schema);
     const execution=await enqueue(db,s,d);
-    requireValue((await db.query('SELECT 1 FROM smart_executions WHERE execution_id=$1 AND workflow_id=$2',[execution,s.workflow_id])).rowCount,'EVENT_EXECUTION_MISSING');
+    requireValue(execution===eventExecutionId(s.subscription_id,d.event_id),'EVENT_EXECUTION_IDENTITY_INVALID');
+    requireValue((await db.query('SELECT 1 FROM smart_executions WHERE execution_id=$1 AND workflow_id=$2 AND actor_id=$3 AND inputs=$4::jsonb',[execution,s.workflow_id,s.actor_id,d.envelope.payload])).rowCount,'EVENT_EXECUTION_MISSING');
     await db.query("UPDATE smart_event_deliveries SET state='delivered',execution_id=$3,attempts=attempts+1,error_code=NULL,updated_at=clock_timestamp() WHERE subscription_id=$1 AND event_id=$2",[s.subscription_id,d.event_id,execution]);
     await db.query('INSERT INTO smart_event_cursors(subscription_id,record_id,revision) VALUES($1,$2,$3) ON CONFLICT(subscription_id,record_id) DO UPDATE SET revision=excluded.revision',[s.subscription_id,d.record_id,d.record_revision]);
     await db.query("INSERT INTO smart_event_history(subscription_id,event_id,action,detail) VALUES($1,$2,'delivered',$3)",[s.subscription_id,d.event_id,{executionId:execution}]);
@@ -107,7 +113,7 @@ export async function replaySharedEvent(pool:pg.Pool,scope:EventDeliveryScope,re
   await db.query('BEGIN');
   requireValue((await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[request.actorId])).rowCount,'EVENT_REPLAY_AUTHORITY_REQUIRED');
   const s=(await db.query("SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1 AND state='active' FOR UPDATE",[request.subscriptionId])).rows[0];requireValue(s,'EVENT_SUBSCRIPTION_UNAVAILABLE');
-  await verifyEventSubscription(db,scope,s);
+  await verifyEventSubscription(db,scope,s,false);
   const result=await db.query("UPDATE smart_event_deliveries SET state='pending',attempts=0,next_attempt_at=clock_timestamp(),error_code=NULL,updated_at=clock_timestamp() WHERE subscription_id=$1 AND event_id=$2 AND state='dead_letter' RETURNING event_id",[request.subscriptionId,request.eventId]);
   requireValue(result.rowCount===1,'EVENT_REPLAY_REQUIRES_DEAD_LETTER');
   await db.query("INSERT INTO smart_event_history(subscription_id,event_id,actor_id,action,detail) VALUES($1,$2,$3,'replay_requested',$4)",[request.subscriptionId,request.eventId,request.actorId,{reason:request.reason}]);

@@ -362,3 +362,38 @@ subscription admission/enqueue. The production subscription API, exact publicati
 event-trigger admission and host polling integration are still pending. It does
 not claim a deployed event-driven business workflow. No selected operator database
 or installed package was changed.
+
+### Complete-run failure and corrected receipt continuity
+
+On clean commit `3dfcb1eb8d793292a381ad93cd1bb5f423594366`, the complete
+monorepo build passed. The uninterrupted root regression stopped with **996 passed,
+1 failed, 0 skipped/cancelled across 62 summaries**: Catalog Intelligence's repeat
+migration check still expected version 19, while additive migrations correctly
+produced version 21. Its immediately preceding analytical-record preservation
+assertion passed. Failed evidence is retained in `phase16-receipts-full-regressions.log`
+and `phase16-receipts-full-result.json`; this is NOT a successful full release gate.
+The schema expectation was corrected without changing migrations or weakening its
+account/publication/calculation/identity checks. The affected suite then passed
+**19 tests** (`phase16-catalog-migration-correction.log`).
+
+The receipt follow-up adds deterministic subscriber/event execution identities
+and validates the actual queued execution's workflow, actor and payload. Explicitly
+retained original bindings and previously accepted receipts continue when a
+workflow version stops accepting new work; new intake remains stopped. Disabled
+bindings still deny delivery. **14 delivery tests passed**, including actual
+two-subscriber fan-out to separate executions (`phase16-events-fanout-tests.log`).
+The preceding 13-test rerun also passed (`phase16-events-retained-tests.log`).
+
+Current-commit component browser checks: designer **5 passed**, governance
+**5 passed** (`phase16-receipts-{designer,governance}-browser.log`). The narrow
+governance screenshot was inspected; these remain synthetic component checks.
+Historical source integrity: **10 passed**, all **89 module migration files**
+including four original signed legacy migrations verified
+(`phase16-receipts-source-migrations-complete.json`). The first invocation omitted
+legacy catalog/trust arguments and correctly returned incomplete despite ten
+passing checks; its evidence remains `phase16-receipts-source-migrations.json`.
+The accepted Phase 15 evidence ZIP still hashes to
+`670f60bb64a92762bcca8ad5df03edfafd070032e2f46d98fa2edc8699b04de1`.
+
+A final uninterrupted full regression remains mandatory after implementation.
+No Phase 16 deployment, release promotion, tag or push is claimed.

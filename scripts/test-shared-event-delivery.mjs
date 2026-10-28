@@ -21,9 +21,10 @@ const scope={descriptor,trust,installationId,entityId,moduleInstallationId,strea
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
 import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {workflowMigration} from '../packages/platform/dist/workflow-migration.js';
 import {sharedEventMigration} from '../packages/platform/dist/shared-event-migration.js';
-import {persistSharedEventDeliveries,deliverSharedEvent,replaySharedEvent,verifyEventSubscription} from '../packages/module-host/dist/shared-event-delivery.js';
+import {persistSharedEventDeliveries,eventExecutionId,deliverSharedEvent,replaySharedEvent,verifyEventSubscription} from '../packages/module-host/dist/shared-event-delivery.js';
 const consumer=structuredClone(manifest);consumer.moduleId='fixture.automation';consumer.name='Synthetic receipt consumer';delete consumer.replication;
 consumer.api=[{operationId:'read',method:'GET',path:'/workflows',permission:'fixture.automation.read'}];
 consumer.smart={version:1,provides:[],consumes:[{capabilityId:'inventory.observe',contract:'inventory.observe',minimumVersion:'1.0.0',maximumMajor:1,operations:[{name:'read',input:empty,output:empty}],events:[{name:'stock.changed',schema}],maximumSensitivity:'business',optional:false}],prerequisites:{configuration:{},requiresActive:true,requiresHealthy:true}};
@@ -36,7 +37,7 @@ function event(record=randomUUID(),revision=1){return{envelopeVersion:1,payloadV
 async function add(e=event()){await source.query('INSERT INTO sync_outbox(event_id,envelope) VALUES($1,$2)',[e.eventId,e]);return e;}
 const persist=events=>persistSharedEventDeliveries(receipts,deliveryScope,events);
 const capture=()=>captureSharedEvents(source,scope,persist);
-async function enqueue(db,s,d){const id=d.event_id;await db.query("INSERT INTO smart_executions(execution_id,workflow_id,actor_id,digest,inputs,state) VALUES($1,$2,$3,$4,$5,'pending') ON CONFLICT DO NOTHING",[id,s.workflow_id,actor,d.digest,d.envelope.payload]);return id;}
+async function enqueue(db,s,d){const id=eventExecutionId(s.subscription_id,d.event_id);await db.query("INSERT INTO smart_executions(execution_id,workflow_id,actor_id,digest,inputs,state) VALUES($1,$2,$3,$4,$5,'pending') ON CONFLICT DO NOTHING",[id,s.workflow_id,actor,d.digest,d.envelope.payload]);return id;}
 const deliver=(work=enqueue)=>deliverSharedEvent(receipts,deliveryScope,work);
 const row=async id=>(await receipts.query('SELECT * FROM smart_event_deliveries WHERE event_id=$1',[id])).rows[0];
 const retry=async id=>receipts.query("UPDATE smart_event_deliveries SET next_attempt_at=now()-interval '1 second' WHERE event_id=$1",[id]);
@@ -47,8 +48,7 @@ try{
  admin=new pg.Pool({...connection,database:'postgres'});for(let i=0;;i++){try{await admin.query('SELECT 1');break;}catch(e){if(i===40)throw e;await delay(250);}}
  await admin.query('CREATE DATABASE source');await admin.query('CREATE DATABASE receipts');source=new pg.Pool({...connection,database:'source'});receipts=new pg.Pool({...connection,database:'receipts'});
  await source.query(outboxSql);await source.query(localEventCaptureSql);await source.query('CREATE TABLE module_identity(singleton boolean PRIMARY KEY,installation_id uuid,module_id text)');await source.query('INSERT INTO module_identity VALUES(true,$1,$2)',[installationId,manifest.moduleId]);
- for(const sql of [securityMigration,moduleMigration,smartMigration,workflowMigration,sharedEventMigration])await receipts.query(sql);
- await receipts.query('ALTER TABLE smart_workflows ADD COLUMN accepting_new boolean NOT NULL DEFAULT true');
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration])await receipts.query(sql);
  await receipts.query("INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,'isolated-event-admin','unusable-test-hash','local_admin')",[actor]);
  for(const [d,id] of [[descriptor,moduleInstallationId],[consumerDescriptor,consumerInstallation]])await receipts.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,'{}','active',$3)",[d.payload.manifest.moduleId,d,id]);
  await receipts.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,'inventory.observe',$3,$4,$5,$6,$7,$8,$9,'approved','Explicit synthetic fixture approval')",[binding,consumer.moduleId,manifest.moduleId,moduleInstallationId,digest(canonical(descriptor)),consumer.smart.consumes[0],manifest.smart.provides[0],actor,entityId]);
@@ -58,7 +58,7 @@ try{
   const e=await add();assert.equal(await capture(),1);assert.equal((await row(e.eventId)).state,'pending');assert.equal((await source.query('SELECT acknowledged_at FROM sync_outbox WHERE event_id=$1',[e.eventId])).rows[0].acknowledged_at,null);assert.equal(await deliver(),true);assert.equal((await row(e.eventId)).state,'delivered');
  });
  await check('lost local acknowledgment and concurrent delivery produce one execution',async()=>{
-  const e=await add();await assert.rejects(captureSharedEvents(source,scope,async events=>{await persist(events);throw Error('synthetic interruption');}),/synthetic interruption/);await capture();await Promise.all([deliver(),deliver()]);assert.equal(Number((await receipts.query('SELECT count(*) n FROM smart_executions WHERE execution_id=$1',[e.eventId])).rows[0].n),1);
+  const e=await add();await assert.rejects(captureSharedEvents(source,scope,async events=>{await persist(events);throw Error('synthetic interruption');}),/synthetic interruption/);await capture();await Promise.all([deliver(),deliver()]);assert.equal(Number((await receipts.query('SELECT count(*) n FROM smart_executions WHERE execution_id=$1',[eventExecutionId(subscription,e.eventId)])).rows[0].n),1);
  });
  await check('changed event identities cannot overwrite an existing source revision',async()=>{
   const e=await add();await capture();const conflict={...e,eventId:randomUUID()};await assert.rejects(persist([{eventId:conflict.eventId,envelope:conflict,digest:digest(canonical(conflict)),sourceModuleInstallationId:moduleInstallationId,sourcePackageDigest:digest(canonical(descriptor)),sourceCreatedAt:new Date()}]),/EVENT_IDENTITY_CONFLICT/);await deliver();
@@ -67,7 +67,7 @@ try{
   const record=randomUUID(),newer=await add(event(record,3)),older=await add(event(record,2));await capture();const seen=[];await deliver(async(...args)=>{seen.push(args[2].record_revision);return enqueue(...args);});await deliver(async(...args)=>{seen.push(args[2].record_revision);return enqueue(...args);});assert.deepEqual(seen,['2','3']);const late=await add(event(record,1));await capture();await deliver();assert.equal((await row(late.eventId)).state,'superseded');assert.equal((await row(newer.eventId)).state,'delivered');assert.equal((await row(older.eventId)).state,'delivered');
  });
  await check('failed enqueue rolls back execution creation and bounded retries reach a durable dead letter',async()=>{
-  const e=await add();await capture();for(let n=0;n<5;n++){await deliver(async(...args)=>{await enqueue(...args);throw Error('private service response must not be persisted');});await retry(e.eventId);}const d=await row(e.eventId);assert.equal(d.state,'dead_letter');assert.equal(d.error_code,'EVENT_DELIVERY_UNAVAILABLE');assert.equal((await receipts.query('SELECT 1 FROM smart_executions WHERE execution_id=$1',[e.eventId])).rowCount,0);
+  const e=await add();await capture();for(let n=0;n<5;n++){await deliver(async(...args)=>{await enqueue(...args);throw Error('private service response must not be persisted');});await retry(e.eventId);}const d=await row(e.eventId);assert.equal(d.state,'dead_letter');assert.equal(d.error_code,'EVENT_DELIVERY_UNAVAILABLE');assert.equal((await receipts.query('SELECT 1 FROM smart_executions WHERE execution_id=$1',[eventExecutionId(subscription,e.eventId)])).rowCount,0);
   await assert.rejects(replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:randomUUID(),reason:'Explicit isolated retry after recovery'}),/AUTHORITY_REQUIRED/);
   await replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:actor,reason:'Explicit isolated retry after recovery'});await deliver();assert.equal((await row(e.eventId)).state,'delivered');await assert.rejects(replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:actor,reason:'Do not replay a successful business effect'}),/REQUIRES_DEAD_LETTER/);
  });
@@ -85,8 +85,24 @@ try{
  await check('provider replacement and binding revisions cannot transfer subscriptions or receipts',async()=>{
   const s=(await receipts.query('SELECT * FROM smart_event_subscriptions')).rows[0];await receipts.query('UPDATE smart_bindings SET revision=revision+1 WHERE binding_id=$1',[binding]);await assert.rejects(verifyEventSubscription(receipts,deliveryScope,s),/EVENT_BINDING_CHANGED/);await receipts.query('UPDATE smart_bindings SET revision=1 WHERE binding_id=$1',[binding]);await receipts.query('UPDATE module_installations SET operation_id=$1 WHERE module_id=$2',[randomUUID(),manifest.moduleId]);await assert.rejects(verifyEventSubscription(receipts,deliveryScope,s),/EVENT_PACKAGE_CHANGED/);await receipts.query('UPDATE module_installations SET operation_id=$1 WHERE module_id=$2',[moduleInstallationId,manifest.moduleId]);
  });
+ await check('explicit retained obligations continue after version replacement while new intake stops',async()=>{
+  const e=await add();await capture();await receipts.query('UPDATE smart_workflows SET accepting_new=false WHERE workflow_id=$1',[workflow]);await receipts.query("UPDATE smart_bindings SET state='retained',revision=revision+1 WHERE binding_id=$1",[binding]);
+  const later=await add();await capture();assert.equal(await row(later.eventId),undefined);await deliver();assert.equal((await row(e.eventId)).state,'delivered');
+  await receipts.query('UPDATE smart_workflows SET accepting_new=true WHERE workflow_id=$1',[workflow]);await receipts.query("UPDATE smart_bindings SET state='approved',revision=1 WHERE binding_id=$1",[binding]);
+ });
+ await check('execution identity is subscriber-scoped and an enqueue cannot return another receipt identity',async()=>{
+  const e=await add();await capture();assert.notEqual(eventExecutionId(subscription,e.eventId),eventExecutionId(randomUUID(),e.eventId));await deliver(async(...args)=>{await enqueue(...args);return randomUUID();});assert.equal((await row(e.eventId)).error_code,'EVENT_EXECUTION_IDENTITY_INVALID');assert.equal((await receipts.query('SELECT 1 FROM smart_executions WHERE execution_id=$1',[eventExecutionId(subscription,e.eventId)])).rowCount,0);await retry(e.eventId);await deliver();assert.equal((await row(e.eventId)).state,'delivered');
+ });
  await check('cross-entity scope, unsigned package changes and undeclared event schemas deny disclosure',async()=>{
   const s=(await receipts.query('SELECT * FROM smart_event_subscriptions')).rows[0];await assert.rejects(verifyEventSubscription(receipts,{...deliveryScope,entityId:randomUUID()},s),/EVENT_BINDING_UNAVAILABLE/);await assert.rejects(verifyEventSubscription(receipts,deliveryScope,{...s,event_schema:empty}),/EVENT_SCHEMA_NOT_AUTHORIZED/);const changed=structuredClone(descriptor);changed.payload.manifest.name='unsigned';await receipts.query('UPDATE module_installations SET descriptor=$1 WHERE module_id=$2',[changed,manifest.moduleId]);await assert.rejects(verifyEventSubscription(receipts,deliveryScope,s),/EVENT_PACKAGE_CHANGED/);await receipts.query('UPDATE module_installations SET descriptor=$1 WHERE module_id=$2',[descriptor,manifest.moduleId]);
+ });
+ await check('one source event fans out to two original subscriber executions without merging their identities',async()=>{
+  const secondWorkflow=randomUUID(),secondSubscription=randomUUID();
+  await receipts.query("INSERT INTO smart_workflows(workflow_id,name,version,consumer_id,definition,state,actor_id,reason) SELECT $1,'second-fixture',version,consumer_id,definition,state,actor_id,reason FROM smart_workflows WHERE workflow_id=$2",[secondWorkflow,workflow]);
+  await receipts.query('INSERT INTO smart_event_subscriptions(subscription_id,workflow_id,binding_id,binding_revision,source_module_installation_id,source_package_digest,consumer_installation_id,consumer_package_digest,event_name,stream_id,event_schema,actor_id,state,reason) SELECT $1,$2,binding_id,binding_revision,source_module_installation_id,source_package_digest,consumer_installation_id,consumer_package_digest,event_name,stream_id,event_schema,actor_id,state,reason FROM smart_event_subscriptions WHERE subscription_id=$3',[secondSubscription,secondWorkflow,subscription]);
+  const e=await add();await capture();await Promise.all([deliver(),deliver()]);await deliver();
+  const deliveries=(await receipts.query('SELECT * FROM smart_event_deliveries WHERE event_id=$1',[e.eventId])).rows;assert.equal(deliveries.length,2);assert(deliveries.every(d=>d.state==='delivered'));assert.equal(new Set(deliveries.map(d=>d.execution_id)).size,2);
+  await receipts.query("UPDATE smart_event_subscriptions SET state='suspended' WHERE subscription_id=$1",[secondSubscription]);
  });
  await check('history is append-only and source replay cannot silently revive a suspended subscriber',async()=>{
   await assert.rejects(receipts.query("UPDATE smart_event_history SET action='erased'"),/append only/);await receipts.query("UPDATE smart_event_subscriptions SET state='suspended' WHERE subscription_id=$1",[subscription]);const e=await add();await capture();assert.equal(await row(e.eventId),undefined);assert.equal(await deliver(),false);
