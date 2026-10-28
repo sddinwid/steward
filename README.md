@@ -1,40 +1,113 @@
 # CEE Steward platform
 
-**Verified synthetic MVP: v0.14.0 economic sustainability.** Independently packaged Resource Availability, Mission Budget and Resource Coordination add reserve-aware synthetic contributions, separate entity approvals, reconciliation, recorded service-cost comparisons and governed Python/MCP/Qwen planning. See the [installation and recovery guide](docs/phase14-installation.md), [presenter guide](docs/phase14-demo.md), [financial workflows](docs/phase14-financial-workflows.md), [verification history](docs/phase14-verification.md), and [release gates](docs/phase14-release-gates.json). All seventeen mandatory acceptance gates passed; see the [final acceptance report](docs/phase14-final-acceptance.md) and [artifact identities](docs/phase14-release-artifacts.json). The accepted manifest and accompanying verification archive identify separate build and acceptance-evidence commits. All financial demonstrations are synthetic; this is not a production general ledger, banking system or regulatory certification.
+Steward is a modular business and mission operations platform with an independently deployable Master and multiple independent Workers. Workers retain local operational authority and availability when Master is offline. Separately signed modules contribute capabilities, navigation, forms and operations through SSMA and the Steward Shared Design System (SSDS).
 
-**Preserved verified baseline: v0.13.0.** Independently packaged Housing, Participant Services, Employment Pathways, and Food & Essential Services; private programme/case authority, governed cross-Worker coordination, fixed-cohort mission intelligence, deterministic scientific expansion scenarios, and reviewed real local Qwen/MCP findings. The extensible module UI, existing commerce connectors, identities, credentials, and business data are preserved. See the [final acceptance report](docs/phase13-final-acceptance.md), [installation/release guide](docs/phase13-release.md), [presenter guide](docs/phase13-presenter.md), and [artifact identities](docs/phase13-release-artifacts.json). Synthetic MVP only; not HMIS-certified or commercially production-ready.
+**Accepted release: v0.15.0 — Universal Catalog and Pricing Management.** All eighteen mandatory acceptance gates passed. The selected operator installation was upgraded in place, preserving accounts, identities, credentials, module databases, provider obligations and volumes. This is a verified synthetic MVP, not a claim of commercial production readiness.
 
-Run the complete selected installation from this directory with `docker compose up -d` and stop it with `docker compose down` (without `-v`). `docker compose ps` and `docker compose logs -f` work normally. This workspace already selects the existing preview. For another installed deployment, select it once with `node scripts/select-deployment.mjs PATH`; no accounts or data are recreated. See [Docker Compose operations](docs/docker-compose-operations.md).
+**Development: Phase 16 — Business Automation & Workflow Designer, targeting v0.16.0.** Implementation is in progress on `codex/phase16-business-automation`; there is no v0.16.0 release or accepted Phase 16 deployment. The root package version remains 0.15.0; development source on this branch is not the accepted release payload.
 
-Start with the [release installation guide](docs/phase11-release.md), [presenter controls](docs/phase11-operations.md), [actual verification and limitations](docs/phase11-verification.md), [structured evidence](docs/phase11-acceptance-evidence.json), [release gates](docs/phase11-release-gates.json) and [artifact identities](docs/phase11-release-artifacts.json). Only a distribution marked `acceptanceStatus: accepted` is accepted; its `acceptanceEvidenceCommit` identifies final verification.
+See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint summaries. Detailed verification ledgers retain failed attempts, corrected reruns and exact evidence identities.
 
-The existing preview uses **https://master.localhost:26100** and **https://worker-1.localhost:26201** (Workers 2/3: 26202/26203). Accounts, passwords, identities and records were preserved. Separate local deployments are separate authentication realms; use their exact configured HTTPS origins and separate browser profiles when browsing them concurrently.
+## Current release and development status
 
-Prior tagged releases remain preserved: [v0.9.1 intelligence/UI release](docs/v0.9.1-release.md), [v0.9.0 UI release](docs/ui-ux-release.md) and [verification](docs/ui-ux-verification.md); [v0.8.0 release/upgrade](docs/phase8-release.md), [architecture](docs/phase8-architecture.md), [commerce configuration/recovery](docs/phase8-commerce.md), [SSMA contracts](docs/phase8-ssma.md) and [verification](docs/phase8-verification.md).
+| Area | Status |
+| --- | --- |
+| Accepted platform | v0.15.0; tag commit `300e4caeb876b51ee92ff7f9ecc2d4c5582cd72f` |
+| Accepted build source | `4c07ffb0980e891f917f1755ff380e4241219f40`; build and acceptance-evidence commits are distinct |
+| Selected operator | Accepted v0.15.0; last verified topology: one stack, 60 containers (16 core and 44 module containers) |
+| Catalog / Pricing | Catalog 1.4.0 and Pricing Management 1.3.1 installed on all three Workers |
+| Phase 16 source | Governed workflow definitions, designer, execution, event subscriptions/recovery and Sales continuation contracts implemented in source; acceptance incomplete |
+| Phase 16 installation | Business Automation is not installed on the selected operator; source Sales 1.6.0 is not a claim of an installed upgrade |
 
-Production/fulfillment validation uses isolated synthetic providers and TLS simulators; it does not establish live commercial mutation compatibility. Shopify and Printify read-only catalog connectivity was separately exercised. Real local Ollama validation passed with conditional, source-backed calculations and human review. Passing the MVP demonstration does not establish commercial production readiness.
-# Phase 10A development
+Release acceptance and preservation evidence: [Phase 15 final acceptance](docs/phase15-final-acceptance.md), [release gates](docs/phase15-release-gates.json), [installation and upgrade procedure](docs/phase15-release.md), and [presenter guide](docs/phase15-demo.md). Some procedural documents retain candidate-stage instructions; the final acceptance report and accepted distribution manifest establish release status.
 
-Commerce contribution reporting, governed operational alerts, compact MCP investigations and the controlled USD demonstration are documented in [Phase 10A commerce intelligence](docs/phase10a-commerce-intelligence.md). Actual acceptance results are in [the Phase 10A verification report](docs/phase10a-verification.md). The accepted v0.9.1 tag remains preserved. Phase 10A upgraded the selected deployment in place; Phase 11 subsequently upgraded that same retained deployment with its original accounts, ports, identities and databases. See [single-stack operations](docs/single-stack-operations.md). Temporary acceptance containers have been removed; their archived configuration and data volumes are retained.
+Phase 15 was subsequently published to the private GitHub repository as the Phase 16 prerequisite. Remote reference verification is recorded in the [Phase 16 verification ledger](docs/phase16-verification.md). Phase 16 development has not been pushed.
 
+## Run the existing installation
 
-Phase 15 Catalog and Pricing work is in progress on `codex/phase15-catalog-pricing`. The selected operator remains on the verified Phase 14 deployment until its preservation and upgrade gates pass. See the [Phase 15 verification record](docs/phase15-verification.md), [Catalog guide](docs/phase15-catalog.md), [Pricing guide](docs/phase15-pricing.md), [business integration](docs/phase15-business-integration.md), and [read-only external catalog workflow](docs/phase15-external-catalog.md). No v0.15.0 release is accepted or tagged yet.
+From the repository root, after selecting an existing installation:
 
-The [prospective contribution methodology](docs/phase15-contribution-methodology.md) describes the in-progress cost scenarios, exact arithmetic, explicit assumptions and historical revenue boundary.
+```powershell
+docker compose up -d --wait
+docker compose ps
+docker compose logs -f
+# Planned shutdown; preserve persistent data.
+docker compose down
+```
 
-The [reviewed Master intelligence guide](docs/phase15-master-intelligence.md) describes explicit analytical publications, exact Worker-scoped evidence, bounded reports, deterministic comparison and scientific descriptive statistics. Phase 15 deployment, MCP/Qwen and release acceptance remain in progress.
+Do not add `-v`: volumes contain retained databases and module state. Installed releases use pinned images; `docker compose up -d --build` does not upgrade them to the current development branch. Installation and release upgrades are explicit, separate operations.
 
-The [Catalog AI investigation guide](docs/phase15-ai-investigations.md) covers bounded MCP tools, separate business/simulation audiences and reviewed finding delivery. Real local Qwen passed the isolated evidence/calculation/finding workflow; deployed acceptance remains required. The [preservation plan](docs/phase15-preservation-plan.md) records the retained operator and open clean-checkout migration gate.
+On the current operator machine, `.steward/operator/selection.json` identifies the selected deployment. On another checkout, select an existing installation once:
 
-## Shopify development stores
+```powershell
+node scripts/select-deployment.mjs PATH_TO_EXISTING_DEPLOYMENT
+```
 
-The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.
+Selection does not create accounts, reset passwords, enroll Workers or recreate databases. Missing selection fails closed. Keep one active operator stack; do not use a new Compose project name to duplicate the selected installation. See [Docker Compose operations](docs/docker-compose-operations.md) for module lifecycle and shutdown details; dated historical counts in that guide describe earlier checkpoints.
 
-## Phase 11 continuous commerce simulation
+The selected operator's sign-in addresses are:
 
-All mandatory gates passed and the exact candidate was promoted to accepted v0.11.0. See [operator/presenter controls, installation and recovery](docs/phase11-operations.md), [architecture](docs/adr/0025-continuous-commerce-simulation.md) and [actual verification evidence](docs/phase11-verification.md). The retained operator deployment and live connector credentials are preserved; at that checkpoint the original 36-container operator stack was restored, controlled simulations are paused, and no unnecessary model remains loaded.
+| Application | HTTPS address |
+| --- | --- |
+| Master | https://master.localhost:26100 |
+| Worker 1 | https://worker-1.localhost:26201 |
+| Worker 2 | https://worker-2.localhost:26202 |
+| Worker 3 | https://worker-3.localhost:26203 |
 
+Use the configured HTTPS origin for sign-in. Presenter credentials are in the selected deployment's private `demo/presenter.json`; reviewer credentials are referenced by the private security/review records. These files are not part of Git or the distribution. See the [presenter guide](docs/phase15-demo.md). Starting containers does not reset credentials.
 
-## Phase 12 scientific intelligence
+For a new installation or an in-place upgrade, use a verified accepted distribution and the [release procedure](docs/phase15-release.md). Back up configuration and databases before upgrades. Do not use a fresh installation or volume reset as a substitute for preserving the existing deployment.
 
-Accepted Phase 12 release: optional bounded Python analytics, chronological demand forecasts, integer procurement optimization, conditional sensitivity, executive/company comparisons, shared accessible charts and governed scientific MCP investigations. The generic signed module renderer remains extensible. See [presenter guide](docs/phase12-presenter.md), [installation/deployment](docs/phase12-release.md), [methods](docs/scientific-methodology.md) and [actual verification](docs/phase12-verification.md). All fourteen acceptance gates passed, including clean installation and redeployment. The accepted manifest records separate source and acceptance-evidence commits. The selected operator installation is upgraded in place with retained accounts and databases; the optional service adds one isolated container.
+## Implemented platform capabilities
+
+- **Core and security:** separate Master/Worker APIs and React frontends, PostgreSQL persistence, trusted enrollment, local authorization, independent Worker availability and durable synchronization.
+- **Modules:** signed independent packages, dedicated operational databases, governed SSMA discovery/bindings, provider-pinned obligations, migrations and dynamic SSDS screens. Modules are not compiled into Worker core.
+- **Business and commerce:** Inventory, Sales, Procurement, Assets, Workforce and Stock Ledger; Shopify/Printify adapters, controlled commerce simulation and operational intelligence.
+- **Mission and sustainability:** Housing, Participant Services, Employment Pathways, Food & Essential Services, Resource Availability, Mission Budget and Resource Coordination, with programme privacy and scoped cross-Worker coordination.
+- **Catalog and Pricing:** products/variants, services, subscriptions, rentals, digital offerings and bundles; typed attributes, external mappings, reviewed pricing policies, exact monetary resolution and immutable accepted Sales prices.
+- **Intelligence:** governed Master projections, deterministic Python analytics, scoped MCP tools, local Ollama/Qwen investigations, human-reviewed findings, affected-only delivery and acknowledgments.
+
+Module availability and configuration vary by Worker; a package's presence in a release does not mean it is installed or enabled everywhere.
+
+## Documentation
+
+| Topic | Guide |
+| --- | --- |
+| Catalog and Pricing | [Catalog](docs/phase15-catalog.md), [Pricing](docs/phase15-pricing.md), [business integration](docs/phase15-business-integration.md) |
+| External catalogs | [Read-only catalog workflow](docs/phase15-external-catalog.md), [Shopify setup](docs/shopify-development-store.md) |
+| Intelligence and AI | [Master intelligence](docs/phase15-master-intelligence.md), [AI investigations](docs/phase15-ai-investigations.md), [contribution methodology](docs/phase15-contribution-methodology.md) |
+| Mission operations | [Phase 13 presenter guide](docs/phase13-presenter.md), [acceptance](docs/phase13-final-acceptance.md) |
+| Economic sustainability | [Financial workflows](docs/phase14-financial-workflows.md), [presenter guide](docs/phase14-demo.md), [acceptance](docs/phase14-final-acceptance.md) |
+| Phase 16 development | [Directive](docs/phase16-instructions.md), [workflow contracts](docs/phase16-workflow-contracts.md), [verification ledger](docs/phase16-verification.md) |
+| Release and patch history | [Changelog](CHANGELOG.md) |
+
+## Development and verification
+
+Use Node.js 24.x, npm 10+, Docker with Linux containers, and the OpenSSL/Compose prerequisites described in the release guides. Browser checks require Playwright Chromium. Real local AI validation additionally requires a configured Ollama model; ordinary Worker services do not depend on it.
+
+```powershell
+npm ci
+npm run build
+npm test
+node scripts/test-workflow-governance-browser.mjs
+node scripts/smoke.mjs PATH_TO_SELECTED_DEPLOYMENT
+node scripts/verify-single-stack.mjs
+```
+
+The full regression suite uses isolated database/service fixtures and takes time; it is separate from installed-deployment and release acceptance. Do not interpret a passing source build as a completed upgrade.
+
+Recorded verification boundaries:
+
+- **Accepted v0.15.0:** 1,103 Node tests across 69 summaries, plus scientific, browser, clean-installation, upgrade, live read-only catalog and genuine local Qwen acceptance. See the final report for separate counts and limitations.
+- **Phase 16 intermediate baseline `d3c3d1d`:** uninterrupted regression passed 1,222 tests across 76 summaries with zero failures, cancellations or skips. This predates the later Sales continuation change.
+- **Sales continuation checkpoint `3b3dafa`:** six new domain tests, 24 Sales/Catalog integration tests, seven existing business tests and eight publication tests passed. Seven governance browser checks passed at the preceding recovery checkpoint. These are targeted/component results, not installed Phase 16 release acceptance.
+
+Phase 16 still requires procurement and notification/task integration, bounded parallel dispatch, remaining designer work, installed business scenarios, outage/provider-substitution acceptance, final full regressions, candidate packaging and a data-preserving upgrade before tagging v0.16.0.
+
+## Operational and production boundaries
+
+Live Shopify and Printify **read-only catalog connectivity** was exercised during Phase 15 acceptance. That historical result does not guarantee current credentials or service availability, and does not verify paid orders, production, shipping or live end-to-end commerce. Production/fulfillment demonstrations used explicit simulators and synthetic data. One historical Printify profile remained unavailable while the active profile passed.
+
+AI findings require evidence review and established authorization; models do not grant permissions or execute arbitrary business actions. Unknown costs remain unknown, and estimates are not realized profit. Local-model output is nondeterministic and may fail safely. Source leases can expire and hide findings from current views while preserving immutable history.
+
+Preserve identities, secrets, module authority and original provider obligations. Never commit `.steward` private deployments or credentials, rewrite applied migrations, or silently transfer uncertain production work to another provider. Full offline enrollment remains deferred. Passing MVP acceptance does not establish commercial production readiness, HMIS certification, or financial/regulatory certification.
