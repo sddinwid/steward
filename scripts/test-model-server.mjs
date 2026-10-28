@@ -8,6 +8,7 @@ const emptyAttempts=new Map();
 // Explicit protocol-fixture observations only; these are not real-model quality results.
 export const catalogValidationEvents=[];
 export const catalogModelToolViews=[];
+export const catalogRecommendationViews=[];
 export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_TLS_KEY_FILE??'/run/secrets/tls_key'),cert:readFileSync(process.env.STEWARD_FIXTURE_TLS_CERT_FILE??'/run/secrets/tls_cert')},(req,res)=>{
  if(req.headers.authorization!=='Bearer '+key){res.writeHead(401);return res.end('{}');}
  let raw='';req.on('data',c=>{raw+=c;if(raw.length>1000000)req.destroy();});req.on('end',()=>{
@@ -24,12 +25,14 @@ export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_T
    if(prompt.includes('[fixture:loop]'))return calls([{name:'list_entities',arguments:{}}]);
    if(prompt.includes('[fixture:budget]'))return calls([{name:'query_resource_matches',arguments:{limit:1,offset:results.length}}]);
    if(b.instructions.includes('CATALOG RECOMMENDATION STEP')){
-    const original=b.input.filter(v=>v.role==='user').map(v=>v.content).join(' '),prefix='CATALOG RECOMMENDATION EVIDENCE: ',frame=b.input.find(v=>v.role==='user'&&v.content.startsWith(prefix));if(!frame)throw Error('Validated Catalog recommendation evidence missing');const data=JSON.parse(frame.content.slice(prefix.length).split('\n')[0]),best=data.calculation.groups.flatMap(g=>g.ranked??[]).find(r=>r.rank===1);if(!best)throw Error('Ranked observed opportunity missing');
+    const original=String(b.model??''),prefix='CATALOG RECOMMENDATION EVIDENCE: ',frame=b.input.find(v=>v.role==='user'&&v.content.startsWith(prefix));if(!frame)throw Error('Validated qualitative Catalog recommendation evidence missing');const data=JSON.parse(frame.content.slice(prefix.length).split('\n')[0]),best=data.opportunity;if(!best?.reference||!best.entityName||!best.name)throw Error('Exact observed qualitative opportunity missing');catalogRecommendationViews.push({model:b.model,input:structuredClone(b.input),instructions:b.instructions,tools:structuredClone(b.tools??[]),data:structuredClone(data)});
     if(original.includes('[fixture:catalog-recommendation-provider-error]')){res.writeHead(503);return res.end('{}');}
     if(original.includes('[fixture:catalog-recommendation-timeout]'))return;
     if(original.includes('[fixture:catalog-recommendation-malformed]'))return respond([{type:'message',role:'assistant',content:[{type:'output_text',text:'not valid JSON'}]}]);
     if(original.includes('[fixture:catalog-recommendation-tool]'))return calls([{name:'query_catalog_summary',arguments:{}}]);
     let narrative='TEST MODEL: Consider reviewing '+best.entityName+' / '+best.name+' for a conditional pricing/cost opportunity, subject to fresh source leases, unverified product/supplier identity and separate entity human approval. No operational decision was executed.';
+    if(original.includes('[fixture:catalog-recommendation-generic-opportunity]'))narrative='TEST MODEL: Consider reviewing the supplied opportunity and its declared cost assumptions, subject to captured leases, unknown product and supplier identity, and separate entity human approval.';
+    if(original.includes('[fixture:catalog-recommendation-shared-name]'))narrative='TEST MODEL: Consider reviewing '+best.name+' and its declared cost assumptions, subject to captured leases, unknown product and supplier identity, and separate entity human approval.';
     if(original.includes('[fixture:catalog-recommendation-no-advice]'))narrative='TEST MODEL: Conditional source facts remain retained; current leases and unknown identity require separate human consent.';
     if(original.includes('[fixture:catalog-recommendation-wrong-amount]'))narrative+=' Invented cost USD 999999.00.';
     if(original.includes('[fixture:catalog-recommendation-execution]'))narrative+=' We have purchased the production order.';
