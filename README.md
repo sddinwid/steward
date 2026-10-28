@@ -22,6 +22,8 @@ Phase 15 Catalog and Pricing work is in progress on `codex/phase15-catalog-prici
 
 The [prospective contribution methodology](docs/phase15-contribution-methodology.md) describes the in-progress cost scenarios, exact arithmetic, explicit assumptions and historical revenue boundary.
 
+The [reviewed Master intelligence guide](docs/phase15-master-intelligence.md) describes explicit analytical publications, exact Worker-scoped evidence, bounded reports, deterministic comparison and scientific descriptive statistics. Phase 15 deployment, MCP/Qwen and release acceptance remain in progress.
+
 ## Shopify development stores
 
 The existing Shopify adapter supports read-only organization-owned development-store authentication and catalog preparation. See [setup and current Shopify requirements](docs/shopify-development-store.md) and [actual verification/blockers](docs/shopify-live-verification.md). Simulator functionality and the SSDS module renderer are preserved. No live Shopify connectivity or commercial OAuth installation is claimed without its separate verification.

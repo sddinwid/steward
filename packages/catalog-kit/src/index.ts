@@ -10,3 +10,5 @@ export * from './external-catalog.js';
 export * from './cost-evidence.js';
 
 export * from './contribution.js';
+
+export * from './intelligence.js';

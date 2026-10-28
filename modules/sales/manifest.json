@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.15.0",
@@ -183,6 +183,106 @@
       "method": "GET",
       "path": "/simulation-datasets",
       "permission": "cee.sales.simulate"
+    },
+    {
+      "operationId": "listAnalyticalAttribution",
+      "method": "GET",
+      "path": "/analytical-attributions",
+      "permission": "cee.sales.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createAnalyticalAttribution",
+      "method": "POST",
+      "path": "/analytical-attributions",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "updateAnalyticalAttribution",
+      "method": "PUT",
+      "path": "/analytical-attributions/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "reviewAttribution",
+      "method": "POST",
+      "path": "/review-attribution/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "withdrawAttribution",
+      "method": "POST",
+      "path": "/withdraw-attribution/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "listAnalyticalPublication",
+      "method": "GET",
+      "path": "/analytical-overview",
+      "permission": "cee.sales.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createAnalyticalPublication",
+      "method": "POST",
+      "path": "/analytical-publications",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "updateAnalyticalPublication",
+      "method": "PUT",
+      "path": "/analytical-publications/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "publishAnalytical",
+      "method": "POST",
+      "path": "/publish-analytical/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "withdrawAnalytical",
+      "method": "POST",
+      "path": "/withdraw-analytical/:id",
+      "permission": "cee.sales.publish"
+    },
+    {
+      "operationId": "analyticalSaleLines",
+      "method": "GET",
+      "path": "/analytical-sale-lines",
+      "permission": "cee.sales.read",
+      "query": [
+        "limit",
+        "offset",
+        "q"
+      ]
+    },
+    {
+      "operationId": "analyticalCatalogSubjects",
+      "method": "GET",
+      "path": "/analytical-catalog-subjects",
+      "permission": "cee.sales.read",
+      "query": [
+        "limit",
+        "offset",
+        "q"
+      ]
+    },
+    {
+      "operationId": "refreshAnalyticalCatalog",
+      "method": "POST",
+      "path": "/refresh-analytical-catalog/:id",
+      "permission": "cee.sales.catalog"
     },
     {
       "operationId": "priceReconciliation",
@@ -899,6 +999,189 @@
       ]
     },
     {
+      "screenId": "analytical-attributions",
+      "title": "Reviewed Analytical Sales Attribution",
+      "navigationLabel": "Reviewed Analytical Sales Attribution",
+      "navigationGroup": "Sales & Orders",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listAnalyticalAttribution",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Creation request reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "lineChoiceId",
+          "label": "Original immutable accepted merchandise line",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "reference": {
+            "operationId": "analyticalSaleLines",
+            "valueField": "id",
+            "labelField": "choiceLabel"
+          }
+        },
+        {
+          "name": "catalogSubjectId",
+          "label": "Verified reviewed Catalog offering or variant",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "reference": {
+            "operationId": "analyticalCatalogSubjects",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "reason",
+          "label": "Human attribution reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 1000,
+          "format": "multiline"
+        },
+        {
+          "name": "status",
+          "label": "Attribution review status",
+          "type": "string",
+          "required": false,
+          "maxLength": 80,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "lineChoiceId",
+        "catalogSubjectId",
+        "status",
+        "reason"
+      ],
+      "createOperation": "createAnalyticalAttribution",
+      "updateOperation": "updateAnalyticalAttribution",
+      "actions": [
+        {
+          "label": "Review analytical attribution",
+          "operationId": "reviewAttribution",
+          "confirmation": "Review this exact immutable accepted line and verified original Catalog definition for analytical attribution only? This cannot change accepted prices, manufacture Pricing authority at acceptance, reserve stock or merge offerings by matching names or SKUs."
+        },
+        {
+          "label": "Withdraw analytical attribution",
+          "operationId": "withdrawAttribution",
+          "confirmation": "Withdraw this attribution from future analytical publications? Original accepted line prices and retained publication evidence remain unchanged."
+        }
+      ]
+    },
+    {
+      "screenId": "analytical-publications",
+      "title": "Reviewed Sales Analytical Publications",
+      "navigationLabel": "Reviewed Sales Analytical Publications",
+      "navigationGroup": "Sales & Orders",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listAnalyticalPublication",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Creation request reference",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "generate": "uuid"
+        },
+        {
+          "name": "lineChoiceId",
+          "label": "Original immutable accepted merchandise line",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "reference": {
+            "operationId": "analyticalSaleLines",
+            "valueField": "id",
+            "labelField": "choiceLabel"
+          }
+        },
+        {
+          "name": "purpose",
+          "label": "Intended analytical audience",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "enum": [
+            "business",
+            "simulation"
+          ]
+        },
+        {
+          "name": "reviewReason",
+          "label": "Human analytical disclosure reason",
+          "type": "string",
+          "required": true,
+          "maxLength": 1000,
+          "format": "multiline"
+        },
+        {
+          "name": "validUntil",
+          "label": "Requested analytical disclosure validity end",
+          "type": "string",
+          "required": true,
+          "maxLength": 80,
+          "format": "date-time"
+        },
+        {
+          "name": "currentStatus",
+          "label": "Current publication availability",
+          "type": "string",
+          "required": false,
+          "maxLength": 80,
+          "readOnly": true
+        },
+        {
+          "name": "publicationRevision",
+          "label": "Publication revision",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sourceSnapshot",
+          "label": "Accepted line and analytical source snapshot",
+          "type": "string",
+          "required": false,
+          "maxLength": 80,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "lineChoiceId",
+        "purpose",
+        "currentStatus",
+        "validUntil",
+        "publicationRevision",
+        "reviewReason",
+        "sourceSnapshot"
+      ],
+      "createOperation": "createAnalyticalPublication",
+      "updateOperation": "updateAnalyticalPublication",
+      "actions": [
+        {
+          "label": "Review and publish Sales snapshot",
+          "operationId": "publishAnalytical",
+          "confirmation": "Publish this exact accepted merchandise line and its reviewed Catalog attribution to authorized analytics? Fulfilled merchandise amounts are captured as of the snapshot; refunds and actual historical contribution remain unknown without allocation evidence. No accepted amount or operational obligation changes."
+        },
+        {
+          "label": "Withdraw Sales snapshot",
+          "operationId": "withdrawAnalytical",
+          "confirmation": "Withdraw this analytical disclosure for future current views? Original accepted order prices, fulfillments and historical publication evidence remain retained."
+        }
+      ]
+    },
+    {
       "screenId": "governed-orders",
       "title": "Governed Order Drafts",
       "navigationLabel": "Governed Order Drafts",
@@ -1213,6 +1496,11 @@
           "label": "Refresh exact operational reference",
           "operationId": "refreshSalesSubject",
           "confirmation": "Request a fresh exact offering and operational-reference read from this observation's original provider? Unsupported or ambiguous stock routing remains blocked."
+        },
+        {
+          "label": "Read reviewed Catalog classification",
+          "operationId": "refreshAnalyticalCatalog",
+          "confirmation": "Read the exact current human-reviewed Catalog publication from this original provider? This supports analytical classification only and grants no price, stock or programme authority."
         }
       ]
     },
@@ -1606,12 +1894,19 @@
         "maximum": 300,
         "default": 60,
         "description": "Maximum lifetime of a human confirmation intent awaiting fresh scoped Pricing authorization."
+      },
+      "analyticalCatalogMaxAgeSeconds": {
+        "type": "integer",
+        "minimum": 10,
+        "maximum": 3600,
+        "default": 300,
+        "description": "Maximum accepted age of a reviewed Catalog classification read. Tightening applies to cached reads; increasing this setting never extends their captured source expiry."
       }
     }
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 8,
+    "schemaVersion": 9,
     "migrations": [
       {
         "version": 1,
@@ -1644,6 +1939,10 @@
       {
         "version": 8,
         "sha256": "7a05648ee69c3b620f64b4a56c0852904a44a62647fbf6fe96dcafe12b2ae7ea"
+      },
+      {
+        "version": 9,
+        "sha256": "37bf01d4675ea2b69b415f1cdc4aae1096a5a90e193fe481d73b7f13833ae66d"
       }
     ],
     "destructiveRollback": false
@@ -1677,6 +1976,10 @@
     },
     {
       "name": "sales.period-report",
+      "version": 1
+    },
+    {
+      "name": "catalog-pricing-intelligence",
       "version": 1
     }
   ],
@@ -1761,6 +2064,17 @@
       {
         "streamId": "commerce_orders",
         "table": "commerce_orders",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "sales_publications_v1",
+        "table": "sales_publications",
         "idColumn": "id",
         "revisionColumn": "revision",
         "columns": [
@@ -3924,6 +4238,718 @@
         "events": [],
         "maximumSensitivity": "business",
         "optional": false
+      },
+      {
+        "capabilityId": "catalog.publications.read",
+        "contract": "steward.catalog-publications",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "catalog.publication.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offeringId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "variantId": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "offeringRevision": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                },
+                "variantRevision": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 2147483647
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offeringId",
+                "variantId",
+                "offeringRevision",
+                "variantRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "found",
+                    "not_found",
+                    "unavailable"
+                  ]
+                },
+                "publication": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "id": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 2147483647
+                        },
+                        "entityId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "installationId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "moduleId": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 120,
+                          "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                        },
+                        "provider": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "workerInstallationId": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "entityId": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "moduleId": {
+                              "type": "string",
+                              "minLength": 3,
+                              "maxLength": 120,
+                              "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                            },
+                            "moduleInstallationId": {
+                              "type": "string",
+                              "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                            },
+                            "packageDigest": {
+                              "type": "string",
+                              "pattern": "^[a-f0-9]{64}$"
+                            }
+                          },
+                          "required": [
+                            "workerInstallationId",
+                            "entityId",
+                            "moduleId",
+                            "moduleInstallationId",
+                            "packageDigest"
+                          ]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "published",
+                            "withdrawn"
+                          ]
+                        },
+                        "purpose": {
+                          "type": "string",
+                          "enum": [
+                            "business",
+                            "simulation"
+                          ]
+                        },
+                        "containsSimulator": {
+                          "type": "boolean"
+                        },
+                        "originCoverage": {
+                          "type": "string",
+                          "enum": [
+                            "complete",
+                            "unknown"
+                          ]
+                        },
+                        "publishedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "validUntil": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "reviewedBy": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "reviewReason": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 1000,
+                          "pattern": "\\S"
+                        },
+                        "withdrawnAt": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 20,
+                              "maxLength": 35,
+                              "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "withdrawalReason": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 1000,
+                              "pattern": "\\S"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "kind": {
+                          "const": "catalog"
+                        },
+                        "body": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "subject": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "kind": {
+                                  "const": "catalog"
+                                },
+                                "offeringId": {
+                                  "type": "string",
+                                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                },
+                                "variantId": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "offeringRevision": {
+                                  "type": "integer",
+                                  "minimum": 1,
+                                  "maximum": 2147483647
+                                },
+                                "variantRevision": {
+                                  "anyOf": [
+                                    {
+                                      "type": "integer",
+                                      "minimum": 1,
+                                      "maximum": 2147483647
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "provider": {
+                                  "type": "object",
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "contractVersion": {
+                                      "const": 1
+                                    },
+                                    "workerInstallationId": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                    },
+                                    "entityId": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                    },
+                                    "moduleId": {
+                                      "type": "string",
+                                      "minLength": 3,
+                                      "maxLength": 120,
+                                      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$"
+                                    },
+                                    "moduleInstallationId": {
+                                      "type": "string",
+                                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                    },
+                                    "packageDigest": {
+                                      "type": "string",
+                                      "pattern": "^[a-f0-9]{64}$"
+                                    }
+                                  },
+                                  "required": [
+                                    "contractVersion",
+                                    "workerInstallationId",
+                                    "entityId",
+                                    "moduleId",
+                                    "moduleInstallationId",
+                                    "packageDigest"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "kind",
+                                "offeringId",
+                                "variantId",
+                                "offeringRevision",
+                                "variantRevision",
+                                "provider"
+                              ]
+                            },
+                            "offeringType": {
+                              "type": "string",
+                              "enum": [
+                                "physical",
+                                "digital",
+                                "service",
+                                "subscription",
+                                "rental",
+                                "bundle"
+                              ]
+                            },
+                            "name": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 160,
+                              "pattern": "\\S"
+                            },
+                            "code": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 80,
+                              "pattern": "\\S"
+                            },
+                            "variantName": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 160,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "variantCode": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 80,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "offeringStatus": {
+                              "type": "string",
+                              "enum": [
+                                "draft",
+                                "active",
+                                "inactive",
+                                "archived"
+                              ]
+                            },
+                            "variantStatus": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "enum": [
+                                    "draft",
+                                    "active",
+                                    "inactive",
+                                    "archived"
+                                  ]
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "unitOfMeasure": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "categories": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "additionalProperties": false,
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                                  },
+                                  "revision": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 2147483647
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 160,
+                                    "pattern": "\\S"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "revision",
+                                  "name"
+                                ]
+                              },
+                              "minItems": 0,
+                              "maxItems": 20
+                            },
+                            "attributes": {
+                              "type": "array",
+                              "items": {
+                                "oneOf": [
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "scope": {
+                                        "type": "string",
+                                        "enum": [
+                                          "offering",
+                                          "variant"
+                                        ]
+                                      },
+                                      "key": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 80,
+                                        "pattern": "\\S"
+                                      },
+                                      "type": {
+                                        "const": "text"
+                                      },
+                                      "value": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 512,
+                                        "pattern": "\\S"
+                                      }
+                                    },
+                                    "required": [
+                                      "scope",
+                                      "key",
+                                      "type",
+                                      "value"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "scope": {
+                                        "type": "string",
+                                        "enum": [
+                                          "offering",
+                                          "variant"
+                                        ]
+                                      },
+                                      "key": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 80,
+                                        "pattern": "\\S"
+                                      },
+                                      "type": {
+                                        "const": "choice"
+                                      },
+                                      "value": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 512,
+                                        "pattern": "\\S"
+                                      }
+                                    },
+                                    "required": [
+                                      "scope",
+                                      "key",
+                                      "type",
+                                      "value"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "scope": {
+                                        "type": "string",
+                                        "enum": [
+                                          "offering",
+                                          "variant"
+                                        ]
+                                      },
+                                      "key": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 80,
+                                        "pattern": "\\S"
+                                      },
+                                      "type": {
+                                        "const": "number"
+                                      },
+                                      "value": {
+                                        "type": "number",
+                                        "minimum": -1000000000000,
+                                        "maximum": 1000000000000
+                                      }
+                                    },
+                                    "required": [
+                                      "scope",
+                                      "key",
+                                      "type",
+                                      "value"
+                                    ]
+                                  },
+                                  {
+                                    "type": "object",
+                                    "additionalProperties": false,
+                                    "properties": {
+                                      "scope": {
+                                        "type": "string",
+                                        "enum": [
+                                          "offering",
+                                          "variant"
+                                        ]
+                                      },
+                                      "key": {
+                                        "type": "string",
+                                        "minLength": 1,
+                                        "maxLength": 80,
+                                        "pattern": "\\S"
+                                      },
+                                      "type": {
+                                        "const": "boolean"
+                                      },
+                                      "value": {
+                                        "type": "boolean"
+                                      }
+                                    },
+                                    "required": [
+                                      "scope",
+                                      "key",
+                                      "type",
+                                      "value"
+                                    ]
+                                  }
+                                ]
+                              },
+                              "minItems": 0,
+                              "maxItems": 12
+                            },
+                            "omittedAttributeCount": {
+                              "type": "integer",
+                              "minimum": 0,
+                              "maximum": 64
+                            },
+                            "promotionEligibility": {
+                              "type": "boolean"
+                            },
+                            "promotionGroups": {
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 80,
+                                "pattern": "\\S"
+                              },
+                              "minItems": 0,
+                              "maxItems": 20
+                            },
+                            "mappingHealth": {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "verified": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000000
+                                },
+                                "proposed": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000000
+                                },
+                                "conflict": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000000
+                                },
+                                "inactive": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000000
+                                },
+                                "unavailable": {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 100000000
+                                }
+                              },
+                              "required": [
+                                "verified",
+                                "proposed",
+                                "conflict",
+                                "inactive",
+                                "unavailable"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "subject",
+                            "offeringType",
+                            "name",
+                            "code",
+                            "variantName",
+                            "variantCode",
+                            "offeringStatus",
+                            "variantStatus",
+                            "unitOfMeasure",
+                            "categories",
+                            "attributes",
+                            "omittedAttributeCount",
+                            "promotionEligibility",
+                            "promotionGroups",
+                            "mappingHealth"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "id",
+                        "revision",
+                        "entityId",
+                        "installationId",
+                        "moduleId",
+                        "provider",
+                        "status",
+                        "purpose",
+                        "containsSimulator",
+                        "originCoverage",
+                        "publishedAt",
+                        "validUntil",
+                        "reviewedBy",
+                        "reviewReason",
+                        "withdrawnAt",
+                        "withdrawalReason",
+                        "kind",
+                        "body"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "reason": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "pattern": "\\S"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "observedAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 35,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "minLength": 20,
+                  "maxLength": 35,
+                  "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "status",
+                "publication",
+                "reason",
+                "observedAt",
+                "expiresAt"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true,
+        "configuration": {
+          "governedCatalogEnabled": true
+        }
       },
       {
         "capabilityId": "catalog.offerings.read",

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.pricing.management",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "name": "Pricing Management",
   "description": "Independent entity-owned price lists, immutable proposals, separate human reviews and activation, deterministic resolution and historical evidence. No external publishing or payment execution.",
   "minimumPlatformVersion": "0.15.0",
@@ -15,6 +15,36 @@
     "reviewerPermission": "steward.pricing.management.review"
   },
   "api": [
+    {
+      "operationId": "listAnalyticalPublication",
+      "method": "GET",
+      "path": "/analytical-overview",
+      "permission": "steward.pricing.management.read",
+      "query": [
+        "limit",
+        "offset",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createAnalyticalPublication",
+      "method": "POST",
+      "path": "/analytical-publications",
+      "permission": "steward.pricing.management.configure"
+    },
+    {
+      "operationId": "publishAnalytical",
+      "method": "POST",
+      "path": "/publish-analytical/:id",
+      "permission": "steward.pricing.management.review"
+    },
+    {
+      "operationId": "withdrawAnalytical",
+      "method": "POST",
+      "path": "/withdraw-analytical/:id",
+      "permission": "steward.pricing.management.configure"
+    },
     {
       "operationId": "listPriceList",
       "method": "GET",
@@ -478,9 +508,169 @@
       "navigationGroup": "Pricing Management",
       "workspace": "business",
       "formVersion": 1,
-      "listOperation": "pricingOverview",
-      "fields": [],
-      "columns": []
+      "listOperation": "listAnalyticalPublication",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Creation request reference",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Analytical publication name",
+          "type": "string",
+          "required": true,
+          "maxLength": 160
+        },
+        {
+          "name": "modelId",
+          "label": "Reviewed cost model",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listCostModel",
+            "valueField": "id",
+            "labelField": "name",
+            "currencyField": "currency"
+          }
+        },
+        {
+          "name": "quantity",
+          "label": "Prospective evaluated quantity",
+          "type": "number",
+          "required": true,
+          "minimum": 1,
+          "maximum": 100000000,
+          "default": 1
+        },
+        {
+          "name": "shipmentCount",
+          "label": "Explicit planned shipment count",
+          "type": "number",
+          "required": false,
+          "minimum": 1,
+          "maximum": 100000000
+        },
+        {
+          "name": "currency",
+          "label": "Scenario currency (derived from selected model)",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "USD",
+            "EUR",
+            "GBP",
+            "CAD",
+            "AUD",
+            "CHF"
+          ]
+        },
+        {
+          "name": "scenarioUnitPriceCents",
+          "label": "Optional prospective scenario unit price",
+          "type": "number",
+          "required": false,
+          "minimum": 0,
+          "maximum": 1000000000000,
+          "format": "money"
+        },
+        {
+          "name": "promotionId",
+          "label": "Promotion context (approved rules only)",
+          "type": "string",
+          "required": false,
+          "reference": {
+            "operationId": "listPromotion",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "purpose",
+          "label": "Intended analytical audience",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "business",
+            "simulation"
+          ]
+        },
+        {
+          "name": "validUntil",
+          "label": "Requested validity end (before current price and cost leases)",
+          "type": "string",
+          "required": true,
+          "format": "date-time"
+        },
+        {
+          "name": "reason",
+          "label": "Human analytical disclosure reason",
+          "type": "string",
+          "required": true,
+          "format": "multiline",
+          "maxLength": 1000
+        },
+        {
+          "name": "reviewCount",
+          "label": "Recorded distinct reviews",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "requiredReviews",
+          "label": "Required distinct reviews",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "currentStatus",
+          "label": "Current publication availability",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "classification",
+          "label": "Retained source classification",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Publication lifecycle",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "currentStatus",
+        "reviewCount",
+        "requiredReviews",
+        "classification",
+        "validUntil",
+        "reason"
+      ],
+      "createOperation": "createAnalyticalPublication",
+      "currencyReference": "modelId",
+      "actions": [
+        {
+          "label": "Record analytical review and publish at quorum",
+          "operationId": "publishAnalytical",
+          "confirmation": "Record your review of this exact prospective price and cost evidence? Publication waits for the required distinct current reviewers and separation of duties. This publishes a bounded immutable snapshot only and grants no price, financial, purchasing or production authority. Source and current reviewer permissions are checked again."
+        },
+        {
+          "label": "Withdraw analytical snapshot",
+          "operationId": "withdrawAnalytical",
+          "confirmation": "Withdraw this analytical disclosure for future current views? Retained source facts, historical publication evidence and accepted transaction prices remain unchanged."
+        }
+      ]
     },
     {
       "screenId": "price-lists",
@@ -2923,7 +3113,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 2,
+    "schemaVersion": 3,
     "migrations": [
       {
         "version": 1,
@@ -2932,12 +3122,48 @@
       {
         "version": 2,
         "sha256": "1a91113c5b3986ad79ee8e34f45d58c4060b730e98542182d682e262b41e4eab"
+      },
+      {
+        "version": 3,
+        "sha256": "17b2616f36476c73a3b8b45ba31c6f3cf7f4e87dc174a78ad8c188854bc86299"
       }
     ],
     "destructiveRollback": false
   },
   "integrationEvents": [],
-  "analyticalCapabilities": [],
+  "analyticalCapabilities": [
+    {
+      "name": "catalog-pricing-intelligence",
+      "version": 1
+    }
+  ],
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "pricing_publications_v1",
+        "table": "pricing_analytical_publications",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "pricing_evidence_v1",
+        "table": "pricing_analytical_evidence",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  },
   "integration": {
     "version": 1,
     "outboxPath": "/integration-outbox",

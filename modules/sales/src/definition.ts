@@ -1,3 +1,4 @@
+import {attachSalesPublications} from './publications.js';
 import {simulationSales} from './simulation.js';
 import {simulationContracts} from '@steward/simulation-kit';
 import {financialAssessment,intelligence,exceptions} from './intelligence.js';
@@ -7,7 +8,7 @@ import {contracts} from '@steward/commerce-kit';
 import {acceptPrice,attachAccepted,knownLines,recordSourceObservation,reconciliation,priceReconciliation} from './accepted-price.js';
 import {governedResources,governedActions,governedQueries,governedAcknowledge,governedStock} from './governed-order.js';
 export function sales(manifest: ModulePackageManifest): Definition {
-    return simulationSales({ manifest, resources: [...governedResources,financialAssessment,priceReconciliation,
+    return attachSalesPublications(simulationSales({ manifest, resources: [...governedResources,financialAssessment,priceReconciliation,
             { kind: 'customer', path: '/customers', key: 'code', schema: object({ code: text(60), name: text(), reference: text(120) }) },
             { kind: 'order', path: '/orders', key: 'number', schema: object({ number: text(80), customerCode: text(60), currency: text(3), lines: lines() }), prepare: async (b, p, ctx) => {
                     ensure(!p || p.data.status === 'draft', 'Only draft sales orders can be edited');
@@ -93,7 +94,7 @@ export function sales(manifest: ModulePackageManifest): Definition {
             else if(command.command==='fulfillment.submit')await save(ctx,'order',order.key,{...order.data,productionStatus:status==='delivered'?'awaiting_authorization':'intent_rejected',productionJobId:result.jobId??null,productionProviderId:result._steward?.providerModuleId??null},order);
             else if(command.command==='fulfillment.cancel'){if(status==='delivered'&&result.canceled){await stock(ctx,order,'stock.release',{orderId:order.id});await save(ctx,'order',order.key,{...order.data,status:'canceled',stockStatus:'release_pending',productionStatus:'canceled'},order);}else await save(ctx,'order',order.key,{...order.data,reconciliationRequired:true},order);}
             else if(command.command==='channel.fulfillment')await save(ctx,'order',order.key,{...order.data,channelDeliveryStatus:status==='delivered'?'queued':'rejected'},order);
-        },receive:receiveCommerce,queries:[...governedQueries,{path:'/price-reconciliation',run:reconciliation},{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) });
+        },receive:receiveCommerce,queries:[...governedQueries,{path:'/price-reconciliation',run:reconciliation},{path:'/commerce-intelligence',run:intelligence},{path:'/commerce-exceptions',run:exceptions},{path:'/sales-period',run:(ctx,query)=>salesReport(ctx,query)}],report:(ctx)=>salesReport(ctx) }));
 }
 async function salesReport(ctx:Context,query:Record<string,string>={}){
     const timestamp=(value:string|undefined)=>{if(value===undefined)return null;ensure(Number.isFinite(Date.parse(value)),'Invalid reporting timestamp',400);return new Date(value).toISOString();};

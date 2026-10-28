@@ -1,0 +1,14 @@
+-- Explicit analytical attribution never rewrites accepted prices or fulfillment.
+CREATE TABLE sales_analytical_attributions(id uuid PRIMARY KEY,order_id uuid NOT NULL,line_key text NOT NULL,terms jsonb NOT NULL,active boolean NOT NULL);
+CREATE UNIQUE INDEX sales_one_active_analytical_attribution ON sales_analytical_attributions(order_id,line_key) WHERE active;
+CREATE FUNCTION sales_attribution_guard() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF TG_OP='DELETE' OR NEW.id<>OLD.id OR NEW.order_id<>OLD.order_id OR NEW.line_key<>OLD.line_key OR NEW.terms<>OLD.terms OR NOT OLD.active OR NEW.active THEN RAISE EXCEPTION 'Reviewed attribution is immutable; only withdrawal is allowed'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER sales_attribution_immutable BEFORE UPDATE OR DELETE ON sales_analytical_attributions FOR EACH ROW EXECUTE FUNCTION sales_attribution_guard();
+CREATE TABLE sales_publications(id uuid PRIMARY KEY,revision integer NOT NULL CHECK(revision>0),projection jsonb NOT NULL CHECK(octet_length(projection::text)<=8000),source_digest text NOT NULL);
+CREATE UNIQUE INDEX sales_one_current_line_publication ON sales_publications((projection->'body'->>'orderId'),(projection->'body'->>'lineKey')) WHERE projection->>'status'='published';
+CREATE TABLE sales_publication_history(id uuid NOT NULL,revision integer NOT NULL,projection jsonb NOT NULL,recorded_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(id,revision));
+CREATE FUNCTION sales_publication_capture_history() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF TG_OP='UPDATE' AND (NEW.id<>OLD.id OR NEW.revision<=OLD.revision) THEN RAISE EXCEPTION 'Publication revision must increase'; END IF; INSERT INTO sales_publication_history(id,revision,projection) VALUES(NEW.id,NEW.revision,NEW.projection); RETURN NEW; END $$;
+CREATE TRIGGER sales_publication_history_capture AFTER INSERT OR UPDATE ON sales_publications FOR EACH ROW EXECUTE FUNCTION sales_publication_capture_history();
+CREATE TRIGGER sales_publication_history_immutable BEFORE UPDATE OR DELETE ON sales_publication_history FOR EACH ROW EXECUTE FUNCTION sales_price_append_only();
+
+CREATE FUNCTION sales_publication_guard() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF TG_OP='DELETE' THEN RAISE EXCEPTION 'Publication history cannot be deleted'; END IF; IF NEW.id<>OLD.id OR NEW.revision<>OLD.revision+1 OR NEW.source_digest<>OLD.source_digest OR OLD.projection->>'status'<>'published' OR NEW.projection->>'status'<>'withdrawn' OR (NEW.projection-ARRAY['revision','status','withdrawnAt','withdrawalReason'])<>(OLD.projection-ARRAY['revision','status','withdrawnAt','withdrawalReason']) THEN RAISE EXCEPTION 'Reviewed publication terms are immutable; only withdrawal is allowed'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER sales_publication_terms_immutable BEFORE UPDATE OR DELETE ON sales_publications FOR EACH ROW EXECUTE FUNCTION sales_publication_guard();

@@ -1,4 +1,5 @@
 import {economicMasterRoutes} from '../economic-routes.js';
+import {catalogIntelligenceRoutes} from '../catalog-intelligence-routes.js';
 import { workspaceRoutes } from '../workspace.js';
 import { mcpRoutes } from '../mcp.js';
 import { analystRoutes } from '../analyst.js';
@@ -33,7 +34,7 @@ export async function createSecureServer(installation: InstallationConfig, datab
     }
   });
   const auth = authentication(app, database.pool, security.publicOrigin);
-  if (installation.role === 'master') {masterRoutes(app, database.pool, auth, installation, key, security.publicOrigin);await missionMasterRoutes(app,database.pool,auth,installation);await economicMasterRoutes(app,database.pool,auth,installation);}
+  if (installation.role === 'master') {masterRoutes(app, database.pool, auth, installation, key, security.publicOrigin);await missionMasterRoutes(app,database.pool,auth,installation);await economicMasterRoutes(app,database.pool,auth,installation);await catalogIntelligenceRoutes(app,database.pool,auth,installation);}
   else {
     await workerRoutes(app, database.pool, auth, installation, key, security);
     if (process.env.STEWARD_MODULES_FILE) await moduleRoutes(app, database.pool, auth, installation, key, process.env.STEWARD_MODULES_FILE,security);

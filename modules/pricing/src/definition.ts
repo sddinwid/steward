@@ -1,3 +1,4 @@
+import {attachAnalyticalPublications} from './analytical.js';
 import {attachCosts} from './costs.js';
 import {randomUUID} from 'node:crypto';
 import {ensure,save,publicRecord,enqueueCapability,type Context,type Data,type Definition,type Resource,type RecordValue} from '@steward/business-kit';
@@ -84,5 +85,5 @@ export function pricing(manifest:ModulePackageManifest):Definition{
   if(command.command==='catalog.discover'){for(const view of body.offerings)await cacheOffering(c,view,p,false);await saveState(c,job,{status:'completed',error:null},'catalog.discovered');return;}
   ensure(body.offering.id===command.payload.offeringId,'Catalog lookup returned another offering',409);const selected=command.payload.variantId as string|null;if(selected)ensure(body.offering.variants.some((v:Data)=>v.id===selected),'Requested Catalog variant unavailable',409);const rows=await cacheOffering(c,body.offering,p,true,body.promotionEligibility,body.promotionGroups,selected);
   if(row.kind==='quote-job'){const expected=job.data.request.subject as CatalogPriceSubject,actual=rows.find(r=>r.data.subject.variantId===expected.variantId);if(!actual||!equal(actual.data.subject,expected)||body.offering.status!=='active'||actual.data.variantStatus!==null&&actual.data.variantStatus!=='active'){await complete(c,job,{resolution:{contractVersion:1,requestId:job.data.request.requestId,status:'source_changed',evaluatedAt:stamp(),decision:null,candidates:[],reason:'Original Catalog provider, offering, variant, revision or lifecycle changed'},evidence:{expected,actual:actual?.data,decisionExecuted:false}});return;}await complete(c,job,await resolve(c,job.data.request,{catalogRow:actual}));}else await saveState(c,job,{status:'completed',subjectIds:rows.map(r=>r.id),error:null},'catalog.verified');
- }};return attachCosts(d);
+ }};return attachAnalyticalPublications(attachCosts(d));
 }
