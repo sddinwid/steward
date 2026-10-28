@@ -1,6 +1,6 @@
 # Phase 15 verification
 
-Phase 15 release verification remains in progress; no v0.15.0 tag exists. The original selected operator has been upgraded in place to candidate source `29b18a2`, with Catalog 1.4.0 and Pricing 1.3.1 installed independently on all three Workers. Its identities, credentials, authoritative records and volumes are retained. Historical checkpoint entries below describe their state at the time, not the current deployment. Final native narrative review, clean installation, uninterrupted regressions and release promotion remain mandatory.
+Final functional acceptance passed on candidate source `4c07ffb0980e891f917f1755ff380e4241219f40`. The original selected operator is on this candidate with Catalog 1.4.0 and Pricing 1.3.1 on all three Workers; identities, credentials, records and seven volumes are retained. See [final acceptance](phase15-final-acceptance.md) for current results and limitations. Historical entries below retain their original checkpoint status. All eighteen mandatory acceptance gates and the evidence archive have passed; gated local promotion/tagging are the remaining release-control steps.
 
 ## Baseline
 

@@ -1,115 +1,259 @@
 {
   "$schema": "./phase15-release-gates.schema.json",
   "version": "0.15.0",
-  "status": "unverified",
+  "status": "passed",
+  "sourceCommit": "4c07ffb0980e891f917f1755ff380e4241219f40",
+  "verifiedCandidateManifestSha256": "0ca5b4b00d47753f7049f509238f6537c9791644fc69b6aaa3ef100ded838478",
   "gates": [
     {
       "id": "contracts",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-b-contract-tests.log",
+        "artifacts/phase15-c-contract-tests.log",
+        "artifacts/phase15-d-contracts.log",
+        "artifacts/phase15-source-migrations.json",
+        "artifacts/phase15j-full-regressions-4c07ffb.log"
+      ]
     },
     {
       "id": "catalog",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-b-catalog-tests.log",
+        "artifacts/phase15-c-catalog-tests.log",
+        "artifacts/phase15b-catalog-browser.json",
+        "artifacts/phase15b-catalog-package/b58063d2-98c8-471f-88fc-9eed595c7651/acceptance.json",
+        "artifacts/phase15i-catalog.json",
+        "artifacts/phase15j-full-regressions-4c07ffb.log",
+        "artifacts/phase15j-clean-modules-4c07ffb.json"
+      ]
     },
     {
       "id": "pricing",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-c-pricing-tests.log",
+        "artifacts/phase15c-pricing-browser.json",
+        "artifacts/phase15c-pricing-package/09608b60-c24e-4fb8-bd7e-aad5feb88aec/acceptance.json",
+        "artifacts/phase15i-pricing-controls.json",
+        "artifacts/phase15j-pricing131-upgrade-0ab4de8.json",
+        "artifacts/phase15j-full-regressions-4c07ffb.log",
+        "artifacts/phase15j-clean-modules-4c07ffb.json"
+      ]
     },
     {
       "id": "commerce",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-d-operational.log",
+        "artifacts/phase15-d-sales-final.log",
+        "artifacts/phase15d-sales-catalog-browser.json",
+        "artifacts/phase15i-governed-sales.json",
+        "artifacts/phase15i-operational-stock.json"
+      ]
     },
     {
       "id": "external-catalog",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-e-external-catalog-domain.log",
+        "artifacts/phase15-e-providers-final.log",
+        "artifacts/phase15-live-catalog.json",
+        "artifacts/phase15e-external-catalog-browser.json",
+        "artifacts/phase15i-external-discovery.json",
+        "artifacts/phase15i-external-import.json",
+        "artifacts/phase15j-live-catalog-final.json"
+      ]
     },
     {
       "id": "contribution",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-f-contribution-oracle.log",
+        "artifacts/phase15-f-provider-context.log",
+        "artifacts/phase15-f-provider-costs.log",
+        "artifacts/phase15f-contribution-browser.json",
+        "artifacts/phase15i-procurement-cost.json"
+      ]
     },
     {
       "id": "intelligence",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-g-master-security.log",
+        "artifacts/phase15-g-reports-tests.log",
+        "artifacts/phase15g-intelligence-browser.json",
+        "artifacts/phase15g-master-browser.json",
+        "artifacts/phase15i-analytical-review-sales800.json"
+      ]
     },
     {
       "id": "analyst",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-h-catalog-analyst.json",
+        "artifacts/phase15-h-findings.log",
+        "artifacts/phase15i-installed-qwen-recommend-review-finalized.json",
+        "artifacts/phase15i-installed-qwen-recommend-review-independent.json",
+        "artifacts/phase15i-installed-qwen-recommend-review.json",
+        "artifacts/phase15i-recommend-review-root-inspection.json",
+        "artifacts/phase15j-basis-validation-tests.log",
+        "artifacts/phase15j-catalog-protocol-after-dispatch.log",
+        "artifacts/phase15j-native-final-basis-revalidation.json",
+        "artifacts/phase15j-native-preservation-readback-4c07ffb.json",
+        "artifacts/phase15j-native-runtime-equivalence-4c07ffb.json",
+        "artifacts/phase15i-recommend-review-browser.json"
+      ]
     },
     {
       "id": "synthetic-demonstration",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-outage-retry.json",
+        "artifacts/phase15i-governed-sales.json",
+        "artifacts/phase15i-installed-qwen-recommend-review-finalized.json",
+        "artifacts/phase15i-recommend-review-browser.json",
+        "artifacts/phase15i-service-cohort-recommend-review.json"
+      ]
     },
     {
       "id": "security",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-f-provider-context.log",
+        "artifacts/phase15-g-master-security.log",
+        "artifacts/phase15-h-findings.log",
+        "artifacts/phase15-secret-scan-6ef8d1cb-74c7-422f-8a93-ef81c6450aca.json",
+        "artifacts/phase15-source-migrations.json",
+        "artifacts/phase15j-native-preservation-readback-4c07ffb.json",
+        "artifacts/phase15j-final-extracted-secret-scan.json",
+        "artifacts/phase15j-full-regressions-4c07ffb.log"
+      ]
     },
     {
       "id": "financial",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-c-pricing-tests.log",
+        "artifacts/phase15-f-contribution-oracle.log",
+        "artifacts/phase15i-analytical-review-sales800.json",
+        "artifacts/phase15i-governed-sales.json",
+        "artifacts/phase15i-installed-qwen-recommend-review-finalized.json",
+        "artifacts/phase15i-installed-qwen-recommend-review-independent.json",
+        "artifacts/phase15i-recommend-review-root-inspection.json",
+        "artifacts/phase15j-basis-validation-tests.log"
+      ]
     },
     {
       "id": "science",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-g-scientific-tests.log",
+        "artifacts/phase15j-clean-modules-4c07ffb.json",
+        "artifacts/phase15j-economic-science-final.log",
+        "artifacts/phase15j-installed-science-0ab4de8.json",
+        "artifacts/phase15j-science-0ab4de8.log",
+        "artifacts/phase15j-scientific-browser-final.log",
+        "artifacts/phase15j-scientific-final.log",
+        "artifacts/phase15j-scientific-governance-final.log"
+      ]
     },
     {
       "id": "browser",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15b-catalog-browser.json",
+        "artifacts/phase15c-pricing-browser.json",
+        "artifacts/phase15d-sales-catalog-browser.json",
+        "artifacts/phase15e-external-catalog-browser.json",
+        "artifacts/phase15f-contribution-browser.json",
+        "artifacts/phase15g-master-browser.json",
+        "artifacts/phase15h-analyst-browser.json",
+        "artifacts/phase15i-installed-qwen-recommend-review-finalized.json",
+        "artifacts/phase15i-recommend-review-browser.json",
+        "artifacts/phase15j-clean-4c07ffb.json"
+      ]
     },
     {
       "id": "outage",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-outage-retry.json",
+        "artifacts/phase15i-outage-retry.log",
+        "artifacts/phase15i-post-outage-single-stack.log",
+        "artifacts/phase15j-clean-4c07ffb.json",
+        "artifacts/phase15j-outage-source-equivalence-8552bf2.json",
+        "artifacts/phase15j-clean-4c07ffb.log"
+      ]
     },
     {
       "id": "installation",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-clean-installation.json",
+        "artifacts/phase15i-install-fresh.json",
+        "artifacts/phase15j-clean-29b18a2.json",
+        "artifacts/phase15j-clean-4c07ffb.json",
+        "artifacts/phase15j-clean-modules-4c07ffb.json"
+      ]
     },
     {
       "id": "upgrade",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-source-migrations.json",
+        "artifacts/phase15j-backup-integrity.json",
+        "artifacts/phase15j-native-preservation-readback-4c07ffb.json",
+        "artifacts/phase15j-pricing131-upgrade-0ab4de8.json",
+        "artifacts/phase15j-selected-upgrade-29b18a2.json",
+        "artifacts/phase15j-selected-upgrade-4c07ffb.json"
+      ]
     },
     {
       "id": "regressions",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15j-build-4c07ffb.log",
+        "artifacts/phase15j-full-regressions-4c07ffb-result.json",
+        "artifacts/phase15j-full-regressions-4c07ffb.log",
+        "artifacts/phase15j-source-integrity-4c07ffb.log"
+      ]
     },
     {
       "id": "release",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase15-source-migrations.json",
+        "artifacts/phase15j-images-4c07ffb.log",
+        "artifacts/phase15j-native-runtime-equivalence-4c07ffb.json",
+        "artifacts/phase15j-pack-4c07ffb.log",
+        "artifacts/phase15j-verify-4c07ffb.log",
+        "docs/phase15-release-gates.schema.json",
+        "artifacts/phase15j-final-evidence-archive.json",
+        "artifacts/phase15j-final-evidence-manifest.json",
+        "artifacts/phase15j-final-single-stack.json",
+        "artifacts/phase15j-final-smoke.log",
+        "artifacts/core-images-0.15.0-4c07ffb0980e891f917f1755ff380e4241219f40.json"
+      ]
     }
   ]
 }
