@@ -111,7 +111,7 @@
     "verify:catalog:ollama": "node scripts/verify-phase15-catalog-ollama.mjs",
     "test:catalog:source": "node scripts/test-phase15-source-migrations.mjs",
     "test:connector:egress-upgrade": "node scripts/test-connector-egress-upgrade.mjs",
-    "test:phase15:runners": "node --test scripts/test-phase15-demo-plan.mjs scripts/test-phase15-runner-guards.mjs scripts/test-protocol-fixture-dispatch.mjs && node scripts/test-phase15-module-lifecycle.mjs && node scripts/test-release-image-import.mjs && node scripts/test-phase15-clean-recovery.mjs && node --test scripts/test-phase15-pricing-patch.mjs && node --test scripts/test-phase15-upgrade-preservation.mjs",
+    "test:phase15:runners": "node --test scripts/test-phase15-demo-plan.mjs scripts/test-phase15-runner-guards.mjs scripts/test-protocol-fixture-dispatch.mjs scripts/test-phase15-ledger.mjs && node scripts/test-phase15-module-lifecycle.mjs && node scripts/test-release-image-import.mjs && node scripts/test-phase15-clean-recovery.mjs && node --test scripts/test-phase15-pricing-patch.mjs && node --test scripts/test-phase15-upgrade-preservation.mjs",
     "test:pricing:publication-time": "node scripts/test-pricing-publication-time.mjs"
   },
   "devDependencies": {
