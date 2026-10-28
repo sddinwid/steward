@@ -10,10 +10,10 @@ const fixture={calls:[] as any[],failImport:true,loseStart:true,publicationId};(
 async function api(path:string,method='GET',body?:any):Promise<any>{
  fixture.calls.push({path,method,body:structuredClone(body)});
  if(path==='/v16/workflows')return structuredClone(data);
- if(path.startsWith('/v3/modules/'))return{records:[structuredClone(publication)]};
+ if(path.startsWith('/v3/modules/')){const {definition,...summary}=structuredClone(publication);return{records:[path.includes('?q=')?{...summary,definition}:summary]};}
  if(path==='/v16/workflows/import'){
   if(fixture.failImport){fixture.failImport=false;throw Error('SYNTHETIC_REVIEW_REVOKED');}
-  if(!data.workflows.length)data.workflows.push({workflow_id:publicationId,version:1,name:'Internal identifier',definition:{displayName:'Synthetic approval workflow'},state:'proposed',accepting_new:false});return{state:'proposed'};
+  if(!data.workflows.length)data.workflows.push({workflow_id:publicationId,consumer_id:moduleId,version:1,name:'Internal identifier',definition:{displayName:'Synthetic approval workflow'},state:'proposed',accepting_new:false});return{state:'proposed'};
  }
  if(path.endsWith('/lifecycle')){Object.assign(data.workflows[0],{state:body.action==='activate'?'active':'suspended',accepting_new:body.action==='activate'});return{};}
  if(path==='/v16/workflows/execute'){

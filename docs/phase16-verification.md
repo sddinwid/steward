@@ -505,3 +505,19 @@ accounts, records and identities. This does not change the operator's schema.
 Event subscription recovery controls/UI, genuine installed business providers and
 all final Phase 16 release gates remain pending. No selected operator deployment,
 credentials, module versions or private connector configuration changed.
+
+### Metadata-only execution inspection correction
+
+Review found that execution rendering still expected full definitions in the
+paginated publication list. The component fixture incorrectly returned them and
+had masked that defect. Execution graphs and approval controls now use the exact,
+source-bound detail response. An inspection control selects the correct module
+and publication; incomplete detail cannot enable review/import. The fixture now
+returns metadata-only lists, matching the real module API.
+
+UI build passed; **6 browser checks passed** with zero page errors
+(`phase16-execution-detail-browser-final.log`), including switching away from a
+workflow then inspecting its execution. An intermediate null-selection bug in
+the new inspection control was caught and corrected; its failed browser report
+is retained as `phase16-execution-detail-inspection-fixture-failure.json`. This
+correction remains component verification, not installed deployment acceptance.

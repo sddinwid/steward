@@ -34,6 +34,11 @@ try{
   await page.getByRole('button',{name:'Approve step',exact:true}).click();await page.getByText('completed · No reported failure',{exact:true}).waitFor();
   const decisions=await page.evaluate(()=>window.__workflowGovernanceFixture.calls.filter(c=>c.path.endsWith('/reviews')));assert.equal(decisions.length,1);assert.equal(decisions[0].body.nodeId,'approve');assert.equal(decisions[0].body.decision,'approve');
  });
+ await check('metadata-only lists require exact publication detail when inspecting an execution from another selection',async()=>{
+  await page.getByLabel('Workflow source',{exact:true}).selectOption('');await page.getByRole('button',{name:'Inspect execution workflow',exact:true}).waitFor();await page.getByRole('button',{name:'Inspect execution workflow',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelectorAll('[aria-label="Workflow designer"]').length===2);
+  const requests=await page.evaluate(()=>window.__workflowGovernanceFixture.calls.filter(c=>c.path.includes('/published-versions?q=')));assert(requests.length>=2);assert.deepEqual(report.pageErrors,[]);
+ });
  await check('governance controls and execution graphs remain bounded on a narrow screen',async()=>{
   await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true);
  });
