@@ -3,10 +3,11 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {readFile,writeFile,rename,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {existsSync} from 'node:fs';
 import {canonical,digest} from '../packages/module-sdk/dist/index.js';
 import {businessBrowser} from './business-browser-client.mjs';
+import {publishPreparedLedger} from './phase15-ledger.mjs';
 import {phase15DemoPlan,phase15ServiceCase} from './phase15-demo-plan.mjs';
 const CATALOG='steward.catalog.universal',PRICING='steward.pricing.management',versions={[CATALOG]:'1.4.0',[PRICING]:'1.3.0','cee.stock-ledger':'1.2.0','cee.procurement':'1.3.0'};
 export async function runPhase15CatalogDemo(section='check'){
@@ -25,7 +26,7 @@ export async function runPhase15CatalogDemo(section='check'){
  if(section==='check'){return{prefix:plan.prefix,originalInstallations,rootReady:process.env.STEWARD_PHASE15_ROOT_READY==='1',workers:Object.fromEntries(Object.entries(managers).map(([w,m])=>[w,{installed:m.installed.filter(v=>Object.hasOwn(versions,v.moduleId)).map(({moduleId,version,state})=>({moduleId,version,state})),compatibleCandidates:Object.entries(expectedVersions).map(([id,version])=>({moduleId:id,version,available:m.available.some(p=>p.packageId===id+'@'+version&&p.trusted&&p.compatible)}))}]))};}
  assert.equal(process.env.STEWARD_PHASE15_ROOT_READY,'1','Root backup/core-upgrade/package-publication readiness is required before any operator mutation');assert(['install-fresh','reconcile-unit','catalog','operational-stock','pricing-controls','procurement-cost','governed-sales','external-discovery','external-import','analytical-publications','service-cohort'].includes(section),'Unknown explicit demonstration section');
  state??={version:1,generation:plan.generation,prefix:plan.prefix,originalInstallations,configPins:{},workers:serviceCase?Object.fromEntries(['worker-1','worker-2'].map(w=>{assert(baseline.workers[w]?.reviewer,'Original distinct reviewer reference required');return[w,{reviewer:structuredClone(baseline.workers[w].reviewer)}];})): {},records:{},actions:[],phaseTimes:{},...(serviceCase?{serviceCase:{name:serviceCase.name,approvedPricingVersion:serviceCase.pricingVersion,sourceLedger:'phase15-i-browser.json',sourceGeneration:baseline.generation,sourceLedgerDigest:digest(baselineText)}}:{})};assert.equal(state.prefix,plan.prefix);state.phaseTimes??={};state.phaseTimes[section]??=new Date().toISOString();
- async function persist(){await mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp';await writeFile(temporary,JSON.stringify(state,null,2)+'\n',{mode:0o600});await rename(temporary,file);}
+ async function persist(){await mkdir(path.dirname(file),{recursive:true});const temporary=file+'.tmp';await writeFile(temporary,JSON.stringify(state,null,2)+'\n',{mode:0o600});await publishPreparedLedger(temporary,file);}
  for(const worker of ['worker-1','worker-2','worker-3']){state.workers[worker]??={};for(const module of managers[worker].installed.filter(m=>Object.hasOwn(versions,m.moduleId))){const key=worker+':'+module.moduleId,pin={version:module.version,operationId:module.operationId,imageId:module.imageId,configurationDigest:digest(canonical(module.configuration))};if(state.configPins[key])assert.equal(canonical(state.configPins[key]),canonical(pin),'Installed package/configuration changed; explicit operator review is required');else state.configPins[key]=pin;}}
  await persist();await mkdir('artifacts',{recursive:true});let browser;const rows=(w,id,url)=>client.records(w,id,url);
  try{

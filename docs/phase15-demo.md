@@ -90,3 +90,6 @@ An explicit `--service-case NativeReview` uses a separate `phase15-i-browser-nat
 
 
 `--service-case NativeComposition` creates the separately reviewed `phase15-i-browser-native-compose.json` case for the two-model-part finalization correction. Existing NativeReview records and leases remain unchanged. Start the actual installed Qwen verifier with this explicit ledger only after the corrected core is deployed; historical model probes do not establish live acceptance.
+
+
+The final acceptance uses explicit `--service-case NativeFinal` and ledger `phase15-i-browser-native-final.json`. The interrupted NativeComposition ledger and its original source window are retained. Atomic ledger publication retries only the same prepared snapshot on transient Windows contention; permanent errors preserve the previous and prepared snapshots for inspection. Do not change saved dates or regenerate intent IDs to force a retry.
