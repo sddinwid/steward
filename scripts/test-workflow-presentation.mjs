@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {ModuleFormField} from '../packages/ui/dist/module-field.js';
-import {workflowBindingChoices} from '../packages/ui/dist/workflow-discovery.js';
+import {workflowBindingChoices,workflowTriggerFields,workflowActionFields} from '../packages/ui/dist/workflow-discovery.js';
 const c={capabilityId:'inventory.stock.reserve',version:'1.0.0',sensitivity:'business',operations:[{name:'reserve',permission:'provider.write',input:{type:'object'},output:{type:'object'}}]};
 const b={binding_id:'binding',consumer_id:'example.automation',provider_id:'example.inventory',provider_installation_id:'installation',package_digest:'digest',capability_id:c.capabilityId,state:'approved',capability:c};
 const p={moduleId:b.provider_id,installationId:b.provider_installation_id,packageDigest:b.package_digest,entityId:'entity',state:'active',configured:true,capability:c};
@@ -19,4 +19,16 @@ test('workflow discovery presents only this consumer and current original provid
 test('generic module field renders workflow metadata without loading domain-specific screens',()=>{
  const markup=renderToStaticMarkup(createElement(ModuleFormField,{field:{name:'graph',label:'Graph',type:'json',format:'workflow',required:true},value:undefined,currency:'USD',onChange:()=>{}}));
  assert.match(markup,/Workflow designer/);assert.match(markup,/Use starter workflow/);assert.doesNotMatch(markup,/<script/);
+});
+
+test('trigger field discovery rejects missing, ambiguous and unsupported contracts',()=>{
+ const record={id:'declared',sensitivity:'business',trigger:{kind:'event',input:{type:'object',additionalProperties:false,properties:{count:{type:'integer'}},required:['count']}}};
+ assert.equal(workflowTriggerFields({records:[record]},'declared',60000)['trigger.count'].type,'integer');
+ for(const response of [{},{records:[]},{records:[record,record]},{records:[{...record,id:'other'}]},{records:[{...record,sensitivity:'private'}]},{records:[{...record,trigger:{...record.trigger,input:{type:'object'}}}]}])assert.throws(()=>workflowTriggerFields(response,'declared',60000));
+});
+test('action output choices require current approved bindings and supported declared output schemas',()=>{
+ const capability={...c,operations:[{...c.operations[0],output:{type:'object',additionalProperties:false,properties:{count:{type:'integer'}},required:['count']}}]},registry={entityId:'entity',providers:[{...p,capability}],bindings:[{...b,capability}]},graph={nodes:[{id:'first',kind:'action',bindingId:b.binding_id,operation:'reserve'}]};
+ assert.equal(workflowActionFields(graph,workflowBindingChoices(registry,b.consumer_id),60000)['first.count'].type,'integer');
+ for(const altered of [{...registry,bindings:[{...b,state:'revoked',capability}]},{...registry,providers:[{...p,capability,installationId:'replaced'}]}])assert.deepEqual(workflowActionFields(graph,workflowBindingChoices(altered,b.consumer_id),60000),{});
+ assert.deepEqual(workflowActionFields({nodes:[{...graph.nodes[0],operation:'undeclared'}]},workflowBindingChoices(registry,b.consumer_id),60000),{});
 });

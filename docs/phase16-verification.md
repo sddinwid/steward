@@ -1037,3 +1037,35 @@ the preserved cf295d4 candidate (`phase16-stale-runtime-candidate-rejection.log`
 A fresh clean-source build, candidate and uninterrupted full regression are required.
 The newly published business modules do not consume the shared core release constant;
 their immutable signed package images remain retained rather than rebuilt in place.
+
+### Generic module-form integration correction (not installed acceptance)
+
+The clean `749c928` build passed and its candidate API images independently
+reported runtime 0.16.0 in network-disabled, read-only containers. Its full
+regression was interrupted when integration review found that the actual generic
+ModuleConsole form omitted trigger/action field context. Earlier direct designer
+fixtures had supplied fields themselves and therefore did not prove this wiring.
+See `phase16-runtime-fixed-full-result.json` for the interruption boundary.
+The 749c928 candidate is retained but is not the final acceptance candidate.
+
+Signed optional trigger-discovery metadata now connects the generic renderer to
+a declared, permission-filtered module API. It does not add a domain-specific
+screen. Action fields require the current approved binding. Discovery failures
+clear stale fields and invalidate previews; late responses cannot replace the
+selected trigger. Complete Sales and Procurement event schemas revealed bounded
+arrays/maps that scalar discovery previously rejected. Explicit collection
+omission retains scalar siblings and complete publication schemas; unbounded
+collections and unsupported schemas still reject. Automation advances to 1.0.1
+without rewriting the immutable 1.0.0 package or any SQL migration.
+
+Targeted results: SDK **64/64**, presentation **4/4**, Automation definitions
+**14/14**, and full generic ModuleConsole browser **6/6**. The latter verifies
+custom metadata field/operation names, trigger and action fields, synthetic
+preview, failure clearing, out-of-order response protection and ordinary form
+submission. Evidence: `phase16-trigger-metadata-sdk-tests.log`,
+`phase16-form-field-automation-tests.log`, and
+`phase16-workflow-module-form-component.json/.png`. Initial test-fixture failures
+(missing required metadata and an invalid two-inbound completion graph) were
+corrected without weakening validation; their earlier evidence remains retained.
+These results do not establish installed workflows, completed regression or
+release acceptance. A fresh committed-source full gate and candidate are required.

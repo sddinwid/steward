@@ -98,6 +98,13 @@ try{
   await request('POST','/workflows',{...draft,recordKey:randomUUID(),triggerSource:'unapproved.source/private.changed'},422);
   await request('POST','/workflows',{...draft,recordKey:randomUUID(),trigger:{kind:'event',input:{}}},400);
  });
+ await check('actual Sales, Procurement and Inventory event contracts publish scalar conditions while retaining full bounded source schemas',async()=>{
+  for(const requirement of manifest.smart.consumes.filter(r=>r.events.length))for(const event of requirement.events){
+   const eventGraph={graphVersion:1,nodes:[{id:'start',kind:'trigger',label:'Actual declared event'},{id:'condition',kind:'condition',label:'Declared status',condition:{op:'eq',args:[{field:'trigger.projection.status'},{literal:'fixture-status'}]}},{id:'yes',kind:'completion',label:'Matched'},{id:'no',kind:'completion',label:'Not matched'}],edges:[{from:'start',to:'condition',port:'next'},{from:'condition',to:'yes',port:'true'},{from:'condition',to:'no',port:'false'}],limits:{elapsedMs:60000,maxParallel:1,maxActions:1}};
+   const record=(await request('POST','/workflows',{recordKey:randomUUID(),name:'Actual signed '+event.name,description:'Definition-only test; no provider invocation or business effect.',triggerSource:requirement.capabilityId+'/'+event.name,graph:eventGraph},201)).record;
+   const published=await request('POST','/publish/'+record.id,{revision:record.revision,requestId:randomUUID()}),detail=(await request('GET','/publications?q='+published.publicationId)).records[0];assert.equal(detail.executionAllowed,true);assert.deepEqual(detail.definition.trigger.input,event.schema);assert.equal(detail.definition.fields['trigger.projection.status'].type,'string');assert(!Object.keys(detail.definition.fields).some(k=>k.includes('.lines.')));
+  }
+ });
  await check('declared event publications retain the exact signed input contract, field sensitivity and immutable history',async()=>{
   const eventManifest=structuredClone(manifest),requirement=eventManifest.smart.consumes[0],input={type:'object',additionalProperties:false,required:['itemId','quantity'],properties:{itemId:{type:'string'},quantity:{type:'integer',minimum:0}}};
   requirement.events=[{name:'stock.changed',schema:input}];requirement.maximumSensitivity='restricted';validateManifest(eventManifest);

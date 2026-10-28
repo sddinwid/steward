@@ -83,3 +83,19 @@ test('field discovery retains primitive constant outputs without inventing types
  assert.equal(result['notice.channel']!.type,'string');assert.equal(result['notice.revision']!.type,'integer');assert.equal(result['notice.private']!.type,'boolean');assert.equal(result['notice.missing']!.type,'null');
  for(const value of [{},[],1.25])assert.throws(()=>workflowFieldsFromSchema('invalid',{type:'object',additionalProperties:false,properties:{value:{const:value}},required:['value']},{sensitivity:'business',maxAgeMs:1000}),/SCHEMA_UNSUPPORTED/);
 });
+
+
+test('explicit bounded-collection omission preserves scalar siblings without exposing collection elements',()=>{
+ const policy={sensitivity:'business' as const,maxAgeMs:1000},schema={type:'object',additionalProperties:false,properties:{id:{type:'string'},projection:{type:'object',additionalProperties:false,properties:{status:{type:'string'},lines:{type:'array',maxItems:40,items:{type:'object',additionalProperties:false,properties:{quantity:{type:'integer'}}}}}}}};
+ assert.throws(()=>workflowFieldsFromSchema('trigger',schema,policy),/SCHEMA_UNSUPPORTED/);
+ const fields=workflowFieldsFromSchema('trigger',schema,policy,{omitBoundedCollections:true});assert.deepEqual(Object.keys(fields),['trigger.id','trigger.projection.status']);
+ for(const array of [{type:'array',items:{type:'string'}},{type:'array',maxItems:1001,items:{type:'string'}},{type:'array',maxItems:20,items:{$ref:'https://invalid.example/schema'}},{type:'array',maxItems:20,items:{type:'object',additionalProperties:true,properties:{}}}])assert.throws(()=>workflowFieldsFromSchema('trigger',{type:'object',additionalProperties:false,properties:{items:array}},policy,{omitBoundedCollections:true}),/WORKFLOW_SCHEMA/);
+ assert.throws(()=>validateWorkflowExpression({field:'trigger.projection.lines.quantity'},fields),/WORKFLOW_FIELD/);
+});
+
+
+test('bounded dynamic maps remain opaque while unbounded or externally resolved maps reject',()=>{
+ const policy={sensitivity:'business' as const,maxAgeMs:1000},root=(map:unknown)=>({type:'object',additionalProperties:false,properties:{status:{type:'string'},received:map}});
+ const fields=workflowFieldsFromSchema('trigger',root({type:'object',maxProperties:40,additionalProperties:{type:'integer'}}),policy,{omitBoundedCollections:true});assert.deepEqual(Object.keys(fields),['trigger.status']);
+ for(const map of [{type:'object',additionalProperties:{type:'integer'}},{type:'object',maxProperties:40,additionalProperties:true},{type:'object',maxProperties:40,additionalProperties:{$ref:'https://invalid.example'}}])assert.throws(()=>workflowFieldsFromSchema('trigger',root(map),policy,{omitBoundedCollections:true}),/WORKFLOW_SCHEMA/);
+});

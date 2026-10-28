@@ -16,25 +16,31 @@ export type WorkflowFields = Readonly<Record<string, WorkflowField>>;
 /** Derive selectable scalar fields from one verified, closed capability/event
  * schema. Arrays, unions and open objects are deliberately not guessed. */
 export function workflowFieldsFromSchema(namespace: string, schema: unknown,
-  policy: Omit<WorkflowField, 'type'>): WorkflowFields {
+  policy: Omit<WorkflowField, 'type'>, options:{omitBoundedCollections?:boolean}={}): WorkflowFields {
   requireRule(/^[a-z][a-z0-9_-]{0,47}$/.test(namespace) && !forbidden.has(namespace), 'WORKFLOW_FIELD_INVALID');
   const result: Record<string, WorkflowField> = Object.create(null);
   let count = 0;
-  function walk(value: unknown, path: string, depth: number) {
+  function walk(value: unknown, path: string, depth: number, collect=true) {
     requireRule(++count <= 128 && depth <= 6, 'WORKFLOW_SCHEMA_LIMIT');
     requireRule(!!value && typeof value === 'object' && !Array.isArray(value), 'WORKFLOW_SCHEMA_INVALID');
     const s = value as Record<string, unknown>;
     requireRule(!Object.keys(s).some(key => ['$ref', '$id', '$async', 'oneOf', 'anyOf', 'allOf', 'if', 'then', 'else'].includes(key)), 'WORKFLOW_SCHEMA_UNSUPPORTED');
+    if(s.type==='object'&&options.omitBoundedCollections&&s.additionalProperties&&typeof s.additionalProperties==='object'&&!s.properties){
+      requireRule(Number.isSafeInteger(s.maxProperties)&&Number(s.maxProperties)>=0&&Number(s.maxProperties)<=1000,'WORKFLOW_SCHEMA_COLLECTION_LIMIT');
+      walk(s.additionalProperties,path+'._value',depth+1,false);return;
+    }
     if (s.type === 'object') {
       requireRule(s.additionalProperties === false && !!s.properties && typeof s.properties === 'object' && !Array.isArray(s.properties), 'WORKFLOW_SCHEMA_OPEN');
       for (const [key, child] of Object.entries(s.properties)) {
         requireRule(/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/.test(key) && !forbidden.has(key), 'WORKFLOW_FIELD_INVALID');
-        walk(child, path + '.' + key, depth + 1);
+        walk(child, path + '.' + key, depth + 1,collect);
       }
+    } else if(s.type==='array'&&options.omitBoundedCollections){
+      requireRule(Number.isSafeInteger(s.maxItems)&&Number(s.maxItems)>=0&&Number(s.maxItems)<=1000&&!!s.items,'WORKFLOW_SCHEMA_COLLECTION_LIMIT');
+      walk(s.items,path+'._item',depth+1,false);
     } else {
       const type=workflowSchemaScalarType(s);requireRule(type!==undefined,'WORKFLOW_SCHEMA_UNSUPPORTED');
-      result[path] = {type:type!, ...policy};
-      validateWorkflowExpression({field: path}, result);
+      if(collect){result[path] = {type:type!, ...policy};validateWorkflowExpression({field: path}, result);}
     }
   }
   requireRule(!!schema && (schema as Record<string, unknown>).type === 'object', 'WORKFLOW_SCHEMA_INVALID');

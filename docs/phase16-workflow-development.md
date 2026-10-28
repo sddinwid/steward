@@ -41,6 +41,24 @@ assumptions are synthetic and create no durable state. Runtime adds current acto
 source, provider, configuration, lifecycle, schema and authority checks. Never
 accept a preview result as proof of a successful business operation.
 
+## Declared form discovery
+
+A signed `workflowServices.triggerDiscovery` declaration may name a static GET
+operation with bounded `q` lookup, a referenced string selection field, and a
+maximum observation age. The generic module form uses this metadata to retrieve
+one selected trigger contract through the authenticated module gateway. It also
+derives action-result fields from current approved, identity-pinned bindings.
+Missing permissions, unavailable contracts and stale responses do not supply
+fields or allow a synthetic preview. Publication and runtime remain authoritative.
+Legacy declarations without trigger discovery remain valid.
+
+Scalar discovery may explicitly omit bounded arrays and bounded dynamic maps;
+their element/value schemas are still checked and their full schemas remain in
+published contracts. Collection elements are not invented as scalar variables.
+Unbounded collections, references and unsupported schemas remain rejected.
+Business Automation 1.0.1 adopts this declaration and bounded-collection handling;
+its already signed 1.0.0 predecessor remains unchanged.
+
 ## Parallel and lifecycle boundaries
 
 Only distinct-provider, explicitly safe/idempotent ready actions can share a

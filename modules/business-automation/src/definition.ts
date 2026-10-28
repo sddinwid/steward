@@ -20,10 +20,10 @@ function triggerFor(manifest:ModulePackageManifest,selection:unknown='manual'){
 }
 function fieldsFor(manifest:ModulePackageManifest,graph:WorkflowGraph,selection:unknown='manual'):WorkflowFields{
  const selected=triggerFor(manifest,selection);
- const result={...workflowFieldsFromSchema('trigger',selected.trigger.input,{sensitivity:selected.sensitivity,maxAgeMs:60000})};
+ const result={...workflowFieldsFromSchema('trigger',selected.trigger.input,{sensitivity:selected.sensitivity,maxAgeMs:manifest.workflowServices?.triggerDiscovery?.maxAgeMs??60000},{omitBoundedCollections:true})};
  for(const node of graph.nodes){if(!['action','notification'].includes(node.kind))continue;
   const matches=manifest.smart?.consumes.flatMap(c=>c.operations.filter(o=>o.name===node.operation).map(operation=>({operation,sensitivity:c.maximumSensitivity})))??[];
-  if(matches.length===1)try{Object.assign(result,workflowFieldsFromSchema(node.id,matches[0]!.operation.output,{sensitivity:matches[0]!.sensitivity,maxAgeMs:60000}));}catch{/* Unsupported collection/union output is not exposed as a scalar variable. */}
+  if(matches.length===1)try{Object.assign(result,workflowFieldsFromSchema(node.id,matches[0]!.operation.output,{sensitivity:matches[0]!.sensitivity,maxAgeMs:manifest.workflowServices?.triggerDiscovery?.maxAgeMs??60000},{omitBoundedCollections:true}));}catch{/* Unsupported collection/union output is not exposed as a scalar variable. */}
  }
  return result;
 }

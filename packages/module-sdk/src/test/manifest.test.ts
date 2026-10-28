@@ -124,3 +124,14 @@ test('workflow publication services are signed read-only versioned declarations,
  validateManifest(p);
  for(const change of [{minimumPlatformVersion:'0.15.0'},{approvalServices:undefined},{workflowServices:{contractVersion:2,publicationOperationId:'list'}},{workflowServices:{contractVersion:1,publicationOperationId:'create'}},{workflowServices:{contractVersion:1,publicationOperationId:'list',activate:true}},{api:m.api}])assert.throws(()=>validateManifest({...p,...change} as ModulePackageManifest));
 });
+
+test('trigger discovery metadata is optional, signed, bounded and bound to a declared form reference',()=>{
+ const discovery={operationId:'list',selectionField:'eventChoice',maxAgeMs:60000};
+ const p:ModulePackageManifest={...m,minimumPlatformVersion:'0.16.0',approvalServices:{contractVersion:1,reviewerPermission:'example.records.write'},workflowServices:{contractVersion:1,publicationOperationId:'list',triggerDiscovery:discovery},api:m.api.map(a=>a.operationId==='list'?{...a,query:['q']}:a),ui:[{...m.ui[0]!,columns:['eventChoice'],formVersion:1,fields:[{name:'eventChoice',label:'Event',type:'string',required:true,reference:{operationId:'list',valueField:'id',labelField:'name'}},{name:'definition',label:'Definition',type:'json',required:true,format:'workflow'}]}]};
+ validateManifest(p);validateManifest({...p,workflowServices:{contractVersion:1,publicationOperationId:'list'}});
+ for(const patch of [{operationId:'create'},{operationId:'update'},{operationId:'missing'},{selectionField:'missing'},{maxAgeMs:0},{maxAgeMs:Infinity},{maxAgeMs:1.5},{maxAgeMs:31*86400000+1},{url:'https://untrusted.invalid'}])assert.throws(()=>validateManifest({...p,workflowServices:{...p.workflowServices!,triggerDiscovery:{...discovery,...patch}}}));
+ assert.throws(()=>validateManifest({...p,ui:[{...p.ui[0]!,fields:[{...p.ui[0]!.fields[0]!,reference:{operationId:'list',valueField:'name',labelField:'name'}},p.ui[0]!.fields[1]!]}]}));
+ const keys=generateKeyPairSync('ed25519'),privateKey=keys.privateKey.export({type:'pkcs8',format:'pem'}).toString(),publicKey=keys.publicKey.export({type:'spki',format:'pem'}).toString();
+ const signed=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'a'.repeat(64),manifest:p},privateKey),trust={publishers:[{publisherId:'test-only',publicKey}]};verifyPackage(signed,trust);
+ signed.payload.manifest.workflowServices!.triggerDiscovery!.maxAgeMs=120000;assert.throws(()=>verifyPackage(signed,trust));
+});

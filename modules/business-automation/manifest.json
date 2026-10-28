@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.automation",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Business Automation",
   "description": "Module-owned workflow definitions and immutable human review. Execution requires separate Worker-governed activation.",
   "minimumPlatformVersion": "0.16.0",
@@ -2055,7 +2055,12 @@
   },
   "workflowServices": {
     "contractVersion": 1,
-    "publicationOperationId": "listPublications"
+    "publicationOperationId": "listPublications",
+    "triggerDiscovery": {
+      "operationId": "triggerContracts",
+      "selectionField": "triggerSource",
+      "maxAgeMs": 60000
+    }
   },
   "integration": {
     "version": 1,

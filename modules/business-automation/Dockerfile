@@ -19,5 +19,5 @@ COPY modules/business-automation/package.json modules/business-automation/manife
 COPY modules/business-automation/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="steward.automation" steward.module.version="1.0.0" steward.module.sdk="1"
+LABEL steward.module.id="steward.automation" steward.module.version="1.0.1" steward.module.sdk="1"
 CMD ["node","dist/index.js"]
