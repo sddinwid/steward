@@ -1,6 +1,6 @@
 # Phase 15 verification
 
-Final functional acceptance passed on candidate source `4c07ffb0980e891f917f1755ff380e4241219f40`. The original selected operator is on this candidate with Catalog 1.4.0 and Pricing 1.3.1 on all three Workers; identities, credentials, records and seven volumes are retained. See [final acceptance](phase15-final-acceptance.md) for current results and limitations. Historical entries below retain their original checkpoint status. All eighteen mandatory acceptance gates and the evidence archive have passed; gated local promotion/tagging are the remaining release-control steps.
+Final release acceptance passed on built source `4c07ffb0980e891f917f1755ff380e4241219f40`. The original selected operator is on this candidate with Catalog 1.4.0 and Pricing 1.3.1 on all three Workers; identities, credentials, records and seven volumes are retained. See [final acceptance](phase15-final-acceptance.md) for current results and limitations. Historical entries below retain their original checkpoint status. All eighteen mandatory gates and the evidence archive passed. The exact payload was promoted and its accepted redeployment passed; the local `v0.15.0` tag identifies the final release-report commit. Nothing was pushed.
 
 ## Baseline
 
