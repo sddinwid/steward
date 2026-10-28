@@ -558,3 +558,13 @@ These are targeted isolated checks, not the uninterrupted full regression gate
 or installed-module deployment acceptance. Genuine installed business providers,
 remaining workflow scenarios and all final release gates remain pending. The
 selected deployment and its private configuration remain unchanged.
+
+Recovery follow-up: resume now shares admission's transaction advisory lock and
+100-active-intake bound, preventing suspend/admit/resume from bypassing the
+limit. The isolated fixture deliberately fills the bound and verifies rejection;
+**16 admission checks passed** (`phase16-recovery-limit-admission-rerun.log`).
+The initial added fixture reused a unique workflow name/version, failed, and its
+report is retained (`phase16-recovery-limit-fixture-failure.json`); the fixture
+now uses distinct versions. UI refresh also resolves a lost subscription response
+by its original subscription identity. Host/UI builds and all **7 component
+browser checks passed** (`phase16-recovery-limit-browser.log`).

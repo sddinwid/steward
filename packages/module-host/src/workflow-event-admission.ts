@@ -56,7 +56,7 @@ export async function recoverWorkflowSubscription(pool:pg.Pool,scope:EventDelive
  requireValue(typeof guard==='function','WORKFLOW_LIFECYCLE_GUARD_REQUIRED');
  const db=await pool.connect();let unlock:(()=>Promise<void>)|undefined;
  try{
-  await db.query('BEGIN');
+  await db.query('BEGIN');await db.query('SELECT pg_advisory_xact_lock(8080002)');
   requireValue((await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[request.actorId])).rowCount,'EVENT_RECOVERY_AUTHORITY_REQUIRED');
   const s=(await db.query('SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1 FOR UPDATE',[request.subscriptionId])).rows[0];requireValue(s,'EVENT_SUBSCRIPTION_UNAVAILABLE');
   const w=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1',[s.workflow_id])).rows[0],binding=(await db.query('SELECT * FROM smart_bindings WHERE binding_id=$1',[s.binding_id])).rows[0];
@@ -73,6 +73,7 @@ export async function recoverWorkflowSubscription(pool:pg.Pool,scope:EventDelive
   if(request.action==='resume'){
    result={state:'active',replayed:s.state==='active'};
    if(s.state!=='active'){
+    if(w.accepting_new)requireValue(Number((await db.query("SELECT count(*) n FROM smart_event_subscriptions s JOIN smart_workflows w USING(workflow_id) WHERE s.state='active' AND w.state='active' AND w.accepting_new")).rows[0].n)<100,'EVENT_SUBSCRIPTION_LIMIT');
     await db.query("UPDATE smart_event_subscriptions SET state='active',capture_next_at=clock_timestamp(),updated_at=clock_timestamp() WHERE subscription_id=$1",[s.subscription_id]);
     await db.query("INSERT INTO smart_event_history(subscription_id,actor_id,action,detail) VALUES($1,$2,'subscription_resumed',$3)",[s.subscription_id,request.actorId,{reason:request.reason,originalActorId:s.actor_id}]);
    }
