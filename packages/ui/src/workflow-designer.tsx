@@ -38,7 +38,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
     change({...graph,nodes:[...graph.nodes,next]});setSelected(id);
   }
   const fieldId=instanceId.replaceAll(':','');
-  if(!validShape&&value)return <p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>;
+  if(!validShape&&value!==undefined&&value!==null&&value!=='')return <p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>;
   return <section className="module-object workflow-designer" aria-label="Workflow designer">
     <h3>Workflow designer</h3><p className="muted">Connect steps, inspect their contracts, and validate before publication. Discovery does not authorize an action.</p>
     {!validShape&&value?<p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>:null}

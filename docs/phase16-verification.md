@@ -110,8 +110,27 @@ to be implemented. No operator module database schema was changed by this work.
 
 ## Pending acceptance
 
-All Phase 16 implementation, six business acceptance scenarios, new security and
-failure tests, visual designer browser acceptance, data-preserving upgrade,
+Additional bounded object/array mapping checks pass with the graph/rule suite:
+**20/20** in isolated SDK compilation (`phase16-workflow-input-tests.log`). A
+prototype-key rejection initially returned a less precise object error than its
+test expected; the field-specific diagnostic is corrected and the original
+failure is retained in `phase16-workflow-input-shape-failure.log`. Initial mapping
+type-check errors were also corrected before this successful isolated build.
+
+The integration build at `5c91453` failed on a deliberately invalid consumer
+stream fixture's TypeScript cast; it did not reach tests. That exact failure is
+retained in `phase16-integration-build.log` and `phase16-integration-result.json`.
+Commit `d3bb4c0` corrects the fixture's explicit `unknown` cast. Its full build and
+uninterrupted regression rerun passed: **1,135 tests across 71 summaries**, zero
+failures/skips, both exit 0 (`phase16-integration-result-rerun.json`). This run
+precedes the additional nested mapping changes. Their SDK suite passes **52/52**;
+UI, Master frontend and Worker frontend builds pass, and all five Chromium
+component checks pass again. Logs use the `phase16-input-` prefix. SQL/source and signed
+catalog ancestry independently pass **10/10** (`phase16-source-integrity.log`).
+
+The signed Business Automation module, governed subscription and approval APIs,
+persistent execution integration, six business acceptance scenarios, complete
+security/failure matrix, installed visual designer acceptance, data-preserving upgrade,
 clean installation, final redeployment, release packaging and tagging remain
 unverified until individually recorded here. Phase 15 evidence is retained and
 does not substitute for Phase 16 acceptance.

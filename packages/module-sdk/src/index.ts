@@ -1,6 +1,7 @@
 export * from './economic-summary.js';
 export * from './workflow-rules.js';
 export * from './workflow-graph.js';
+export * from './workflow-values.js';
 export * from './simulation.js';
 import type {SimulationDeclaration} from './simulation.js';
 import { createHash, sign, verify } from 'node:crypto';

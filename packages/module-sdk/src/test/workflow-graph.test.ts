@@ -61,3 +61,9 @@ test('budget, malformed input, missing completion and action limits fail closed'
   const input=base();input.nodes[1]!.inputs={quantity:{field:'private.case'}};
   assert.ok(inspectWorkflowGraph(input,{}).some(i=>i.code==='WORKFLOW_INPUT_EXPRESSION_INVALID'));
 });
+test('structured action mappings remain data-only and the entire graph has a byte budget',()=>{
+ const graph=base();graph.nodes[1]!.inputs={lines:{array:[{object:{sku:{literal:'SYNTHETIC-SKU'},quantity:{literal:2}}}]}};
+ assert.deepEqual(inspectWorkflowGraph(graph,{}),[]);
+ const oversized=base();oversized.nodes[1]!.label='x'.repeat(70000);
+ assert.deepEqual(inspectWorkflowGraph(oversized,{}),[{code:'WORKFLOW_GRAPH_SIZE_LIMIT'}]);
+});

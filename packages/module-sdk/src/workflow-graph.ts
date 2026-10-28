@@ -1,4 +1,5 @@
 import {validateWorkflowExpression, type WorkflowExpression, type WorkflowFields} from './workflow-rules.js';
+import {validateWorkflowValueShape,type WorkflowInputValue} from './workflow-values.js';
 
 export interface WorkflowNode {
   id: string;
@@ -7,7 +8,7 @@ export interface WorkflowNode {
   /** Binding and operation are mandatory for action and provider-backed notification. */
   bindingId?: string;
   operation?: string;
-  inputs?: Record<string, WorkflowExpression>;
+  inputs?: Record<string, WorkflowInputValue>;
   condition?: WorkflowExpression;
   waitMs?: number;
   approverPermission?: string;
@@ -33,6 +34,7 @@ const closed = (value:unknown, keys:string[]): value is Record<string,any> =>
  * schemas, bindings, permissions, installation identity and module ownership. */
 export function inspectWorkflowGraph(value:unknown, fields:WorkflowFields): WorkflowGraphIssue[] {
   const issues:WorkflowGraphIssue[]=[];
+  try{if(new TextEncoder().encode(JSON.stringify(value)).length>65536)return[{code:'WORKFLOW_GRAPH_SIZE_LIMIT'}];}catch{return[{code:'WORKFLOW_GRAPH_INVALID'}];}
   const issue=(code:string,nodeId?:string)=>issues.push({code,...(nodeId?{nodeId}:{})});
   if(!closed(value,['graphVersion','nodes','edges','limits']) || value.graphVersion!==1
     || !Array.isArray(value.nodes)||value.nodes.length<2||value.nodes.length>32
@@ -61,7 +63,7 @@ export function inspectWorkflowGraph(value:unknown, fields:WorkflowFields): Work
         ||Object.keys(n.inputs??{}).length>32)issue('WORKFLOW_ACTION_INVALID',n.id);
       else for(const [field,expression] of Object.entries(n.inputs!)){
         if(!/^[a-zA-Z][a-zA-Z0-9_]{0,63}$/.test(field)||['constructor','prototype','__proto__'].includes(field))issue('WORKFLOW_INPUT_FIELD_INVALID',n.id);
-        try{validateWorkflowExpression(expression,fields);}catch{issue('WORKFLOW_INPUT_EXPRESSION_INVALID',n.id);}
+        try{validateWorkflowValueShape(expression,fields);}catch{issue('WORKFLOW_INPUT_EXPRESSION_INVALID',n.id);}
       }
     }
     if(n.kind==='condition')try{if(validateWorkflowExpression(n.condition,fields)!=='boolean')issue('WORKFLOW_CONDITION_BOOLEAN_REQUIRED',n.id);}catch{issue('WORKFLOW_CONDITION_INVALID',n.id);}
