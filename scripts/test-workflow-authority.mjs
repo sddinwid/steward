@@ -36,9 +36,9 @@ try{
  await moduleDb.query(await readFile('modules/business-automation/migrations/001-foundation.sql','utf8'));
  await moduleDb.query('CREATE DATABASE worker_authority');metadata=new pg.Pool({...connection,database:'worker_authority'});await metadata.query(securityMigration);await metadata.query(moduleMigration);
  await metadata.query("INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,'fixture-author','unusable-test-hash','local_admin'),($2,'fixture-reviewer','unusable-test-hash','module_user')",[author,reviewer]);
- await metadata.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'active',$5)",[manifest.moduleId,manifest.version,descriptor,{maxElapsedMs:60000,maxParallel:1},moduleInstallationId]);
+ await metadata.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'active',$5)",[manifest.moduleId,manifest.version,descriptor,{maxElapsedMs:60000,maxParallel:process.argv.includes('--runtime')?2:1},moduleInstallationId]);
  await metadata.query('INSERT INTO module_permissions VALUES($1,$2,$3)',[reviewer,manifest.moduleId,'steward.automation.approve']);
- app=createBusinessServer(moduleDb,token,{installationId,entityId,configuration:{maxElapsedMs:60000,maxParallel:1}},automation(manifest),async()=>1,async()=>{});
+ app=createBusinessServer(moduleDb,token,{installationId,entityId,configuration:{maxElapsedMs:60000,maxParallel:process.argv.includes('--runtime')?2:1}},automation(manifest),async()=>1,async()=>{});
  const graph={graphVersion:1,nodes:[{id:'start',kind:'trigger',label:'Start'},{id:'done',kind:'completion',label:'Done'}],edges:[{from:'start',to:'done',port:'next'}],limits:{elapsedMs:60000,maxParallel:1,maxActions:1}};
  const created=(await api('POST','/workflows',{recordKey:randomUUID(),name:'Publication authority fixture',description:'Synthetic definition; no business effects.',graph})).record;
  publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();

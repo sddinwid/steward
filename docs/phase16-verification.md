@@ -697,3 +697,53 @@ are retained; no authorization or validation guard was weakened.
 These are isolated real-module API/database checks with injected host context,
 not installed/browser/release acceptance. Parallel dispatch, installed scenarios,
 final regression, documentation inventory, packaging and upgrade remain open.
+
+
+## Bounded parallel coordinator checkpoint (2026-10-28)
+
+The existing SSMA executor now dispatches independent ready graph actions concurrently,
+up to the approved graph limit. Only retry-safe, idempotency-required operations on
+distinct provider modules can overlap; commands to one provider remain sequenced.
+Every action retains the existing signed binding, entity, runtime, lifecycle,
+configuration and publication checks. Per-node attempts and retry deadlines survive
+coordinator restarts. Joins remain blocked while a branch is pending or suspended.
+
+Successful safe graph responses are retained in the existing independent attempt
+journal before coordinator commit. Recovery checks the original input, packages,
+installation and configuration digests, and retains the original observation time.
+It does not relabel an old receipt as newly observed or blindly repeat uncertain
+non-repeatable submissions. No migration bytes or operator deployment were changed.
+
+Actual verification on this working source:
+
+- Host and SDK TypeScript builds passed (`phase16-parallel-build-third.log`,
+  `phase16-parallel-sdk-build.log`).
+- SDK **54/54**, host **31/31** tests passed (`phase16-parallel-sdk-tests.log`,
+  `phase16-parallel-host-tests.log`).
+- Graph/publication runtime **25/25** passed (`phase16-parallel-runtime-verified.log`),
+  including an overlapping-call rendezvous, one-branch retry without repeating its
+  successful sibling, coordinator rollback after two provider commits, rejection,
+  retained cancellation state, same-provider ordering, approval expiry/revocation
+  and missing lifecycle guard denial.
+- Event admission **16/16**, session/CSRF governance **14/14**, legacy SSMA **11/11**
+  passed (`phase16-parallel-events.log`, `phase16-parallel-governance.log`,
+  `phase16-parallel-legacy-final.log`).
+- Single-stack verification passed: **60 selected containers, zero unexpected**
+  (`phase16-parallel-single-stack.log`).
+
+Failures are retained. The original lost-response test bypassed only the parent
+retry timer; it now asserts node backoff prevents immediate calls and waits for the
+actual deadline. Parallel fixture corrections supplied valid independently signed
+permissions, a distinct consumed capability and an explicit two-lane configuration.
+The expanded test exposed a real SDK defect: primitive `const` schemas without
+`type` were rejected. The correction preserves exact value/type validation and has
+positive/negative regression coverage. The cancellation fixture initially wrote an
+unsupported state; it now uses the existing suspended/WORKFLOW_CANCELLED semantics.
+That failed fixture left a pending retry and caused the subsequent timeout fixture
+failure; both pass after correction. No SQL constraint or authorization was relaxed.
+
+These are isolated real PostgreSQL/coordinator checks with synthetic provider
+receipts and injected lifecycle transport, not installed provider or browser
+acceptance. Final uninterrupted regressions, installed designer/dry-run/business
+scenarios, upgrades, release inventory/documentation and artifacts remain open.
+No v0.16.0 release or tag is claimed.

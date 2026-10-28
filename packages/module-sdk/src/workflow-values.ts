@@ -45,7 +45,9 @@ export function validateWorkflowInput(value:unknown,schema:Record<string,any>,fi
       requireInput(v.array.length<=40&&v.array.length>=(s.minItems??0)&&v.array.length<=(s.maxItems??40),'WORKFLOW_INPUT_ARRAY_LIMIT');
       for(const child of v.array)visit(child,s.items,depth+1);return;
     }
-    const type=validateWorkflowExpression(v,fields);requireInput(type===s.type,'WORKFLOW_INPUT_TYPE_MISMATCH');
+    const type=validateWorkflowExpression(v,fields);
+    const expectedType=s.type??(Object.hasOwn(s,'const')?(Number.isSafeInteger(s.const)?'integer':typeof s.const):undefined);
+    requireInput(type===expectedType,'WORKFLOW_INPUT_TYPE_MISMATCH');
     if(Object.hasOwn(v,'literal')){
       const literal=v.literal;
       requireInput(!Object.hasOwn(s,'const')||literal===s.const,'WORKFLOW_INPUT_LITERAL_INVALID');

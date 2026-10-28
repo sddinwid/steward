@@ -286,3 +286,22 @@ business outcome. Audit records and inbox receipts use the existing module
 transaction infrastructure. Notifications are not replicated as Master evidence.
 Self-provider use still requires registry discovery and an approved SSMA binding;
 no module-local shortcut substitutes for Worker governance.
+
+
+### Bounded parallel dispatch
+
+Independent ready actions may run together within the reviewed `maxParallel` limit
+(1–4), only when each signed operation requires idempotency and declares safe retry.
+Actions sharing a provider module stay ordered on the original aggregate sequence.
+Each branch retains its own attempts/deadline; a successful sibling is not rerun to
+retry a failed branch. A rejection suspends the execution and blocks joins while
+preserving already committed effects. Cancellation uses the existing suspended
+`WORKFLOW_CANCELLED` state and cannot roll back business effects.
+
+Safe successful responses use the existing independent `smart_attempts` journal.
+Recovery matches source/provider package and installation identity, operation,
+materialized input and both configurations. Changed terms require reconciliation.
+Stored observations retain their first response timestamp; recovery does not renew
+freshness. Lifecycle locks are shared application locks, with exclusive lifecycle
+changes still excluded. This source checkpoint requires installed acceptance before
+being described as released.

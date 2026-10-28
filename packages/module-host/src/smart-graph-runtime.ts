@@ -4,6 +4,8 @@ import {planSmartGraph,type SmartGraphProgress} from './smart-graph.js';
 import type {VerifiedWorkflowPublication} from './workflow-authority.js';
 
 export interface GraphExecutionState {
+  attempts?:Record<string,number>;
+  retryAt?:Record<string,number>;
   progress:Record<string,SmartGraphProgress>;
   enteredAt:Record<string,number>;
   decisions:Record<string,string>;
@@ -46,7 +48,7 @@ export async function prepareGraphStep(db:pg.PoolClient,e:Execution,publication:
   for(const id of plan.skip)state.progress[id]={state:'skipped'};
   if(plan.complete){await db.query("UPDATE smart_executions SET state='completed',error_code=NULL,updated_at=now() WHERE execution_id=$1",[e.execution_id]);return null;}
   const outstanding=publication.graph.nodes.filter(n=>['running','waiting'].includes(state.progress[n.id]?.state??''));
-  const node=outstanding.find(n=>n.kind==='action'||n.kind==='notification')??outstanding.find(n=>{
+  const node=outstanding.find(n=>(n.kind==='action'||n.kind==='notification')&&(state.retryAt?.[n.id]??0)<=now)??outstanding.find(n=>{
     if(n.kind==='wait')return now>=state.enteredAt[n.id]!+n.waitMs!;
     return false;
   })??publication.graph.nodes.find(n=>plan.ready.includes(n.id))??outstanding.find(n=>n.kind==='approval');

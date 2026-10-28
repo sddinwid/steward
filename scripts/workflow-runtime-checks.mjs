@@ -21,14 +21,20 @@ export async function exerciseGraphRuntime(c){
  const signed=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'b'.repeat(64),manifest:provider},keys.privateKey.export({type:'pkcs8',format:'pem'}).toString()),providerDigest=digest(canonical(signed));
  await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,'{}','active',$4)",[providerId,provider.version,signed,providerInstallation]);
  await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved','Isolated synthetic kernel fixture approval')",[bindingId,manifest.moduleId,capability.capabilityId,providerId,providerInstallation,providerDigest,requirement,capability,author,entityId]);
+ const secondProviderId='example.workflow-secondary',secondInstallation=randomUUID(),secondBinding=randomUUID();
+ const secondRequirement=manifest.smart.consumes.find(r=>r.capabilityId==='inventory.items.read'),secondCapability={...capability,capabilityId:secondRequirement.capabilityId,contract:secondRequirement.contract,operations:secondRequirement.operations.map(o=>({...o,command:o.name,permission:secondProviderId+'.write',mode:'durable',idempotency:'required',retry:'safe'}))};
+ const secondManifest={...provider,moduleId:secondProviderId,api:provider.api.map(a=>({...a,permission:a.permission.replace(providerId,secondProviderId)})),smart:{...provider.smart,provides:[secondCapability]}};
+ const secondSigned=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'c'.repeat(64),manifest:secondManifest},keys.privateKey.export({type:'pkcs8',format:'pem'}).toString());
+ await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,'{}','active',$4)",[secondProviderId,provider.version,secondSigned,secondInstallation]);
+ await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved','Second isolated synthetic provider')",[secondBinding,manifest.moduleId,secondCapability.capabilityId,secondProviderId,secondInstallation,digest(canonical(secondSigned)),secondRequirement,secondCapability,author,entityId]);
  await moduleDb.query('CREATE DATABASE synthetic_provider');const receipts=new pg.Pool({...db.options,password:db.options.password,database:'synthetic_provider'});
  await receipts.query('CREATE TABLE receipts(command_id uuid PRIMARY KEY,digest text NOT NULL,response jsonb NOT NULL)');
- let loseResponse=false,sourceUnavailable=false,providerCalls=0;
+ let loseResponse=false,sourceUnavailable=false,providerCalls=0,parallelBarrier=null,failSecondary=false,rejectSecondary=false;
  const call=async(id,method,path,body,headers,timeout,incoming)=>{
   if(id===manifest.moduleId&&sourceUnavailable)return{status:503,value:{error:'Synthetic source outage'}};
-  if(id!==providerId)return transport(id,method,path,body,headers,timeout);
-  providerCalls++;assert.equal(method,'POST');assert.equal(path,'/integration-inbox');assert.equal(incoming.entityId,entityId);assert.equal(incoming.moduleId,manifest.moduleId);
-  const hash=digest(canonical(body)),response={orderId:body.payload.orderId,lines:body.payload.lines.map(l=>({sku:l.sku,requested:l.quantity,availableBefore:100,reserved:l.quantity}))};
+  if(![providerId,secondProviderId].includes(id))return transport(id,method,path,body,headers,timeout);
+  providerCalls++;if(parallelBarrier)await parallelBarrier(id);if(id===secondProviderId&&rejectSecondary){rejectSecondary=false;return{status:403,value:{error:'Synthetic authority denial'}};}if(id===secondProviderId&&failSecondary){failSecondary=false;return{status:503,value:{error:'Synthetic branch outage'}};}assert.equal(method,'POST');assert.equal(path,'/integration-inbox');assert.equal(incoming.entityId,entityId);assert.equal(incoming.moduleId,manifest.moduleId);
+  const hash=digest(canonical(body)),response=id===secondProviderId?{contractVersion:1,records:[],nextOffset:null}:{orderId:body.payload.orderId,lines:body.payload.lines.map(l=>({sku:l.sku,requested:l.quantity,availableBefore:100,reserved:l.quantity}))};
   await receipts.query('INSERT INTO receipts VALUES($1,$2,$3) ON CONFLICT DO NOTHING',[body.commandId,hash,response]);
   const prior=(await receipts.query('SELECT * FROM receipts WHERE command_id=$1',[body.commandId])).rows[0];assert.equal(prior.digest,hash);
   if(loseResponse){loseResponse=false;throw Error('Synthetic lost response after durable receipt');}
@@ -49,7 +55,33 @@ export async function exerciseGraphRuntime(c){
   });
   await check('graph action dispatch reuses SSMA authorization and lost-response retries retain one durable receipt',async()=>{
    const g=base();g.nodes.splice(1,0,action());g.edges=[{from:'start',to:'reserve',port:'next'},{from:'reserve',to:'done',port:'next'}];const id=await queue(g);loseResponse=true;
-   const result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,'reserve')])).rows[0].n),1);
+   const waiting=await advance(id);assert.equal(waiting.state,'pending');assert.equal(waiting.graph_state.attempts.reserve,1);const callsBeforeRetry=providerCalls;await advance(id,2);assert.equal(providerCalls,callsBeforeRetry,'backoff must prevent immediate redispatch');await delay(Math.max(0,waiting.graph_state.retryAt.reserve-Date.now())+30);const result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,'reserve')])).rows[0].n),1);
+  });
+  const parallelGraph=()=>{const g=base();g.limits.maxParallel=2;g.nodes=[g.nodes[0],{id:'fork',kind:'branch',label:'Parallel'},action('left'),{...action('right'),bindingId:secondBinding,operation:'inventory.items.discover',inputs:{contractVersion:{literal:1},query:{literal:''},offset:{literal:0},limit:{literal:10}}},{id:'join',kind:'join',label:'Join'},g.nodes[1]];g.edges=[{from:'start',to:'fork',port:'next'},{from:'fork',to:'left',port:'lane'},{from:'fork',to:'right',port:'lane'},{from:'left',to:'join',port:'next'},{from:'right',to:'join',port:'next'},{from:'join',to:'done',port:'next'}];return g;};
+  await check('distinct authorized providers overlap in one bounded batch and join after both durable effects',async()=>{
+   const arrivals=new Set();let release;const rendezvous=new Promise(resolve=>{release=resolve;});
+   parallelBarrier=async provider=>{arrivals.add(provider);if(arrivals.size===2)release();await Promise.race([rendezvous,delay(2000).then(()=>{throw Error('Parallel rendezvous timed out');})]);};
+   try{const id=await queue(parallelGraph()),result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(arrivals.size,2);for(const node of ['left','right'])assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,node)])).rows[0].n),1);assert.equal(result.graph_state.progress.join.state,'completed');}finally{parallelBarrier=null;}
+  });
+  await check('failed parallel branch backs off independently without repeating its completed sibling or releasing the join',async()=>{
+   const id=await queue(parallelGraph());failSecondary=true;const waiting=await advance(id);assert.equal(waiting.state,'pending');assert.equal(waiting.graph_state.progress.left.state,'completed');assert.equal(waiting.graph_state.progress.right.state,'running');assert.notEqual(waiting.graph_state.progress.join?.state,'completed');const before=providerCalls;
+   await advance(id,2);assert.equal(providerCalls,before);await delay(Math.max(0,waiting.graph_state.retryAt.right-Date.now())+30);const result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(providerCalls,before+1);assert.equal(result.graph_state.progress.join.state,'completed');
+  });
+  await check('coordinator rollback after parallel provider commits recovers retained receipts without repeating effects',async()=>{
+   const id=await queue(parallelGraph());await tick();await tick();let interrupted=false;const before=providerCalls;
+   const interruptedPool={query:db.query.bind(db),connect:async()=>{const client=await db.connect();return{release:client.release.bind(client),query:async(sql,args)=>{if(sql==='COMMIT'&&!interrupted){interrupted=true;throw Error('Synthetic coordinator interruption before commit');}return client.query(sql,args);}};}};
+   await assert.rejects(()=>executeSmartStep(interruptedPool,installationId,trust,call,async()=>true,async()=>async()=>{}),/Synthetic coordinator interruption/);assert.equal(interrupted,true);assert.equal(providerCalls,before+2);
+   assert.equal(Number((await db.query("SELECT count(*) n FROM smart_attempts WHERE execution_id=$1 AND state='responded'",[id])).rows[0].n),2);
+   assert.equal((await read(id)).graph_state.progress.left,undefined);const result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(providerCalls,before+2,'retained responses must avoid transport replay');
+  });
+  await check('parallel rejection suspends the execution while preserving the completed sibling and blocking its join',async()=>{
+   rejectSecondary=true;const id=await queue(parallelGraph()),result=await advance(id);assert.equal(result.state,'suspended');assert.equal(result.error_code,'PROVIDER_REJECTED');assert.equal(result.graph_state.progress.left.state,'completed');assert.equal(result.graph_state.progress.right.state,'suspended');assert.notEqual(result.graph_state.progress.join?.state,'completed');const before=providerCalls;await tick();assert.equal(providerCalls,before);
+  });
+  await check('cancellation during branch backoff preserves committed effects and prevents further dispatch',async()=>{
+   failSecondary=true;const id=await queue(parallelGraph()),waiting=await advance(id);assert.equal(waiting.state,'pending');assert.equal(waiting.graph_state.progress.left.state,'completed');await db.query("UPDATE smart_executions SET state='suspended',error_code='WORKFLOW_CANCELLED' WHERE execution_id=$1",[id]);const before=providerCalls;await tick();assert.equal(providerCalls,before);assert.equal((await read(id)).state,'suspended');assert.equal((await read(id)).error_code,'WORKFLOW_CANCELLED');assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,'left')])).rows[0].n),1);
+  });
+  await check('actions sharing one provider stay sequential even when the graph permits parallel lanes',async()=>{
+   const g=parallelGraph();g.nodes[g.nodes.findIndex(n=>n.id==='right')]=action('right');const id=await queue(g),before=providerCalls;await tick();await tick();await tick();const partial=await read(id);assert.equal(providerCalls,before+1);assert.equal(Object.values(partial.graph_state.progress).filter(p=>p.state==='running').length,0);assert.equal((await advance(id)).state,'completed');assert.equal(providerCalls,before+2);
   });
   await check('concurrent coordinator calls cannot duplicate the same graph action',async()=>{
    const g=base();g.nodes.splice(1,0,action());g.edges=[{from:'start',to:'reserve',port:'next'},{from:'reserve',to:'done',port:'next'}];const id=await queue(g);await tick();await Promise.all([tick(),tick()]);assert.equal((await advance(id)).state,'completed');assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,'reserve')])).rows[0].n),1);

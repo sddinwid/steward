@@ -24,3 +24,10 @@ test('input schema type, literal constraints and required fields are enforced wi
  assert.throws(()=>validateWorkflowInput({literal:'EUR'},{type:'string',enum:['USD']},fields),/LITERAL_INVALID/);
  assert.throws(()=>validateWorkflowInput(value,{...schema,oneOf:[]},fields),/SCHEMA_UNSUPPORTED/);
 });
+
+test('signed primitive constant schemas accept exact literals without weakening type or value checks',()=>{
+ for(const literal of [1,'internal',true])validateWorkflowInput({literal},{const:literal},{});
+ assert.throws(()=>validateWorkflowInput({literal:2},{const:1},{}),/LITERAL_INVALID/);
+ assert.throws(()=>validateWorkflowInput({literal:'1'},{const:1},{}),/TYPE_MISMATCH/);
+ assert.throws(()=>validateWorkflowInput({literal:1},{type:'string',const:1},{}),/TYPE_MISMATCH/);
+});

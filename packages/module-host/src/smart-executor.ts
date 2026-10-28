@@ -1,7 +1,7 @@
 import {verifyWorkflowEventExecution} from './workflow-event-execution.js';
 import {verifyWorkflowPublication,type VerifiedWorkflowPublication} from './workflow-authority.js';
 import {prepareGraphStep,persistGraphState} from './smart-graph-runtime.js';
-import {graphCommandId,graphCallTimeout} from './smart-graph.js';
+import {graphCommandId,graphCallTimeout,planSmartGraph} from './smart-graph.js';
 import {materializeWorkflowInput,evaluateWorkflowExpression,type WorkflowObservation} from '@steward/module-sdk';
 import {atLeast,capabilityConfigured,consumerCapabilityConfigured} from '@steward/module-sdk';
 import {protectSimulationRoute,recordSimulationDenial} from './simulation-routing.js';
@@ -20,7 +20,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
     const w=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1',[e.workflow_id])).rows[0];
     const history=async(event:string,detail:unknown)=>db.query('INSERT INTO smart_history(execution_id,workflow_id,actor_id,event,detail) VALUES($1,$2,$3,$4,$5)',[e.execution_id,e.workflow_id,e.actor_id,event,detail]);
     const suspend=async(code:string)=>{await db.query("UPDATE smart_executions SET state='suspended',error_code=$1,updated_at=now() WHERE execution_id=$2",[code,e.execution_id]);await history('suspended',{code,step:e.step,recovery:'Inspect original provider receipts and business state. Reconcile retained obligations explicitly; never transfer reservations or repeat uncertain paid production.'});};
-    let retrySafe = false, issued = false;
+
     let graphFrame:Awaited<ReturnType<typeof prepareGraphStep>>=null,publication:VerifiedWorkflowPublication|undefined;
     try {
       if(!w||w.state!=='active')throw new Error('WORKFLOW_NOT_ACTIVE');
@@ -46,6 +46,10 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         e.step=graphFrame.index;step=graphFrame.node;
         await db.query('UPDATE smart_executions SET step=$1 WHERE execution_id=$2',[e.step,e.execution_id]);
       }
+      const runAction=async(e:any,step:any,graphFrame:Awaited<ReturnType<typeof prepareGraphStep>>,parallel=false)=>{
+        let retrySafe=false,issued=false,actionUnlock:(()=>Promise<void>)|undefined;
+        const history=async(event:string,detail:unknown)=>db.query('INSERT INTO smart_history(execution_id,workflow_id,actor_id,event,detail) VALUES($1,$2,$3,$4,$5)',[e.execution_id,e.workflow_id,e.actor_id,event,detail]);
+        try{
       if(!step)throw new Error('INVALID_WORKFLOW_STEP');
       const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state IN ('approved','retained')",[step.bindingId,w.consumer_id])).rows[0];
       if(!binding)throw new Error('BINDING_REQUIRES_RECONCILIATION');
@@ -53,7 +57,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
       if(!local||binding.entity_id!==local.entity_id)throw new Error('ENTITY_SCOPE_MISMATCH');
       if(!(await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[binding.actor_id])).rowCount)throw new Error('APPROVAL_REVOKED');
-      if(graphFrame){if(!lockModules)throw Error('WORKFLOW_LIFECYCLE_GUARD_REQUIRED');const actionUnlock=await lockModules([w.consumer_id,binding.provider_id]),earlierUnlock=unlock;unlock=async()=>{try{await actionUnlock();}finally{await earlierUnlock?.();}};}
+      if(graphFrame){if(!lockModules)throw Error('WORKFLOW_LIFECYCLE_GUARD_REQUIRED');actionUnlock=await lockModules([w.consumer_id,binding.provider_id]);}
       const rows=(await db.query('SELECT * FROM module_installations WHERE module_id=ANY($1::text[])',[ [w.consumer_id,binding.provider_id] ])).rows;
       const source=rows.find(r=>r.module_id===w.consumer_id),target=rows.find(r=>r.module_id===binding.provider_id);
       if(!source||!target||source.state!=='active'||target.state!=='active')throw new Error('PROVIDER_UNAVAILABLE');
@@ -71,14 +75,16 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       if(!resolveCapability(requirement,[p],{entityId:binding.entity_id,permissions:capability.operations.map(o=>o.permission)}).selected)throw new Error('INCOMPATIBLE_PROVIDER');
       if(!await runtimeMatches(tm.moduleId,target.configuration)||!await runtimeMatches(sm.moduleId,source.configuration))throw new Error('CONFIGURATION_MISMATCH');
       const op=capability.operations.find(o=>o.name===step.operation);if(!op)throw new Error('OPERATION_NOT_DECLARED');
-      retrySafe = op.retry === 'safe';
+      retrySafe = op.retry === 'safe';if(parallel&&(!retrySafe||op.idempotency!=='required'))throw Error('WORKFLOW_PARALLEL_OPERATION_UNSAFE');
       if(sm.simulation?.role==='participant'&&source.configuration.integrationsEnabled!==true)throw Error('CONSUMER_CONFIGURATION_PREREQUISITE');
       const input=graphFrame&&publication?materializeWorkflowInput({object:graphFrame.node.inputs!},op.input,publication.fields,graphFrame.state.observations,{entityId:binding.entity_id,now:graphFrame.now}):e.inputs[e.step];validateCapabilityValue(input,op.input);
       const commandId=graphFrame?graphCommandId(e.execution_id,graphFrame.node.id):workflowCommandId(e.execution_id,e.step);
       // A coordinator transaction may roll back after a provider commit. The same
       // command identity is reused; non-repeatable operations require reconciliation.
-      await db.query("UPDATE smart_executions SET state='running',attempts=attempts+1,updated_at=now() WHERE execution_id=$1",[e.execution_id]);
+      if(!graphFrame)await db.query("UPDATE smart_executions SET state='running',attempts=attempts+1,updated_at=now() WHERE execution_id=$1",[e.execution_id]);
       let response;
+      const inputDigest=digest(canonical({input,source:digest(canonical(source.descriptor)),provider:binding.package_digest,installation:target.operation_id,operation:op.name,sourceConfiguration:source.configuration,providerConfiguration:target.configuration}));
+      if(graphFrame&&retrySafe){const prior=(await pool.query('SELECT * FROM smart_attempts WHERE command_id=$1',[commandId])).rows[0];if(prior){if(prior.state!=='responded'||prior.response?.workflowInputDigest!==inputDigest)throw Error('WORKFLOW_RECEIPT_RECONCILIATION_REQUIRED');response=prior.response;}}
       if(!retrySafe){
         // This issuance marker is committed independently. A killed process can
         // never blindly repeat an external operation after losing its response.
@@ -103,11 +109,12 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         await protectSimulationRoute(db,{protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence:e.step+1,occurredAt:new Date(e.created_at).toISOString(),payload:input},sm,tm,target.configuration);
         response=await call(tm.moduleId,api.method,api.path,api.method==='GET'?undefined:{...input,requestId:commandId},{'x-steward-actor':e.actor_id,'x-steward-permissions':JSON.stringify([op.permission]),'x-steward-installation':installationId},operationTimeout);
       }
+      if(graphFrame&&retrySafe&&response.status>=200&&response.status<300){response={...response,workflowInputDigest:inputDigest,workflowObservedAt:response.workflowObservedAt??new Date((await db.query('SELECT clock_timestamp() AS now')).rows[0].now).getTime()};const retained=response;await pool.query("INSERT INTO smart_attempts(command_id,execution_id,step,state,response) VALUES($1,$2,$3,'responded',$4) ON CONFLICT(command_id) DO NOTHING",[commandId,e.execution_id,e.step,retained]);}
       if(!retrySafe)await pool.query("UPDATE smart_attempts SET state='responded',response=$1,updated_at=now() WHERE command_id=$2",[response,commandId]);
       if(response.status>=200&&response.status<300){
         validateCapabilityValue(response.value,op.output);
         if(graphFrame&&publication){
-          const observedAt=new Date((await db.query('SELECT clock_timestamp() AS now')).rows[0].now).getTime();
+          const observedAt=response.workflowObservedAt??new Date((await db.query('SELECT clock_timestamp() AS now')).rows[0].now).getTime();
           for(const [field,policy] of Object.entries(publication.fields)){
             if(!field.startsWith(graphFrame.node.id+'.'))continue;
             const value=field.split('.').slice(1).reduce<any>((v,key)=>v?.[key],response.value);if(value===undefined)continue;
@@ -115,23 +122,62 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
             evaluateWorkflowExpression({field},{[field]:policy},{[field]:observation},{entityId:binding.entity_id,now:observedAt});graphFrame.state.observations[field]=observation;
           }
           graphFrame.state.progress[graphFrame.node.id]={state:'completed',selectedPorts:['next']};
-          await persistGraphState(db,e.execution_id,graphFrame.state);
-          await db.query("UPDATE smart_executions SET state='pending',attempts=0,error_code=NULL,next_attempt_at=now(),updated_at=now() WHERE execution_id=$1",[e.execution_id]);
+
           await history('graph_action_completed',{nodeId:graphFrame.node.id,bindingId:binding.binding_id,provider:tm.moduleId,packageDigest:binding.package_digest,commandId});
-          await db.query('COMMIT');return;
+          return{kind:'completed' as const};
         }
         const completed=e.step+1===w.definition.steps.length;
         await db.query("UPDATE smart_executions SET state=$1,step=step+1,attempts=0,error_code=NULL,next_attempt_at=now(),updated_at=now() WHERE execution_id=$2",[completed?'completed':'pending',e.execution_id]);
         await history('step_completed',{step:e.step,bindingId:binding.binding_id,provider:tm.moduleId,packageDigest:binding.package_digest,commandId,result:response.value,completed});
-      }else if([400,401,403,409,422].includes(response.status))await suspend('PROVIDER_REJECTED');
-      else if(op.retry==='reconcile')await suspend('UNCERTAIN_OUTCOME_RECONCILE');
+      }else if([400,401,403,409,422].includes(response.status))throw Error('PROVIDER_REJECTED');
+      else if(op.retry==='reconcile')throw Error('UNCERTAIN_OUTCOME_RECONCILE');
       else throw new Error('PROVIDER_UNAVAILABLE');
+      return{kind:'completed' as const};
+        }catch(error){const raw=(error as Error).message,code=/^[A-Z_]{1,80}$/.test(raw)?raw:'PROVIDER_UNAVAILABLE';
+          if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE','EVENT_SOURCE_UNAVAILABLE'].includes(code)&&(!issued||retrySafe)&&e.attempts<3)return{kind:'retry' as const,code};
+          return{kind:'suspended' as const,code:code==='PROVIDER_UNAVAILABLE'&&issued&&!retrySafe?'UNCERTAIN_OUTCOME_RECONCILE':code};
+        }finally{await actionUnlock?.();}
+      };
+      if(graphFrame&&publication){
+        const frames=await selectGraphFrames(db,publication,graphFrame),state=graphFrame.state;
+        state.attempts??={};state.retryAt??={};
+        await history('graph_dispatch_batch',{nodes:frames.map(f=>f.node.id),concurrency:frames.length});
+        const results=await Promise.allSettled(frames.map(frame=>runAction({...e,step:frame.index,attempts:state.attempts![frame.node.id]??0},frame.node,frame,frames.length>1)));
+        let failure:string|undefined;
+        for(let i=0;i<frames.length;i++){
+          const frame=frames[i]!,result=results[i]!,outcome=result.status==='fulfilled'?result.value:{kind:'suspended',code:'WORKFLOW_DISPATCH_FAILED'};
+          if(outcome.kind==='completed'){delete state.attempts[frame.node.id];delete state.retryAt[frame.node.id];}
+          else if(outcome.kind==='retry'){state.attempts[frame.node.id]=(state.attempts[frame.node.id]??0)+1;state.retryAt[frame.node.id]=Date.now()+5000;await history('graph_action_retry',{nodeId:frame.node.id,code:outcome.code,attempts:state.attempts[frame.node.id]});}
+          else{state.progress[frame.node.id]={state:'suspended'};failure??=outcome.code;await history('graph_action_suspended',{nodeId:frame.node.id,code:outcome.code});}
+        }
+        await persistGraphState(db,e.execution_id,state);
+        if(failure)await suspend(failure);else await db.query("UPDATE smart_executions SET state='pending',attempts=0,error_code=NULL,next_attempt_at=now(),updated_at=now() WHERE execution_id=$1",[e.execution_id]);
+      }else{
+        const result=await runAction(e,step,null);
+        if(result.kind==='retry'){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,result.code,e.execution_id]);await history('retry_scheduled',{step:e.step,code:result.code});}
+        else if(result.kind==='suspended')await suspend(result.code);
+      }
     }catch(error){
       const raw=(error as Error).message,code=/^[A-Z_]{1,80}$/.test(raw)?raw:'PROVIDER_UNAVAILABLE';
-      // Durable inbox receipts make transport retries safe, with a strict attempt budget.
-      if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE','EVENT_SOURCE_UNAVAILABLE'].includes(code)&&(!issued||retrySafe)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
-      else await suspend(code==='PROVIDER_UNAVAILABLE'&&issued&&!retrySafe?'UNCERTAIN_OUTCOME_RECONCILE':code);
+      if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE','EVENT_SOURCE_UNAVAILABLE'].includes(code)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
+      else await suspend(code);
     }
     await db.query('COMMIT');
   }catch(error){await db.query('ROLLBACK');throw error;}finally{try{await unlock?.();}finally{db.release();}}
+}
+
+/** Parallelism is bounded and restricted to distinct provider modules. Commands
+ * sharing a provider remain ordered on the original integration sequence. */
+async function selectGraphFrames(db:pg.PoolClient,publication:VerifiedWorkflowPublication,first:NonNullable<Awaited<ReturnType<typeof prepareGraphStep>>>){
+ const frames=[first],graph=publication.graph,state=first.state;if(graph.limits.maxParallel===1)return frames;
+ const binding=async(node:any)=>(await db.query('SELECT provider_id,capability FROM smart_bindings WHERE binding_id=$1',[node.bindingId])).rows[0];
+ const initial=await binding(first.node),safe=(b:any,n:any)=>b?.capability?.operations.some((o:any)=>o.name===n.operation&&o.retry==='safe'&&o.idempotency==='required');
+ if(!safe(initial,first.node))return frames;const providers=new Set([initial.provider_id]),plan=planSmartGraph(graph,state.progress);
+ for(const node of [...graph.nodes].sort((a,b)=>a.id.localeCompare(b.id,'en'))){
+  if(frames.length>=graph.limits.maxParallel)break;
+  if(node.id===first.node.id||!['action','notification'].includes(node.kind)||!((state.progress[node.id]?.state==='running'&&(state.retryAt?.[node.id]??0)<=first.now)||plan.ready.includes(node.id)))continue;
+  const b=await binding(node);if(!safe(b,node)||providers.has(b.provider_id))continue;
+  providers.add(b.provider_id);state.enteredAt[node.id]??=first.now;state.progress[node.id]={state:'running'};frames.push({state,node,index:graph.nodes.findIndex(n=>n.id===node.id),now:first.now});
+ }
+ return frames;
 }
