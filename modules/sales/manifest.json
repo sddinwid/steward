@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
-  "minimumPlatformVersion": "0.15.0",
+  "minimumPlatformVersion": "0.16.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -432,7 +432,7 @@
   "ui": [
     {
       "screenId": "customer",
-      "title": "Sales — customer",
+      "title": "Sales \u2014 customer",
       "navigationLabel": "sales customer",
       "listOperation": "listCustomer",
       "createOperation": "createCustomer",
@@ -476,7 +476,7 @@
     },
     {
       "screenId": "order",
-      "title": "Sales — order",
+      "title": "Sales \u2014 order",
       "navigationLabel": "sales order",
       "listOperation": "listOrder",
       "createOperation": "createOrder",
@@ -621,7 +621,7 @@
     },
     {
       "screenId": "fulfillment",
-      "title": "Sales — fulfillment",
+      "title": "Sales \u2014 fulfillment",
       "navigationLabel": "sales fulfillment",
       "listOperation": "listFulfillment",
       "createOperation": "createFulfillment",
@@ -1901,6 +1901,11 @@
         "maximum": 3600,
         "default": 300,
         "description": "Maximum accepted age of a reviewed Catalog classification read. Tightening applies to cached reads; increasing this setting never extends their captured source expiry."
+      },
+      "workflowEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Allow governed local Sales workflow continuations; accepted local smart-inventory orders wait for workflow reservation."
       }
     }
   },
@@ -3457,6 +3462,274 @@
         "ownership": "provider",
         "configuration": {
           "simulationEnabled": true
+        }
+      },
+      {
+        "capabilityId": "sales.orders.workflow",
+        "contract": "steward.sales-workflow-continuation",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "sales.workflow.inspect",
+            "command": "sales.workflow.inspect",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            },
+            "permission": "cee.sales.read",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "sales.workflow.reserve",
+            "command": "sales.workflow.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "orderId",
+                "expectedRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            },
+            "permission": "cee.sales.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "sales.workflow.fulfill",
+            "command": "sales.workflow.fulfill",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "orderId",
+                "expectedRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            },
+            "permission": "cee.sales.write",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [
+          {
+            "name": "sales.order.changed",
+            "streamId": "sales_demand",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "projection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "number": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "lines": {
+                      "type": "array",
+                      "maxItems": 40,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sku": {
+                            "type": "string",
+                            "maxLength": 80
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "unitPriceCents": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "sku",
+                          "quantity",
+                          "unitPriceCents"
+                        ]
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "stockStatus": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "approved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "number",
+                    "currency",
+                    "lines",
+                    "status",
+                    "stockStatus",
+                    "approved"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projection"
+              ]
+            }
+          }
+        ],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "workflowEnabled": true
         }
       }
     ],

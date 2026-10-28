@@ -918,6 +918,255 @@
         "events": [],
         "maximumSensitivity": "business",
         "optional": true
+      },
+      {
+        "capabilityId": "sales.orders.workflow",
+        "contract": "steward.sales-workflow-continuation",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "sales.workflow.inspect",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            }
+          },
+          {
+            "name": "sales.workflow.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "orderId",
+                "expectedRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            }
+          },
+          {
+            "name": "sales.workflow.fulfill",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "expectedRevision": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              },
+              "required": [
+                "orderId",
+                "expectedRevision"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "stockStatus": {
+                  "type": "string",
+                  "maxLength": 80
+                },
+                "inventoryIntegrated": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "orderId",
+                "revision",
+                "status",
+                "stockStatus",
+                "inventoryIntegrated"
+              ]
+            }
+          }
+        ],
+        "events": [
+          {
+            "name": "sales.order.changed",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "projection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "number": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "currency": {
+                      "type": "string",
+                      "minLength": 3,
+                      "maxLength": 3
+                    },
+                    "lines": {
+                      "type": "array",
+                      "maxItems": 40,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "sku": {
+                            "type": "string",
+                            "maxLength": 80
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "minimum": 1
+                          },
+                          "unitPriceCents": {
+                            "type": "integer",
+                            "minimum": 0
+                          }
+                        },
+                        "required": [
+                          "sku",
+                          "quantity",
+                          "unitPriceCents"
+                        ]
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "stockStatus": {
+                      "type": "string",
+                      "maxLength": 80
+                    },
+                    "approved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "number",
+                    "currency",
+                    "lines",
+                    "status",
+                    "stockStatus",
+                    "approved"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projection"
+              ]
+            }
+          }
+        ],
+        "maximumSensitivity": "business",
+        "optional": true
       }
     ],
     "prerequisites": {

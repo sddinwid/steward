@@ -221,3 +221,38 @@ evidence; authoritative business records remain in their source module database.
 This is verified with real isolated databases and signed synthetic providers.
 Actual installed business scenarios, recovery controls and release acceptance
 remain outstanding.
+
+## Sales-owned continuation contract (source package 1.6.0)
+
+`sales.orders.workflow` / `steward.sales-workflow-continuation` v1 is an optional
+signed provider, requiring platform 0.16 and explicit `workflowEnabled: true`.
+Its durable operations are `sales.workflow.inspect`, `sales.workflow.reserve`
+and `sales.workflow.fulfill`. Inputs use an authoritative Sales order UUID;
+mutations also require the exact current revision. Results contain only order
+identity/revision, status, stock status and whether Inventory is integrated.
+Current same-Worker/same-entity sender attestation is required. Private inbox
+access remains host-authenticated; a signed declaration does not grant authority.
+
+With `integrationsEnabled`, `smartInventory` and `workflowEnabled` enabled,
+confirmation of local orders preserves accepted-price authority but leaves stock
+status `awaiting_workflow`. Reserve uses Sales' existing provider-pinned Inventory
+outbox; fulfillment invokes the existing Sales resource validation and consumes
+the original reservation. A queued request is not completed fulfillment: the
+existing Inventory acknowledgment updates Sales. Commands use the established
+transactional inbox and original command identity. A different fulfillment intent
+for the same workflow fulfillment is rejected for reconciliation, not repeated.
+Configuration disabled preserves existing automatic reservation behavior.
+
+The source event `sales.order.changed` references existing `sales_demand`
+replication records; there is no separate event bus, database or source migration.
+Its schema includes id/revision and the original bounded demand projection.
+Conditions must distinguish accepted/awaiting-reservation, reserved and terminal
+states; every state update is an observation, not a new authorization. Separate
+reviewed event workflows can request reservation and continue after its actual
+acknowledgment. Workflow intake never directly owns Inventory stock.
+
+Channel orders and orders with requested production are explicitly excluded.
+This capability cannot submit live Shopify/Printify production or fulfillment.
+Catalog/Pricing acceptance and verified Inventory provider pins remain enforced
+by the original Sales code. The new source package has not yet been installed or
+accepted as an end-to-end workflow deployment.

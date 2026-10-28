@@ -616,3 +616,38 @@ the selected operator stack. Real business trigger/action packages, bounded
 parallel dispatch, the required installed scenarios, candidate packaging,
 data-preserving upgrade and final release acceptance remain unfinished. No
 `v0.16.0` tag or Phase 16 GitHub push has been made.
+
+### Sales-owned workflow continuation checkpoint
+
+Implemented source Sales 1.6.0 (minimum platform 0.16), optional signed
+`sales.orders.workflow`, existing-source event metadata and the corresponding
+Automation consumer contract. Default-off `workflowEnabled` gates local
+confirmation deferral and continuation; both ordinary and governed acceptance
+retain original price/Inventory authority. No applied SQL changed. The source
+Docker label/package/lock versions agree; no candidate image was built or
+installed in this checkpoint.
+
+Sales TypeScript build and both manifest validators passed. Real isolated Sales
+and Inventory API/database tests: **6 passed**, including configuration/entity/
+revision denial, explicit channel exclusion, one Sales-owned reservation,
+duplicate receipt handling, original Inventory consumption, existing event schema
+and default-off compatibility (`phase16-sales-workflow-final-tests.log`). The
+first fixture missed Inventory unit identity initialization; its failure is
+retained in `phase16-sales-workflow-tests.log`. The fixture now calls the existing
+unit initializer rather than disabling its guard.
+
+Earlier business regression **7 passed**, Sales Catalog/Pricing regression
+**23 passed**, and actual Automation publication tests **8 passed**
+(`phase16-sales-workflow-{business,catalog,automation}-regression.log`). The new
+suite is included in root `test:business`. These tests inject local host routing;
+they do not establish authenticated installed graph, deployment or release
+acceptance. The 1,222-test full baseline predates this Sales change and must be
+rerun after remaining implementation.
+
+Added a further actual Catalog/Pricing/Inventory integration check: governed
+Sales acceptance defers reservation when explicitly configured, the workflow
+continuation retains `stock.verified.reserve` / `stock.verified.consume` and the
+original Inventory installation constraint, and the accepted-price snapshot is
+byte-equivalent after fulfillment. The expanded Sales Catalog suite passed
+**24 tests** (`phase16-sales-workflow-catalog-final.log`). No live connector or
+operator record was involved.
