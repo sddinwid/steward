@@ -568,3 +568,28 @@ report is retained (`phase16-recovery-limit-fixture-failure.json`); the fixture
 now uses distinct versions. UI refresh also resolves a lost subscription response
 by its original subscription identity. Host/UI builds and all **7 component
 browser checks passed** (`phase16-recovery-limit-browser.log`).
+
+### Full regression caught missing migration registration
+
+The uninterrupted run from `8afcfc350ee7093d6d34143a3d8c20595e2a36c3`
+passed the full monorepo build but failed the schema-6 additive upgrade check:
+actual migration 23, expected 24. This was an implementation defect, not a stale
+assertion: the new replay SQL had accidentally been registered as an unused
+property on entry 23. The isolated event fixtures applied SQL directly and did
+not expose this wiring defect. Failure evidence is retained in
+`phase16-recovery-full-{build,regressions}.log` and the result JSON.
+
+Corrected by appending a distinct migration-24 entry and typing the migration
+array to reject unrecognized properties at compile time. Original SQL bytes are
+unchanged. The legacy upgrade test now also asserts the actual replay index
+exists after migration and repeated provisioning. Platform build and **11 legacy
+SSMA/upgrade tests passed** (`phase16-replay-migration-build.log`,
+`phase16-replay-migration-upgrade.log`). Full regression rerun remains required.
+
+Separately, the selected deployment smoke passed all four APIs/frontends,
+identity/migration checks, restricted database roles, four distinct core volumes
+and matching Worker images (`phase16-recovery-selected-smoke.log`). Single-stack
+verification passed with 60 selected containers and zero unexpected containers;
+source migration verification passed all 10 checks, including trusted legacy
+provenance (`phase16-recovery-source-migrations.json`). These are preservation
+checks on the unchanged deployed release, not a Phase 16 upgrade.
