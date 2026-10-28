@@ -1,0 +1,128 @@
+{
+  "release": "0.15.0",
+  "sourceCommit": "4c07ffb0980e891f917f1755ff380e4241219f40",
+  "releaseManifestSha256": "8586123f8eafbc3938195942138367a49e8f613343f8e1eae9b4a98f65a0f812",
+  "modulePackagesSha256": "5cf683e07fa249e8255f70051ca80160f218f50f6c838727bc82d761c67ef849",
+  "packages": [
+    {
+      "moduleId": "cee.assets",
+      "version": "1.1.0",
+      "imageId": "sha256:25f2478d221b465ff7b606cd265360408c06b3b4dcaef9852386035801ad6ecb",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.inventory",
+      "version": "1.6.0",
+      "imageId": "sha256:7b3967a1256a304a0729724421515a300176ffc99dfa5eff1dda9b6bc0bdb78e",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.operations",
+      "version": "1.0.0",
+      "imageId": "sha256:084b1a04b9644c33966b7ebc84e348e69561720ac5fae799dcdd953a9936a317",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.printify",
+      "version": "1.3.0",
+      "imageId": "sha256:5c3228883903795637e8726a002644e823cb9f42a742ecc246e744836b68132f",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.procurement",
+      "version": "1.3.0",
+      "imageId": "sha256:b145ce68f0ed4fedfa3c7dc949126001b17adf14fee1b3ec763ca9693b0515a4",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.sales",
+      "version": "1.5.0",
+      "imageId": "sha256:0aee9b8777b2dd5324d4d5e5b5d7be882a7d0ce6bf73913e8028185faf71a2d4",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.shopify",
+      "version": "1.3.0",
+      "imageId": "sha256:22f98b9ea4bd2f68149bd110ba6e05db41cf467af2924a8cfdc140230016ce20",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.stock-ledger",
+      "version": "1.2.0",
+      "imageId": "sha256:534660b3074659fcd3c70f25646ea365dbb52067eed9c4dba4cd0b5ddb7c6eca",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "cee.workforce",
+      "version": "1.3.0",
+      "imageId": "sha256:dcc8b5c05de32e013d5bd6883b35af956feb7f5d02010bd24a5602d08e1956af",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.catalog.universal",
+      "version": "1.4.0",
+      "imageId": "sha256:afbdba6abed3f67475b2a493c7c901c7c5da98a92f950f0d0141aa6db3443b42",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.employment.pathways",
+      "version": "1.1.1",
+      "imageId": "sha256:4ea9bc9a2f3c05b5c238356555fd88f95717e0815d10844f691812e0d526d2c4",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.finance.mission-budget",
+      "version": "1.0.0",
+      "imageId": "sha256:e99d49a059ef2c967e38b55d0fc084801767712fa05d51275628c2b6350b0878",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.finance.resource-availability",
+      "version": "1.0.0",
+      "imageId": "sha256:754e28e4420625d91d5e958228ec8fa3fbc920585e63d679126e3bce98359370",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.finance.resource-coordination",
+      "version": "1.0.0",
+      "imageId": "sha256:0f90e882a74ea727102a364ea75d28a4705212ba4532885bf1d91c0f77c8e9c5",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.housing.management",
+      "version": "1.0.3",
+      "imageId": "sha256:8a923da7499639075611908dffdaf0d19277bde391afe14ffc0b017d3b77ee53",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.housing.services",
+      "version": "1.0.4",
+      "imageId": "sha256:7d31502356f24378224bf69fdf138b4c3f059367c5271ce9034251d8ba009d73",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.pricing.management",
+      "version": "1.3.1",
+      "imageId": "sha256:d89238089f6c1884787c61c73b70b899410ec54784e7e739f6756c32a24ea65f",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.services.food",
+      "version": "1.0.3",
+      "imageId": "sha256:2edc82206bf8fe71df4ececebcb4055ae7e8861e2220135eae5636e42b0979af",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.simulation.commerce",
+      "version": "1.1.3",
+      "imageId": "sha256:7271399084d60e541f1fdcd17038f158f8e95187722282f4a16108e6493b4e61",
+      "publisherId": "local-operator"
+    },
+    {
+      "moduleId": "steward.simulation.fulfillment",
+      "version": "1.0.1",
+      "imageId": "sha256:e64fc041e217df7d6b6c3069459685c132bf666417241d5a32b9f50f22451722",
+      "publisherId": "local-operator"
+    }
+  ]
+}

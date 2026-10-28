@@ -747,3 +747,23 @@ receipts and injected lifecycle transport, not installed provider or browser
 acceptance. Final uninterrupted regressions, installed designer/dry-run/business
 scenarios, upgrades, release inventory/documentation and artifacts remain open.
 No v0.16.0 release or tag is claimed.
+
+
+### Full build and regression attempt at be44a7b
+
+The complete monorepo build passed (`phase16-parallel-full-build.log`). The
+uninterrupted `npm test` run stopped at the historical Phase 15 release test:
+**465 passed, 1 failed across 33 Node summaries**. Other scientific
+checks reported separately in the log are not added to that Node count. The
+full regression gate has NOT passed (`phase16-parallel-full-regressions.log`,
+`phase16-parallel-full-result.json`).
+
+The test incorrectly compared accepted Phase 15 module versions against newer
+Phase 16 source manifests. The correction retains the accepted Phase 15 map and
+adds a public package-identity fixture extracted from the checksummed accepted
+distribution (exact source and manifest SHA recorded in the fixture). It checks
+all twenty historical pins, rejects source version regression, and separately
+checks current Docker labels against current manifests. No historical release
+artifact, module map, signature or image was changed. All **21 release contract
+tests pass** in `phase16-historical-release-correction.log`. A fresh uninterrupted
+full regression run is still required after remaining implementation.
