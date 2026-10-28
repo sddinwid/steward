@@ -87,3 +87,6 @@ The explicit `Pricing131` case creates distinct definitions, lists, policies, ap
 
 
 An explicit `--service-case NativeReview` uses a separate `phase15-i-browser-native-review.json` ledger after the Pricing131 native narrative failure. It creates separately reviewed synthetic service intent; it does not renew old publications or rewrite their evidence. Execute only after the installed correction and readiness checks, then pass this exact ledger to the installed Qwen verifier. Expired cases remain preserved; never edit their saved validity windows to force acceptance.
+
+
+`--service-case NativeComposition` creates the separately reviewed `phase15-i-browser-native-compose.json` case for the two-model-part finalization correction. Existing NativeReview records and leases remain unchanged. Start the actual installed Qwen verifier with this explicit ledger only after the corrected core is deployed; historical model probes do not establish live acceptance.
