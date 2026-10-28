@@ -2,10 +2,10 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.inventory",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "name": "Inventory",
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
-  "minimumPlatformVersion": "0.15.0",
+  "minimumPlatformVersion": "0.16.0",
   "dependencies": [],
   "requiredPermissions": [
     "storage.own-database"
@@ -109,6 +109,12 @@
         "offset",
         "q"
       ]
+    },
+    {
+      "operationId": "workflowrequirements",
+      "method": "GET",
+      "path": "/workflow-requirements",
+      "permission": "cee.inventory.read"
     }
   ],
   "ui": [
@@ -407,6 +413,11 @@
         "maximum": 3600,
         "default": 300,
         "description": "Maximum lease for read-only reference metadata. A lease grants no stock, supplier purchase, or operational authority."
+      },
+      "workflowReplenishmentEnabled": {
+        "type": "boolean",
+        "default": false,
+        "description": "Route NEW shortage episodes into reviewed workflows instead of the legacy Procurement outbox. Existing pending requests keep their original route. Requires an approved event workflow; enabling this flag alone does not replenish stock."
       }
     }
   },
@@ -1821,6 +1832,153 @@
         "ownership": "provider",
         "configuration": {
           "integrationsEnabled": true
+        }
+      },
+      {
+        "capabilityId": "inventory.replenishment.observe",
+        "contract": "steward.inventory-replenishment-observations",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "inventory.replenishment.inspect",
+            "command": "workflowrequirements",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {},
+              "required": []
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "projection": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "itemId": {
+                            "type": "string",
+                            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                          },
+                          "sku": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 80
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100000000
+                          },
+                          "status": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40
+                          }
+                        },
+                        "required": [
+                          "itemId",
+                          "sku",
+                          "quantity",
+                          "status"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "revision",
+                      "projection"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "records"
+              ]
+            },
+            "permission": "cee.inventory.read",
+            "mode": "sync",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [
+          {
+            "name": "inventory.replenishment.changed",
+            "schema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "revision": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "projection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "itemId": {
+                      "type": "string",
+                      "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                    },
+                    "sku": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    },
+                    "quantity": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100000000
+                    },
+                    "status": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40
+                    }
+                  },
+                  "required": [
+                    "itemId",
+                    "sku",
+                    "quantity",
+                    "status"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "revision",
+                "projection"
+              ]
+            },
+            "streamId": "replenishment_requirements"
+          }
+        ],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "integrationsEnabled": true,
+          "workflowReplenishmentEnabled": true
         }
       }
     ],

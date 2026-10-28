@@ -40,7 +40,7 @@
     "demo": "node scripts/demo.mjs",
     "verify:phase6": "node scripts/verify-phase6.mjs",
     "build:business": "npm run build --prefix modules/procurement && npm run build --prefix modules/sales && npm run build --prefix modules/assets && npm run build --prefix modules/workforce && npm run build --prefix modules/shopify && npm run build --prefix modules/printify && npm run build --prefix modules/stock-ledger && npm run build --prefix modules/simulation-fulfillment && npm run build --prefix modules/simulation-commerce",
-    "test:business": "node scripts/test-business-modules.mjs && node scripts/test-sales-workflow.mjs && node scripts/test-procurement-workflow.mjs",
+    "test:business": "node scripts/test-business-modules.mjs && node scripts/test-sales-workflow.mjs && node scripts/test-procurement-workflow.mjs && node scripts/test-inventory-workflow.mjs",
     "test:commerce": "npm run test -w @steward/commerce-simulator && node scripts/test-commerce.mjs",
     "test:presentation": "node --test scripts/test-intelligence-presentation.mjs && node scripts/test-module-fields.mjs && node scripts/test-mission-presentation.mjs && node scripts/test-mission-analyst-presentation.mjs && node --test scripts/test-workflow-presentation.mjs",
     "test:compose": "node --test scripts/test-compose-operator.mjs",

@@ -810,3 +810,52 @@ Still required: signed Inventory threshold events and real installed scenarios,
 full final regressions, deployment/preservation/recovery, release contracts,
 README accepted module inventory and diagram, CHANGELOG finalization, artifacts
 and acceptance. No Phase 16 release tag or installed success is claimed.
+
+
+## Inventory threshold event checkpoint
+
+Inventory source is now **1.7.0**, requiring platform 0.16.0. The optional signed
+`inventory.replenishment.observe` capability uses the existing module-owned
+`replenishment_requirements` stream. Automation consumes its exact event schema.
+Explicit `workflowReplenishmentEnabled` (default false, integrations also required)
+records new shortages with `workflow_requested` status rather than sending the
+legacy Procurement command. The item lock and existing pending flag preserve one
+shortage episode through retries/restarts. Recovery above the threshold permits a
+new episode. Existing pending legacy requests retain their original outbox route.
+
+The event is `inventory.replenishment.changed`; its stream also retains legacy
+statuses. The Procurement scenario must explicitly select `workflow_requested`
+observations and obtain human review before its governed request. A rejected or
+unserved episode does not silently rearm itself; inspect/reconcile it rather than
+repeating purchases. The bounded read-only inspection operation requires the
+private gateway and Inventory read permission. No SQL migration was added or
+rewritten; no operator module, configuration or record was changed.
+
+Actual results:
+
+- Inventory and Automation TypeScript builds passed (`phase16-inventory-event-build.log`,
+  `phase16-inventory-consumer-build.log`).
+- **7/7** new real Inventory API/DB/shared-capture checks passed
+  (`phase16-inventory-event-tests-third.log`). Verified legacy preservation,
+  explicit workflow records, concurrent updates, restart, new episodes, read
+  authorization, delivery-persistence outage/retry, Master ACK independence,
+  exact signed schema and entity/configuration compatibility.
+- Business **7**, Sales workflow **6**, Procurement **5**, Inventory workflow **7**
+  passed (`phase16-inventory-business-regression.log`); Inventory unit **2/2**,
+  Catalog/Sales integration **24/24**, event admission **16/16** passed.
+- Package identity and migration declarations **11/11**, release contracts
+  **21/21**, and source migration integrity **10/10** passed. Legacy SQL provenance
+  was checked against the selected installation's trusted public catalog
+  (`phase16-inventory-source-migrations.json`).
+- Single-stack check passed: **60 selected containers, zero unexpected**
+  (`phase16-inventory-single-stack.log`). Installed Inventory remains the accepted
+  earlier package; 1.7.0 is verified source, not an installed upgrade claim.
+
+Failures retained: initial API/SSMA command naming mismatches were rejected by
+manifest validation and corrected to a name accepted by both contracts. Package
+checks still required 0.15.0 for the new Sales/Procurement/Inventory source; they
+now require exactly 0.16.0 for those packages, keeping all identity/SQL checks.
+The first standalone migration invocation omitted required catalog/trust inputs:
+its ten tests passed but the gate correctly reported incomplete. The rerun with
+trusted provenance passed; the incomplete report/log are retained. Full final
+regression and installed human-reviewed Procurement acceptance remain required.

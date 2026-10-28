@@ -1,3 +1,4 @@
+import {recordWorkflowReplenishment,attachWorkflowRequirements} from './workflow.js';
 import {inventoryReferenceReceive,inventoryReferenceQuery,inventoryVerifiedStock,initializeUnitGuard,assertUnitGuard} from './item-references.js';
 import { ensure, enqueue, registerIntegrationRoutes, transaction, object, text, lines, type Context, type Data, type Definition } from '@steward/business-kit';
 import { Ajv } from 'ajv';
@@ -15,7 +16,8 @@ export async function replenish(ctx: Context) {
         if (below && !item.replenishment_pending) {
             const qty = Math.ceil(Number(item.min_stock) - Number(item.available));
             ensure(qty <= 100000000, 'Replenishment amount exceeds integration bounds');
-            await enqueue(ctx, 'cee.procurement', 'stock.replenishment', item.item_id, { itemId: item.item_id, sku: item.sku, quantity: qty });
+            if(ctx.config.workflowReplenishmentEnabled===true)await recordWorkflowReplenishment(ctx,{itemId:item.item_id,sku:item.sku,quantity:qty});
+            else await enqueue(ctx, 'cee.procurement', 'stock.replenishment', item.item_id, { itemId: item.item_id, sku: item.sku, quantity: qty });
             await ctx.db.query('UPDATE inventory_items SET replenishment_pending=true WHERE item_id=$1', [item.item_id]);
         }
         if (!below && item.replenishment_pending)
@@ -88,6 +90,7 @@ export function inventoryDefinition(manifest: ModulePackageManifest): Definition
 }
 export function attachInventoryIntegration(app: FastifyInstance, pool: pg.Pool, runtime: Data, manifest: ModulePackageManifest) {
     registerIntegrationRoutes(app, pool, runtime, inventoryDefinition(manifest));
+    attachWorkflowRequirements(app,pool,runtime);
     app.get<{Querystring:Record<string,string>}>('/item-references',async req=>{let permissions:string[]=[];try{permissions=JSON.parse(String(req.headers['x-steward-permissions']??'[]'));}catch{}ensure(Array.isArray(permissions)&&permissions.includes('cee.inventory.read'),'Item reference permission required',403);return transaction(pool,db=>inventoryReferenceQuery({db,config:runtime.configuration,installationId:runtime.installationId,moduleId:'cee.inventory',actor:String(req.headers['x-steward-actor']??'module-runtime'),permissions,entityId:runtime.entityId,providerIdentity:runtime.providerIdentity},req.query),{readonly:true});});
     app.get('/integration-status', async () => ({ records: (await pool.query("SELECT command_id AS id,envelope->>'command' AS command,status,attempts,last_error AS error FROM integration_outbox ORDER BY created_at DESC LIMIT 20")).rows }));
 }

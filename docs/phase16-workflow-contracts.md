@@ -318,3 +318,20 @@ its draft, assumptions or editor/discovery validity changes. Provider behavior,
 full runtime schema enforcement, current permissions, restart safety and actual
 timing still require installed acceptance. Reusable templates are unbound draft
 patterns, not published workflows or authority grants.
+
+
+### Inventory shortage events
+
+Inventory 1.7.0 optionally provides `inventory.replenishment.observe` with the
+`inventory.replenishment.changed` event on its existing retained replenishment
+projection. `workflowReplenishmentEnabled` defaults to false and additionally
+requires integrations enabled. With it enabled, new shortage episodes create
+`workflow_requested` observations without sending the legacy Procurement command.
+Select that status explicitly in the graph and require human review before
+requesting Procurement. Other statuses belong to retained legacy requests and
+must not be mistaken for new workflow episodes. Existing pending obligations are
+never transferred when configuration changes. Rejected or unserved requests need
+explicit operational reconciliation; merely replaying an observation does not
+create a new shortage or authorize spending. The module's item lock/pending flag,
+existing projection stream, shared capture and governed subscription machinery
+remain the only paths. No new event transport or business-data copy was introduced.
