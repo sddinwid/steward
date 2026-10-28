@@ -39,6 +39,15 @@ try{
   await page.waitForFunction(()=>document.querySelectorAll('[aria-label="Workflow designer"]').length===2);
   const requests=await page.evaluate(()=>window.__workflowGovernanceFixture.calls.filter(c=>c.path.includes('/published-versions?q=')));assert(requests.length>=2);assert.deepEqual(report.pageErrors,[]);
  });
+ await check('event workflows expose governed subscriptions instead of manual starts and retain replay intent after response loss',async()=>{
+  await page.evaluate(()=>{const f=window.__workflowGovernanceFixture;f.data.workflows[0].definition.triggerKind='event';});
+  await page.getByRole('button',{name:'Refresh workflow history',exact:true}).click();await page.getByRole('button',{name:'Subscribe to source events',exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'Start workflow',exact:true}).count(),0);
+  await page.getByRole('button',{name:'Subscribe to source events',exact:true}).click();await page.getByRole('button',{name:'Suspend subscription',exact:true}).click();await page.getByRole('button',{name:'Resume subscription',exact:true}).click();await page.getByRole('button',{name:'Suspend subscription',exact:true}).waitFor();
+  await page.evaluate(()=>{const f=window.__workflowGovernanceFixture;f.events.deliveries.push({subscription_id:f.events.subscriptions[0].subscription_id,event_id:crypto.randomUUID(),state:'dead_letter',attempts:5,error_code:'EVENT_SOURCE_UNAVAILABLE'});});
+  await page.getByRole('button',{name:'Refresh workflow history',exact:true}).click();await page.getByRole('button',{name:'Retry failed receipt',exact:true}).click();await page.getByRole('alert').filter({hasText:'SYNTHETIC_RECOVERY_RESPONSE_LOST'}).waitFor();
+  await page.getByLabel('Workflow governance reason').fill('Changed text must not change the unconfirmed replay intent.');await page.getByRole('button',{name:'Retry same recovery request',exact:true}).click();
+  await page.getByText('Execution queued · attempts 5 · EVENT_SOURCE_UNAVAILABLE',{exact:true}).waitFor();const calls=await page.evaluate(()=>window.__workflowGovernanceFixture.calls.filter(c=>c.path.endsWith('/replay')));assert.equal(calls.length,2);assert.deepEqual(calls[0].body,calls[1].body);assert.deepEqual(report.pageErrors,[]);
+ });
  await check('governance controls and execution graphs remain bounded on a narrow screen',async()=>{
   await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true);
  });

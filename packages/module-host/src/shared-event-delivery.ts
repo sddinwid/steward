@@ -118,16 +118,23 @@ export async function deliverSharedEvent(pool:pg.Pool,scope:EventDeliveryScope,
 
 /** Explicit retry of a failed receipt, not reinvention of its event or execution.
  * Current authority is mandatory and the original payload/identity is retained. */
-export async function replaySharedEvent(pool:pg.Pool,scope:EventDeliveryScope,request:{subscriptionId:string;eventId:string;actorId:string;reason:string}){
+export interface EventReplayRequest {subscriptionId:string;eventId:string;actorId:string;reason:string;requestId?:string}
+export async function replaySharedEventOnClient(db:pg.PoolClient,scope:EventDeliveryScope,request:EventReplayRequest){
  requireValue(typeof request.reason==='string'&&request.reason.trim().length>=20&&request.reason.length<=2000,'EVENT_REPLAY_REASON_REQUIRED');
- const db=await pool.connect();try{
-  await db.query('BEGIN');
-  requireValue((await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[request.actorId])).rowCount,'EVENT_REPLAY_AUTHORITY_REQUIRED');
-  const s=(await db.query("SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1 AND state='active' FOR UPDATE",[request.subscriptionId])).rows[0];requireValue(s,'EVENT_SUBSCRIPTION_UNAVAILABLE');
-  await verifyEventSubscription(db,scope,s,false);
-  const result=await db.query("UPDATE smart_event_deliveries SET state='pending',attempts=0,next_attempt_at=clock_timestamp(),error_code=NULL,updated_at=clock_timestamp() WHERE subscription_id=$1 AND event_id=$2 AND state='dead_letter' RETURNING event_id",[request.subscriptionId,request.eventId]);
-  requireValue(result.rowCount===1,'EVENT_REPLAY_REQUIRES_DEAD_LETTER');
-  await db.query("INSERT INTO smart_event_history(subscription_id,event_id,actor_id,action,detail) VALUES($1,$2,$3,'replay_requested',$4)",[request.subscriptionId,request.eventId,request.actorId,{reason:request.reason}]);
-  await db.query('COMMIT');
- }catch(error){await db.query('ROLLBACK');throw error;}finally{db.release();}
+ const requestId=request.requestId?.toLowerCase();requireValue(requestId===undefined||/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId),'EVENT_REPLAY_IDENTITY_INVALID');
+ requireValue((await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[request.actorId])).rowCount,'EVENT_REPLAY_AUTHORITY_REQUIRED');
+ const s=(await db.query("SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1 AND state='active' FOR UPDATE",[request.subscriptionId])).rows[0];requireValue(s,'EVENT_SUBSCRIPTION_UNAVAILABLE');
+ await verifyEventSubscription(db,scope,s,false);
+ if(requestId){
+  const previous=(await db.query("SELECT * FROM smart_event_history WHERE action='replay_requested' AND detail->>'requestId'=$1",[requestId])).rows[0];
+  if(previous){requireValue(previous.subscription_id===request.subscriptionId&&previous.event_id===request.eventId&&previous.actor_id===request.actorId&&previous.detail.reason===request.reason,'EVENT_REPLAY_IDENTITY_CONFLICT');const current=(await db.query('SELECT state,execution_id FROM smart_event_deliveries WHERE subscription_id=$1 AND event_id=$2',[request.subscriptionId,request.eventId])).rows[0];return{replayed:true,...current};}
+ }
+ const result=await db.query("UPDATE smart_event_deliveries SET state='pending',attempts=0,next_attempt_at=clock_timestamp(),error_code=NULL,updated_at=clock_timestamp() WHERE subscription_id=$1 AND event_id=$2 AND state='dead_letter' RETURNING state,execution_id",[request.subscriptionId,request.eventId]);
+ requireValue(result.rowCount===1,'EVENT_REPLAY_REQUIRES_DEAD_LETTER');
+ try{await db.query("INSERT INTO smart_event_history(subscription_id,event_id,actor_id,action,detail) VALUES($1,$2,$3,'replay_requested',$4)",[request.subscriptionId,request.eventId,request.actorId,{reason:request.reason,...(requestId?{requestId}:{})}]);}catch(error){if((error as {code?:string}).code==='23505')throw Error('EVENT_REPLAY_IDENTITY_CONFLICT');throw error;}
+ return{replayed:false,...result.rows[0]};
+}
+export async function replaySharedEvent(pool:pg.Pool,scope:EventDeliveryScope,request:EventReplayRequest){
+ const db=await pool.connect();try{await db.query('BEGIN');const result=await replaySharedEventOnClient(db,scope,request);await db.query('COMMIT');return result;}
+ catch(error){await db.query('ROLLBACK');throw error;}finally{db.release();}
 }

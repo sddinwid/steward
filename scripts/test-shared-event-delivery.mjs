@@ -23,7 +23,7 @@ import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {workflowMigration} from '../packages/platform/dist/workflow-migration.js';
-import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration} from '../packages/platform/dist/shared-event-migration.js';
+import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration,sharedEventReplayMigration} from '../packages/platform/dist/shared-event-migration.js';
 import {persistSharedEventDeliveries,eventExecutionId,deliverSharedEvent,replaySharedEvent,verifyEventSubscription} from '../packages/module-host/dist/shared-event-delivery.js';
 const consumer=structuredClone(manifest);consumer.moduleId='fixture.automation';consumer.name='Synthetic receipt consumer';delete consumer.replication;
 consumer.api=[{operationId:'read',method:'GET',path:'/workflows',permission:'fixture.automation.read'}];
@@ -48,7 +48,7 @@ try{
  admin=new pg.Pool({...connection,database:'postgres'});for(let i=0;;i++){try{await admin.query('SELECT 1');break;}catch(e){if(i===40)throw e;await delay(250);}}
  await admin.query('CREATE DATABASE source');await admin.query('CREATE DATABASE receipts');source=new pg.Pool({...connection,database:'source'});receipts=new pg.Pool({...connection,database:'receipts'});
  await source.query(outboxSql);await source.query(localEventCaptureSql);await source.query('CREATE TABLE module_identity(singleton boolean PRIMARY KEY,installation_id uuid,module_id text)');await source.query('INSERT INTO module_identity VALUES(true,$1,$2)',[installationId,manifest.moduleId]);
- for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration])await receipts.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration,sharedEventReplayMigration])await receipts.query(sql);
  await receipts.query("INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,'isolated-event-admin','unusable-test-hash','local_admin')",[actor]);
  for(const [d,id] of [[descriptor,moduleInstallationId],[consumerDescriptor,consumerInstallation]])await receipts.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,'{}','active',$3)",[d.payload.manifest.moduleId,d,id]);
  await receipts.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,'inventory.observe',$3,$4,$5,$6,$7,$8,$9,'approved','Explicit synthetic fixture approval')",[binding,consumer.moduleId,manifest.moduleId,moduleInstallationId,digest(canonical(descriptor)),consumer.smart.consumes[0],manifest.smart.provides[0],actor,entityId]);
@@ -70,6 +70,18 @@ try{
   const e=await add();await capture();for(let n=0;n<5;n++){await deliver(async(...args)=>{await enqueue(...args);throw Error('private service response must not be persisted');});await retry(e.eventId);}const d=await row(e.eventId);assert.equal(d.state,'dead_letter');assert.equal(d.error_code,'EVENT_DELIVERY_UNAVAILABLE');assert.equal((await receipts.query('SELECT 1 FROM smart_executions WHERE execution_id=$1',[eventExecutionId(subscription,e.eventId)])).rowCount,0);
   await assert.rejects(replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:randomUUID(),reason:'Explicit isolated retry after recovery'}),/AUTHORITY_REQUIRED/);
   await replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:actor,reason:'Explicit isolated retry after recovery'});await deliver();assert.equal((await row(e.eventId)).state,'delivered');await assert.rejects(replaySharedEvent(receipts,deliveryScope,{subscriptionId:subscription,eventId:e.eventId,actorId:actor,reason:'Do not replay a successful business effect'}),/REQUIRES_DEAD_LETTER/);
+ });
+ await check('replay request identities survive lost responses without resetting retries or replaying delivered effects',async()=>{
+  const e=await add();await capture();for(let n=0;n<5;n++){await deliver(async()=>{throw Error('EVENT_FIXTURE_FAILURE');});await retry(e.eventId);}
+  const intent={subscriptionId:subscription,eventId:e.eventId,actorId:actor,reason:'Explicit recovery after a verified isolated service repair',requestId:randomUUID()};
+  assert.equal((await replaySharedEvent(receipts,deliveryScope,intent)).replayed,false);
+  await deliver(async()=>{throw Error('EVENT_FIXTURE_FAILURE');});assert.equal((await row(e.eventId)).attempts,1);
+  assert.equal((await replaySharedEvent(receipts,deliveryScope,intent)).replayed,true);assert.equal((await row(e.eventId)).attempts,1);
+  await assert.rejects(replaySharedEvent(receipts,deliveryScope,{...intent,reason:'Changed recovery intent must not reuse an existing identity'}),/EVENT_REPLAY_IDENTITY_CONFLICT/);
+  await receipts.query('UPDATE security_accounts SET enabled=false WHERE account_id=$1',[actor]);
+  try{await assert.rejects(replaySharedEvent(receipts,deliveryScope,intent),/EVENT_REPLAY_AUTHORITY_REQUIRED/);}finally{await receipts.query('UPDATE security_accounts SET enabled=true WHERE account_id=$1',[actor]);}
+  await retry(e.eventId);await deliver();const result=await replaySharedEvent(receipts,deliveryScope,intent);assert.equal(result.replayed,true);assert.equal(result.state,'delivered');assert.equal(result.execution_id,eventExecutionId(subscription,e.eventId));
+  assert.equal((await receipts.query("SELECT count(*) n FROM smart_event_history WHERE action='replay_requested' AND detail->>'requestId'=$1",[intent.requestId])).rows[0].n,'1');
  });
  await check('a dead-lettered revision blocks its successors but does not starve unrelated records',async()=>{
   const record=randomUUID(),first=await add(event(record,1));await capture();for(let n=0;n<5;n++){await deliver(async()=>{throw Error('EVENT_FIXTURE_FAILURE');});await retry(first.eventId);}const next=await add(event(record,2)),independent=await add();await capture();await deliver();assert.equal((await row(next.eventId)).state,'pending');assert.equal((await row(independent.eventId)).state,'delivered');assert.equal(await deliver(),false);

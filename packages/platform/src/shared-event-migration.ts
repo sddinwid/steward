@@ -84,3 +84,10 @@ ALTER TABLE smart_event_subscriptions ADD COLUMN capture_checked_at timestamptz;
 ALTER TABLE smart_event_subscriptions ADD COLUMN capture_next_at timestamptz NOT NULL DEFAULT clock_timestamp();
 CREATE INDEX smart_event_subscription_due ON smart_event_subscriptions(capture_next_at) WHERE state='active';
 `;
+
+// Migration 24: retries of an operator replay intent cannot reset its budget twice.
+export const sharedEventReplayMigration=`
+CREATE UNIQUE INDEX smart_event_replay_request ON smart_event_history((detail->>'requestId'))
+ WHERE action='replay_requested' AND detail ? 'requestId';
+CREATE INDEX smart_event_history_receipt ON smart_event_history(subscription_id,event_id,id);
+`;

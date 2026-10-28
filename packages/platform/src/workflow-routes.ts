@@ -72,17 +72,34 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
   if(result.status!==200){const code=result.value?.error;fail(result.status===503?503:409,typeof code==='string'&&/^(EVENT|WORKFLOW)_[A-Z_]+$/.test(code)?code:'Event subscription admission unavailable');}
   return result.value;
  });
+ async function recoverEvent(subscriptionId:string,actorId:string,request:Record<string,unknown>){
+  const source=(await pool.query('SELECT m.* FROM smart_event_subscriptions s JOIN smart_workflows w USING(workflow_id) JOIN module_installations m ON m.module_id=w.consumer_id WHERE s.subscription_id=$1',[subscriptionId])).rows[0];if(!source)fail(404,'Event subscription not found');trusted(source.descriptor,await trust());
+  const result=await broker('workflow.recover',source.descriptor,source.configuration,{...request,subscriptionId,actorId});
+  if(result.status!==200){const code=result.value?.error;fail(result.status===503?503:409,typeof code==='string'&&/^(EVENT|WORKFLOW)_[A-Z_]+$/.test(code)?code:'Event subscription recovery unavailable');}
+  return result.value;
+ }
+ app.post<{Params:{id:string};Body:{action:'suspend'|'resume';reason:string}}>('/api/v16/workflows/event-subscriptions/:id/lifecycle',{schema:{...params,body:object({action:{type:'string',enum:['suspend','resume']},reason})}},async req=>{
+  const actor=await admin(req,true);if(req.body.action==='resume')return recoverEvent(req.params.id,actor.account_id,req.body);
+  return transaction(pool,async db=>{
+   const s=(await db.query('SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1 FOR UPDATE',[req.params.id])).rows[0];if(!s)fail(404,'Event subscription not found');if(s.state==='suspended')return{state:'suspended',replayed:true};
+   await db.query("UPDATE smart_event_subscriptions SET state='suspended',updated_at=clock_timestamp() WHERE subscription_id=$1",[s.subscription_id]);
+   await db.query("INSERT INTO smart_event_history(subscription_id,actor_id,action,detail) VALUES($1,$2,'subscription_suspended',$3)",[s.subscription_id,actor.account_id,{reason:req.body.reason,code:'OPERATOR_SUSPENDED'}]);return{state:'suspended',replayed:false};
+  });
+ });
+ app.post<{Params:{id:string};Body:{eventId:string;requestId:string;reason:string}}>('/api/v16/workflows/event-subscriptions/:id/replay',{schema:{...params,body:object({eventId:uuid,requestId:uuid,reason})}},async req=>{
+  const actor=await admin(req,true);return recoverEvent(req.params.id,actor.account_id,{...req.body,action:'replay'});
+ });
  app.get('/api/v16/workflows/event-subscriptions',async req=>{
   await admin(req);return{
    subscriptions:(await pool.query('SELECT s.subscription_id,s.workflow_id,s.binding_id,s.binding_revision,s.source_module_installation_id,s.source_package_digest,s.event_name,s.stream_id,s.state,s.capture_error,s.capture_checked_at,s.created_at,b.provider_id,b.capability_id,w.accepting_new FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) ORDER BY s.created_at DESC LIMIT 100')).rows,
-   deliveries:(await pool.query('SELECT subscription_id,event_id,record_id,record_revision,state,attempts,execution_id,error_code,created_at,updated_at FROM smart_event_deliveries ORDER BY created_at DESC LIMIT 100')).rows,
-   counts:(await pool.query('SELECT state,count(*)::integer count FROM smart_event_deliveries GROUP BY state ORDER BY state')).rows};
+   deliveries:(await pool.query('SELECT subscription_id,event_id,record_id,record_revision,state,attempts,execution_id,error_code,next_attempt_at,created_at,updated_at FROM smart_event_deliveries ORDER BY created_at DESC LIMIT 100')).rows,
+   counts:(await pool.query('SELECT state,count(*)::integer count FROM smart_event_deliveries GROUP BY state ORDER BY state')).rows,history:(await pool.query('SELECT subscription_id,event_id,actor_id,action,detail,created_at FROM smart_event_history ORDER BY id DESC LIMIT 100')).rows};
  });
  app.post<{Body:{publication:WorkflowPublicationReference;reason:string}}>('/api/v16/workflows/import',{schema:{body:object({publication:pinSchema,reason})}},async req=>{
   const actor=await admin(req,true),pin=req.body.publication,verified=await publication(pin,actor.account_id);
   return transaction(pool,async db=>{
    await db.query('SELECT pg_advisory_xact_lock(8080001)');await bindings(db,verified);
-   const definition={format:'module-graph-v1',publication:pin,sourceWorkflowId:verified.definition.workflowId,displayName:verified.definition.name},existing=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1',[pin.publicationId])).rows[0];
+   const definition={format:'module-graph-v1',publication:pin,sourceWorkflowId:verified.definition.workflowId,displayName:verified.definition.name,...(verified.definition.trigger.kind==='event'?{triggerKind:'event',eventCapabilityId:verified.definition.trigger.capabilityId,eventName:verified.definition.trigger.eventName}:{})},existing=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1',[pin.publicationId])).rows[0];
    if(existing){if(canonical(existing.definition)!==canonical(definition)||existing.consumer_id!==pin.moduleId)fail(409,'Publication identity already has a different immutable projection');return{workflowId:existing.workflow_id,state:existing.state,replayed:true};}
    await db.query("INSERT INTO smart_workflows(workflow_id,name,version,consumer_id,definition,state,actor_id,reason) VALUES($1,$2,$3,$4,$5,'proposed',$6,$7)",[pin.publicationId,pin.moduleId+':'+verified.definition.workflowId,verified.definition.version,pin.moduleId,definition,actor.account_id,req.body.reason]);
    await history(db,pin.publicationId,actor.account_id,'graph_imported',{definitionDigest:pin.definitionDigest,reviewId:pin.reviewId});return{workflowId:pin.publicationId,state:'proposed',replayed:false};

@@ -521,3 +521,40 @@ workflow then inspecting its execution. An intermediate null-selection bug in
 the new inspection control was caught and corrected; its failed browser report
 is retained as `phase16-execution-detail-inspection-fixture-failure.json`. This
 correction remains component verification, not installed deployment acceptance.
+
+### Governed subscription recovery checkpoint
+
+Added Worker-local authenticated/CSRF-protected suspension, resume and dead-letter
+replay controls through the existing signed module broker. Suspension does not
+require an available provider. Resume and replay recheck the original publication,
+review, actor, binding, package and runtime; a second publication check closes
+review revocation during source inspection. Recovery preserves the original
+approval, actor, event payload and execution identity. Capture failures remain
+visible until a successful source poll.
+
+Append-only core migration 24 records globally unique replay request identities.
+A lost response can be retried without resetting the retry budget again or
+replaying a delivered effect. Conflicting intents are rejected; cached requests
+still require current authority. Generic SSDS governance exposes event intake,
+source identity, suspension/resume and explicit failed-receipt retry. It labels
+receipt delivery as execution queued, not business completion. No raw event
+payload is exposed in the status API/UI.
+
+Actual targeted verification:
+- Host, platform and UI TypeScript builds passed (phase16-event-recovery and
+  phase16-recovery-host-final-build logs).
+- Durable PostgreSQL delivery: **16 passed**, 0 failed
+  (`phase16-recovery-delivery-tests.log`).
+- Real publication/session/CSRF admission and recovery: **16 passed**, 0 failed
+  (`phase16-recovery-admission-final.log`), including reviewer revocation during
+  runtime inspection and capture-health preservation.
+- Module host unit tests: **31 passed**; platform unit tests: **98 passed**
+  (`phase16-recovery-host-tests.log`, `phase16-recovery-platform-tests.log`).
+- Generic Chromium governance component: **7 passed**, no page errors
+  (`phase16-event-recovery-browser-expanded.log`), including lost replay response
+  identity preservation and narrow-screen layout. Screenshot visually inspected.
+
+These are targeted isolated checks, not the uninterrupted full regression gate
+or installed-module deployment acceptance. Genuine installed business providers,
+remaining workflow scenarios and all final release gates remain pending. The
+selected deployment and its private configuration remain unchanged.

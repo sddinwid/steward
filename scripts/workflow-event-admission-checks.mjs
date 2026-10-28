@@ -13,8 +13,8 @@ import {canonical,digest,signPackage,outboxSql,captureSql} from '../packages/mod
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {workflowMigration} from '../packages/platform/dist/workflow-migration.js';
-import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration} from '../packages/platform/dist/shared-event-migration.js';
-import {registerWorkflowSubscription} from '../packages/module-host/dist/workflow-event-admission.js';
+import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration,sharedEventReplayMigration} from '../packages/platform/dist/shared-event-migration.js';
+import {registerWorkflowSubscription,recoverWorkflowSubscription} from '../packages/module-host/dist/workflow-event-admission.js';
 import {verifyWorkflowPublication} from '../packages/module-host/dist/workflow-authority.js';
 import {executeSmartStep} from '../packages/module-host/dist/smart-executor.js';
 
@@ -22,7 +22,7 @@ import {executeSmartStep} from '../packages/module-host/dist/smart-executor.js';
 // binding and lifecycle guard below are explicit fixtures, not deployment proof.
 export async function exerciseWorkflowEventAdmission(c){
  const {metadata:db,manifest,keys,trust,installationId,entityId,author,reviewer,publish,transport,check}=c;
- for(const sql of [smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration])await db.query(sql);
+ for(const sql of [smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration,sharedEventReplayMigration])await db.query(sql);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);
  const requirement=manifest.smart.consumes.find(c=>c.capabilityId==='fixture.stock.observe'),empty={type:'object',additionalProperties:false,properties:{}};
  const provider={manifestVersion:1,sdkVersion:1,moduleId:'fixture.stock-source',version:'1.0.0',name:'Synthetic stock event source',description:'Isolated event admission fixture',minimumPlatformVersion:'0.16.0',dependencies:[],requiredPermissions:['storage.own-database'],api:[{operationId:'observe',method:'GET',path:'/stock',permission:'fixture.stock-source.read'}],ui:[],configurationSchema:empty,persistence:{isolation:'dedicated-database',schemaVersion:1,migrations:[{version:1,sha256:'b'.repeat(64)}],destructiveRollback:false},integrationEvents:[],analyticalCapabilities:[],replication:{contractVersion:1,streams:[{streamId:'stock',table:'stock',idColumn:'id',revisionColumn:'revision',columns:['id','revision','item_id','quantity']}]},smart:{version:1,provides:[{capabilityId:requirement.capabilityId,contract:requirement.contract,version:'1.0.0',operations:[{...requirement.operations[0],command:'observe',permission:'fixture.stock-source.read',mode:'sync',idempotency:'required',retry:'safe'}],events:requirement.events.map(e=>({...e,streamId:'stock'})),sensitivity:'business',scope:'entity',ownership:'provider'}],consumes:[],prerequisites:{configuration:{},requiresActive:true,requiresHealthy:true}}};
@@ -55,6 +55,16 @@ export async function exerciseWorkflowEventAdmission(c){
   const permission=manifest.approvalServices.reviewerPermission;
   try{await assert.rejects(registerWorkflowSubscription(db,scope,transport,async()=>true,async()=>{await db.query('DELETE FROM module_permissions WHERE account_id=$1 AND permission=$2',[reviewer,permission]);return async()=>{};},request),/WORKFLOW_REVIEWER_AUTHORITY_REVOKED/);}finally{await db.query('INSERT INTO module_permissions VALUES($1,$2,$3)',[reviewer,manifest.moduleId,permission]);}
  });
+ await check('subscription recovery preserves capture failures and rechecks reviewer authority after source runtime inspection',async()=>{
+  const recovery={subscriptionId:subscription,consumerId:manifest.moduleId,actorId:author,reason:request.reason,action:'resume'};
+  await db.query("UPDATE smart_event_subscriptions SET state='suspended',capture_error='EVENT_SOURCE_UNAVAILABLE' WHERE subscription_id=$1",[subscription]);
+  await assert.rejects(recoverWorkflowSubscription(db,scope,transport,async id=>id!==provider.moduleId,guard,recovery),/EVENT_SOURCE_UNAVAILABLE/);
+  const permission=manifest.approvalServices.reviewerPermission;
+  try{await assert.rejects(recoverWorkflowSubscription(db,scope,transport,async id=>{if(id===provider.moduleId)await db.query('DELETE FROM module_permissions WHERE account_id=$1 AND permission=$2',[reviewer,permission]);return true;},guard,recovery),/WORKFLOW_REVIEWER_AUTHORITY_REVOKED/);}finally{await db.query('INSERT INTO module_permissions VALUES($1,$2,$3)',[reviewer,manifest.moduleId,permission]);}
+  assert.equal((await db.query('SELECT state FROM smart_event_subscriptions WHERE subscription_id=$1',[subscription])).rows[0].state,'suspended');
+  await recoverWorkflowSubscription(db,scope,transport,async()=>true,guard,recovery);
+  const retained=(await db.query('SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1',[subscription])).rows[0];assert.equal(retained.state,'active');assert.equal(retained.capture_error,'EVENT_SOURCE_UNAVAILABLE');assert.equal(retained.actor_id,author);assert.equal(retained.binding_id,binding);assert.equal(guards,releases);
+ });
  await check('an event publication cannot execute through an invented manual execution without a delivery receipt',async()=>{
   const execution=randomUUID();await db.query("INSERT INTO smart_executions(execution_id,workflow_id,actor_id,digest,inputs,state) VALUES($1,$2,$3,$4,$5,'pending')",[execution,workflow,author,'a'.repeat(64),{id:randomUUID(),revision:1,item_id:randomUUID(),quantity:5}]);
   await executeSmartStep(db,installationId,trust,transport,async()=>true,guard);const e=(await db.query('SELECT state,error_code FROM smart_executions WHERE execution_id=$1',[execution])).rows[0];assert.equal(e.state,'suspended');assert.equal(e.error_code,'WORKFLOW_EVENT_ADMISSION_REQUIRED');
@@ -64,6 +74,7 @@ export async function exerciseWorkflowEventAdmission(c){
   await db.query('UPDATE security_accounts SET password_hash=$1 WHERE account_id=ANY($2::uuid[])',[await passwordHash(password),[author,reviewer]]);
   const broker=async(operation,_descriptor,_configuration,extra)=>{brokerCalls++;if(operation==='inspect')return{status:200,value:{}};try{
    if(operation==='workflow.verify')return{status:200,value:{publication:await verifyWorkflowPublication(db,trust,transport,async()=>true,{pin:extra.publication,actorId:extra.actorId,installationId,entityId})}};
+   if(operation==='workflow.recover')return{status:200,value:await recoverWorkflowSubscription(db,scope,transport,async()=>true,guard,{...extra,consumerId:manifest.moduleId})};
    assert.equal(operation,'workflow.subscribe');return{status:200,value:await registerWorkflowSubscription(db,scope,transport,async()=>true,guard,{...extra,consumerId:manifest.moduleId})};
   }catch(e){return{status:409,value:{error:e.message}};}};
   await smartModuleRoutes(app,db,auth,{configVersion:1,role:'worker',installationId,entity:{entityId,displayName:'Synthetic event governance fixture'}},broker,async()=>trust);
@@ -76,6 +87,12 @@ export async function exerciseWorkflowEventAdmission(c){
    await api('POST','/api/v16/workflows/import',{publication:next,reason:request.reason});await api('POST','/api/v16/workflows/'+next.publicationId+'/lifecycle',{action:'activate',reason:request.reason});
    const admitted=await api('POST','/api/v16/workflows/event-subscriptions',body);assert.equal(admitted.subscriptionId,body.subscriptionId);assert.equal(admitted.replayed,false);assert.equal((await api('POST','/api/v16/workflows/event-subscriptions',body)).replayed,true);
    await api('POST','/api/v16/workflows/execute',{workflowId:next.publicationId,executionId:randomUUID(),input:{id:randomUUID(),revision:1,item_id:randomUUID(),quantity:5}},409);
+   const lifecycle='/api/v16/workflows/event-subscriptions/'+body.subscriptionId+'/lifecycle',recovery={action:'suspend',reason:request.reason},beforeSuspend=brokerCalls;
+   await api('POST',lifecycle,recovery,403,moduleUser);await api('POST',lifecycle,recovery,403,admin,false);
+   await api('POST',lifecycle,recovery);assert.equal(brokerCalls,beforeSuspend);
+   assert.equal((await db.query('SELECT state FROM smart_event_subscriptions WHERE subscription_id=$1',[body.subscriptionId])).rows[0].state,'suspended');
+   await api('POST',lifecycle,{...recovery,action:'resume'});assert.equal((await api('POST',lifecycle,{...recovery,action:'resume'})).replayed,true);
+   const retained=(await db.query('SELECT * FROM smart_event_subscriptions WHERE subscription_id=$1',[body.subscriptionId])).rows[0];assert.equal(retained.actor_id,author);assert.equal(retained.source_module_installation_id,providerInstallation);assert.equal(retained.reason,request.reason);
    const status=await api('GET','/api/v16/workflows/event-subscriptions');assert.equal(status.subscriptions.length,2);assert(status.subscriptions.every(s=>!Object.hasOwn(s,'event_schema')));assert(status.deliveries.every(d=>!Object.hasOwn(d,'envelope')));await api('GET','/api/v16/workflows/event-subscriptions',undefined,403,moduleUser);
   }finally{await app.close();}
  });
