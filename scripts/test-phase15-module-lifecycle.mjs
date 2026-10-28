@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {activatePreparedModule} from './phase15-module-lifecycle.mjs';
+const expected={version:'1.6.0',operationId:'original-stable-operation',imageId:'sha256:exact'},base={...expected,moduleId:'cee.inventory'};
+let passed=0;const test=async(name,run)=>{await run();passed++;console.log('PASS '+name);};
+const fixture=state=>{let row={...base,state},calls=[];return{calls,options:{expected,read:async()=>row,activate:async()=>{calls.push('activate');row={...row,state:'active'};return{state:'active'};},persistStage:async stage=>calls.push(stage),wait:async()=>row}};};
+await test('actual installed result requires explicit activation with persisted stages',async()=>{const f=fixture('installed');assert.equal((await activatePreparedModule(f.options)).state,'active');assert.deepEqual(f.calls,['activation-requested','activate','activated-original-configuration']);});
+await test('retry of same installed package activates without install or new operation ID',async()=>{const f=fixture('installed');const row=await activatePreparedModule(f.options);assert.equal(row.operationId,expected.operationId);await activatePreparedModule(f.options);assert.equal(f.calls.filter(c=>c==='activate').length,1);});
+await test('already active package is an idempotent no-op',async()=>{const f=fixture('active');await activatePreparedModule(f.options);assert.deepEqual(f.calls,[]);});
+await test('failed state reports actual module error and performs no activation',async()=>{const f=fixture('failed');f.options.read=async()=>({...base,state:'failed',errorCode:'UNIT_CONFIGURATION_CHANGED'});await assert.rejects(activatePreparedModule(f.options),/UNIT_CONFIGURATION_CHANGED/);assert.deepEqual(f.calls,[]);});
+await test('disabled package is not silently re-enabled',async()=>{const f=fixture('disabled');await assert.rejects(activatePreparedModule(f.options),/re-enable/);assert.deepEqual(f.calls,[]);});
+await test('changed operation or image refuses activation',async()=>{for(const key of ['operationId','imageId']){const f=fixture('installed');f.options.read=async()=>({...base,state:'installed',[key]:'changed'});await assert.rejects(activatePreparedModule(f.options));assert.deepEqual(f.calls,[]);}});
+console.log(JSON.stringify({passed,operatorMutations:false}));

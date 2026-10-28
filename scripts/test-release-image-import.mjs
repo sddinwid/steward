@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import {planReleaseImageImport} from './release-image-import.mjs';
+const a='sha256:'+'a'.repeat(64),b='sha256:'+'b'.repeat(64),c='sha256:'+'c'.repeat(64);
+const images={core:{id:a,tag:'steward-worker-api:0.15.0'}},packages=[{imageId:b,manifest:{moduleId:'cee.inventory',version:'1.6.0'}}];
+let passed=0;const test=(name,run)=>{run();passed++;console.log('PASS '+name);};
+const plan=(present,extra={})=>planReleaseImageImport({images,packages,inspect:ref=>present[ref]??null,...extra});
+test('all exact core and module images present skips import',()=>assert.deepEqual(plan({[a]:{Id:a},[b]:{Id:b}}),{skipImport:true,imageCount:2,missing:[]}));
+test('missing module image imports full archive',()=>assert.deepEqual(plan({[a]:{Id:a}}).missing,[b]));
+test('missing core image imports full archive',()=>assert.deepEqual(plan({[b]:{Id:b}}).missing,[a]));
+test('matching tags cannot replace missing exact digest proof',()=>assert.equal(plan({'steward-worker-api:0.15.0':{Id:a},'cee.inventory:1.6.0':{Id:b}}).skipImport,false));
+test('conflicting core tag refuses even when every digest is present',()=>assert.throws(()=>plan({[a]:{Id:a},[b]:{Id:b},'steward-worker-api:0.15.0':{Id:c}}),/Immutable/));
+test('conflicting module tag refuses before importing missing images',()=>assert.throws(()=>plan({'cee.inventory:1.6.0':{Id:c}}),/Immutable/));
+test('all matching existing tags permit skip without retagging',()=>assert.equal(plan({[a]:{Id:a},[b]:{Id:b},'steward-worker-api:0.15.0':{Id:a},'cee.inventory:1.6.0':{Id:b}}).skipImport,true));
+test('same digest referenced multiple times needs only one exact proof',()=>{const seen=[];const result=plan({}, {packages:[{imageId:a,manifest:{moduleId:'cee.inventory',version:'1.6.0'}}],inspect:ref=>{seen.push(ref);return{Id:a};}});assert.equal(result.imageCount,1);assert.equal(seen.filter(x=>x===a).length,1);});
+test('different content returned for exact ID fails closed',()=>assert.throws(()=>plan({[a]:{Id:c},[b]:{Id:b}}),/different content/));
+test('invalid payload ID fails before image inspection',()=>assert.throws(()=>plan({}, {packages:[{imageId:'invalid',manifest:{moduleId:'cee.inventory',version:'1.6.0'}}],inspect:()=>{throw Error('must not inspect');}}),/Immutable/));
+test('Docker inspection failure is not interpreted as exact-image presence',()=>assert.throws(()=>plan({}, {inspect:()=>{throw Error('Docker unavailable');}}),/Docker unavailable/));
+console.log(JSON.stringify({passed,operatorMutations:false}));

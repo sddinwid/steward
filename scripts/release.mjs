@@ -7,6 +7,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 import {validateReleaseVersions,assertPhase13Gates,assertPhase14Gates,assertPhase15Gates,assertImageBuildEvidence,releaseCandidateTag,releaseFinalTag,RELEASE15_CANDIDATE_KINDS,assertImmutableImageTag,SCIENTIFIC15_REUSE} from './release-contracts.mjs';
+import {planReleaseImageImport} from './release-image-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.7.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false},'port-offset':{type:'string'},simulators:{type:'boolean',default:false},candidate:{type:'boolean',default:false}}});
 const action=positionals[0],directory=path.resolve(values.directory),bundle=path.resolve(values.bundle??'artifacts/releases/steward-'+values.version);
@@ -134,7 +135,9 @@ async function install(upgrade=false){
   }
   if(m.version==='0.15.0')for(const kind of RELEASE15_CANDIDATE_KINDS){const tag=releaseFinalTag(m.version,kind);let old;try{old=JSON.parse(docker('image','inspect',tag))[0].Id;}catch{}assertImmutableImageTag(tag,old,m.images[kind].id);}
   if(m.version==='0.15.0')for(const image of Object.values(m.images)){let existing;try{existing=JSON.parse(docker('image','inspect',image.tag))[0].Id;}catch{}assertImmutableImageTag(image.tag,existing,image.id);}
-  docker('image','load','-i',path.join(bundle,'images.tar'));
+  const imageImport=planReleaseImageImport({images:m.images,packages:JSON.parse(await readFile(path.join(bundle,'module-packages.json'),'utf8')),inspect:reference=>{try{return JSON.parse(docker('image','inspect',reference))[0];}catch(error){if(/No such image|No such object/i.test(String(error.stderr??'')))return null;throw error;}}});
+  if(imageImport.skipImport)console.log('Verified archive checksums and all '+imageImport.imageCount+' exact local images; skipped redundant archive import.');
+  else docker('image','load','-i',path.join(bundle,'images.tar'));
   for(const image of Object.values(m.images))if(JSON.parse(docker('image','inspect',image.id))[0].Id!==image.id)throw new Error('Pinned core image missing from the loaded release');
   const commerceManifest=path.join(directory,'commerce/manifest.json'),simulatorMode=values.simulators||(previous&&existsSync(commerceManifest)?JSON.parse(await readFile(commerceManifest,'utf8')).simulators:false);
   node('tools/installer/dist/cli.js',['provision','--directory',directory,'--mode',previous?.mode??values.mode,'--workers',String(previous?Math.max(1,previous.instances.filter(i=>i.role==='worker').length):values.workers),'--project',previous?.project??values.project,'--label',previous?.label??'Steward MVP',...(values['port-offset']?['--port-offset',values['port-offset']]:[])]);
