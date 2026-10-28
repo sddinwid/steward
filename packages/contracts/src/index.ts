@@ -95,7 +95,7 @@ export interface SyncReceipt {
 }
 export * from './business.js';
 export * from './scientific.js';
-export const PLATFORM_RELEASE='0.15.0';
+export const PLATFORM_RELEASE='0.16.0';
 
 export * from './mission.js';
 export * from './economy.js';

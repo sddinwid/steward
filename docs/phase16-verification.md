@@ -1003,3 +1003,37 @@ rejects a missing deployment before invoking Docker (no root/default-stack fallb
 source allowlist now includes CHANGELOG.md, which the older candidate omitted;
 actual inclusion must be verified in the next packaged candidate. Release contracts
 remain **30/30 passed** (`phase16-release-docs-correction.log`).
+
+
+### Pre-deployment runtime version defect (candidate rejected)
+
+Independent review before any deployment found `packages/contracts/src/index.ts`
+still exported `PLATFORM_RELEASE = 0.15.0`. Worker module admission uses that
+constant, so a nominal 0.16 image would reject the new packages' minimum platform
+version. This was an implementation defect, not an unavailable credential or a
+passing release limitation. Neither candidate was deployed.
+
+The `cf295d45693ee2ed1a089f8f6fdb7f2abfabd6f7` monorepo build passed,
+but its full regression was explicitly interrupted after **335 completed passing
+Node tests / 22 summaries**, zero reported failures. It is not a passed full gate.
+Evidence: `phase16-corrected-full-result.json`, build and regression logs.
+Its 21-package candidate archive passed its then-existing checksum verification
+and included CHANGELOG.md (`phase16-candidate-cf295d4-payload.json`), but those
+checks did not establish a correct runtime version. Keep it as rejected development
+evidence, not a deployable/accepted Phase 16 candidate.
+
+The shared runtime constant is corrected to 0.16.0. Image builds and packaging now
+reject mismatched shared runtime source, and source-free Phase 16 bundle verification
+requires the checksummed runtime source to agree. Tests require the built runtime
+constant to match the distribution and admit the four actual new package manifests.
+Missing, duplicate, computed and stale declarations are rejected. A self-consistent
+checksum fixture with the wrong runtime version is also rejected.
+
+The new tests first failed against the actual stale constant
+(`phase16-runtime-version-guard-red-confirmed.log`). After correction, Contracts
+build and **32/32 release tests passed** (`phase16-runtime-version-contract-build.log`,
+`phase16-runtime-version-guard-green.log`). Current verification explicitly rejects
+the preserved cf295d4 candidate (`phase16-stale-runtime-candidate-rejection.log`).
+A fresh clean-source build, candidate and uninterrupted full regression are required.
+The newly published business modules do not consume the shared core release constant;
+their immutable signed package images remain retained rather than rebuilt in place.

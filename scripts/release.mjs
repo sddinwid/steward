@@ -6,7 +6,7 @@ import {mkdir,readFile,writeFile,copyFile,lstat,readdir,rename,rmdir,cp} from 'n
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
-import {validateReleaseVersions,assertPhase13Gates,assertPhase14Gates,assertPhase15Gates,assertPhase16Gates,assertImageBuildEvidence,releaseCandidateTag,releaseFinalTag,RELEASE15_CANDIDATE_KINDS,assertImmutableImageTag,SCIENTIFIC15_REUSE} from './release-contracts.mjs';
+import {assertPlatformReleaseSource,validateReleaseVersions,assertPhase13Gates,assertPhase14Gates,assertPhase15Gates,assertPhase16Gates,assertImageBuildEvidence,releaseCandidateTag,releaseFinalTag,RELEASE15_CANDIDATE_KINDS,assertImmutableImageTag,SCIENTIFIC15_REUSE} from './release-contracts.mjs';
 import {planReleaseImageImport} from './release-image-import.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const {values,positionals}=parseArgs({allowPositionals:true,options:{bundle:{type:'string'},directory:{type:'string',default:'.steward/dev'},version:{type:'string',default:'0.7.0'},project:{type:'string',default:'steward-mvp'},mode:{type:'string',default:'all'},workers:{type:'string',default:'3'},trust:{type:'string'},'trust-bundled-modules':{type:'boolean',default:false},'port-offset':{type:'string'},simulators:{type:'boolean',default:false},candidate:{type:'boolean',default:false}}});
@@ -27,6 +27,7 @@ async function verifyBundle(){
  }
  const actual=(await files(bundle)).map(f=>path.relative(bundle,f).replaceAll('\\','/')).filter(f=>f!=='release.json').sort();
  if(JSON.stringify(actual)!==JSON.stringify(Object.keys(m.files).sort()))throw new Error('Unexpected or missing release files');
+ if(m.platformCompatibility==='0.16.0'){const member='toolkit/packages/contracts/src/index.ts';if(!m.files[member])throw Error('Shared runtime version source is missing from release');assertPlatformReleaseSource(m.version,await readFile(path.join(bundle,member),'utf8'));}
  const expected=['master-api','master-web','worker-api','worker-web','module-host','postgres',...(['0.8.0','0.9.0','0.9.1','0.11.0','0.12.0','0.13.0','0.14.0','0.15.0','0.16.0'].includes(m.platformCompatibility)?['commerce-simulator']:[]),...(['0.12.0','0.13.0','0.14.0','0.15.0','0.16.0'].includes(m.platformCompatibility)?['scientific']:[])];
  if(!['0.5.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0','0.12.0','0.13.0','0.14.0','0.15.0','0.16.0'].includes(m.platformCompatibility)||!m.images||JSON.stringify(Object.keys(m.images).sort())!==JSON.stringify(expected.sort())||Object.values(m.images).some(i=>!/^sha256:[0-9a-f]{64}$/.test(i.id))||['images.tar','master-distribution.json','worker-distribution.json','module-packages.json','toolkit/scripts/release.mjs'].some(f=>!m.files[f]))throw new Error('Unsupported or incomplete release payload');
  if(['0.13.0','0.14.0','0.15.0','0.16.0'].includes(m.platformCompatibility)){
@@ -56,6 +57,7 @@ async function promote(){
  await writeFile(path.join(bundle,'release.json'),JSON.stringify({...m,acceptanceStatus:'accepted',acceptanceEvidenceCommit:run('git',['rev-parse','HEAD'],{stdio:['ignore','pipe','pipe']}).trim(),...(['0.13.0','0.14.0','0.15.0','0.16.0'].includes(m.version)?{acceptanceEvidence:{gates}}:{})},null,2)+'\n');await verifyBundle();console.log('Promoted exact verified candidate to accepted release; payload checksums and all image IDs are unchanged.');
 }
 async function pack(){
+ assertPlatformReleaseSource(values.version,await readFile(path.join(root,'packages/contracts/src/index.ts'),'utf8'));
  if(values.version!==JSON.parse(await readFile(path.join(root,'package.json'),'utf8')).version)throw new Error('Pack from source matching the target release version; use the preserved tagged source for historical releases.');
  if(!['0.6.0','0.7.0','0.8.0','0.9.0','0.9.1','0.11.0','0.12.0','0.13.0','0.14.0','0.15.0','0.16.0'].includes(values.version))throw new Error('Unsupported release version');
  if(['0.9.0','0.9.1','0.11.0','0.12.0','0.13.0','0.14.0','0.15.0','0.16.0'].includes(values.version)&&!values.candidate)throw new Error('Create and verify a candidate before gated release promotion');

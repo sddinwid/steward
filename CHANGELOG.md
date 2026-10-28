@@ -41,6 +41,8 @@ Branch: `codex/phase16-business-automation`. No accepted Phase 16 release, opera
 
 The first recovery full run failed the migration registration check (217 passed, one failed). The corrected uninterrupted run at `d3c3d1d` passed **1,222 tests / 76 summaries**, with no failures, cancellations or skips. This full run predates the Sales changes. Existing SQL bytes and deployed state were preserved.
 
+A pre-deployment check caught a stale shared runtime version that would reject Phase 16 modules. The runtime constant and build/package verification guards were corrected; prior development candidates are retained as rejected evidence, not deployed releases.
+
 Procurement, internal notifications, bounded parallel dispatch, designer previews and Inventory shortage capabilities are implemented in source. Still pending: installed scenarios, outage/recovery and substitution acceptance, final regression completion, accepted release packaging and retained-deployment upgrade. See the [Phase 16 verification ledger](docs/phase16-verification.md) and [contracts](docs/phase16-workflow-contracts.md).
 
 ## v0.15.0 — Universal Catalog and Pricing Management

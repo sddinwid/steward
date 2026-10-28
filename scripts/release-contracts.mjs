@@ -60,3 +60,12 @@ export function validatePhase16Versions(value){
 export function assertPhase16Gates(gates){
  if(gates?.version!=='0.16.0'||!/^[a-f0-9]{40}$/.test(gates.sourceCommit??'')||!/^[a-f0-9]{64}$/.test(gates.verifiedCandidateManifestSha256??'')||gates.status!=='passed'||!Array.isArray(gates.gates)||!same(gates.gates.map(g=>g.id),PHASE16_GATES)||gates.gates.some(g=>g.mandatory!==true||g.status!=='passed'||!Array.isArray(g.evidence)||!g.evidence.length||g.evidence.some(v=>typeof v!=='string'||!v.trim())))throw Error('Mandatory Phase 16 acceptance gates remain open');return gates;
 }
+
+
+// Runtime health, compatibility and module admission use this shared contract.
+// A package/image label cannot substitute for updating the actual runtime version.
+export function assertPlatformReleaseSource(version,source){
+ const declarations=[...source.matchAll(/\bexport\s+const\s+PLATFORM_RELEASE\s*=\s*(['"])([0-9]+\.[0-9]+\.[0-9]+)\1\s*;/g)];
+ if(declarations.length!==1||declarations[0][2]!==version)throw Error('Shared runtime platform release differs from the distribution version');
+ return version;
+}
