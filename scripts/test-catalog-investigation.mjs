@@ -81,3 +81,28 @@ test('Composition retains exactly two model-written parts and rechecks all money
  for(const wrong of [{...rec,narrative:'The Reviewed service contribution source is retained conditionally.'},{...rec,narrative:rec.narrative+' Invented cost USD 999999.00.'},{...rec,narrative:rec.narrative+' We have purchased the production order.'},{...rec,narrative:rec.narrative.replace('conditional ','').replace('subject to','with')}])assert.throws(()=>combineCatalogNarratives(value,wrong,plan,[row]),/MISMATCH/);
  const long={...rec,narrative:rec.narrative+' Evidence '.repeat(600).slice(0,5800-rec.narrative.length)};parseNarrative(JSON.stringify(long));assert.throws(()=>parseNarrative(JSON.stringify(combineCatalogNarratives(value,long,plan,[row]))),'The full combined schema length remains bounded');
 });
+
+test('Comparison totals cannot be restated as unit rates even alongside the exact required opening',()=>{
+ const {row,value,plan}=recommendationFixture();
+ for(const claim of ["The contribution of USD 14.00 per unit is higher than USD 12.60 per unit.",'The conditional contribution per session is higher.','The per-item contribution is higher.','The revenue from each unit is USD 21.00.','Total variable cost is USD 7.00 per unit.','Its unit margin is favorable.','USD 14.00 per unit is favorable.']){
+  const wrong={...value,narrative:value.narrative+' Consider reviewing Company B for a conditional cost opportunity. '+claim};assert.throws(()=>validateCatalogNarrative(wrong,plan,[row]),/MISMATCH/,claim);
+ }
+});
+test('Hedged higher revenue, sales or demand cannot explain a contribution rank',()=>{
+ const {row,value,plan}=recommendationFixture();
+ for(const claim of ['This suggests potentially lower variable costs or higher revenue.','It may have greater sales.','Revenue could be higher.','There may be increased demand.','This could boost sales.'])assert.throws(()=>validateCatalogNarrative({...value,narrative:value.narrative+' Consider reviewing the conditional pricing opportunity. '+claim},plan,[row]),/MISMATCH/,claim);
+});
+test('Separate recommendation is qualitative and cannot repeat even correct total money',()=>{
+ const {row,value,plan}=recommendationFixture(),base={narrative:'Consider reviewing Company B for a conditional cost-assumption opportunity, subject to captured leases and separate human approval.',assumptions:[],humanDecisions:['Verify original product/supplier identity and consent.']};
+ combineCatalogNarratives(value,base,plan,[row]);
+ for(const extra of [' Contribution is 1400c.',' The total is $14.00.',' Contribution totals 14.00.',' The margin is 66.66 percent.'])assert.throws(()=>combineCatalogNarratives(value,{...base,narrative:base.narrative+extra},plan,[row]),/MISMATCH/);
+ for(const field of ['narrative','assumptions','humanDecisions']){const text='The declared contribution total is USD 14.00.',bad={...base,[field]:field==='narrative'?base.narrative+' '+text:[...(base[field]??[]),text]};assert.throws(()=>combineCatalogNarratives(value,bad,plan,[row]),/MISMATCH/,field);}
+});
+test('Legitimate original per-unit cost applicability and qualitative cost review remain available',()=>{
+ const {row,value,plan}=recommendationFixture(),rec={narrative:'Consider reviewing Company B for a conditional review of the declared cost assumptions, subject to captured leases and separate human approval.',assumptions:['Variable costs combine per-unit supplier evidence and per-order shipping charges; product identity remains unverified.'],humanDecisions:['Humans must verify the per-unit supplier quote and per-order shipping basis, without changing any accepted price.']};
+ const before=structuredClone(row);combineCatalogNarratives(value,rec,plan,[row]);assert.deepEqual(row,before);
+});
+test('Recommendation guidance explicitly preserves quantity totals and forbids unit/revenue inference',()=>{
+ const {row,value,plan}=recommendationFixture(),input=catalogRecommendationModelInput([{role:'user',content:'Review observed evidence.'}],plan,[row],value).at(-1).content;
+ assert(catalogRecommendationInstruction.includes('TOTAL for the declared quantity'));assert(input.includes('not a per-unit, per-session or per-item rate'));assert(input.includes('does not establish higher revenue'));assert(input.includes('Do not repeat financial facts'));assert(input.includes('Do not repeat financial facts or introduce any numbers'));
+});

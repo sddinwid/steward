@@ -93,3 +93,26 @@ An explicit `--service-case NativeReview` uses a separate `phase15-i-browser-nat
 
 
 The final acceptance uses explicit `--service-case NativeFinal` and ledger `phase15-i-browser-native-final.json`. The interrupted NativeComposition ledger and its original source window are retained. Atomic ledger publication retries only the same prepared snapshot on transient Windows contention; permanent errors preserve the previous and prepared snapshots for inspection. Do not change saved dates or regenerate intent IDs to force a retry.
+
+
+## Separate manual narrative review before finding publication
+
+The original NativeFinal investigation narrative was not factually acceptable: it described quantity-seven contribution totals of USD 14.00/12.60 as per-unit values and claimed higher revenue even though both observations had USD 21.00 revenue. Its prior automated PASS is not accepted narrative-quality evidence. The delivered finding uses the server's deterministic canonical totals and is correct; it is a separate artifact and is retained. Do not withdraw, close or replace that finding merely because the investigation narrative failed review.
+
+For a newly authorized, current source case, defer all finding/acknowledgement mutations until a human has read the entire narrative against its original evidence:
+
+```powershell
+node scripts/verify-phase15-installed-catalog-ollama.mjs --execute-authorized --defer-finding --ledger <explicit-current-case-ledger> --report artifacts/phase15i-native-awaiting-review.json
+```
+
+Successful computation saves `status: awaiting-review`, the same investigation ID, exact result/narrative, current source evidence and `reviewNarrativeDigest`; it creates no finding and sends no Worker acknowledgement. It still restores the temporary model configuration and records the actual 16k model resources. A validator or cleanup failure remains a failure, not an awaiting-review success.
+
+Inspect the exact narrative's company associations, quantity, currency, total-versus-unit basis, equal or unequal revenue, estimated contribution, explicit assumptions, unknown history and recommendation. Reject incorrect prose even if a prior validator accepted it. Do not edit the report or a saved source lease to force acceptance. Only after actual human approval, invoke the finalizer with that report's exact digest:
+
+```powershell
+node scripts/finalize-phase15-catalog-review.mjs --execute-authorized --report artifacts/phase15i-native-awaiting-review.json --reviewed-narrative-sha256 <reviewNarrativeDigest> --output artifacts/phase15i-native-human-reviewed.json
+```
+
+The finalizer runs no model and creates no new definitions. It re-fetches the same investigation, verifies the exact original narrative and complete original source references, calls the current validator, and rechecks/recomputes current evidence without renewing any lease. It then opens the actual production UI, checks the explicit review control, publishes that same investigation's finding, and acknowledges through the actual UI only on the affected Workers. Actual Master receipts and unrelated Worker absence are required before the separate final report passes. Its source report remains untouched. The original investigation was launched through HTTP; this finalizer establishes UI finding publication and acknowledgements, not a UI investigation launch.
+
+Expired, withdrawn or changed evidence fails closed. A failed UI operation is not permission to start another model run, manufacture a finding or renew source records. The finalizer retains action provenance and uses the shared Windows-safe atomic publication helper; exhausted/permanent file errors retain the previous report plus its prepared `.tmp` snapshot. Reconcile that exact snapshot before retrying after an uncertain response. Already acknowledged state without recorded prior UI-response provenance is rejected. A passed final report is retained rather than overwritten by a rerun.
