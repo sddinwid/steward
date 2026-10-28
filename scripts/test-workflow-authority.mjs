@@ -21,7 +21,7 @@ const keys=generateKeyPairSync('ed25519'),trust={publishers:[{publisherId:'test-
 const descriptor=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'a'.repeat(64),manifest},keys.privateKey.export({type:'pkcs8',format:'pem'}).toString());
 const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','pipe','pipe']});
 let moduleDb,metadata,app,pin,publicationId;
-const report={scope:'Real module-owned publications, real independent Worker authorization database; synthetic signed package and injected host transport. No provider effects or installed execution acceptance.',checks:[]};
+const report={scope:(process.argv.includes('--runtime')?'Additional coordinator tests use privileged projection/decision fixtures and a synthetic provider receipt database; no activation API, installed provider or business acceptance claim. ':'')+'Real module-owned publications, real independent Worker authorization database; synthetic signed package and injected host transport. No provider effects or installed execution acceptance.',checks:[]};
 async function check(name,run){await test(name,async()=>{try{await run();report.checks.push({name,status:'passed'});}catch(e){report.checks.push({name,status:'failed',error:e.message});throw e;}});}
 async function api(method,url,payload,actor=author){const r=await app.inject({method,url,headers:{authorization:'Bearer '+token,'x-steward-actor':actor,'x-steward-permissions':JSON.stringify(permissions),'x-steward-approval-principals':JSON.stringify({issuedAt:Date.now(),reviewerPermission:'steward.automation.approve',actors:[reviewer]})},...(payload===undefined?{}:{payload})});assert(r.statusCode>=200&&r.statusCode<300,r.body);return r.json();}
 const transport=async(id,method,path,body,headers)=>{assert.equal(id,manifest.moduleId);const r=await app.inject({method,url:path,headers:{authorization:'Bearer '+token,...headers},...(body===undefined?{}:{payload:body})});return{status:r.statusCode,value:r.json()};};
@@ -77,8 +77,15 @@ try{
   await assert.rejects(()=>verify({},async()=>({status:503,value:{error:'Unavailable'}})),/WORKFLOW_PUBLICATION_UNAVAILABLE/);
   assert.deepEqual((await moduleDb.query('SELECT definition,digest FROM workflow_publications WHERE id=$1',[publicationId])).rows[0],before);
  });
+ if(process.argv.includes('--runtime')){
+  const {exerciseGraphRuntime}=await import('./workflow-runtime-checks.mjs');
+  await exerciseGraphRuntime({check,metadata,moduleDb,installationId,entityId,author,reviewer,manifest,descriptor,keys,trust,transport,api,publish:async graph=>{
+    const created=(await api('POST','/workflows',{recordKey:randomUUID(),name:'Kernel '+randomUUID(),description:'Isolated coordinator fixture; no installed business acceptance.',graph})).record;
+    publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();return pin;
+  }});
+ }
  report.status=report.checks.every(c=>c.status==='passed')?'passed':'failed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{
  await app?.close();await metadata?.end();await moduleDb?.end();try{docker(['rm','-f',container]);}catch{}await unlink(secretFile).catch(()=>{});
- await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
+ await mkdir('artifacts',{recursive:true});await writeFile(process.argv.includes('--runtime')?'artifacts/phase16-graph-runtime.json':'artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
 }

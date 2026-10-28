@@ -389,13 +389,20 @@ async function integrations(){
  finally{integrating=false;}
 }
 const integrationTimer=setInterval(()=>void integrations(),1000).unref();
+// Same lifecycle advisory-lock namespace used by install/configure/deactivate.
+async function lockWorkflowModules(ids:string[]):Promise<()=>Promise<void>>{
+ const client=await pool.connect(),held:string[]=[];
+ const release=async()=>{let broken=false;try{for(const id of held)await client.query('SELECT pg_advisory_unlock_shared(hashtext($1))',[id]);}catch{broken=true;}finally{client.release(broken);}};
+ try{for(const id of [...new Set(ids)].sort()){if(!(await client.query('SELECT pg_try_advisory_lock_shared(hashtext($1)) acquired',[id])).rows[0].acquired)throw Error('PROVIDER_UNAVAILABLE');held.push(id);}return release;}
+ catch(error){await release();throw error;}
+}
 let smartBusy=false;
 const smartTimer=setInterval(()=>{if(smartBusy)return;smartBusy=true;void(async()=>{
   const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
   await executeSmartStep(metadataPool,config.installationId,trust,callModule,async(id,configuration)=>{
     const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
     return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);
-  });
+  },lockWorkflowModules);
 })().catch(()=>{}).finally(()=>{smartBusy=false;});},1000).unref();
 app.addHook('onClose', async () => { clearInterval(integrationTimer);clearInterval(smartTimer);await pool.end(); await resourcePool.end();await metadataPool.end(); });
 for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => void app.close().then(() => process.exit(0)));

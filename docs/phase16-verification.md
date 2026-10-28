@@ -214,3 +214,47 @@ package signing uses isolated fixture keys, not an installed production package.
 Negative expiry/future-date response fixtures are explicitly synthetic; real
 module API revocation and appended approvals are also exercised. These changes
 postdate the 1,147-test run and require another final full release regression.
+
+## Graph coordinator checkpoint (not installed acceptance)
+
+The existing `executeSmartStep` now recognizes module-publication graph
+projections. It re-reads the exact publication and human review, advances
+persisted control nodes, and sends actions through its original binding,
+authorization, schema, stable identity, issuance journal and provider dispatch
+path. New migration 20 adds execution progress and append-only step decisions;
+all earlier migrations remain unchanged. The host passes its existing lifecycle
+advisory-lock namespace for graph effects, and missing guards fail closed.
+
+Kernel verification uses real Automation publication/review APIs, an independent
+Worker metadata database, and an explicitly synthetic provider receipt database.
+Projection activation and step-decision records are privileged test fixtures;
+these are NOT authenticated activation/UI acceptance or installed Inventory.
+`artifacts/phase16-graph-runtime-checkpoint.log` reports **18 passed** (8 publication
+checks plus 10 graph checks), including condition skip/join, human waiting,
+self-approval denial, reviewer revocation before the next effect, actual approval
+expiry, concurrency, binding revocation, guard denial, and a lost response after
+committing a provider receipt. Exactly one receipt survives the retry.
+
+Targeted host/platform builds pass. Host unit tests **27 pass**, platform tests
+**98 pass**, and existing SSMA PostgreSQL regressions **11 pass** after updating
+the upgrade fixture's expected current schema from 19 to 20. That first failure
+is retained as `phase16-graph-legacy-smart-tests.log`; the corrected run is
+`phase16-graph-legacy-smart-tests-rerun.log`. Its original identity/account/module
+preservation assertions continue to pass through repeated migration.
+
+Other retained failures: initial optional-condition TypeScript narrowing
+(`phase16-graph-runtime-build.log`), and fixture-only endpoint declaration,
+permission declaration, non-enumerable PostgreSQL password-copy and configured
+parallel-limit errors (`phase16-graph-runtime-first.log`, `-rerun.log`,
+`-rerun2.log`, `-rerun3.log` and corresponding failure JSON files). Fixes preserve
+validators and limits. Subsequent builds and all 18 kernel checks pass.
+
+The selected operator remains unchanged: topology checked at
+2026-10-28T18:22:27.725Z, **60 containers**, no unexpected stack. Graph actions are
+currently serialized by the existing execution row lock. Bounded graph branching
+is represented, but simultaneous provider dispatch, admission/activation/review
+APIs, subscription delivery, installed real-business scenarios, browser operation,
+upgrade and final release gates still need implementation/acceptance. In
+particular, existing Inventory reservation commands enforce Sales ownership;
+synthetic receipt tests must not be represented as real Inventory automation.
+The 1,147-test full run predates this coordinator checkpoint.

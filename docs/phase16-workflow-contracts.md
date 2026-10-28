@@ -110,3 +110,24 @@ review. A new approval does not silently renew an existing execution pin.
 This precondition is implemented and tested independently. Graph execution,
 activation APIs and per-action checks must call it as part of the existing SSMA
 coordinator; those integrations are not yet complete.
+
+
+## Coordinator graph progress (development)
+
+`smart_executions.graph_state` holds bounded control progress, authoritative
+node-entry times, exact step-review identities and only schema-selected scalar
+observations. Manual-trigger provenance identifies the authenticated execution;
+action observations identify the original provider command receipt, not a
+fabricated business record. The module remains the definition authority.
+
+The original SSMA executor handles graph actions with stable node-derived command
+IDs and existing issuance/reconciliation behavior. Earlier graphs and retained
+provider bindings are not replaced automatically. Step approval is checked again
+before subsequent progress. Waiting uses persisted timestamps, explicit rejection
+and expiry paths. Graph action history omits raw provider payloads. Effects require
+host lifecycle locks; missing guards stop before dispatch.
+
+This kernel is exercised with synthetic durable provider receipts. Public graph
+admission, activation, decision APIs and installed business workflows are still
+pending. Actions are currently serialized, so simultaneous bounded provider calls
+are not yet verified. Do not describe these kernel tests as release acceptance.
