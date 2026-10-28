@@ -11,6 +11,19 @@ const m: ModulePackageManifest = {
   configurationSchema: { type: 'object', additionalProperties: false, required: ['unit'], properties: { unit: { type: 'string', minLength: 1 } } },
   persistence: { isolation: 'dedicated-database', schemaVersion: 1, migrations: [{ version: 1, sha256: 'a'.repeat(64) }], destructiveRollback: false }, integrationEvents: [], analyticalCapabilities: []
 };
+
+test('workflow designer is signed data-only metadata gated to platform 0.16',()=>{
+ const field={name:'graph',label:'Workflow',type:'json' as const,format:'workflow' as const,required:true};
+ const manifest={...m,minimumPlatformVersion:'0.16.0',ui:[{...m.ui[0]!,formVersion:1 as const,fields:[field],columns:['graph']}]};
+ validateManifest(manifest);
+ assert.throws(()=>validateManifest({...manifest,minimumPlatformVersion:'0.15.0'}));
+ assert.throws(()=>validateManifest({...manifest,ui:[{...manifest.ui[0]!,fields:[{...field,type:'string'}]}]}));
+ const keys=generateKeyPairSync('ed25519'),privateKey=keys.privateKey.export({type:'pkcs8',format:'pem'}).toString(),publicKey=keys.publicKey.export({type:'spki',format:'pem'}).toString();
+ const signed=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+'a'.repeat(64),manifest},privateKey);
+ verifyPackage(signed,{publishers:[{publisherId:'test-only',publicKey}]});
+ const altered=structuredClone(signed);altered.payload.manifest.ui[0]!.fields[0]!.label='Changed without signing';
+ assert.throws(()=>verifyPackage(altered,{publishers:[{publisherId:'test-only',publicKey}]}));
+});
 test('Phase13 programme administration and finance contributions stay bounded without widening legacy packages',()=>{const api=Array.from({length:96},(_,i)=>({operationId:'read'+i,method:'GET' as const,path:'/records-'+i,permission:'example.records.read'}));const ui=Array.from({length:20},(_,i)=>({screenId:'records-'+i,title:'Records',navigationLabel:'Records',listOperation:'read0',fields:[],columns:[]}));validateManifest({...m,minimumPlatformVersion:'0.13.0',api,ui});assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.12.0',api:api.slice(0,31),ui:[]}));assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.12.0',api:api.slice(0,1),ui:ui.slice(0,11)}));assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.13.0',api:[...api,{...api[0]!,operationId:'excess',path:'/excess'}],ui}));assert.throws(()=>validateManifest({...m,minimumPlatformVersion:'0.13.0',api,ui:[...ui,{...ui[0]!,screenId:'excess'}]}));});
 test('programme module declarations permit only aggregate disclosure streams',()=>{
  const p:ModulePackageManifest={...m,minimumPlatformVersion:'0.13.0',programServices:{contractVersion:1,domain:'housing',syntheticOnly:true},replication:{contractVersion:1,streams:[{streamId:'mission_aggregates_v1',table:'mission_aggregate_releases',idColumn:'id',revisionColumn:'revision',columns:['id','revision','projection']}]}};

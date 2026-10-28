@@ -20,7 +20,7 @@ export interface ModuleFormField {
   name: string; label: string; type: 'string' | 'number' | 'json' | 'boolean' | 'object' | 'array'; required: boolean;
   readOnly?: boolean; minimum?: number; maximum?: number; maxLength?: number; enum?: string[]; default?: string | number | boolean;
   reference?: {operationId:string;valueField:string;labelField:string;currencyField?:string}; generate?:'uuid'|'synthetic-participant'|'synthetic-reference';
-  format?: 'multiline'|'date'|'date-time'|'money'; fields?:ModuleFormField[]; items?:ModuleFormField; minItems?:number; maxItems?:number;
+  format?: 'multiline'|'date'|'date-time'|'money'|'workflow'; fields?:ModuleFormField[]; items?:ModuleFormField; minItems?:number; maxItems?:number;
   visibleWhen?:{field:string;equals:string|number|boolean};
 }
 export interface ScreenContribution {
@@ -127,7 +127,7 @@ function validateScreens(m:ModulePackageManifest) {
         check(f.maxLength===undefined||f.type==='string'&&Number.isInteger(f.maxLength)&&f.maxLength>=1&&f.maxLength<=100000);
         check(f.enum===undefined||f.type==='string'&&Array.isArray(f.enum)&&f.enum.length>0&&f.enum.length<=30&&new Set(f.enum).size===f.enum.length&&f.enum.every(v=>typeof v==='string'&&v.length<=120));
         check(f.default===undefined||(f.type==='number'?typeof f.default==='number'&&Number.isFinite(f.default):f.type==='boolean'?typeof f.default==='boolean':f.type==='string'&&typeof f.default==='string'&&f.default.length<=120&&(!f.enum||f.enum.includes(f.default))));
-        check(f.format===undefined||(f.type==='number'?f.format==='money':f.type==='string'&&['multiline','date','date-time'].includes(f.format)));
+        check(f.format===undefined||(f.format==='workflow'?f.type==='json'&&atLeast(m.minimumPlatformVersion,'0.16.0'):f.type==='number'?f.format==='money':f.type==='string'&&['multiline','date','date-time'].includes(f.format)));
         if(f.format==='money')check([f.minimum,f.maximum,f.default].every(v=>v===undefined||Number.isSafeInteger(v)));
         if(f.visibleWhen){const condition=f.visibleWhen,other=values.find(v=>v.name===condition.field);check(onlyKeys(condition,['field','equals'])&&safeName(condition.field)&&other&&other!==f&&!other.visibleWhen&&['string','number','boolean'].includes(other.type)&&typeof condition.equals===other.type&&(typeof condition.equals!=='number'||Number.isFinite(condition.equals))&&(other.enum===undefined||other.enum.includes(String(condition.equals))));}
         if(f.type==='object'){check(!f.items&&f.minItems===undefined&&f.maxItems===undefined);fields(f.fields!,depth+1);}else check(f.fields===undefined);

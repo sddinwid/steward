@@ -40,10 +40,50 @@ null; that failure is retained in `phase16-baseline-release-correction.log`.
 Corrected rerun: **6/6 passed**, `phase16-baseline-release-correction-rerun.log`.
 A new complete regression run is required; targeted success is not that gate.
 
+Corrected checkpoint `ff8aecbf473cfd0b07206da4dc16075da57e75fb`: full build and
+uninterrupted full regression completed with exit 0, **1,119 tests across 69
+summaries, zero failures/skips**. Logs: `phase16-checkpoint-build.log`,
+`phase16-checkpoint-regressions.log`, `phase16-checkpoint-result.json`.
+This checkpoint includes the 16 new graph/rule tests. Later designer/scheduling
+changes have separate targeted results below and require another full release run.
+Selected original deployment smoke passed in `phase16-baseline-selected-smoke.log`:
+all four health/readiness checks, frontends/assets/proxies, original identities,
+migration state, restricted DB roles, four distinct PostgreSQL volumes and identical
+Worker core images. No operator upgrade occurred.
+
 New SDK graph/rule contracts compiled in isolated `.steward/phase16-sdk-check`
 without replacing baseline runtime outputs. **16/16 focused tests passed** in
 `artifacts/phase16-workflow-contract-tests.log`. These contracts are not yet
 connected to the runtime or deployed; they grant no execution authority.
+
+## Designer and scheduling checkpoint
+
+- SDK build and **47/47 SDK tests passed**, including signed/version-gated
+  `format: workflow` metadata. Original 0.15 manifests remain supported. The
+  browser-safe `@steward/module-sdk/workflow` export contains no crypto/runtime
+  authority APIs.
+- Host build and **27/27 host tests passed**, including five pure graph scheduling
+  checks. Scheduling helpers are not yet connected to the durable executor.
+- UI build and **13/13 presentation tests passed**, covering existing forms and
+  same-consumer binding presentation with original provider/package/entity checks.
+- **5/5 Chromium component checks passed**: keyboard interaction, malformed-input
+  save prevention, explicit connections, read-only inspection and mobile layout.
+  Report: `phase16-workflow-designer-component.json`; screenshot of the generic
+  SSDS component: `phase16-workflow-designer-component.png`. This uses synthetic
+  in-memory binding metadata; it is not authenticated installed-module evidence.
+- The generic module renderer recognizes signed workflow fields and obtains
+  choices from its existing authenticated Smart Modules registry. No executable
+  module frontend asset or domain-specific screen replaces that renderer.
+
+Retained failures: the first browser run found an ambiguous operation label;
+the next found mobile field overflow. Explicit accessible labeling and bounded
+SSDS field layout fixed these. A new manifest-test fixture initially retained a
+column absent from its changed fields; the manifest validator correctly rejected
+it, and the fixture was corrected. Logs retain each original failure.
+
+No workflow effect, subscription, publication, installation or deployment is
+claimed from these component checks. The full module/runtime integration and
+all six end-to-end scenarios remain pending.
 
 ## Pending acceptance
 

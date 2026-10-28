@@ -38,3 +38,14 @@ textarea { width:100%; min-height:7rem; padding:.6rem; font:inherit; } pre { whi
 
 /* Analytical row identities are business labels; compact selection preserves scroll access. */
 .publication-directory th[scope=row]{font-size:13px;text-transform:none;letter-spacing:normal;line-height:1.6;min-width:200px;max-width:300px}.application-shell .publication-directory td:first-child{min-width:52px;max-width:64px;width:52px}
+
+/* Shared data-only workflow designer */
+.workflow-designer{min-width:0;max-width:100%}
+.workflow-designer fieldset{min-inline-size:0;max-width:100%}
+.application-shell .workflow-designer label,.workflow-designer label{display:flex;flex-direction:column;align-items:stretch;min-width:0;max-width:100%;gap:8px}
+.workflow-designer select,.workflow-designer input,.workflow-designer textarea{min-width:0;max-width:100%;width:100%}
+.workflow-designer input[type=checkbox]{width:auto;align-self:flex-start}
+.workflow-designer pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.workflow-designer button{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+.workflow-designer li{overflow-wrap:anywhere;margin:8px 0}
+.workflow-designer .form-grid>*{min-width:0;max-width:100%}
