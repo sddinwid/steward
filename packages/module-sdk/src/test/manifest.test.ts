@@ -117,3 +117,10 @@ test('signed approval context declares an existing module API permission without
  const p={...m,minimumPlatformVersion:'0.15.0',approvalServices:{contractVersion:1 as const,reviewerPermission:'example.records.write'}};validateManifest(p);
  for(const change of [{minimumPlatformVersion:'0.14.0'},{approvalServices:{contractVersion:2,reviewerPermission:'example.records.write'}},{approvalServices:{contractVersion:1,reviewerPermission:'other.admin'}},{approvalServices:{contractVersion:1,reviewerPermission:'storage.own-database'}},{approvalServices:{contractVersion:1,reviewerPermission:'example.records.write',grant:true}}])assert.throws(()=>validateManifest({...p,...change} as ModulePackageManifest));
 });
+
+
+test('workflow publication services are signed read-only versioned declarations, not authority',()=>{
+ const p:ModulePackageManifest={...m,minimumPlatformVersion:'0.16.0',approvalServices:{contractVersion:1,reviewerPermission:'example.records.write'},workflowServices:{contractVersion:1,publicationOperationId:'list'},api:m.api.map(a=>a.operationId==='list'?{...a,query:['q']}:a)};
+ validateManifest(p);
+ for(const change of [{minimumPlatformVersion:'0.15.0'},{approvalServices:undefined},{workflowServices:{contractVersion:2,publicationOperationId:'list'}},{workflowServices:{contractVersion:1,publicationOperationId:'create'}},{workflowServices:{contractVersion:1,publicationOperationId:'list',activate:true}},{api:m.api}])assert.throws(()=>validateManifest({...p,...change} as ModulePackageManifest));
+});

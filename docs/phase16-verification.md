@@ -184,3 +184,33 @@ verifying ZIP SHA256
 `670f60bb64a92762bcca8ad5df03edfafd070032e2f46d98fa2edc8699b04de1`.
 The new `--report` argument isolates Phase 16 output. No SQL, signed descriptor,
 release archive or selected deployment was changed by this correction.
+
+## Full module checkpoint and authoritative publication verification
+
+At committed source `7df0f62ca00c270c6402914103085893d45959ec`, the complete
+monorepo build and uninterrupted root regression suite passed: **1,147 tests,
+72 summaries, zero failures/cancellations/skips**. Evidence:
+`artifacts/phase16-module-full-build.log`, `phase16-module-full-regressions.log`,
+and `phase16-module-full-result.json`. Five designer Chromium checks passed
+separately (`phase16-module-designer-browser.log`). Selected deployment smoke
+checks and post-suite topology passed: one selected stack, 60 containers, no
+unexpected running containers. No operator upgrade was performed.
+
+Subsequent changes add signed optional `workflowServices` metadata requiring a
+read-only publication API and existing reviewer declaration on platform >=0.16.
+The module's authenticated publication detail includes original author/editor,
+review identity and authoritative timestamps. MCP status remains minimized.
+The host publication precondition pins module installation/package, publication
+and definition digest, exact human review and expiry. It reads the actual module
+API, independently rechecks Worker account permissions before and after transport,
+checks separate review and the database clock, and rejects source replacement.
+It does not activate or dispatch a workflow; coordinator integration remains open.
+
+Targeted builds (SDK, host, Automation) pass. SDK tests **53 pass**, existing
+module-definition tests **8 pass**, new independent metadata/module database
+publication-authority tests **8 pass**. Reports/logs use the `phase16-publication-`
+prefix and `phase16-workflow-authority.json`. Transport is Fastify injection and
+package signing uses isolated fixture keys, not an installed production package.
+Negative expiry/future-date response fixtures are explicitly synthetic; real
+module API revocation and appended approvals are also exercised. These changes
+postdate the 1,147-test run and require another final full release regression.

@@ -902,5 +902,9 @@
       "requiresActive": true,
       "requiresHealthy": true
     }
+  },
+  "workflowServices": {
+    "contractVersion": 1,
+    "publicationOperationId": "listPublications"
   }
 }

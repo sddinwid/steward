@@ -94,3 +94,19 @@ subscription governance, atomic fan-out, execution lineage, replay controls,
 poison-event handling, retention and sensitive scoped disclosures must be completed
 and exercised before activation. The existing isolated tests use a clearly
 labeled synthetic receipt callback. There is no new network transport or service.
+
+
+## Publication authority boundary
+
+Optional signed `workflowServices` declares a read-only publication operation
+supporting an exact `q` identifier. It requires the existing `approvalServices`
+declaration and platform 0.16.0 or newer. It never grants execution permission.
+The host's `verifyWorkflowPublication` precondition retains exact module
+installation, package digest, publication digest, review identity and expiry.
+It re-reads the module-owned publication and checks current Worker permissions
+before and after transport, source continuity, entity, chronology and separate
+review. A new approval does not silently renew an existing execution pin.
+
+This precondition is implemented and tested independently. Graph execution,
+activation APIs and per-action checks must call it as part of the existing SSMA
+coordinator; those integrations are not yet complete.
