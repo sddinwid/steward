@@ -9,7 +9,7 @@ import {canonical,digest} from '../packages/module-sdk/dist/index.js';
 import {businessBrowser} from './business-browser-client.mjs';
 import {publishPreparedLedger} from './phase15-ledger.mjs';
 import {phase15DemoPlan,phase15ServiceCase} from './phase15-demo-plan.mjs';
-const CATALOG='steward.catalog.universal',PRICING='steward.pricing.management',versions={[CATALOG]:'1.4.0',[PRICING]:'1.3.0','cee.stock-ledger':'1.2.0','cee.procurement':'1.3.0'};
+const CATALOG='steward.catalog.universal',PRICING='steward.pricing.management',versions={[CATALOG]:'1.4.0',[PRICING]:'1.3.1','cee.stock-ledger':'1.2.0','cee.procurement':'1.3.0'};
 export async function runPhase15CatalogDemo(section='check'){
  const selection=JSON.parse(await readFile('.steward/operator/selection.json','utf8'));process.argv[2]??=selection.directory;assert.equal(path.resolve(process.argv[2]),path.resolve(selection.directory),'Use the selected original operator deployment');process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(selection.directory,'demo/presenter.json');const client=await import('./phase13-acceptance-client.mjs');await client.logins();assert.deepEqual(client.deployment.instances.map(i=>i.key),['master','worker-1','worker-2','worker-3']);
  const originalInstallations=client.deployment.instances.map(({key,installationId})=>({key,installationId})),caseFlag=process.argv.indexOf('--service-case'),caseName=caseFlag<0?undefined:process.argv[caseFlag+1];assert(caseFlag<0||caseName,'Explicit service case name required');

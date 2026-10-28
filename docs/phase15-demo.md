@@ -20,7 +20,7 @@ Presenter credentials remain in the existing private `demo/presenter.json`. Each
 
 ## Installation and configuration
 
-Use Module Manager to install Catalog 1.4.0 and Pricing 1.3.0 independently on all three Workers, then Stock Ledger 1.2.0 and Procurement 1.3.0 on Worker 3: eight fresh installations. `install-fresh` verifies an already installed exact package/configuration rather than upgrading it. Existing module upgrades are a separate operator-reviewed step.
+Use Module Manager to install Catalog 1.4.0 and Pricing 1.3.1 independently on all three Workers, then Stock Ledger 1.2.0 and Procurement 1.3.0 on Worker 3: eight fresh installations. `install-fresh` verifies an already installed exact package/configuration rather than upgrading it. Existing module upgrades are a separate operator-reviewed step. The retained V1 ledger records the historical 1.3.0 installation and must not be rebased or reused to authorize changed package pins.
 
 For this demonstration the fresh Catalog modules enable optional governed integrations and analytical reads, with operational/classification read age 1,800 seconds and external read age 3,600 seconds. Pricing enables optional governed Catalog and cost reads, Catalog age 1,800 seconds and cost age 3,600 seconds. Fresh Worker 3 Procurement uses USD, a 1,800-second reference lease and 3,600-second cost lease; synthetic service replenishment remains disabled. Fresh Ledger uses USD, `quantityUnit=item`, and simulation disabled. The exact public configuration is defined in `scripts/phase15-demo-plan.mjs` and pinned in the private ledger.
 
