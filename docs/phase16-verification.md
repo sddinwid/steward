@@ -128,7 +128,36 @@ UI, Master frontend and Worker frontend builds pass, and all five Chromium
 component checks pass again. Logs use the `phase16-input-` prefix. SQL/source and signed
 catalog ancestry independently pass **10/10** (`phase16-source-integrity.log`).
 
-The signed Business Automation module, governed subscription and approval APIs,
+## Module definition checkpoint
+
+`modules/business-automation` now contains an independent 1.0.0 package,
+Dockerfile, exact-hash initial migration, SSDS workflow field contribution and
+module-owned definition/review APIs. Publication appends an immutable snapshot;
+edits affect only the next draft. Review requires a different currently authorized
+human and an expiring private host principal context. Review retries revalidate
+current authority. Definition publication explicitly returns
+`executionActivated: false`. No workflow execution or installation is implied.
+
+**8/8 real PostgreSQL and authenticated module-gateway API tests passed**:
+authentication/permissions, immutable/idempotent publication, separation of duties,
+stale/revoked reviewer checks, original snapshot preservation, restart/entity
+isolation, data-minimized read-only MCP status, and explicit invalid-definition
+errors without publication. Host principal headers are fixtures; full Worker
+session/CSRF/installed package acceptance is pending. Reports:
+`phase16-automation-definitions.json`, `phase16-automation-definitions.log`,
+`phase16-automation-definitions-rerun.log`. Package build and manifest validation
+pass. A development npm invocation initially added a root-package file dependency;
+it was removed and the lock regenerated from the module directory. The module now
+depends only on shared SDK/business-kit packages, not the whole platform package.
+
+Historical Phase 15 release tests now assert every original release module/version
+is still present while allowing separately declared later-platform modules outside
+that historical distribution. All six release-contract tests pass. The accepted
+Phase 15 module map, tag and artifacts remain unchanged.
+
+## Remaining acceptance
+
+Signed image publication/installation, governed subscription and approval APIs,
 persistent execution integration, six business acceptance scenarios, complete
 security/failure matrix, installed visual designer acceptance, data-preserving upgrade,
 clean installation, final redeployment, release packaging and tagging remain

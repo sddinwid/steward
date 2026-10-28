@@ -1,0 +1,906 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.automation",
+  "version": "1.0.0",
+  "name": "Business Automation",
+  "description": "Module-owned workflow definitions and immutable human review. Execution requires separate Worker-governed activation.",
+  "minimumPlatformVersion": "0.16.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listWorkflows",
+      "method": "GET",
+      "path": "/workflows",
+      "permission": "steward.automation.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createWorkflow",
+      "method": "POST",
+      "path": "/workflows",
+      "permission": "steward.automation.edit"
+    },
+    {
+      "operationId": "updateWorkflow",
+      "method": "PUT",
+      "path": "/workflows/:id",
+      "permission": "steward.automation.edit"
+    },
+    {
+      "operationId": "publishWorkflow",
+      "method": "POST",
+      "path": "/publish/:id",
+      "permission": "steward.automation.publish"
+    },
+    {
+      "operationId": "listPublications",
+      "method": "GET",
+      "path": "/publications",
+      "permission": "steward.automation.read",
+      "query": [
+        "q"
+      ]
+    },
+    {
+      "operationId": "listReviews",
+      "method": "GET",
+      "path": "/reviews",
+      "permission": "steward.automation.read"
+    },
+    {
+      "operationId": "reviewPublication",
+      "method": "POST",
+      "path": "/reviews",
+      "permission": "steward.automation.approve"
+    },
+    {
+      "operationId": "workflowStatus",
+      "method": "GET",
+      "path": "/workflow-status",
+      "permission": "steward.automation.read"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "workflows",
+      "title": "Business workflows",
+      "navigationLabel": "Workflow designer",
+      "formVersion": 1,
+      "navigationGroup": "Automation",
+      "listOperation": "listWorkflows",
+      "createOperation": "createWorkflow",
+      "updateOperation": "updateWorkflow",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "name",
+          "label": "Workflow name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "description",
+          "label": "Purpose",
+          "type": "string",
+          "required": true,
+          "format": "multiline"
+        },
+        {
+          "name": "graph",
+          "label": "Workflow graph",
+          "type": "json",
+          "required": true,
+          "format": "workflow"
+        },
+        {
+          "name": "status",
+          "label": "State",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "description",
+        "status"
+      ],
+      "actions": [
+        {
+          "label": "Publish immutable version",
+          "operationId": "publishWorkflow",
+          "confirmation": "Publish this definition as an immutable version for separate review? Publication does not activate execution."
+        }
+      ]
+    },
+    {
+      "screenId": "reviews",
+      "title": "Workflow review",
+      "navigationLabel": "Workflow approvals",
+      "formVersion": 1,
+      "navigationGroup": "Automation",
+      "listOperation": "listReviews",
+      "createOperation": "reviewPublication",
+      "fields": [
+        {
+          "name": "recordKey",
+          "label": "Record identity",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "publicationId",
+          "label": "Published version",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listPublications",
+            "valueField": "id",
+            "labelField": "name"
+          }
+        },
+        {
+          "name": "decision",
+          "label": "Decision",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "approve",
+            "reject",
+            "revoke"
+          ]
+        },
+        {
+          "name": "reason",
+          "label": "Review reason",
+          "type": "string",
+          "required": true,
+          "format": "multiline"
+        },
+        {
+          "name": "validForMinutes",
+          "label": "Approval validity (minutes)",
+          "type": "number",
+          "required": true,
+          "minimum": 1,
+          "maximum": 44640,
+          "default": 60
+        }
+      ],
+      "columns": [
+        "publicationId",
+        "decision",
+        "reason"
+      ]
+    },
+    {
+      "screenId": "status",
+      "title": "Workflow definition status",
+      "navigationLabel": "Workflow status",
+      "listOperation": "workflowStatus",
+      "fields": [
+        {
+          "name": "name",
+          "label": "Workflow",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Definition state",
+          "type": "string",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "name": "version",
+          "label": "Published version",
+          "type": "number",
+          "required": true,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "status",
+        "version"
+      ]
+    }
+  ],
+  "approvalServices": {
+    "contractVersion": 1,
+    "reviewerPermission": "steward.automation.approve"
+  },
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "maxElapsedMs",
+      "maxParallel"
+    ],
+    "properties": {
+      "maxElapsedMs": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 2678400000
+      },
+      "maxParallel": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 4
+      }
+    }
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "be6fde9457a615d3456c458192d5f0a873965084b3295fdf9af7bd4fd8bffd36"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "mcpTools": [
+    {
+      "name": "automation_workflow_status",
+      "description": "Read workflow definition versions and review status. Does not approve, activate or execute workflows.",
+      "operationId": "workflowStatus"
+    }
+  ],
+  "smart": {
+    "version": 1,
+    "provides": [],
+    "consumes": [
+      {
+        "capabilityId": "inventory.stock.reserve",
+        "contract": "steward.stock-reservations",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "stock.reserve",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "orderId",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "requested": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "availableBefore": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      },
+                      "reserved": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 1000000000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "requested",
+                      "availableBefore",
+                      "reserved"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "orderId",
+                "lines"
+              ]
+            }
+          },
+          {
+            "name": "stock.release",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "orderId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "released": {
+                  "const": true
+                }
+              },
+              "required": [
+                "orderId",
+                "released"
+              ]
+            }
+          },
+          {
+            "name": "stock.consume",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "fulfillmentId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "lines": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 40,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sku": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "quantity": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 100000000
+                      }
+                    },
+                    "required": [
+                      "sku",
+                      "quantity"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "orderId",
+                "fulfillmentId",
+                "lines"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "fulfillmentId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                },
+                "applied": {
+                  "const": true
+                }
+              },
+              "required": [
+                "orderId",
+                "fulfillmentId",
+                "applied"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true
+      },
+      {
+        "capabilityId": "inventory.items.read",
+        "contract": "steward.inventory-items",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "inventory.items.discover",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "query": {
+                  "type": "string",
+                  "maxLength": 160
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "query",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "records": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "contractVersion": {
+                        "const": 1
+                      },
+                      "recordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "revision": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 2147483647
+                      },
+                      "code": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 160,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "active",
+                          "inactive"
+                        ]
+                      },
+                      "definitionDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "observedAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "expiresAt": {
+                        "type": "string",
+                        "minLength": 20,
+                        "maxLength": 35,
+                        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                      },
+                      "unitDefinition": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "unitOfMeasure": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "minLength": 1,
+                                "maxLength": 40,
+                                "pattern": "\\S"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "quantityScale": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 6
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "configurationDigest": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[a-f0-9]{64}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "unitOfMeasure",
+                          "quantityScale",
+                          "configurationDigest"
+                        ]
+                      },
+                      "stockCapability": {
+                        "anyOf": [
+                          {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "properties": {
+                              "capabilityId": {
+                                "const": "inventory.stock.verified"
+                              },
+                              "contract": {
+                                "const": "steward.verified-stock-reservations"
+                              },
+                              "version": {
+                                "const": "1.0.0"
+                              }
+                            },
+                            "required": [
+                              "capabilityId",
+                              "contract",
+                              "version"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "contractVersion",
+                      "recordId",
+                      "revision",
+                      "code",
+                      "name",
+                      "status",
+                      "definitionDigest",
+                      "observedAt",
+                      "expiresAt",
+                      "unitDefinition",
+                      "stockCapability"
+                    ]
+                  },
+                  "minItems": 0,
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "records",
+                "nextOffset"
+              ]
+            }
+          },
+          {
+            "name": "inventory.items.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "recordId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "contractVersion",
+                "recordId"
+              ]
+            },
+            "output": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "found"
+                    },
+                    "record": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "contractVersion": {
+                          "const": 1
+                        },
+                        "recordId": {
+                          "type": "string",
+                          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                        },
+                        "revision": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 2147483647
+                        },
+                        "code": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 80,
+                          "pattern": "\\S"
+                        },
+                        "name": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 160,
+                          "pattern": "\\S"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "active",
+                            "inactive"
+                          ]
+                        },
+                        "definitionDigest": {
+                          "type": "string",
+                          "pattern": "^[a-f0-9]{64}$"
+                        },
+                        "observedAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "expiresAt": {
+                          "type": "string",
+                          "minLength": 20,
+                          "maxLength": 35,
+                          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d{1,3})?Z$"
+                        },
+                        "unitDefinition": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "properties": {
+                            "unitOfMeasure": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 40,
+                                  "pattern": "\\S"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "quantityScale": {
+                              "anyOf": [
+                                {
+                                  "type": "integer",
+                                  "minimum": 0,
+                                  "maximum": 6
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            },
+                            "configurationDigest": {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "pattern": "^[a-f0-9]{64}$"
+                                },
+                                {
+                                  "type": "null"
+                                }
+                              ]
+                            }
+                          },
+                          "required": [
+                            "unitOfMeasure",
+                            "quantityScale",
+                            "configurationDigest"
+                          ]
+                        },
+                        "stockCapability": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "additionalProperties": false,
+                              "properties": {
+                                "capabilityId": {
+                                  "const": "inventory.stock.verified"
+                                },
+                                "contract": {
+                                  "const": "steward.verified-stock-reservations"
+                                },
+                                "version": {
+                                  "const": "1.0.0"
+                                }
+                              },
+                              "required": [
+                                "capabilityId",
+                                "contract",
+                                "version"
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "contractVersion",
+                        "recordId",
+                        "revision",
+                        "code",
+                        "name",
+                        "status",
+                        "definitionDigest",
+                        "observedAt",
+                        "expiresAt",
+                        "unitDefinition",
+                        "stockCapability"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "contractVersion": {
+                      "const": 1
+                    },
+                    "status": {
+                      "const": "not_found"
+                    },
+                    "record": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "contractVersion",
+                    "status",
+                    "record"
+                  ]
+                }
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true
+      }
+    ],
+    "prerequisites": {
+      "configuration": {},
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  }
+}
