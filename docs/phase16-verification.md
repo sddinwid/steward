@@ -163,3 +163,24 @@ security/failure matrix, installed visual designer acceptance, data-preserving u
 clean installation, final redeployment, release packaging and tagging remain
 unverified until individually recorded here. Phase 15 evidence is retained and
 does not substitute for Phase 16 acceptance.
+
+## Migration verification continuation
+
+The committed `f6e5437` Business Automation development image built successfully:
+`steward-business-automation:dev-f6e5437`, image identity
+`sha256:e804bf39ff28d6f587e15d196b29818672aee71e479433463e2b140ce349adbe`.
+It has not been signed, installed or accepted as a release.
+
+Adding its migration exposed a historical test's fixed 84-migration count. The
+failed run is retained in `artifacts/phase16-module-source-integrity.log` and
+`artifacts/phase16-source-migrations-count-failure.json`. The runner now asserts
+the original Phase 15 modules still contribute exactly 84 declared migrations
+and four trusted legacy migrations, and independently verifies every additional
+module migration. All ten corrected checks pass (89 total migrations).
+
+The runner previously always wrote its historical Phase 15 report filename. Its
+original accepted report was restored byte-for-byte from the evidence ZIP after
+verifying ZIP SHA256
+`670f60bb64a92762bcca8ad5df03edfafd070032e2f46d98fa2edc8699b04de1`.
+The new `--report` argument isolates Phase 16 output. No SQL, signed descriptor,
+release archive or selected deployment was changed by this correction.
