@@ -7,11 +7,13 @@ const ref=r=>({entityId:r.entity_id,moduleId:r.module_id,streamId:r.stream_id,re
 const emptyAttempts=new Map();
 // Explicit protocol-fixture observations only; these are not real-model quality results.
 export const catalogValidationEvents=[];
+export const catalogModelToolViews=[];
 export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_TLS_KEY_FILE??'/run/secrets/tls_key'),cert:readFileSync(process.env.STEWARD_FIXTURE_TLS_CERT_FILE??'/run/secrets/tls_cert')},(req,res)=>{
  if(req.headers.authorization!=='Bearer '+key){res.writeHead(401);return res.end('{}');}
  let raw='';req.on('data',c=>{raw+=c;if(raw.length>1000000)req.destroy();});req.on('end',()=>{
   try{
    const b=JSON.parse(raw),prompt=b.input.filter(v=>v.role==='user').at(-1).content;const results=b.input.filter(v=>v.type==='function_call_output').map(v=>JSON.parse(v.output).result);
+   if(prompt.includes('[fixture:catalog-model-view]'))for(const tool of b.tools??[])if(['query_catalog_summary','query_catalog_publications'].includes(tool.name))catalogModelToolViews.push({name:tool.name,parameters:structuredClone(tool.parameters)});
    if(prompt.includes('[fixture:empty-always]'))return respond([]);
    if(prompt.includes('[fixture:empty-once]')){const count=(emptyAttempts.get(prompt)??0)+1;emptyAttempts.set(prompt,count);if(count===1)return respond([]);}
    if(prompt.includes('[fixture:timeout]'))return;
@@ -48,7 +50,20 @@ export const server=createServer({key:readFileSync(process.env.STEWARD_FIXTURE_T
      }
      return calls([{name:'query_catalog_summary',arguments:{...(selectedCatalogPurpose==='simulation'?{purpose:'simulation'}:{})}}]);
     }
-    if(tools.has('query_catalog_publications')){const page=rows.findLast(d=>(d.records??[]).some(r=>r.reference?.streamId==='pricing_publications_v1'));return calls([{name:'query_catalog_publications',arguments:{kind:prompt.includes('[fixture:catalog-demand]')?'sales':'pricing',...(selectedCatalogPurpose==='simulation'?{purpose:'simulation'}:{}),analysis:prompt.includes('[fixture:catalog-cost-statistics]')?'statistics':'comparison',limit:4,...(page?.nextOffset?{offset:page.nextOffset}:{})}}]);}
+    if(tools.has('query_catalog_publications')){
+     const page=rows.findLast(d=>(d.records??[]).some(r=>r.reference?.streamId==='pricing_publications_v1')),args={kind:prompt.includes('[fixture:catalog-demand]')?'sales':'pricing',...(selectedCatalogPurpose==='simulation'?{purpose:'simulation'}:{}),analysis:prompt.includes('[fixture:catalog-cost-statistics]')?'statistics':'comparison',limit:4,...(page?.nextOffset?{offset:page.nextOffset}:{})};
+     const recovery=prompt.includes('[fixture:catalog-publication-validation-recovery]'),repeat=prompt.includes('[fixture:catalog-publication-validation-repeat]');
+     if(recovery||repeat){
+      const failedCall=b.input.find(v=>v.type==='function_call'&&v.name==='query_catalog_publications'&&JSON.parse(v.arguments).entityId==='');
+      if(!failedCall){catalogValidationEvents.push({prompt,stage:'invalid-request',optionalFields:{entityId:'',from:'',to:''}});return calls([{name:'query_catalog_publications',arguments:{...args,entityId:'',from:'',to:''}}]);}
+      const failedFrame=b.input.find(v=>v.type==='function_call_output'&&v.call_id===failedCall.call_id),feedback=failedFrame?JSON.parse(failedFrame.output).result:null,text=(feedback?.content??[]).filter(v=>v.type==='text').map(v=>v.text).join(' ');
+      if(!feedback?.isError||!['entityId','from','to'].every(name=>text.includes(name))||!/uuid/i.test(text)||!/datetime|date.time|ISO/i.test(text))throw Error('Actual native failed publication call and original MCP UUID/datetime feedback must reach next model request');
+      const nextArgs=repeat?{...args,entityId:'',from:'',to:''}:args;
+      catalogValidationEvents.push({prompt,stage:'received-validation',call:{type:failedCall.type,call_id:failedCall.call_id,name:failedCall.name,arguments:failedCall.arguments},outputCallId:failedFrame.call_id,feedback:structuredClone(feedback),nextArguments:structuredClone(nextArgs)});
+      return calls([{name:'query_catalog_publications',arguments:nextArgs}]);
+     }
+     return calls([{name:'query_catalog_publications',arguments:args}]);
+    }
     if(tools.has('get_catalog_evidence')){if(prompt.includes('[fixture:catalog-unobserved-reference]')){const observed=unique[0];if(!observed)throw Error('Observed source missing');return calls([{name:'get_catalog_evidence',arguments:{reference:{...observed.reference,recordId:'ffffffff-ffff-4fff-8fff-ffffffffffff'}}}]);}const requested=b.input.filter(v=>v.type==='function_call'&&v.name==='get_catalog_evidence').map(v=>JSON.parse(v.arguments).reference),next=unique.find(r=>!requested.some(ref=>JSON.stringify(ref)===JSON.stringify(r.reference)));if(!next)throw Error('Actual Catalog fixture source reference missing');return calls([{name:'get_catalog_evidence',arguments:{reference:next.reference,limit:4}}]);}
     if(tools.has('compare_catalog_contribution_pair')||tools.has('compare_catalog_contribution')||tools.has('analyze_catalog_demand')||tools.has('analyze_catalog_statistics')){const grouped=new Map();for(const r of unique){const key=r.cohortDigest??r.cohortKey??'fixture-no-key';grouped.set(key,[...(grouped.get(key)??[]),r]);}const chosen=[...grouped.values()].find(g=>g.length>=2)??unique;if(tools.has('compare_catalog_contribution_pair'))return calls([{name:'compare_catalog_contribution_pair',arguments:{first:chosen[0].reference,second:chosen[1].reference}}]);return calls([{name:tools.has('analyze_catalog_demand')?'analyze_catalog_demand':prompt.includes('[fixture:catalog-cost-statistics]')?'analyze_catalog_statistics':'compare_catalog_contribution',arguments:{references:chosen.slice(0,2).map(r=>r.reference),...(prompt.includes('[fixture:catalog-cost-statistics]')?{measure:'variable-cost'}:{})}}]);}
     const analysis=rows.findLast(d=>d.catalogCalculationId),c=analysis?.calculation,amounts=c?.requiredNarrativeAmounts??[],partial=!c||c.status!=='completed';

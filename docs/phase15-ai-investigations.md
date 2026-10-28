@@ -117,3 +117,7 @@ source records are explicitly generated test fixtures. It records actual native
 calls and independent calculation checks, restores environment configuration and
 unloads only the model it loaded for the run. A failure is retained as a failed
 report and cannot count as real-provider acceptance.
+
+## Model-facing discovery controls
+
+The Analyst's staged model view of `query_catalog_summary` and `query_catalog_publications` offers bounded search/pagination, disclosure purpose/status, and publication kind/analysis controls. It omits optional entity/date/currency filters from that model-facing schema to avoid empty-value calls from smaller local models. The original MCP registrations and API schemas retain those filters for direct authorized callers; no supplied arguments are coerced, defaulted into authority, or silently accepted when invalid. The model view is cloned without changing the discovered descriptor, fails closed if a future schema makes an omitted field required, and preserves all bounds. Evidence and calculation tools retain their complete source-reference schemas. Calculations still enforce compatible currency, unit, cohort and source scope; a broader discovery sample is not evidence of a complete census or permission to compare incompatible observations. Original MCP failures remain in activity and bounded native feedback so a model can repair its arguments; repeated identical calls still fail.
