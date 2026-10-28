@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import {phase15DemoPlan} from './phase15-demo-plan.mjs';
+import {phase15DemoPlan,phase15ServiceCase} from './phase15-demo-plan.mjs';
 import {offeringInput} from '../modules/catalog/dist/definition.js';
 import {validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
 import {validateAttributeDefinition,makeUnitDefinition} from '../packages/catalog-kit/dist/index.js';
@@ -9,3 +9,12 @@ test('demo attribute keys obey the actual Catalog grammar and retained provider 
 test('public controlled plan defines all six real Catalog DTOs without identities or provider authority',()=>{const plan=phase15DemoPlan('VALIDATION-1');assert.deepEqual(plan.catalog.map(o=>o.type),['physical','digital','service','subscription','rental','bundle']);for(const offering of [...plan.catalog,...Object.values(plan.services).map(s=>s.offering)])validateCapabilityValue({recordKey:randomUUID(),...offering},offeringInput);assert.equal(plan.catalog.find(o=>o.type==='bundle').status,'draft');assert.equal(plan.catalog.find(o=>o.type==='subscription').interval,'month');assert.equal(plan.catalog.find(o=>o.type==='rental').rentalUnit,'day');assert(!/password|token|packageDigest|workerInstallationId|providerInstallationId/.test(JSON.stringify(plan)));});
 test('service comparison has matching explicit all-channel scope and retains reviewed assumptions rather than fake supplier costs',()=>{const plan=phase15DemoPlan(),a=plan.services['worker-1'],b=plan.services['worker-2'];for(const row of[a,b]){assert.equal(row.channel,null);assert.equal(row.unitOfMeasure,'session');assert.equal(row.quantity,7);assert.equal(row.listedPriceCents,300);}assert.equal(a.fulfillmentEstimateCents,100);assert.equal(b.fulfillmentEstimateCents,120);assert.equal(plan.purpose,'simulation');assert(plan.scopeReason.includes('reviewed supplier acquisition N/A'));assert(plan.scopeReason.includes('Not realized profit'));assert(plan.scopeReason.includes('all-channel'));});
 test('generation is explicit bounded public metadata; new provider configuration disables unrelated synthetic execution',()=>{assert.throws(()=>phase15DemoPlan('../replacement'),/generation/);assert.throws(()=>phase15DemoPlan('A'.repeat(40)),/generation/);const p=phase15DemoPlan('SAME');assert.deepEqual(p,phase15DemoPlan('SAME'));assert.equal(p.prefix,'P15I-SAME');assert.equal(p.freshConfigurations['cee.stock-ledger'].quantityUnit,'item');assert.equal(p.freshConfigurations['cee.stock-ledger'].simulationEnabled,false);assert.equal(p.freshConfigurations['cee.procurement'].syntheticServiceReplenishment,false);});
+
+test('explicit Pricing131 case separates new service intent from V1 records and never implies lease renewal',()=>{
+ assert.equal(phase15ServiceCase(undefined),null);assert.throws(()=>phase15ServiceCase('automatic'),/Unknown explicit/);
+ const c=phase15ServiceCase('Pricing131'),original=phase15DemoPlan('V1'),next=phase15DemoPlan(c.generation);
+ assert.equal(c.ledgerName,'phase15-i-browser-pricing131.json');assert.equal(c.pricingVersion,'1.3.1');assert.equal(c.generation,'V1-PRICING131');
+ for(const key of ['categoryName','retailName','policyName','modelName','publicationName'])assert.notEqual(next[key],original[key]);
+ for(const w of ['worker-1','worker-2']){assert.notEqual(next.services[w].offering.code,original.services[w].offering.code);validateCapabilityValue({recordKey:randomUUID(),...next.services[w].offering},offeringInput);}
+ assert.equal(next.purpose,'simulation');assert.equal(c.artifactSuffix,'pricing131');assert(!Object.hasOwn(c,'validUntil'));assert.throws(()=>phase15ServiceCase('Pricing131','A'.repeat(23)),/generation/);
+});

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.pricing.management",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "name": "Pricing Management",
   "description": "Independent entity-owned price lists, immutable proposals, separate human reviews and activation, deterministic resolution and historical evidence. No external publishing or payment execution.",
   "minimumPlatformVersion": "0.15.0",

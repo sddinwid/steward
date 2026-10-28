@@ -65,3 +65,22 @@ The first Sales run omitted the ordinary Poll current price authorization action
 The browser-adapter test requires both `scripts/fixtures/business-browser-currency.html` and `.tsx`: it builds this isolated production ModuleScreen fixture alongside the nested-form fixture. The isolated Chromium groups verify source-before-currency ordering, refusal of mismatched derived currency without a write, and ordinary same-screen reopen refreshing independently created choices. It uses only ephemeral local HTTP and no selected-deployment credentials or data.
 
 Outage acceptance must inspect the actual durable pending-publication representation and then confirm delivery after Master recovery. `artifacts/phase15-outage.json` currently retains the first failed query assertion; stopping and restoring Master without cleanup errors does not itself establish successful outage delivery. The corrected-query retry must produce its own passing evidence before this gate is reported complete.
+
+
+## Pricing 1.3.1 correction case
+
+The installed V1 demonstration initially used Pricing 1.3.0. Actual Master recomputation rejected its two service publications because a cached Catalog receipt timestamp was omitted by the publisher. These disclosures were explicitly withdrawn, preserving their original evidence, source pins and history. Pricing 1.3.1 uses the recorded receipt timestamp; its SQL, permissions and capability contracts are unchanged. Never overwrite the signed 1.3.0 package or rewrite an old record's provider identity.
+
+After publishing the new signed package, complete a passing selected-core preservation check and retain that run's full private backup. The guarded patch CLI is inert by default. Its execution checks quiescence, exact configuration and every old Pricing table before upgrading and approving only new-work routes:
+
+```powershell
+node scripts/upgrade-phase15-pricing-patch.mjs
+$env:STEWARD_PHASE15_ROOT_READY='1'
+node scripts/upgrade-phase15-pricing-patch.mjs --execute-authorized --backup-directory <completed-backup> --upgrade-proof <passed-upgrade-report>
+node scripts/phase15-catalog-demo.mjs <selected-deployment> check --service-case Pricing131
+node scripts/phase15-catalog-demo.mjs <selected-deployment> service-cohort --service-case Pricing131
+node scripts/verify-phase15-installed-catalog-ollama.mjs --execute-authorized --ledger <selected-deployment>/demo/phase15-i-browser-pricing131.json --report artifacts/phase15i-installed-qwen-pricing131.json
+node scripts/inspect-phase15-installed-catalog-analyst.mjs --execute-authorized --report artifacts/phase15i-installed-qwen-pricing131.json
+```
+
+The explicit `Pricing131` case creates distinct definitions, lists, policies, approvals, cost models, assumptions and publications in a separate ledger. It retains the V1 ledger and expired/withdrawn evidence. It never extends an old review window or transfers an accepted order/reservation. Run the native investigation immediately after current publications reach Master, then inspect the same investigation and delivered finding in the UI. A failed or expired case requires explicit reconciliation; successful fixture tests do not establish installed native-model success. The final verification report records which commands actually passed.
