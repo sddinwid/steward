@@ -7,6 +7,7 @@ import {randomUUID} from 'node:crypto';
 import {parseArgs} from 'node:util';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {stopSelectedWithRecovery} from './phase15-clean-recovery.mjs';
 const root=path.resolve(fileURLToPath(new URL('..',import.meta.url)));process.chdir(root);
 const{values}=parseArgs({options:{'execute-authorized':{type:'boolean'},directory:{type:'string'},bundle:{type:'string'},'network-prefix':{type:'string'}}});
 if(!values['execute-authorized'])throw Error('Explicit clean-installation readiness required; this acceptance temporarily stops the selected operator stack.');
@@ -28,11 +29,12 @@ const invoke=(base,script,args=[],extra={})=>execFileSync(process.execPath,[path
 const run=(script,args=[])=>{if(operatorStopped)assert.equal(ownedRunning(selectedManifest).length,0,'Do not run a temporary full stack alongside any selected core or managed container');return invoke(toolkit,script,args);};
 await mkdir(lock);locked=true; // On a busy lock, exit before any finally restoration can interfere with another acceptance.
 try{
- await writeFile(path.join(lock,'owner.json'),JSON.stringify({pid:process.pid,runId,project,target})+'\n',{mode:0o600});
+ const recovery={pid:process.pid,runId,project,target,selectedDirectory,operatorProject:selected.project,operatorSelection:selected,originalContainers};
+ await writeFile(path.join(lock,'owner.json'),JSON.stringify(recovery)+'\n',{mode:0o600});
  invoke(root,'scripts/release.mjs',['verify','--bundle',bundle]);
  execFileSync(process.platform==='win32'?(process.env.ComSpec??'cmd.exe'):'sh',process.platform==='win32'?['/d','/s','/c','npm ci && npm run build']:['-c','npm ci && npm run build'],{cwd:toolkit,env,stdio:'inherit',timeout:1200000});report.checks.push('Copied candidate toolkit npm ci and full build without developer checkout dependencies');
  // Stop every selected container by exact captured IDs, including module-host managed containers outside Compose.
- docker(['stop','--time','60',...originalContainers.map(c=>c.id)]);assert.equal(ownedRunning(selectedManifest).length,0);operatorStopped=true;report.stoppedOperatorContainers=originalContainers.length;
+ await stopSelectedWithRecovery({recovery,verifySingleStack:()=>invoke(root,'scripts/verify-single-stack.mjs'),persistRecovery:proof=>writeFile(path.join(lock,'owner.json'),JSON.stringify(proof)+'\n',{mode:0o600}),stopSelected:()=>docker(['stop','--time','60',...originalContainers.map(c=>c.id)])});assert.equal(ownedRunning(selectedManifest).length,0);operatorStopped=true;report.stoppedOperatorContainers=originalContainers.length;
  run('scripts/release.mjs',['install','--bundle',bundle,'--directory',target,'--project',project,'--port-offset','30000','--trust-bundled-modules','--simulators']);temporaryIdentity=JSON.parse(await readFile(path.join(target,'manifest.json'),'utf8'));run('scripts/configure-network-pool.mjs',[target,prefix]);run('scripts/release.mjs',['start','--directory',target]);
  run('scripts/smoke.mjs',[target]);run('scripts/verify-isolation.mjs',[target]);report.checks.push('Actual digest-pinned release15/schema19 initialization, repeated provisioning, database isolation and core outage/restart durability');
  run('scripts/verify-phase2.mjs',[target]);run('scripts/release.mjs',['start','--directory',target]);run('scripts/smoke.mjs',[target]);run('scripts/seed-phase4.mjs',[target]);run('scripts/capture-phase4-baseline.mjs',[target]);run('scripts/verify-phase4.mjs',[target]);report.checks.push('Genuine clean TLS accounts/enrollment and three independent Workers, real legacy module seeding and durable synchronization');

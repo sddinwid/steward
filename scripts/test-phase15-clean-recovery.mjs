@@ -1,0 +1,9 @@
+import assert from 'node:assert/strict';
+import {stopSelectedWithRecovery} from './phase15-clean-recovery.mjs';
+const recovery={selectedDirectory:'original',operatorProject:'original-project',originalContainers:[{id:'original-id',image:'sha256:original',mounts:[{name:'original-volume',destination:'/data'}]}]};let passed=0;
+const test=async(name,run)=>{await run();passed++;console.log('PASS '+name);};
+await test('single-stack verification and persisted exact recovery proof finish before stop',async()=>{const order=[];let retained;await stopSelectedWithRecovery({recovery,verifySingleStack:async()=>order.push('verify'),persistRecovery:async p=>{retained=structuredClone(p);order.push('persist');},stopSelected:async()=>{assert.deepEqual(retained,recovery);order.push('stop');}});assert.deepEqual(order,['verify','persist','stop']);});
+await test('unexpected stack prevents any original stop',async()=>{let stopped=false;await assert.rejects(stopSelectedWithRecovery({recovery,verifySingleStack:async()=>{throw Error('unexpected stack');},persistRecovery:async()=>{},stopSelected:async()=>stopped=true}),/unexpected stack/);assert.equal(stopped,false);});
+await test('recovery persistence failure prevents stop',async()=>{let stopped=false;await assert.rejects(stopSelectedWithRecovery({recovery,verifySingleStack:async()=>{},persistRecovery:async()=>{throw Error('disk failure');},stopSelected:async()=>stopped=true}),/disk failure/);assert.equal(stopped,false);});
+await test('partial stop failure retains exact recovery manifest',async()=>{let retained;await assert.rejects(stopSelectedWithRecovery({recovery,verifySingleStack:async()=>{},persistRecovery:async p=>retained=structuredClone(p),stopSelected:async()=>{throw Error('partial stop');}}),/partial stop/);assert.deepEqual(retained,recovery);});
+console.log(JSON.stringify({passed,operatorMutations:false}));

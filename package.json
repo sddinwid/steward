@@ -111,7 +111,7 @@
     "verify:catalog:ollama": "node scripts/verify-phase15-catalog-ollama.mjs",
     "test:catalog:source": "node scripts/test-phase15-source-migrations.mjs",
     "test:connector:egress-upgrade": "node scripts/test-connector-egress-upgrade.mjs",
-    "test:phase15:runners": "node --test scripts/test-phase15-demo-plan.mjs scripts/test-phase15-runner-guards.mjs && node scripts/test-phase15-module-lifecycle.mjs && node scripts/test-release-image-import.mjs"
+    "test:phase15:runners": "node --test scripts/test-phase15-demo-plan.mjs scripts/test-phase15-runner-guards.mjs && node scripts/test-phase15-module-lifecycle.mjs && node scripts/test-release-image-import.mjs && node scripts/test-phase15-clean-recovery.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -7,13 +7,13 @@ import {parseArgs} from 'node:util';
 import {execFileSync} from 'node:child_process';
 import {randomUUID} from 'node:crypto';
 import {canonical,digest} from '../packages/module-sdk/dist/index.js';
-const {values}=parseArgs({options:{'execute-authorized':{type:'boolean',default:false}}});
+const {values}=parseArgs({options:{'execute-authorized':{type:'boolean',default:false},'retry-after-restored':{type:'boolean',default:false}}});
 const root=process.cwd(),selection=JSON.parse(await fs.readFile('.steward/operator/selection.json','utf8')),directory=path.resolve(selection.directory);
 if(!values['execute-authorized']){console.log(JSON.stringify({executed:false,directory,scenario:'Stop Master API/web/scientific only; restart original Worker3 API/Catalog; create one separate synthetic service/publication via signed UI; restore finally',requires:'--execute-authorized, exclusive acceptance window with no Qwen or other scenario runners'}));process.exit(0);}
 assert.equal(process.env.STEWARD_PHASE15_ROOT_READY,'1','Root must approve an exclusive outage window after backup');
 process.argv[2]=directory;process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(directory,'demo/presenter.json');
 const client=await import('./phase13-acceptance-client.mjs'),{businessBrowser}=await import('./business-browser-client.mjs');
-const C='steward.catalog.universal',W='worker-3',ledgerFile=path.join(directory,'demo/phase15-outage.json'),lock=ledgerFile+'.lock';
+const C='steward.catalog.universal',W='worker-3',priorLedgerFile=path.join(directory,'demo/phase15-outage.json'),ledgerFile=values['retry-after-restored']?path.join(directory,'demo/phase15-outage-retry.json'):priorLedgerFile,lock=priorLedgerFile+'.lock';
 await fs.mkdir(path.dirname(ledgerFile),{recursive:true,mode:0o700});await fs.mkdir(lock);
 const report={startedAt:new Date().toISOString(),scope:'Actual original selected operator, separate explicit synthetic service only; no external calls or financial mutations',checks:[],actions:[],browserErrors:[],cleanupErrors:[]};
 let browser,restoreRequired=false,primaryError,state;
@@ -39,10 +39,18 @@ async function protectedSnapshot(){
  }
  return out;
 }
-const pending=recordId=>scalar(W,'steward',`SELECT coalesce(json_agg(t ORDER BY event_id),'[]') FROM (SELECT event_id,md5(envelope::text) AS digest FROM sync_outbox WHERE acknowledged_at IS NULL AND envelope->>'moduleId'='${C}' AND envelope->>'streamId'='catalog_publications_v1' AND envelope->>'recordId'='${recordId}')t`);
+// Module-host relays this authoritative durable queue directly; core does not copy it.
+const pending=recordId=>scalar(W,moduleDb(C),`SELECT coalesce(json_agg(t ORDER BY event_id),'[]') FROM (SELECT event_id,md5(envelope::text) AS digest FROM sync_outbox WHERE acknowledged_at IS NULL AND envelope->>'moduleId'='${C}' AND envelope->>'streamId'='catalog_publications_v1' AND envelope->>'recordId'='${recordId}')t`);
 try{
  assert.equal(client.deployment.project,selection.project);const identities=client.deployment.instances.map(({key,installationId})=>({key,installationId}));
  state=existsSync(ledgerFile)?JSON.parse(await fs.readFile(ledgerFile,'utf8')):{version:1,identities,code:'P15I-OUTAGE-'+randomUUID().slice(0,8).toUpperCase(),publicationUntil:new Date(Date.now()+1800000).toISOString(),phase:'planned'};
+ if(values['retry-after-restored']){
+  const previous=JSON.parse(await fs.readFile(priorLedgerFile,'utf8'));assert.equal(canonical(previous.identities),canonical(identities));assert(previous.reference?.recordId&&/^[a-f0-9-]{36}$/i.test(previous.reference.recordId));assert(previous.phase!=='completed','Do not duplicate a completed acceptance');
+  const proof=scalar(W,moduleDb(C),`SELECT json_build_object('acknowledged',count(*) FILTER(WHERE acknowledged_at IS NOT NULL),'pending',count(*) FILTER(WHERE acknowledged_at IS NULL)) FROM sync_outbox WHERE envelope->>'streamId'='catalog_publications_v1' AND envelope->>'recordId'='${previous.reference.recordId}'`);assert(proof.acknowledged>0&&proof.pending===0,'Previous exact publication must already be acknowledged after restoration');
+  assert.equal(canonical(await protectedSnapshot()),canonical(previous.protectedBefore),'Original protected acceptance state changed');
+  const audit={ledger:path.relative(directory,priorLedgerFile),reference:previous.reference,originalLedgerDigest:digest(await fs.readFile(priorLedgerFile)),failedReportDigest:digest(await fs.readFile('artifacts/phase15-outage.json')),reason:'Explicit reviewed retry: prior verifier queried core rather than module-owned outbox; prior publication acknowledged after restoration. Create a separate new synthetic observation, never rewrite or unacknowledge the original.',proof};
+  if(state.priorAttempt)assert.equal(canonical(state.priorAttempt),canonical(audit),'Original prior attempt evidence changed');else state.priorAttempt=audit;
+ }
  assert.equal(state.version,1);assert.equal(canonical(state.identities),canonical(identities));await persist();
  if(state.restoreServices&&state.phase!=='completed'){
   for(const [service,id]of Object.entries(state.restoreServices))assert.equal(container(service),id,'Original stopped service changed; reconcile before retry');
@@ -68,7 +76,7 @@ try{
   if(publication.status==='draft'){state.phase='publication-publish-intent';await persist();await browser.action(W,C,'overview',publication,offering.name,'publishAnalytical');}
   publication=(await rows('/analytical-overview')).find(r=>r.id===publication.id);assert.equal(publication.status,'published');assert.equal(publication.projection.purpose,'simulation');
   const p=publication.projection;state.publicationId=publication.id;state.reference={entityId:p.entityId,installationId:p.installationId,moduleId:p.moduleId,streamId:'catalog_publications_v1',recordId:p.id,revision:p.revision};state.publicationDigest=digest(canonical(p));await persist();
-  const queued=await client.waitFor(async()=>{const q=pending(p.id);return q.length?q:null;},'actual pending durable publication while Master unavailable');state.pending=queued;state.phase='publication-pending';await persist();report.checks.push('Ordinary signed UI created one separate synthetic service and human reviewed simulation publication; actual Worker core outbox is pending');
+  const queued=await client.waitFor(async()=>{const q=pending(p.id);return q.length?q:null;},'actual pending durable module publication while Master unavailable');state.pending=queued;state.phase='publication-pending';await persist();report.checks.push('Ordinary signed UI created one separate synthetic service and human reviewed simulation publication; actual Catalog module durable outbox is pending and broker-relayed');
   const catalogContainer=docker(['ps','-q','--filter','label=steward.installation='+p.installationId,'--filter','label=steward.module='+C]);assert(catalogContainer&&!catalogContainer.includes('\n'),'Exactly one original Catalog container required');
   docker(['restart',container('worker-3-api')]);docker(['restart',catalogContainer]);await workersReady();
   const afterOffering=(await rows('/offerings')).find(r=>r.id===offering.id),afterPublication=(await rows('/analytical-overview')).find(r=>r.id===publication.id);assert.equal(canonical(afterOffering),canonical(offering));assert.equal(digest(canonical(afterPublication.projection)),state.publicationDigest);assert.equal(canonical(pending(p.id)),canonical(queued),'Durable original queue envelopes changed across restart');
@@ -82,6 +90,6 @@ try{
   if(!primaryError&&!report.cleanupErrors.length&&state?.reference){const evidence=await client.waitFor(async()=>{try{return(await client.api('master','/api/v15/catalog-intelligence/evidence','POST',{reference:state.reference})).value;}catch{return null;}},'actual Master full-six-namespace publication synchronization',180000);assert.equal(evidence.publication.projection.purpose,'simulation');assert.equal(digest(canonical(evidence.publication.projection)),state.publicationDigest);assert.equal(canonical(evidence.publication.reference),canonical(state.reference));state.phase='completed';state.completedAt=new Date().toISOString();await persist();report.reference=state.reference;report.checks.push('Master resolved the exact entity+Worker+module+stream+record+revision publication after recovery');}
  }catch(e){primaryError??=e;}
  report.completedAt=new Date().toISOString();report.passed=!primaryError&&!report.cleanupErrors.length;report.error=primaryError?.message??null;
- await fs.mkdir('artifacts',{recursive:true});await fs.writeFile('artifacts/phase15-outage.json',JSON.stringify(report,null,2)+'\n');await fs.rmdir(lock);
+ await fs.mkdir('artifacts',{recursive:true});if(state?.priorAttempt)report.priorAttempt=state.priorAttempt;const reportName=values['retry-after-restored']?'phase15-outage-retry':'phase15-outage';await fs.writeFile('artifacts/'+reportName+'-'+report.startedAt.replaceAll(':','-')+'.json',JSON.stringify(report,null,2)+'\n');await fs.writeFile('artifacts/'+reportName+'.json',JSON.stringify(report,null,2)+'\n');await fs.rmdir(lock);
 }
 if(primaryError)throw primaryError;assert.equal(report.cleanupErrors.length,0,'Outage cleanup failed; inspect private deployment before further work');assert(report.passed);console.log('PASS selected-stack outage/restart/durable synchronization acceptance; no financial or external production mutation.');
