@@ -17,7 +17,7 @@ test('local event capture requires a signed declared stream and versioned provid
  validateManifest(current);
  assert.throws(()=>validateManifest({...current,minimumPlatformVersion:'0.15.0'}));
  assert.throws(()=>validateManifest({...current,smart:{...current.smart,provides:[{...current.smart.provides[0]!,events:[{name:'stock.changed',streamId:'undeclared_private_stream',schema:input}]}]}}));
- assert.throws(()=>validateManifest({...current,smart:{...current.smart,consumes:[{...requirement,events:[{name:'stock.changed',schema:input,streamId:stream}]}]}} as ModulePackageManifest));
+ assert.throws(()=>validateManifest({...current,smart:{...current.smart,consumes:[{...requirement,events:[{name:'stock.changed',schema:input,streamId:stream}]}]}} as unknown as ModulePackageManifest));
 });
 test('signed independent consumer gates are versioned, configured and cannot widen legacy disable controls',()=>{
  const base=JSON.parse(readFileSync(new URL('../../../../modules/sales/manifest.json',import.meta.url),'utf8')) as ModulePackageManifest;
