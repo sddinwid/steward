@@ -10,7 +10,7 @@ export interface GraphExecutionState {
   observations:Record<string,WorkflowObservation>;
 }
 type Execution={execution_id:string;actor_id:string;created_at:Date;inputs:unknown;graph_state:GraphExecutionState|null};
-type Context={entityId:string;installationId:string;moduleInstallationId:string;packageDigest:string};
+type Context={entityId:string;installationId:string;moduleInstallationId:string;packageDigest:string;triggerObservation?:Pick<WorkflowObservation,'observedAt'|'source'>};
 const fail=(code:string):never=>{throw Error(code);};
 export async function persistGraphState(db:pg.PoolClient,id:string,state:GraphExecutionState){
   if(Buffer.byteLength(JSON.stringify(state))>262144)fail('WORKFLOW_STATE_SIZE_LIMIT');
@@ -22,13 +22,14 @@ export async function prepareGraphStep(db:pg.PoolClient,e:Execution,publication:
   const now=new Date((await db.query('SELECT clock_timestamp() AS now')).rows[0].now).getTime(),started=new Date(e.created_at).getTime();
   if(!Number.isFinite(started)||started>now||now-started>=publication.graph.limits.elapsedMs)fail('WORKFLOW_TIME_BUDGET');
   const state:GraphExecutionState=e.graph_state??{progress:{},enteredAt:{},decisions:{},observations:{}};
+  if(publication.trigger.kind==='event'&&!scope.triggerObservation)fail('WORKFLOW_EVENT_ADMISSION_REQUIRED');
   if(!e.graph_state){
     validateCapabilityValue(e.inputs,publication.trigger.input);
     for(const [field,policy] of Object.entries(publication.fields)){
       if(!field.startsWith('trigger.'))continue;
       const value=field.split('.').slice(1).reduce<any>((v,key)=>v?.[key],e.inputs);
       if(value===undefined)continue;
-      const observation:WorkflowObservation={value,observedAt:started,source:{entityId:scope.entityId,installationId:scope.installationId,moduleId:publication.consumerId,moduleInstallationId:scope.moduleInstallationId,packageDigest:scope.packageDigest,streamId:'workflow-triggers',recordId:e.execution_id,revision:1}};
+      const observation:WorkflowObservation={value,...(scope.triggerObservation??{observedAt:started,source:{entityId:scope.entityId,installationId:scope.installationId,moduleId:publication.consumerId,moduleInstallationId:scope.moduleInstallationId,packageDigest:scope.packageDigest,streamId:'workflow-triggers',recordId:e.execution_id,revision:1}})};
       evaluateWorkflowExpression({field},{[field]:policy},{[field]:observation},{entityId:scope.entityId,now});state.observations[field]=observation;
     }
   }

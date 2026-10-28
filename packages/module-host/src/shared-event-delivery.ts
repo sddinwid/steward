@@ -19,7 +19,7 @@ export async function verifyEventSubscription(db:Db,scope:EventDeliveryScope,sub
  requireValue(source?.state==='active'&&consumer?.state==='active','EVENT_MODULE_UNAVAILABLE');
  requireValue(source.operation_id===binding.provider_installation_id&&digest(canonical(source.descriptor))===binding.package_digest
   &&consumer.operation_id===s.consumer_installation_id&&digest(canonical(consumer.descriptor))===s.consumer_package_digest,'EVENT_PACKAGE_CHANGED');
- const provider=verifyPackage(source.descriptor,scope.trust).manifest,receiver=verifyPackage(consumer.descriptor,scope.trust).manifest;
+ let provider,receiver;try{provider=verifyPackage(source.descriptor,scope.trust).manifest;receiver=verifyPackage(consumer.descriptor,scope.trust).manifest;}catch{throw Error('EVENT_PACKAGE_TRUST_REVOKED');}
  requireValue(!provider.programServices&&!provider.economicServices&&!receiver.programServices&&!receiver.economicServices,'EVENT_SCOPED_DISCLOSURE_REQUIRED');
  const requirement=receiver.smart?.consumes.find(r=>r.capabilityId===binding.capability_id),capability=provider.smart?.provides.find(c=>c.capabilityId===binding.capability_id);
  requireValue(requirement&&capability&&canonical(requirement)===canonical(binding.requirement),'EVENT_REQUIREMENT_CHANGED');
@@ -46,7 +46,18 @@ export async function persistSharedEventDeliveries(pool:pg.Pool,scope:EventDeliv
     &&event.digest===digest(canonical(e)),'EVENT_SCOPE_INVALID');
    const subscriptions=(await db.query("SELECT s.* FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) WHERE s.state='active' AND b.state='approved' AND w.state='active' AND w.accepting_new AND b.provider_id=$1 AND s.stream_id=$2 AND s.created_at<=$3 ORDER BY s.subscription_id FOR UPDATE OF s",[e.moduleId,e.streamId,event.sourceCreatedAt])).rows;
    for(const s of subscriptions){
-    const {source,binding}=await verifyEventSubscription(db,scope,s);
+    let verified;
+    try{verified=await verifyEventSubscription(db,scope,s);}catch(error){
+     const code=error instanceof Error?error.message:'';
+     const revoked=['EVENT_APPROVER_REVOKED','EVENT_PACKAGE_CHANGED','EVENT_BINDING_CHANGED','EVENT_PACKAGE_TRUST_REVOKED','EVENT_REQUIREMENT_CHANGED','EVENT_SCHEMA_NOT_AUTHORIZED','EVENT_SCOPED_DISCLOSURE_REQUIRED','EVENT_PROVIDER_INCOMPATIBLE','EVENT_WORKFLOW_SOURCE_CHANGED','EVENT_CONSUMER_CONFIGURATION_REQUIRED','EVENT_MODULE_UNAVAILABLE'];
+     if(code==='EVENT_WORKFLOW_UNAVAILABLE'){await db.query("INSERT INTO smart_event_history(subscription_id,event_id,action,detail) VALUES($1,$2,'capture_not_admitted',$3)",[s.subscription_id,e.eventId,{code}]);continue;}
+     if(!revoked.includes(code))throw error;
+     // No event payload is retained for a subscriber that has lost authority.
+     // Its original approval and prior receipts remain; explicit recovery is required.
+     await db.query("UPDATE smart_event_subscriptions SET state='suspended',capture_error=$2,capture_checked_at=clock_timestamp(),updated_at=clock_timestamp() WHERE subscription_id=$1",[s.subscription_id,code]);
+     await db.query("INSERT INTO smart_event_history(subscription_id,event_id,action,detail) VALUES($1,$2,'subscription_suspended',$3)",[s.subscription_id,e.eventId,{code}]);continue;
+    }
+    const {source,binding}=verified;
     requireValue(source.operation_id===event.sourceModuleInstallationId&&binding.package_digest===event.sourcePackageDigest,'EVENT_SOURCE_CHANGED');
     validateCapabilityValue(e.payload,s.event_schema);
     const previous=(await db.query('SELECT * FROM smart_event_deliveries WHERE subscription_id=$1 AND (event_id=$2 OR (record_id=$3 AND record_revision=$4))',[s.subscription_id,e.eventId,e.recordId,e.recordRevision])).rows[0];

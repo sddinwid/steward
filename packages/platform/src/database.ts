@@ -1,4 +1,4 @@
-import {sharedEventMigration} from './shared-event-migration.js';
+import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration} from './shared-event-migration.js';
 import {workflowMigration} from './workflow-migration.js';
 import {scientificMigration} from './scientific.js';
 import {catalogIntelligenceMigration} from './catalog-intelligence-migration.js';
@@ -29,7 +29,7 @@ const migrations = [{ version: 1, sql: `
     role text NOT NULL CHECK (role IN ('master', 'worker')),
     created_at timestamptz NOT NULL DEFAULT now()
   );
-` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }, { version:8,sql:commerceMigration }, { version:9,sql:commerceGovernanceMigration }, {version:10,sql:workspaceMigration}, {version:11,sql:commerceMonitorMigration},{version:12,sql:simulationMigration},{version:13,sql:simulationIntelligenceMigration},{version:14,sql:simulationFindingEvidenceMigration},{version:15,sql:scientificMigration},{version:16,sql:peerRegistryMigration+peerGovernanceMigration},{version:17,sql:missionMigration},{version:18,sql:peerPurposeMigration},{version:19,sql:catalogIntelligenceMigration},{version:20,sql:workflowMigration},{version:21,sql:sharedEventMigration}];
+` }, { version: 2, sql: securityMigration }, { version: 3, sql: moduleMigration }, { version: 4, sql: syncMigration }, { version: 5, sql: syncReliabilityMigration }, { version: 6, sql: analystMigration }, { version: 7, sql: smartMigration }, { version:8,sql:commerceMigration }, { version:9,sql:commerceGovernanceMigration }, {version:10,sql:workspaceMigration}, {version:11,sql:commerceMonitorMigration},{version:12,sql:simulationMigration},{version:13,sql:simulationIntelligenceMigration},{version:14,sql:simulationFindingEvidenceMigration},{version:15,sql:scientificMigration},{version:16,sql:peerRegistryMigration+peerGovernanceMigration},{version:17,sql:missionMigration},{version:18,sql:peerPurposeMigration},{version:19,sql:catalogIntelligenceMigration},{version:20,sql:workflowMigration},{version:21,sql:sharedEventMigration},{version:22,sql:sharedEventExecutionMigration},{version:23,sql:sharedEventCaptureHealthMigration}];
 export interface PlatformDatabase {
   check(): Promise<void>;
   close(): Promise<void>;

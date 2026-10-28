@@ -200,3 +200,24 @@ use an approved current binding; previously captured work may use its original
 explicitly retained binding after substitution. The original provider installation
 and package must still match, and a disabled binding denies continuation. Stopping
 new intake for an old workflow version does not erase its accepted receipts.
+
+### Governed event execution
+
+Reviewed event subscriptions now enter through authenticated Worker governance and
+the signed host broker. The host's existing loop polls up to three source modules
+and attempts up to three deliveries per iteration. Successful capture is delayed
+one second before another poll; failed capture is delayed five seconds, with its
+static error code retained separately from delivery retry state. Captures continue
+without Master acknowledgment. An unauthorized subscriber is suspended and receives
+no new payload; authorized subscribers are not blocked by that revocation.
+
+Delivery atomically links the original subscriber/event to a unique existing-SSMA
+execution, pins original provider obligations and records lineage. Effects occur
+only in the coordinator, which revalidates the receipt and current authority on
+every step. Observations use source timestamps and revisions rather than the time
+a retry happened. Event snapshots and selected scalar observations are read-only
+evidence; authoritative business records remain in their source module database.
+
+This is verified with real isolated databases and signed synthetic providers.
+Actual installed business scenarios, recovery controls and release acceptance
+remain outstanding.

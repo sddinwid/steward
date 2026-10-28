@@ -60,3 +60,27 @@ CREATE FUNCTION smart_event_history_immutable() RETURNS trigger LANGUAGE plpgsql
 CREATE TRIGGER smart_event_history_no_change BEFORE UPDATE OR DELETE ON smart_event_history
  FOR EACH ROW EXECUTE FUNCTION smart_event_history_immutable();
 `;
+
+// Migration 22. Receipt lineage is additive; original migration 21 is unchanged.
+export const sharedEventExecutionMigration=`
+ALTER TABLE smart_executions ADD COLUMN event_subscription_id uuid;
+ALTER TABLE smart_executions ADD COLUMN source_event_id uuid;
+ALTER TABLE smart_executions ADD CONSTRAINT smart_execution_event_pair CHECK
+ ((event_subscription_id IS NULL)=(source_event_id IS NULL));
+ALTER TABLE smart_executions ADD CONSTRAINT smart_execution_event_receipt
+ FOREIGN KEY(event_subscription_id,source_event_id)
+ REFERENCES smart_event_deliveries(subscription_id,event_id);
+CREATE UNIQUE INDEX smart_event_execution_once ON smart_executions(event_subscription_id,source_event_id)
+ WHERE event_subscription_id IS NOT NULL;
+CREATE UNIQUE INDEX smart_event_delivery_execution ON smart_event_deliveries(execution_id)
+ WHERE execution_id IS NOT NULL;
+`;
+
+// Migration 23: observable capture health and bounded polling, without modifying
+// any original subscriber approval, source envelope or Master acknowledgment.
+export const sharedEventCaptureHealthMigration=`
+ALTER TABLE smart_event_subscriptions ADD COLUMN capture_error text;
+ALTER TABLE smart_event_subscriptions ADD COLUMN capture_checked_at timestamptz;
+ALTER TABLE smart_event_subscriptions ADD COLUMN capture_next_at timestamptz NOT NULL DEFAULT clock_timestamp();
+CREATE INDEX smart_event_subscription_due ON smart_event_subscriptions(capture_next_at) WHERE state='active';
+`;

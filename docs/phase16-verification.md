@@ -463,3 +463,45 @@ permission and role boundaries explicitly. No validator or permission was relaxe
 
 No operator upgrade, live connector call, installed Automation acceptance, final
 full regression, release tag or Phase 16 GitHub push is claimed.
+
+## Shared-event polling and coordinator integration checkpoint
+
+The existing Worker host loop now polls bounded signed source outboxes, persists
+governed subscriber receipts, and queues the existing graph coordinator. There
+is no Master dependency or new event listener. Migration 22 appends constrained
+execution/receipt lineage and uniqueness; migration 23 appends capture-health
+metadata and bounded scheduling. Earlier SQL strings are unchanged. The source
+outbox receives only additive local-capture metadata when a module declares signed
+event streams; its Master acknowledgment stays independent.
+
+Every event execution revalidates the original subscription, exact publication and
+review, current authority, original source installation/package, receipt digest,
+actor and input. Field observations retain the original source module, stream,
+record revision and observation time. Lifecycle locks cover source verification
+and action dispatch. Revoked subscribers are suspended without receiving payloads;
+other authorized subscribers continue. Capture errors and delivery failures remain
+separate observable states. Accepted earlier receipts may continue through an
+explicitly retained binding; no reservation or effect is transferred.
+
+Actual isolated end-to-end verification: **15 checks passed**
+(`phase16-event-poll-recovery-tests.log`). The new grouped scenario uses a real
+source table and SQL outbox trigger, two independently persisted subscriptions,
+actual module publication/review APIs, the host polling function, durable enqueue
+and the real coordinator. Both executions complete with exact source provenance.
+Source availability failure preserves the pending outbox; capture recovery clears
+its error while publication outage remains a distinct retry. Payload tampering
+suspends one execution without affecting its independent subscriber. Master ACK
+remains unset. Sources and lifecycle/runtime transports are explicitly synthetic
+fixtures; no installed-container outage or business-module acceptance is claimed.
+
+Subscriber isolation: **15 passed** (`phase16-event-isolation-delivery-tests.log`).
+Targeted regressions: platform **98**, legacy SSMA **11**, Catalog Intelligence
+**19**, graph runtime **19**, authenticated governance **14**, all passed
+(`phase16-event-poll-{platform,legacy,catalog}-tests.log` and
+`phase16-event-poll-{runtime,governance}-regression.log`). Host/platform builds pass.
+The in-place migration fixture now verifies version 23 while retaining existing
+accounts, records and identities. This does not change the operator's schema.
+
+Event subscription recovery controls/UI, genuine installed business providers and
+all final Phase 16 release gates remain pending. No selected operator deployment,
+credentials, module versions or private connector configuration changed.

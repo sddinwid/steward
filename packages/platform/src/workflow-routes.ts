@@ -74,7 +74,7 @@ export async function workflowRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticat
  });
  app.get('/api/v16/workflows/event-subscriptions',async req=>{
   await admin(req);return{
-   subscriptions:(await pool.query('SELECT s.subscription_id,s.workflow_id,s.binding_id,s.binding_revision,s.source_module_installation_id,s.source_package_digest,s.event_name,s.stream_id,s.state,s.created_at,b.provider_id,b.capability_id,w.accepting_new FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) ORDER BY s.created_at DESC LIMIT 100')).rows,
+   subscriptions:(await pool.query('SELECT s.subscription_id,s.workflow_id,s.binding_id,s.binding_revision,s.source_module_installation_id,s.source_package_digest,s.event_name,s.stream_id,s.state,s.capture_error,s.capture_checked_at,s.created_at,b.provider_id,b.capability_id,w.accepting_new FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) JOIN smart_workflows w USING(workflow_id) ORDER BY s.created_at DESC LIMIT 100')).rows,
    deliveries:(await pool.query('SELECT subscription_id,event_id,record_id,record_revision,state,attempts,execution_id,error_code,created_at,updated_at FROM smart_event_deliveries ORDER BY created_at DESC LIMIT 100')).rows,
    counts:(await pool.query('SELECT state,count(*)::integer count FROM smart_event_deliveries GROUP BY state ORDER BY state')).rows};
  });

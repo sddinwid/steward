@@ -1,3 +1,5 @@
+import {pollSharedEventRuntime} from './shared-event-runtime.js';
+import {localEventCaptureSql} from './shared-event-capture.js';
 import {registerWorkflowSubscription} from './workflow-event-admission.js';
 import {verifyWorkflowPublication} from './workflow-authority.js';
 import {assertInstallationContinuity,assertRuntimeInstallation} from './installation-continuity.js';
@@ -178,6 +180,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
       await client.query('BEGIN');
       try {
         await client.query(captureSql(m, { installationId: config.installationId, role: 'worker', entity: { entityId: enrollment.entity_id, displayName: enrollment.entity_name } }, enrollment.certificate.payload.issuer));
+        if(m.smart?.provides.some(c=>c.events.some(e=>e.streamId)))await client.query(localEventCaptureSql);
         await client.query('COMMIT');
       } catch (e) { await client.query('ROLLBACK'); throw e; }
     });
@@ -416,6 +419,19 @@ async function lockWorkflowModules(ids:string[]):Promise<()=>Promise<void>>{
 let smartBusy=false;
 const smartTimer=setInterval(()=>{if(smartBusy)return;smartBusy=true;void(async()=>{
   const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));
+  // Shared outbox failures cannot prevent legacy coordinator progress. Database
+  // readiness and durable subscriber error/retry state remain independently visible.
+  try{
+    const enrolled=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];
+    if(enrolled)await pollSharedEventRuntime(metadataPool,{installationId:config.installationId,entityId:enrolled.entity_id,trust},callModule,async(id,configuration)=>{
+      const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
+      return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);
+    },lockWorkflowModules,async installed=>{
+      const id=installed.module_id,password=(await readFile(`${stateRoot}/${slug(id)}/db-password`,'utf8')).trim();
+      const source=new pg.Pool({host:config.databaseHost,user:slug(id),database:slug(id),password,max:1,connectionTimeoutMillis:3000,statement_timeout:10000});source.on('error',()=>{});
+      return{pool:source,close:()=>source.end()};
+    });
+  }catch{/* Database unavailability retains source and subscriber work for recovery. */}
   await executeSmartStep(metadataPool,config.installationId,trust,callModule,async(id,configuration)=>{
     const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
     return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);

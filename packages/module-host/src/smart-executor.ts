@@ -1,3 +1,4 @@
+import {verifyWorkflowEventExecution} from './workflow-event-execution.js';
 import {verifyWorkflowPublication,type VerifiedWorkflowPublication} from './workflow-authority.js';
 import {prepareGraphStep,persistGraphState} from './smart-graph-runtime.js';
 import {graphCommandId,graphCallTimeout} from './smart-graph.js';
@@ -31,11 +32,16 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         if(pin?.moduleId!==w.consumer_id)throw Error('WORKFLOW_PUBLICATION_SCOPE_MISMATCH');
         const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
         if(!local)throw Error('ENTITY_SCOPE_MISMATCH');
+        if(e.event_subscription_id){
+          if(!lockModules)throw Error('WORKFLOW_LIFECYCLE_GUARD_REQUIRED');
+          const eventSource=(await db.query('SELECT b.provider_id FROM smart_event_subscriptions s JOIN smart_bindings b USING(binding_id) WHERE s.subscription_id=$1 AND s.workflow_id=$2',[e.event_subscription_id,w.workflow_id])).rows[0];
+          if(!eventSource)throw Error('WORKFLOW_EVENT_ADMISSION_REQUIRED');
+          unlock=await lockModules([w.consumer_id,eventSource.provider_id]);
+        }
         publication=await verifyWorkflowPublication(db,trust,call,runtimeMatches,{pin,installationId,entityId:local.entity_id,actorId:e.actor_id});
-        // Event publication alone is not admission. Until a governed receipt is
-        // attached by the shared delivery path, refuse all event execution.
-        if(publication.trigger.kind==='event')throw Error('WORKFLOW_EVENT_ADMISSION_REQUIRED');
-        graphFrame=await prepareGraphStep(db,e,publication,{entityId:local.entity_id,installationId,moduleInstallationId:pin.moduleInstallationId,packageDigest:pin.packageDigest});
+        if(e.event_subscription_id&&publication.trigger.kind!=='event')throw Error('WORKFLOW_EVENT_RECEIPT_CHANGED');
+        const triggerObservation=publication.trigger.kind==='event'?await verifyWorkflowEventExecution(db,{installationId,entityId:local.entity_id,trust},runtimeMatches,e,w,publication):undefined;
+        graphFrame=await prepareGraphStep(db,e,publication,{entityId:local.entity_id,installationId,moduleInstallationId:pin.moduleInstallationId,packageDigest:pin.packageDigest,...(triggerObservation?{triggerObservation}:{})});
         if(!graphFrame){await db.query('COMMIT');return;}
         e.step=graphFrame.index;step=graphFrame.node;
         await db.query('UPDATE smart_executions SET step=$1 WHERE execution_id=$2',[e.step,e.execution_id]);
@@ -47,7 +53,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
       if(!local||binding.entity_id!==local.entity_id)throw new Error('ENTITY_SCOPE_MISMATCH');
       if(!(await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[binding.actor_id])).rowCount)throw new Error('APPROVAL_REVOKED');
-      if(graphFrame){if(!lockModules)throw Error('WORKFLOW_LIFECYCLE_GUARD_REQUIRED');unlock=await lockModules([w.consumer_id,binding.provider_id]);}
+      if(graphFrame){if(!lockModules)throw Error('WORKFLOW_LIFECYCLE_GUARD_REQUIRED');const actionUnlock=await lockModules([w.consumer_id,binding.provider_id]),earlierUnlock=unlock;unlock=async()=>{try{await actionUnlock();}finally{await earlierUnlock?.();}};}
       const rows=(await db.query('SELECT * FROM module_installations WHERE module_id=ANY($1::text[])',[ [w.consumer_id,binding.provider_id] ])).rows;
       const source=rows.find(r=>r.module_id===w.consumer_id),target=rows.find(r=>r.module_id===binding.provider_id);
       if(!source||!target||source.state!=='active'||target.state!=='active')throw new Error('PROVIDER_UNAVAILABLE');
@@ -123,7 +129,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
     }catch(error){
       const raw=(error as Error).message,code=/^[A-Z_]{1,80}$/.test(raw)?raw:'PROVIDER_UNAVAILABLE';
       // Durable inbox receipts make transport retries safe, with a strict attempt budget.
-      if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE'].includes(code)&&(!issued||retrySafe)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
+      if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE','EVENT_SOURCE_UNAVAILABLE'].includes(code)&&(!issued||retrySafe)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
       else await suspend(code==='PROVIDER_UNAVAILABLE'&&issued&&!retrySafe?'UNCERTAIN_OUTCOME_RECONCILE':code);
     }
     await db.query('COMMIT');

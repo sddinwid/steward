@@ -23,7 +23,7 @@ import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
 import {commerceMigration,commerceGovernanceMigration} from '../packages/platform/dist/commerce-migration.js';
 import {workflowMigration} from '../packages/platform/dist/workflow-migration.js';
-import {sharedEventMigration} from '../packages/platform/dist/shared-event-migration.js';
+import {sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration} from '../packages/platform/dist/shared-event-migration.js';
 import {persistSharedEventDeliveries,eventExecutionId,deliverSharedEvent,replaySharedEvent,verifyEventSubscription} from '../packages/module-host/dist/shared-event-delivery.js';
 const consumer=structuredClone(manifest);consumer.moduleId='fixture.automation';consumer.name='Synthetic receipt consumer';delete consumer.replication;
 consumer.api=[{operationId:'read',method:'GET',path:'/workflows',permission:'fixture.automation.read'}];
@@ -48,7 +48,7 @@ try{
  admin=new pg.Pool({...connection,database:'postgres'});for(let i=0;;i++){try{await admin.query('SELECT 1');break;}catch(e){if(i===40)throw e;await delay(250);}}
  await admin.query('CREATE DATABASE source');await admin.query('CREATE DATABASE receipts');source=new pg.Pool({...connection,database:'source'});receipts=new pg.Pool({...connection,database:'receipts'});
  await source.query(outboxSql);await source.query(localEventCaptureSql);await source.query('CREATE TABLE module_identity(singleton boolean PRIMARY KEY,installation_id uuid,module_id text)');await source.query('INSERT INTO module_identity VALUES(true,$1,$2)',[installationId,manifest.moduleId]);
- for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration])await receipts.query(sql);
+ for(const sql of [securityMigration,moduleMigration,smartMigration,commerceMigration,commerceGovernanceMigration,workflowMigration,sharedEventMigration,sharedEventExecutionMigration,sharedEventCaptureHealthMigration])await receipts.query(sql);
  await receipts.query("INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,'isolated-event-admin','unusable-test-hash','local_admin')",[actor]);
  for(const [d,id] of [[descriptor,moduleInstallationId],[consumerDescriptor,consumerInstallation]])await receipts.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,'{}','active',$3)",[d.payload.manifest.moduleId,d,id]);
  await receipts.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,'inventory.observe',$3,$4,$5,$6,$7,$8,$9,'approved','Explicit synthetic fixture approval')",[binding,consumer.moduleId,manifest.moduleId,moduleInstallationId,digest(canonical(descriptor)),consumer.smart.consumes[0],manifest.smart.provides[0],actor,entityId]);
@@ -103,6 +103,12 @@ try{
   const e=await add();await capture();await Promise.all([deliver(),deliver()]);await deliver();
   const deliveries=(await receipts.query('SELECT * FROM smart_event_deliveries WHERE event_id=$1',[e.eventId])).rows;assert.equal(deliveries.length,2);assert(deliveries.every(d=>d.state==='delivered'));assert.equal(new Set(deliveries.map(d=>d.execution_id)).size,2);
   await receipts.query("UPDATE smart_event_subscriptions SET state='suspended' WHERE subscription_id=$1",[secondSubscription]);
+ });
+ await check('a revoked subscriber is suspended without payload disclosure or blocking an authorized subscriber',async()=>{
+  const revokedActor=randomUUID(),otherWorkflow=randomUUID(),otherSubscription=randomUUID();await receipts.query("INSERT INTO security_accounts(account_id,username,password_hash,role) VALUES($1,$2,'unusable-fixture-hash','local_admin')",[revokedActor,'fixture-'+revokedActor]);
+  await receipts.query("INSERT INTO smart_workflows(workflow_id,name,version,consumer_id,definition,state,actor_id,reason) SELECT $1,'revocation-fixture',version,consumer_id,definition,state,actor_id,reason FROM smart_workflows WHERE workflow_id=$2",[otherWorkflow,workflow]);
+  await receipts.query('INSERT INTO smart_event_subscriptions(subscription_id,workflow_id,binding_id,binding_revision,source_module_installation_id,source_package_digest,consumer_installation_id,consumer_package_digest,event_name,stream_id,event_schema,actor_id,state,reason) SELECT $1,$2,binding_id,binding_revision,source_module_installation_id,source_package_digest,consumer_installation_id,consumer_package_digest,event_name,stream_id,event_schema,$4,state,reason FROM smart_event_subscriptions WHERE subscription_id=$3',[otherSubscription,otherWorkflow,subscription,revokedActor]);
+  await receipts.query('UPDATE security_accounts SET enabled=false WHERE account_id=$1',[revokedActor]);const e=await add();assert.equal(await capture(),1);const denied=(await receipts.query('SELECT state,capture_error FROM smart_event_subscriptions WHERE subscription_id=$1',[otherSubscription])).rows[0];assert.equal(denied.state,'suspended');assert.equal(denied.capture_error,'EVENT_APPROVER_REVOKED');assert.equal((await receipts.query('SELECT 1 FROM smart_event_deliveries WHERE subscription_id=$1 AND event_id=$2',[otherSubscription,e.eventId])).rowCount,0);await deliver();assert.equal((await row(e.eventId)).state,'delivered');
  });
  await check('history is append-only and source replay cannot silently revive a suspended subscriber',async()=>{
   await assert.rejects(receipts.query("UPDATE smart_event_history SET action='erased'"),/append only/);await receipts.query("UPDATE smart_event_subscriptions SET state='suspended' WHERE subscription_id=$1",[subscription]);const e=await add();await capture();assert.equal(await row(e.eventId),undefined);assert.equal(await deliver(),false);
