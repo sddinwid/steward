@@ -880,3 +880,17 @@ Two fresh isolated runs each passed **44/44**
 (`phase16-pricing-overview-correction-first.log`,
 `phase16-pricing-overview-correction-second.log`). The original failure is retained.
 A full final rerun remains mandatory.
+
+
+### Primitive constant output fields
+
+Inspection found that a notification output's `{const: "internal"}` channel made
+scalar-field discovery reject the whole result, hiding otherwise usable status
+fields. The browser-safe SDK now derives scalar types from exact primitive
+constants, including null, for both discovery and input validation. Object,
+array and fractional constants remain unsupported; explicit declared types still
+control validation. SDK build and **61/61** tests passed, actual notification
+channel/status field extraction passed, and authoritative publication **8/8**
+passed (`phase16-constant-fields-build.log`, `phase16-constant-fields-tests.log`,
+`phase16-constant-notification-contract.log`, `phase16-constant-publication-tests.log`).
+No deployment or package authority changed.

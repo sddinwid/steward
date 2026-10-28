@@ -76,3 +76,10 @@ test('field selection derives only bounded declared scalar schemas',()=>{
     assert.throws(()=>workflowFieldsFromSchema('trigger',invalid,policy),/WORKFLOW_SCHEMA/);
   }
 });
+
+
+test('field discovery retains primitive constant outputs without inventing types for objects or decimals',()=>{
+ const result=workflowFieldsFromSchema('notice',{type:'object',additionalProperties:false,properties:{channel:{const:'internal'},revision:{const:1},private:{const:false},missing:{const:null}},required:['channel','revision','private','missing']},{sensitivity:'business',maxAgeMs:1000});
+ assert.equal(result['notice.channel']!.type,'string');assert.equal(result['notice.revision']!.type,'integer');assert.equal(result['notice.private']!.type,'boolean');assert.equal(result['notice.missing']!.type,'null');
+ for(const value of [{},[],1.25])assert.throws(()=>workflowFieldsFromSchema('invalid',{type:'object',additionalProperties:false,properties:{value:{const:value}},required:['value']},{sensitivity:'business',maxAgeMs:1000}),/SCHEMA_UNSUPPORTED/);
+});

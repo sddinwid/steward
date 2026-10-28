@@ -1,4 +1,4 @@
-import {evaluateWorkflowExpression,validateWorkflowExpression,type WorkflowExpression,type WorkflowFields,type WorkflowObservation} from './workflow-rules.js';
+import {workflowSchemaScalarType,evaluateWorkflowExpression,validateWorkflowExpression,type WorkflowExpression,type WorkflowFields,type WorkflowObservation} from './workflow-rules.js';
 
 /** Bounded assembly of provider inputs. Collection sizes are explicit; this does
  * not add loops, scripts, unrestricted record copying or a workflow data store. */
@@ -46,7 +46,7 @@ export function validateWorkflowInput(value:unknown,schema:Record<string,any>,fi
       for(const child of v.array)visit(child,s.items,depth+1);return;
     }
     const type=validateWorkflowExpression(v,fields);
-    const expectedType=s.type??(Object.hasOwn(s,'const')?(Number.isSafeInteger(s.const)?'integer':typeof s.const):undefined);
+    const expectedType=workflowSchemaScalarType(s);
     requireInput(type===expectedType,'WORKFLOW_INPUT_TYPE_MISMATCH');
     if(Object.hasOwn(v,'literal')){
       const literal=v.literal;

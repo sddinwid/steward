@@ -2,6 +2,11 @@
  * This module neither discovers providers nor grants execution authority. */
 export type WorkflowScalar = string | number | boolean | null;
 export type WorkflowValueType = 'string' | 'integer' | 'boolean' | 'null';
+/** Infer only a declared scalar type or an exact primitive constant. */
+export function workflowSchemaScalarType(schema:Record<string,unknown>):WorkflowValueType|undefined{
+ const inferred=schema.type??(Object.hasOwn(schema,'const')?(schema.const===null?'null':Number.isSafeInteger(schema.const)?'integer':typeof schema.const):undefined);
+ return ['string','integer','boolean','null'].includes(String(inferred))?inferred as WorkflowValueType:undefined;
+}
 export interface WorkflowField {
   type: WorkflowValueType;
   sensitivity: 'public' | 'business' | 'restricted';
@@ -27,8 +32,8 @@ export function workflowFieldsFromSchema(namespace: string, schema: unknown,
         walk(child, path + '.' + key, depth + 1);
       }
     } else {
-      requireRule(['string', 'integer', 'boolean', 'null'].includes(String(s.type)), 'WORKFLOW_SCHEMA_UNSUPPORTED');
-      result[path] = {type: s.type as WorkflowValueType, ...policy};
+      const type=workflowSchemaScalarType(s);requireRule(type!==undefined,'WORKFLOW_SCHEMA_UNSUPPORTED');
+      result[path] = {type:type!, ...policy};
       validateWorkflowExpression({field: path}, result);
     }
   }
