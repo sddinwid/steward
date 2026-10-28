@@ -305,3 +305,16 @@ Stored observations retain their first response timestamp; recovery does not ren
 freshness. Lifecycle locks are shared application locks, with exclusive lifecycle
 changes still excluded. This source checkpoint requires installed acceptance before
 being described as released.
+
+
+### Synthetic design preview
+
+The SSDS designer can preview a draft using explicitly entered synthetic scalar
+values, assumed provider outcomes and assumed human decisions. The browser-safe
+SDK shares the coordinator's pure planner and expression evaluator, but has no
+transport, persistence or authorization functions. A preview never creates an
+execution identity, business effect, review or finding. It is invalidated when
+its draft, assumptions or editor/discovery validity changes. Provider behavior,
+full runtime schema enforcement, current permissions, restart safety and actual
+timing still require installed acceptance. Reusable templates are unbound draft
+patterns, not published workflows or authority grants.

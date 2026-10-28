@@ -193,3 +193,6 @@ export function assertCompatible(manifest: ModulePackageManifest, platform: stri
     if (!installed.some(m => m.moduleId === dependency.moduleId && m.state === 'active' && atLeast(m.version, dependency.minimumVersion))) reject(`Required active dependency is missing: ${dependency.moduleId}`);
   }
 }
+
+export * from './workflow-plan.js';
+export * from './workflow-preview.js';

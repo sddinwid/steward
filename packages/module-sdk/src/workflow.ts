@@ -2,3 +2,6 @@
 export * from './workflow-rules.js';
 export * from './workflow-graph.js';
 export * from './workflow-values.js';
+
+export * from './workflow-plan.js';
+export * from './workflow-preview.js';

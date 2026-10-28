@@ -1,3 +1,5 @@
+import {WorkflowPreview} from './workflow-preview.js';
+import {WorkflowConditionBuilder} from './workflow-condition-builder.js';
 import {useId,useState} from 'react';
 import {inspectWorkflowGraph,type WorkflowGraph,type WorkflowNode,type WorkflowEdge,type WorkflowFields} from '@steward/module-sdk/workflow';
 
@@ -19,7 +21,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
 }){
   const instanceId=useId(),[selected,setSelected]=useState(''),[kind,setKind]=useState<WorkflowNode['kind']>('action');
   const [from,setFrom]=useState(''),[to,setTo]=useState(''),[port,setPort]=useState<WorkflowEdge['port']>('next');
-  const [error,setError]=useState('');
+  const [error,setError]=useState(''),[conditionRevision,setConditionRevision]=useState(0),[template,setTemplate]=useState('sequential');
   let decoded:unknown=value;
   try{if(typeof value==='string')decoded=value?JSON.parse(value):undefined;}catch{/* Preserve invalid supplied text; no silent replacement on save. */}
   const candidate=decoded as WorkflowGraph|undefined;
@@ -37,12 +39,24 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
       ...(kind==='wait'?{waitMs:1000}:{}),...(kind==='approval'?{approverPermission:approvalPermission,separateInitiator:true,expiresAfterMs:60000}:{})};
     change({...graph,nodes:[...graph.nodes,next]});setSelected(id);
   }
+  function applyTemplate(){
+    const g=initial(),action=(id:string,label:string):WorkflowNode=>({id,kind:'action',label,bindingId:'',operation:'',inputs:{}});
+    if(template==='parallel'){
+      g.limits.maxParallel=2;g.nodes=[g.nodes[0]!,{id:'fork',kind:'branch',label:'Independent branches'},action('first','First action'),action('second','Second action'),{id:'join',kind:'join',label:'Wait for both branches'},g.nodes[1]!];
+      g.edges=[{from:'start',to:'fork',port:'next'},{from:'fork',to:'first',port:'lane'},{from:'fork',to:'second',port:'lane'},{from:'first',to:'join',port:'next'},{from:'second',to:'join',port:'next'},{from:'join',to:'complete',port:'next'}];
+    }else if(template==='review'){
+      g.nodes=[g.nodes[0]!,{id:'review',kind:'approval',label:'Separate human review',approverPermission:approvalPermission,separateInitiator:true,expiresAfterMs:60000},action('first','Approved action'),g.nodes[1]!,{id:'rejected',kind:'completion',label:'Review rejected'},{id:'expired',kind:'completion',label:'Review expired'}];
+      g.edges=[{from:'start',to:'review',port:'next'},{from:'review',to:'first',port:'approved'},{from:'review',to:'rejected',port:'rejected'},{from:'review',to:'expired',port:'expired'},{from:'first',to:'complete',port:'next'}];
+    }else{g.nodes.splice(1,0,action('first','Configure action'));g.edges=[{from:'start',to:'first',port:'next'},{from:'first',to:'complete',port:'next'}];}
+    change(g);setSelected('first');
+  }
   const fieldId=instanceId.replaceAll(':','');
   if(!validShape&&value!==undefined&&value!==null&&value!=='')return <p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>;
   return <section className="module-object workflow-designer" aria-label="Workflow designer">
     <h3>Workflow designer</h3><p className="muted">Connect steps, inspect their contracts, and validate before publication. Discovery does not authorize an action.</p>
     {!validShape&&value?<p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>:null}
     {!validShape&&!readOnly?<p>This starter graph is not saved. <button type="button" onClick={()=>change(initial())}>Use starter workflow</button></p>:null}
+    {!readOnly?<details className="module-object"><summary>Reusable workflow templates</summary><p>Templates replace only this draft graph. Configure every action and obtain publication and activation reviews; a template grants no authority.</p><label>Workflow template<select aria-label="Workflow template" value={template} onChange={e=>setTemplate(e.target.value)}><option value="sequential">Sequential action</option><option value="review">Human review before an action</option><option value="parallel">Two independent branches and a join</option></select></label><button type="button" onClick={applyTemplate}>Replace draft with selected template</button></details>:null}
     {discoveryError?<p role="alert" className="form-error">Capability discovery unavailable: {discoveryError}</p>:null}
     {error?<p role="alert" className="form-error">{error}</p>:null}
     <div style={{overflowX:'auto',maxWidth:'100%'}}><svg viewBox={`0 0 800 ${Math.max(100,Math.ceil(graph.nodes.length/3)*100)}`} style={{width:'100%',minWidth:420,maxHeight:650}} role="img" aria-labelledby={fieldId+'-title'}>
@@ -59,13 +73,14 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
         {chosenBinding?<details><summary>Signed contract and required permissions</summary><p>{chosenBinding.contractVersion} · {chosenBinding.sensitivity}</p><pre>{JSON.stringify(chosenBinding.operations.find(o=>o.name===node.operation)??chosenBinding.operations,null,2)}</pre></details>:<p>No approved provider selected. Establish a binding in Smart Modules administration.</p>}
         <label>Input mappings (data-only expressions)<textarea key={node.id+'-inputs'} readOnly={readOnly} defaultValue={JSON.stringify(node.inputs??{},null,2)} onChange={e=>{if(readOnly)return;try{const inputs=JSON.parse(e.target.value);if(!inputs||typeof inputs!=='object'||Array.isArray(inputs))throw Error();e.target.setCustomValidity('');edit({inputs});}catch{e.target.setCustomValidity('Enter a JSON object of declarative input mappings.');setError('Input mappings must be valid JSON data. No script expressions are allowed.');}}}/></label>
       </>:null}
-      {node.kind==='condition'?<><label>Condition (data-only rule)<textarea key={node.id+'-condition'} readOnly={readOnly} defaultValue={JSON.stringify(node.condition,null,2)} onChange={e=>{if(readOnly)return;try{const condition=JSON.parse(e.target.value);e.target.setCustomValidity('');edit({condition});}catch{e.target.setCustomValidity('Enter a valid declarative JSON rule.');setError('Enter a valid declarative rule. JavaScript and SQL are not supported.');}}}/></label><details><summary>Authorized fields</summary>{Object.entries(fields).map(([name,f])=><p key={name}>{name} · {f.type} · {f.sensitivity} · maximum age {f.maxAgeMs/1000}s</p>)}</details></>:null}
+      {node.kind==='condition'?<><WorkflowConditionBuilder fields={fields} disabled={readOnly} onChange={condition=>{edit({condition});setConditionRevision(n=>n+1);}}/><label>Condition (data-only rule)<textarea key={node.id+'-condition-'+conditionRevision} readOnly={readOnly} defaultValue={JSON.stringify(node.condition,null,2)} onChange={e=>{if(readOnly)return;try{const condition=JSON.parse(e.target.value);e.target.setCustomValidity('');edit({condition});}catch{e.target.setCustomValidity('Enter a valid declarative JSON rule.');setError('Enter a valid declarative rule. JavaScript and SQL are not supported.');}}}/></label><details><summary>Authorized fields</summary>{Object.entries(fields).map(([name,f])=><p key={name}>{name} · {f.type} · {f.sensitivity} · maximum age {f.maxAgeMs/1000}s</p>)}</details></>:null}
       {node.kind==='wait'?<label>Wait duration (milliseconds)<input type="number" min={1} max={graph.limits.elapsedMs} value={node.waitMs??''} readOnly={readOnly} onChange={e=>edit({waitMs:Number(e.target.value)})}/></label>:null}
       {node.kind==='approval'?<><label>Approver permission<input value={node.approverPermission??''} readOnly={readOnly||Boolean(approvalPermission)} onChange={e=>edit({approverPermission:e.target.value})}/></label><label>Approval expires after (milliseconds)<input type="number" min={1000} max={graph.limits.elapsedMs} value={node.expiresAfterMs??''} readOnly={readOnly} onChange={e=>edit({expiresAfterMs:Number(e.target.value)})}/></label><label><input type="checkbox" checked={node.separateInitiator??true} disabled={readOnly} onChange={e=>edit({separateInitiator:e.target.checked})}/>Require a different person from the initiator</label></>:null}
       {!readOnly?<button type="button" onClick={()=>{change({...graph,nodes:graph.nodes.filter(n=>n.id!==node.id),edges:graph.edges.filter(e=>e.from!==node.id&&e.to!==node.id)});setSelected('');}}>Remove selected step and its connections</button>:null}
     </fieldset>:null}
     <h4>Connections</h4><ul>{graph.edges.map((edge,i)=><li key={i}>{edge.from} → {edge.to} ({edge.port}) {!readOnly?<button type="button" onClick={()=>change({...graph,edges:graph.edges.filter((_,index)=>index!==i)})}>Remove connection {i+1}</button>:null}</li>)}</ul>
     {!readOnly?<div className="form-grid"><label>From step<select value={from} onChange={e=>setFrom(e.target.value)}><option value="">Choose</option>{graph.nodes.map(n=><option key={n.id} value={n.id}>{n.label}</option>)}</select></label><label>Outcome<select value={port} onChange={e=>setPort(e.target.value as WorkflowEdge['port'])}>{['next','true','false','approved','rejected','expired','lane'].map(p=><option key={p}>{p}</option>)}</select></label><label>To step<select value={to} onChange={e=>setTo(e.target.value)}><option value="">Choose</option>{graph.nodes.map(n=><option key={n.id} value={n.id}>{n.label}</option>)}</select></label><button type="button" disabled={!from||!to||from===to||graph.edges.length>=64} onClick={()=>change({...graph,edges:[...graph.edges,{from,to,port}]})}>Connect steps</button></div>:null}
+    <WorkflowPreview graph={graph} fields={fields} bindings={bindings} disabled={!validShape||Boolean(error)||Boolean(discoveryError)}/>
     <details><summary>Validation ({issues.length} issues)</summary>{issues.length?<ul>{issues.map((i,n)=><li key={n}>{i.nodeId?i.nodeId+': ':''}{i.code.replace('WORKFLOW_','').toLowerCase().replaceAll('_',' ')}</li>)}</ul>:<p>Graph structure is valid. Publication still requires server-side contract and authority checks.</p>}</details>
   </section>;
 }

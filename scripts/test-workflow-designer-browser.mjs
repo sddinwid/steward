@@ -31,6 +31,17 @@ try{
   await page.getByLabel('From step').selectOption(id);await page.getByLabel('To step').selectOption('complete');await page.getByRole('button',{name:'Connect steps',exact:true}).click();
   assert.equal(await page.getByText('Validation (0 issues)',{exact:true}).count(),1);
  });
+ await check('synthetic dry-run demands assumptions, never changes the saved graph, and invalidates stale results',async()=>{
+  const before=await page.getByTestId('graph').textContent();await page.getByText('Synthetic dry-run',{exact:true}).click();await page.getByRole('button',{name:'Run synthetic dry-run',exact:true}).click();assert(await page.getByText(/Synthetic result: blocked/).count());
+  await page.getByLabel('Synthetic outcome: Reserve synthetic stock').selectOption('succeeded');await page.getByRole('button',{name:'Run synthetic dry-run',exact:true}).click();assert(await page.getByText(/Synthetic result: preview-completed/).count());assert.equal(await page.getByTestId('graph').textContent(),before);
+  await page.getByLabel('Input mappings (data-only expressions)').fill('{broken');assert.equal(await page.getByText(/Synthetic result: preview-completed/).count(),0);assert.equal(await page.getByRole('button',{name:'Run synthetic dry-run',exact:true}).isDisabled(),true);await page.getByLabel('Input mappings (data-only expressions)').fill('{\"quantity\":{\"literal\":2}}');
+  await page.getByLabel('Synthetic outcome: Reserve synthetic stock').selectOption('timeout');assert.equal(await page.getByText(/Synthetic result: preview-completed/).count(),0);await page.getByRole('button',{name:'Run synthetic dry-run',exact:true}).click();assert(await page.getByText(/Synthetic result: failed/).count());
+ });
+ await check('guided conditions use declared typed fields and preserve advanced expression editing',async()=>{
+  await page.getByLabel('New step type').selectOption('condition');await page.getByRole('button',{name:'Add step',exact:true}).click();await page.getByLabel('Condition field',{exact:true}).selectOption('trigger.quantity');await page.getByLabel('Comparison',{exact:true}).selectOption('gte');await page.getByLabel('Comparison value',{exact:true}).fill('3');await page.getByRole('button',{name:'Apply comparison',exact:true}).click();
+  const graph=JSON.parse(await page.getByTestId('graph').textContent()),condition=graph.nodes.find(n=>n.kind==='condition').condition;assert.deepEqual(condition,{op:'gte',args:[{field:'trigger.quantity'},{literal:3}]});assert.deepEqual(JSON.parse(await page.getByLabel('Condition (data-only rule)').inputValue()),condition);
+  await page.getByRole('button',{name:'Remove selected step and its connections',exact:true}).click();await page.getByRole('button',{name:'Reserve synthetic stock · Action',exact:true}).click();
+ });
  await check('read-only graph exposes inspection without editing or connection controls',async()=>{
   await page.getByRole('button',{name:'Toggle read-only'}).click();assert.equal(await page.getByRole('button',{name:'Add step',exact:true}).count(),0);assert.equal(await page.getByRole('button',{name:'Connect steps',exact:true}).count(),0);
   assert.equal(await page.getByLabel('Step label',{exact:true}).getAttribute('readonly'),'');
@@ -39,6 +50,9 @@ try{
   await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Toggle read-only'}).click();await page.getByRole('button',{name:'Reserve synthetic stock · Action'}).click();
   assert.equal(await page.getByLabel('Step label',{exact:true}).inputValue(),'Reserve synthetic stock');
   report.overflow=await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>window.innerWidth+2).map(e=>({tag:e.tagName,cls:e.className,width:e.getBoundingClientRect().width,right:e.getBoundingClientRect().right})).slice(0,12));assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+2),true);
+ });
+ await check('reusable templates remain unbound drafts and preserve the last saved workflow',async()=>{
+  const saved=await page.getByTestId('saved').textContent();await page.getByText('Reusable workflow templates',{exact:true}).click();await page.getByLabel('Workflow template',{exact:true}).selectOption('parallel');await page.getByRole('button',{name:'Replace draft with selected template',exact:true}).click();const graph=JSON.parse(await page.getByTestId('graph').textContent());assert.equal(graph.limits.maxParallel,2);assert.equal(graph.nodes.filter(n=>n.kind==='action').length,2);assert(graph.nodes.filter(n=>n.kind==='action').every(n=>n.bindingId===''&&n.operation===''));assert.equal(await page.getByTestId('saved').textContent(),saved);assert.notEqual(await page.getByText('Validation (0 issues)',{exact:true}).count(),1);
  });
  await mkdir('artifacts',{recursive:true});const screenshot='artifacts/phase16-workflow-designer-component.png';await page.screenshot({path:screenshot,fullPage:true});report.screenshots.push(screenshot);assert.deepEqual(report.pageErrors,[]);report.status='passed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await browser?.close();if(server)await new Promise(resolve=>server.close(resolve));await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase16-workflow-designer-component.json',JSON.stringify(report,null,2)+'\n');}

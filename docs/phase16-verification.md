@@ -767,3 +767,46 @@ checks current Docker labels against current manifests. No historical release
 artifact, module map, signature or image was changed. All **21 release contract
 tests pass** in `phase16-historical-release-correction.log`. A fresh uninterrupted
 full regression run is still required after remaining implementation.
+
+
+## Generic designer preview and templates checkpoint
+
+The generic SSDS workflow field now provides guided typed comparisons, reusable
+sequential/review/parallel draft templates, and a pure synthetic dry-run. It uses
+the same extracted pure DAG planner as the durable coordinator; provider dispatch
+and authorization remain exclusively in the existing host. No module-specific
+screen or executable module asset replaced the declarative renderer.
+
+The preview requires explicit provider-success/failure/timeout assumptions and
+explicit human-decision assumptions. Missing values, invalid mappings, absent
+bindings and elapsed-time limits block it. It changes no business record, calls
+no provider, stores no approval and is not proof of real execution. Changed graph,
+assumptions, discovery errors or malformed editor input invalidate prior results.
+Templates leave operations and bindings unselected; saved records are unchanged
+until the normal form save. Advanced declarative expressions remain available.
+
+Actual source verification:
+
+- SDK, host and UI TypeScript builds passed (`phase16-preview-sdk-build-second.log`,
+  `phase16-preview-host-build.log`, `phase16-preview-ui-final-build.log`).
+- SDK **60/60**, host **31/31** tests passed (`phase16-preview-sdk-tests.log`,
+  `phase16-preview-host-tests.log`), including six preview checks.
+- Actual graph/publication coordinator **25/25** passed with the shared planner
+  (`phase16-preview-runtime-regression.log`).
+- Designer **8/8** Chromium checks passed (`phase16-preview-browser-verified.log`,
+  `phase16-workflow-designer-component.json`). Mobile screenshot inspected; bounded
+  diagram scrolling and no document overflow were verified. These are component
+  fixtures, not authenticated installed-module acceptance.
+- Existing governance component checks and workflow presentation tests passed
+  (`phase16-preview-governance-browser.log`, `phase16-preview-presentation.log`).
+
+The first actual SDK build caught a possibly undefined synthetic outcome and was
+corrected with explicit union guards. Staged experiments retained an invalid
+multi-inbound completion fixture (fixed by the required join), a staging-only
+SDK/UI filename collision, and ambiguous browser field selectors. These draft
+failures were corrected before integration; no production graph rule was weakened.
+
+Still required: signed Inventory threshold events and real installed scenarios,
+full final regressions, deployment/preservation/recovery, release contracts,
+README accepted module inventory and diagram, CHANGELOG finalization, artifacts
+and acceptance. No Phase 16 release tag or installed success is claimed.
