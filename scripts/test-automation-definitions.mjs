@@ -26,7 +26,7 @@ try{
  validateManifest(manifest);await mkdir(directory,{recursive:true});privateDirectory(directory);await writeFile(secretFile,'POSTGRES_PASSWORD='+password+'\n',{mode:0o600});docker(['run','--rm','-d','--name',container,'--env-file',secretFile,'-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort);pool=new pg.Pool({host:'127.0.0.1',port,user:'postgres',password});for(let n=0;;n++){try{await pool.query('SELECT 1');break;}catch(e){if(n===40)throw e;await delay(250);}}
  const sql=await readFile('modules/business-automation/migrations/001-foundation.sql','utf8');assert.equal(digest(sql),manifest.persistence.migrations[0].sha256);await pool.query(sql);
- const start=(scope=entityId)=>createBusinessServer(pool,token,{installationId,entityId:scope,configuration:{maxElapsedMs:600000,maxParallel:2}},automation(manifest),async()=>1,async()=>{});app=start();
+ const start=(scope=entityId,limit=600000)=>createBusinessServer(pool,token,{installationId,entityId:scope,configuration:{maxElapsedMs:limit,maxParallel:2}},automation(manifest),async()=>1,async()=>{});app=start();
  await check('independent module denies missing gateway authentication and local permissions',async()=>{
   assert.equal((await app.inject({method:'GET',url:'/workflows'})).statusCode,401);await request('GET','/workflows',undefined,403,author,[]);
  });
@@ -70,6 +70,21 @@ try{
   const before=Number((await pool.query('SELECT count(*) n FROM workflow_publications')).rows[0].n);
   const response=await request('POST','/publish/'+row.id,{revision:row.revision,requestId:randomUUID()},422);assert.match(response.error,/Workflow validation failed/);
   assert.equal(Number((await pool.query('SELECT count(*) n FROM workflow_publications')).rows[0].n),before);
+ });
+ await check('publication cannot invent a reviewer permission outside its signed module declaration',async()=>{
+  const bad=graph();bad.nodes[1]={id:'reserve',kind:'approval',label:'Unsupported role',approverPermission:'example.other.approve',separateInitiator:true,expiresAfterMs:30000};bad.nodes.push({id:'rejected',kind:'completion',label:'Rejected'},{id:'expired',kind:'completion',label:'Expired'});bad.edges=[{from:'start',to:'reserve',port:'next'},{from:'reserve',to:'done',port:'approved'},{from:'reserve',to:'rejected',port:'rejected'},{from:'reserve',to:'expired',port:'expired'}];
+  const row=(await request('POST','/workflows',{recordKey:randomUUID(),name:'Invalid reviewer permission',description:'Synthetic approval policy rejection.',graph:bad},201)).record;
+  const response=await request('POST','/publish/'+row.id,{revision:row.revision,requestId:randomUUID()},422);assert.match(response.error,/signed module reviewer declaration/);
+ });
+ await check('tightened current module limits block old publications without rewriting their snapshots',async()=>{
+  const before=(await pool.query('SELECT definition,digest FROM workflow_publications WHERE id=$1',[published.publicationId])).rows[0];await app.close();app=start(entityId,1000);
+  const current=(await request('GET','/publications?q='+published.publicationId)).records[0];assert.equal(current.executionAllowed,false);assert.equal(current.executionBlock,'CURRENT_CONFIGURATION_OR_CONTRACT_INVALID');
+  assert.deepEqual((await pool.query('SELECT definition,digest FROM workflow_publications WHERE id=$1',[published.publicationId])).rows[0],before);await app.close();app=start();
+ });
+ await check('publication discovery is paginated metadata while exact authorized inspection retains the full definition',async()=>{
+  const page=await request('GET','/publications?limit=1&offset=0');assert.equal(page.records.length,1);assert.equal(page.records[0].definition,undefined);
+  const detail=(await request('GET','/publications?q='+published.publicationId)).records[0];assert(detail.definition.graph);assert.equal(detail.definitionDigest,published.definitionDigest);
+  await request('GET','/publications?limit=21',undefined,400);await request('GET','/publications?offset=-1',undefined,400);
  });
  report.status=report.checks.every(c=>c.status==='passed')?'passed':'failed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await app?.close();await pool?.end();try{docker(['rm','-f',container]);}catch{}await unlink(secretFile).catch(()=>{});await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase16-automation-definitions.json',JSON.stringify(report,null,2)+'\n');}

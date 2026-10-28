@@ -1,6 +1,6 @@
 import {Money,ReadableValue,StructuredValue} from './presentation.js';
 import {WorkflowDesigner} from './workflow-designer.js';
-export type WorkflowFieldContext=Pick<Parameters<typeof WorkflowDesigner>[0],'fields'|'bindings'|'discoveryError'>;
+export type WorkflowFieldContext=Pick<Parameters<typeof WorkflowDesigner>[0],'fields'|'bindings'|'discoveryError'|'approvalPermission'>;
 import type {ModuleField,ReferenceChoices} from './module-fields.js';
 import {unavailableReference,moduleFieldDefault,moduleFieldVisible,moduleDateTimeDisplay,moduleObjectEmpty} from './module-fields.js';
 

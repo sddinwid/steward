@@ -1,3 +1,4 @@
+import {verifyWorkflowPublication} from './workflow-authority.js';
 import {assertInstallationContinuity,assertRuntimeInstallation} from './installation-continuity.js';
 import {installedProviderHeaders} from './installed-providers.js';
 import {financialAuthorityHeaders,approvalAuthorityHeaders,publicContextHeaders} from './financial-context.js';
@@ -10,7 +11,7 @@ import { executeSmartStep } from './smart-executor.js';
 import { routeSmartCommand } from './smart-routing.js';
 import {peerDeliveryHeaders,peerAcknowledgment} from './peer-delivery.js';
 import pg from 'pg';
-import { request, type RequestOptions } from 'node:http';
+import {moduleHttp as http} from './http-client.js';
 import { readFile, readdir, mkdir, writeFile, open, rename } from 'node:fs/promises';
 import { randomBytes, randomUUID, verify } from 'node:crypto';
 import { capabilityInboundEnabled,capabilityOutboundEnabled,atLeast,canonical, digest, verifyPackage, validateConfiguration, operationFor, captureSql, authorizeCommand, validateCommand, validateCapabilityValue, type SignedModulePackage, type PublisherTrust, type ModuleCatalog,type IntegrationCommand } from '@steward/module-sdk';
@@ -29,7 +30,9 @@ const pool = new pg.Pool({ ...adminConnection,
 pool.on('error', () => {});
 const resourcePool = new pg.Pool({ ...adminConnection, max: 2, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
 resourcePool.on('error', () => {});
-const metadataPool=new pg.Pool({...adminConnection,database:'steward',max:2,connectionTimeoutMillis:3000,statement_timeout:5000});
+// Execution and routing each hold a transaction while trusted context reads
+// need a separate connection. Keep that bounded nesting below pool capacity.
+const metadataPool=new pg.Pool({...adminConnection,database:'steward',max:4,connectionTimeoutMillis:3000,statement_timeout:5000});
 metadataPool.on('error',()=>{});
 async function moduleDatabase<T>(id: string, work: (client: pg.Client) => Promise<T>): Promise<T> {
   const client = new pg.Client({ host: config.databaseHost, user: slug(id), database: slug(id), password: (await readFile(`${stateRoot}/${slug(id)}/db-password`, 'utf8')).trim(), connectionTimeoutMillis: 3000, statement_timeout: 10000 });
@@ -39,17 +42,7 @@ await pool.query('CREATE TABLE IF NOT EXISTS module_host_nonces(nonce uuid PRIMA
 await mkdir(stateRoot, { recursive: true });
 const app = Fastify({ https: { key: await readFile('/run/secrets/tls_key'), cert: await readFile('/run/secrets/tls_cert'), minVersion: 'TLSv1.3' }, logger: false, bodyLimit: 262144, requestTimeout: 60000 });
 function failure(code: string): never { throw Object.assign(new Error(code), { code }); }
-function http(options: RequestOptions, body?: unknown): Promise<{ status: number; value: any;providerConfigurationDigest?:string }> {
-  return new Promise((resolve, reject) => {
-    const data = body === undefined ? undefined : JSON.stringify(body);
-    const req = request({ ...options, headers: { ...options.headers, ...(data ? { 'content-type': 'application/json', 'content-length': Buffer.byteLength(data) } : {}) }, timeout: options.timeout??15000 }, res => {
-      let value = ''; res.setEncoding('utf8');
-      res.on('data', chunk => { value += chunk; if (value.length > 1048576) req.destroy(new Error('Response exceeds limit')); });
-      res.on('end', () => { try { const captured=res.headers['x-steward-provider-configuration-digest'];resolve({ status: res.statusCode ?? 500, value: value ? JSON.parse(value) : {},...(typeof captured==='string'&&/^[a-f0-9]{64}$/.test(captured)?{providerConfigurationDigest:captured}:{}) }); } catch { reject(new Error('Invalid runtime response')); } });
-    });
-    req.on('timeout', () => req.destroy(new Error('Runtime timeout'))); req.on('error', reject); req.end(data);
-  });
-}
+
 async function docker(method: string, path: string, body?: unknown, allowed = [200, 201, 204, 304]) {
   const result = await http({ socketPath: '/var/run/docker.sock', path: '/v1.51' + path, method }, body);
   if (!allowed.includes(result.status)) failure('CONTAINER_PROVIDER_FAILED');
@@ -81,6 +74,7 @@ async function connectorSecret(id:string){
  try{const data=await readFile(`${config.connectorSecretsRoot}/${slug(id)}.json`,'utf8');if(Buffer.byteLength(data)>131072)failure('CONNECTOR_SECRET_INVALID');await atomicJson(`${stateRoot}/${slug(id)}/connector.json`,JSON.parse(data),0o444);}catch(e){if((e as NodeJS.ErrnoException).code!=='ENOENT')failure('CONNECTOR_SECRET_INVALID');}
 }
 async function callModule(id: string, method: string, path: string, body?: unknown, context:Record<string,string>={},timeout=15000,incomingIdentity?:Record<string,string>) {
+  const deadline=Date.now()+timeout;
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
   const headers:Record<string,string>=publicContextHeaders(context);headers.authorization='Bearer '+token;
   if(incomingIdentity)headers['x-steward-source-identity']=JSON.stringify(incomingIdentity);
@@ -89,7 +83,8 @@ async function callModule(id: string, method: string, path: string, body?: unkno
     const installed=(await metadataPool.query('SELECT descriptor,configuration FROM module_installations WHERE module_id=$1',[id])).rows[0];
     if(installed?.descriptor){const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8')),manifest=verifyPackage(installed.descriptor,trust).manifest;Object.assign(headers,await approvalAuthorityHeaders(metadataPool,manifest),await installedProviderHeaders(metadataPool,manifest,installed.configuration,trust));}
   }
-  return http({ host: containerName(id), port: 8080, method, path,timeout,headers }, body);
+  const remaining=deadline-Date.now();if(remaining<=0)throw Error('Runtime timeout');
+  return http({ host: containerName(id), port: 8080, method, path,timeout:remaining,headers }, body);
 }
 async function ready(id: string) {
   const deadline = Date.now() + 20000;
@@ -211,7 +206,7 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
     // Outbox reads/acknowledgments use only committed module database rows.
     // They share lifecycle protection with application requests, rather than
     // briefly excluding user mutations on every synchronization poll.
-    const lock = await client.query(['proxy','inspect','peer.deliver','peer.acknowledge','outbox.read','outbox.complete'].includes(p.operation)
+    const lock = await client.query(['proxy','inspect','workflow.verify','peer.deliver','peer.acknowledge','outbox.read','outbox.complete'].includes(p.operation)
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
@@ -228,9 +223,21 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       }
       return{saved:true};
     }
-    if(p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'||p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
+    if(p.operation==='workflow.verify'||p.operation==='proxy'||p.operation==='activate'||p.operation==='inspect'||p.operation==='webhook'||p.operation==='peer.deliver'||p.operation==='peer.acknowledge'){
       const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(p.moduleId)}/runtime.json`,'utf8'));
       if(canonical(runtime.configuration)!==canonical(p.configuration))failure('MODULE_CONFIGURATION_MISMATCH');
+    }
+    if(p.operation==='workflow.verify'){
+      if(current.phase!=='active'||p.publication?.moduleId!==p.moduleId)failure('WORKFLOW_PUBLICATION_SCOPE_MISMATCH');
+      const entity=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];
+      if(!entity)failure('ENROLLMENT_REQUIRED');
+      try{
+        const publication=await verifyWorkflowPublication(metadataPool,trust,callModule,async(id,configuration)=>{
+          const runtime=JSON.parse(await readFile(`${stateRoot}/${slug(id)}/runtime.json`,'utf8'));
+          return(await state(id))?.phase==='active'&&canonical(runtime.configuration)===canonical(configuration);
+        },{pin:p.publication,actorId:p.actorId,installationId:config.installationId,entityId:entity.entity_id});
+        return{publication};
+      }catch(error){const code=(error as Error).message;failure(/^WORKFLOW_[A-Z_]+$/.test(code)?code:'WORKFLOW_PUBLICATION_UNAVAILABLE');}
     }
     if(p.operation==='inspect'){
       if(current.phase!=='active')return reply.code(409).send({error:'MODULE_DISABLED'});

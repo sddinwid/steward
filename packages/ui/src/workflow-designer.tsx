@@ -13,9 +13,9 @@ const kinds=Object.keys(names) as WorkflowNode['kind'][];
 
 /** A generic data-only SSDS field. No provider code/assets are loaded. Choices
  * must come from authenticated signed-registry discovery, never graph contents. */
-export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindings=[],discoveryError='',states={}}:{
+export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindings=[],discoveryError='',states={},approvalPermission=''}:{
   value:unknown;onChange:(graph:WorkflowGraph)=>void;readOnly?:boolean;fields?:WorkflowFields;
-  bindings?:WorkflowBindingChoice[];discoveryError?:string;states?:Record<string,string>;
+  bindings?:WorkflowBindingChoice[];discoveryError?:string;states?:Record<string,string>;approvalPermission?:string;
 }){
   const instanceId=useId(),[selected,setSelected]=useState(''),[kind,setKind]=useState<WorkflowNode['kind']>('action');
   const [from,setFrom]=useState(''),[to,setTo]=useState(''),[port,setPort]=useState<WorkflowEdge['port']>('next');
@@ -34,7 +34,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
     const id='node-'+crypto.randomUUID().slice(0,8);
     const next:WorkflowNode={id,kind,label:names[kind],...(kind==='condition'?{condition:{literal:true}}:{}),
       ...(kind==='action'||kind==='notification'?{bindingId:'',operation:'',inputs:{}}:{}),
-      ...(kind==='wait'?{waitMs:1000}:{}),...(kind==='approval'?{approverPermission:'steward.automation.approve',separateInitiator:true,expiresAfterMs:60000}:{})};
+      ...(kind==='wait'?{waitMs:1000}:{}),...(kind==='approval'?{approverPermission:approvalPermission,separateInitiator:true,expiresAfterMs:60000}:{})};
     change({...graph,nodes:[...graph.nodes,next]});setSelected(id);
   }
   const fieldId=instanceId.replaceAll(':','');
@@ -61,7 +61,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
       </>:null}
       {node.kind==='condition'?<><label>Condition (data-only rule)<textarea key={node.id+'-condition'} readOnly={readOnly} defaultValue={JSON.stringify(node.condition,null,2)} onChange={e=>{if(readOnly)return;try{const condition=JSON.parse(e.target.value);e.target.setCustomValidity('');edit({condition});}catch{e.target.setCustomValidity('Enter a valid declarative JSON rule.');setError('Enter a valid declarative rule. JavaScript and SQL are not supported.');}}}/></label><details><summary>Authorized fields</summary>{Object.entries(fields).map(([name,f])=><p key={name}>{name} · {f.type} · {f.sensitivity} · maximum age {f.maxAgeMs/1000}s</p>)}</details></>:null}
       {node.kind==='wait'?<label>Wait duration (milliseconds)<input type="number" min={1} max={graph.limits.elapsedMs} value={node.waitMs??''} readOnly={readOnly} onChange={e=>edit({waitMs:Number(e.target.value)})}/></label>:null}
-      {node.kind==='approval'?<><label>Approver permission<input value={node.approverPermission??''} readOnly={readOnly} onChange={e=>edit({approverPermission:e.target.value})}/></label><label>Approval expires after (milliseconds)<input type="number" min={1000} max={graph.limits.elapsedMs} value={node.expiresAfterMs??''} readOnly={readOnly} onChange={e=>edit({expiresAfterMs:Number(e.target.value)})}/></label><label><input type="checkbox" checked={node.separateInitiator??true} disabled={readOnly} onChange={e=>edit({separateInitiator:e.target.checked})}/>Require a different person from the initiator</label></>:null}
+      {node.kind==='approval'?<><label>Approver permission<input value={node.approverPermission??''} readOnly={readOnly||Boolean(approvalPermission)} onChange={e=>edit({approverPermission:e.target.value})}/></label><label>Approval expires after (milliseconds)<input type="number" min={1000} max={graph.limits.elapsedMs} value={node.expiresAfterMs??''} readOnly={readOnly} onChange={e=>edit({expiresAfterMs:Number(e.target.value)})}/></label><label><input type="checkbox" checked={node.separateInitiator??true} disabled={readOnly} onChange={e=>edit({separateInitiator:e.target.checked})}/>Require a different person from the initiator</label></>:null}
       {!readOnly?<button type="button" onClick={()=>{change({...graph,nodes:graph.nodes.filter(n=>n.id!==node.id),edges:graph.edges.filter(e=>e.from!==node.id&&e.to!==node.id)});setSelected('');}}>Remove selected step and its connections</button>:null}
     </fieldset>:null}
     <h4>Connections</h4><ul>{graph.edges.map((edge,i)=><li key={i}>{edge.from} → {edge.to} ({edge.port}) {!readOnly?<button type="button" onClick={()=>change({...graph,edges:graph.edges.filter((_,index)=>index!==i)})}>Remove connection {i+1}</button>:null}</li>)}</ul>

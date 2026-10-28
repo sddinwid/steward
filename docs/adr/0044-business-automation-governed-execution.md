@@ -1,6 +1,7 @@
 # ADR 0044: Business Automation extends governed SSMA execution
 
-Status: accepted design for Phase 16; implementation and deployment pending.
+Status: accepted design for Phase 16; kernel/governance implementation is under
+verification, installed business and release acceptance remain pending.
 
 ## Existing implementation inspected
 

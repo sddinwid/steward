@@ -15,7 +15,7 @@ export function ModuleEvidenceValue({name,value,currency}:{name:string;value:unk
     : <ReadableValue value={value} name={name} currency={currency}/>;
 }
 type Api = <T = any>(path: string, method?: string, body?: unknown) => Promise<T>;
-export interface DiscoveredModule { moduleId: string; version: string; name: string; mode?:'simulator'|'live'; currency?:string; programServices?:{contractVersion:1;domain:string;syntheticOnly:true}; economicServices?:NonNullable<ModulePackageManifest['economicServices']>; api: ApiContribution[]; ui: ScreenContribution[] }
+export interface DiscoveredModule { approvalServices?:ModulePackageManifest['approvalServices']; moduleId: string; version: string; name: string; mode?:'simulator'|'live'; currency?:string; programServices?:{contractVersion:1;domain:string;syntheticOnly:true}; economicServices?:NonNullable<ModulePackageManifest['economicServices']>; api: ApiContribution[]; ui: ScreenContribution[] }
 export function ModuleConsole({ api, administrator, mode = 'all', screenKey, onNavigate, currency = 'USD' }: { api: Api; administrator: boolean; mode?: 'all' | 'business' | 'administration' | 'developer'; screenKey?: string; onNavigate?: (key:string)=>void; currency?:string }) {
   const [manager, setManager] = useState<any>();
   const [modules, setModules] = useState<DiscoveredModule[]>([]);
@@ -94,7 +94,7 @@ export function ModuleScreen({ api, module, screen, currency }: { api: Api; modu
   const [referenceChoices,setReferenceChoices]=useState<Record<string,ReferenceChoices>>({});
   const [workflowContext,setWorkflowContext]=useState<WorkflowFieldContext>({});
   const hasWorkflow=screen.fields.some(f=>f.format==='workflow');
-  useEffect(()=>{if(!hasWorkflow)return;let disposed=false;setWorkflowContext({bindings:[],discoveryError:'Loading current approved bindings…'});void api('/v8/smart-modules').then(registry=>{if(!disposed)setWorkflowContext({bindings:workflowBindingChoices(registry,module.moduleId)});}).catch(e=>{if(!disposed)setWorkflowContext({bindings:[],discoveryError:(e as Error).message});});return()=>{disposed=true;};},[hasWorkflow,module.moduleId]);
+  useEffect(()=>{if(!hasWorkflow)return;let disposed=false;setWorkflowContext({approvalPermission:module.approvalServices?.reviewerPermission??'',bindings:[],discoveryError:'Loading current approved bindingsâ€¦'});void api('/v8/smart-modules').then(registry=>{if(!disposed)setWorkflowContext({approvalPermission:module.approvalServices?.reviewerPermission??'',bindings:workflowBindingChoices(registry,module.moduleId)});}).catch(e=>{if(!disposed)setWorkflowContext({approvalPermission:module.approvalServices?.reviewerPermission??'',bindings:[],discoveryError:(e as Error).message});});return()=>{disposed=true;};},[hasWorkflow,module.moduleId,module.version,module.approvalServices?.reviewerPermission]);
   const referenceKey=JSON.stringify({module:module.moduleId,api:module.api,fields:moduleReferenceFields(screen.fields)});
   async function refreshReferences(){
     const fields=moduleReferenceFields(screen.fields);setReferenceChoices(Object.fromEntries(fields.map(({path})=>[path,{status:'loading',choices:[],truncated:false,message:''}])));

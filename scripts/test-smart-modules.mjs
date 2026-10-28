@@ -11,6 +11,7 @@ import Fastify from 'fastify';
 import {securityMigration} from '../packages/platform/dist/security/migration.js';
 import {moduleMigration} from '../packages/platform/dist/module-migration.js';
 import {smartMigration} from '../packages/platform/dist/smart-migration.js';
+import {workflowMigration} from '../packages/platform/dist/workflow-migration.js';
 import {peerRegistryMigration} from '../packages/platform/dist/peer-migration.js';
 import {peerGovernanceMigration} from '../packages/platform/dist/peer-governance-migration.js';
 import {peerPurposeMigration} from '../packages/platform/dist/peer-purpose-migration.js';
@@ -52,7 +53,7 @@ try{
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort),connection={host:'127.0.0.1',port,user:'postgres',password};
  db=new pg.Pool({...connection,database:'postgres',max:6});pools.push(db);
  for(let n=0;;n++){try{await db.query('SELECT 1');break;}catch(e){if(n===30)throw e;await delay(500);}}
- await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);await db.query(peerRegistryMigration);await db.query(peerGovernanceMigration);await db.query(peerPurposeMigration);
+ await db.query(securityMigration);await db.query(moduleMigration);await db.query(smartMigration);await db.query(commerceMigration);await db.query(commerceGovernanceMigration);await db.query(peerRegistryMigration);await db.query(peerGovernanceMigration);await db.query(peerPurposeMigration);await db.query(workflowMigration);
  await db.query('CREATE TABLE platform_installation(singleton boolean,installation_id uuid,entity_id uuid)');await db.query('INSERT INTO platform_installation VALUES(true,$1,$2)',[installationId,entityId]);
  const adminId=await createAccount(db,'local-admin',randomBytes(24).toString('base64url'),'local_admin');
  const adminPassword=randomBytes(24).toString('base64url'),userPassword=randomBytes(24).toString('base64url');

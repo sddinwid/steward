@@ -23,8 +23,9 @@ export async function exerciseGraphRuntime(c){
  await db.query("INSERT INTO smart_bindings(binding_id,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,reason) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'approved','Isolated synthetic kernel fixture approval')",[bindingId,manifest.moduleId,capability.capabilityId,providerId,providerInstallation,providerDigest,requirement,capability,author,entityId]);
  await moduleDb.query('CREATE DATABASE synthetic_provider');const receipts=new pg.Pool({...db.options,password:db.options.password,database:'synthetic_provider'});
  await receipts.query('CREATE TABLE receipts(command_id uuid PRIMARY KEY,digest text NOT NULL,response jsonb NOT NULL)');
- let loseResponse=false,providerCalls=0;
+ let loseResponse=false,sourceUnavailable=false,providerCalls=0;
  const call=async(id,method,path,body,headers,timeout,incoming)=>{
+  if(id===manifest.moduleId&&sourceUnavailable)return{status:503,value:{error:'Synthetic source outage'}};
   if(id!==providerId)return transport(id,method,path,body,headers,timeout);
   providerCalls++;assert.equal(method,'POST');assert.equal(path,'/integration-inbox');assert.equal(incoming.entityId,entityId);assert.equal(incoming.moduleId,manifest.moduleId);
   const hash=digest(canonical(body)),response={orderId:body.payload.orderId,lines:body.payload.lines.map(l=>({sku:l.sku,requested:l.quantity,availableBefore:100,reserved:l.quantity}))};
@@ -42,6 +43,10 @@ export async function exerciseGraphRuntime(c){
  async function advance(id,count=12){for(let i=0;i<count;i++){const r=await read(id);if(['completed','suspended'].includes(r.state))return r;await db.query('UPDATE smart_executions SET next_attempt_at=now() WHERE execution_id=$1',[id]);await tick();}return read(id);}
  try{
   await check('graph controls persist and finish through the existing locked coordinator without provider calls',async()=>{const before=providerCalls,id=await queue(base());assert.equal((await advance(id)).state,'completed');assert.equal(providerCalls,before);assert.deepEqual((await read(id)).graph_state.progress.done,{state:'completed',selectedPorts:[]});});
+  await check('temporary module publication outage retries without effects and resumes retained progress',async()=>{
+   const id=await queue(base()),before=providerCalls;sourceUnavailable=true;try{await tick();const waiting=await read(id);assert.equal(waiting.state,'pending');assert.equal(waiting.error_code,'WORKFLOW_PUBLICATION_UNAVAILABLE');assert.equal(providerCalls,before);}finally{sourceUnavailable=false;}
+   const recovered=await advance(id);assert.equal(recovered.state,'completed');assert.equal(recovered.attempts,0);assert.equal(providerCalls,before);
+  });
   await check('graph action dispatch reuses SSMA authorization and lost-response retries retain one durable receipt',async()=>{
    const g=base();g.nodes.splice(1,0,action());g.edges=[{from:'start',to:'reserve',port:'next'},{from:'reserve',to:'done',port:'next'}];const id=await queue(g);loseResponse=true;
    const result=await advance(id);assert.equal(result.state,'completed',result.error_code);assert.equal(Number((await receipts.query('SELECT count(*) n FROM receipts WHERE command_id=$1',[graphCommandId(id,'reserve')])).rows[0].n),1);

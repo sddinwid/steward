@@ -131,3 +131,42 @@ This kernel is exercised with synthetic durable provider receipts. Public graph
 admission, activation, decision APIs and installed business workflows are still
 pending. Actions are currently serialized, so simultaneous bounded provider calls
 are not yet verified. Do not describe these kernel tests as release acceptance.
+
+
+## Current governance API and UI
+
+`POST /api/v16/workflows/import` accepts an exact publication reference and reason;
+it imports a proposed immutable execution projection. `/api/v16/workflows/:id/lifecycle`
+activates or suspends after current source/reviewer/binding checks.
+`POST /api/v16/workflows/execute` accepts a workflow ID, stable execution ID and
+published-schema manual input. `POST /api/v16/workflows/executions/:id/reviews`
+records an append-only approve/reject/revoke decision with a stable review ID and
+reason. Cancellation retains all existing effects and history. All mutations use
+real Worker sessions and CSRF. Module-user reviewers additionally require current
+source read/review permission; separate-initiator rules apply to administrators too.
+
+The source publication API returns `executionAllowed` under its current policy.
+This is a necessary precondition, never sufficient authority. Tightened limits
+cannot silently remain ineffective for an old publication. Previously issued
+review IDs and expiry values cannot be renewed by changing a projection.
+
+The administrator panel consumes `workflowSources` from the existing signed SSMA
+registry and uses the shared read-only designer. It neither replaces module-owned
+screens nor loads module executable assets. Current UI support is administrative;
+non-administrator step permissions are enforced and verified at the API boundary.
+Scoped programme/financial/peer actions remain on existing dedicated governance
+paths until graph support for those scopes is implemented and accepted.
+
+Targeted development commands after `npm run build`:
+
+```powershell
+npm run test:automation:definitions
+npm run test:workflow:runtime
+npm run test:workflow:governance
+npm run test:workflow:browser
+npm run test:workflow:governance:browser
+npm run test:smart:browser
+```
+
+These isolated fixtures do not substitute for signed installation, operator
+upgrade or the six required real-business acceptance scenarios.

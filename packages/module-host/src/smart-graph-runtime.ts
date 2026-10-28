@@ -81,7 +81,7 @@ export async function prepareGraphStep(db:pg.PoolClient,e:Execution,publication:
   state.progress[node.id]={state:'completed',selectedPorts:port?[port]:[]};
   await persistGraphState(db,e.execution_id,state);
   await db.query("INSERT INTO smart_history(execution_id,workflow_id,actor_id,event,detail) SELECT execution_id,workflow_id,actor_id,'graph_node_completed',$2 FROM smart_executions WHERE execution_id=$1",[e.execution_id,{nodeId:node.id,kind:node.kind,port:port??null}]);
-  await db.query("UPDATE smart_executions SET state='pending',next_attempt_at=now(),error_code=NULL WHERE execution_id=$1",[e.execution_id]);
+  await db.query("UPDATE smart_executions SET state='pending',attempts=0,next_attempt_at=now(),error_code=NULL WHERE execution_id=$1",[e.execution_id]);
   return null;
 }
 async function verifyDecision(db:pg.PoolClient,decision:any,node:WorkflowNode,e:Execution,moduleId:string,entered:number,now:number){

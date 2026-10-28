@@ -47,7 +47,9 @@
       "path": "/publications",
       "permission": "steward.automation.read",
       "query": [
-        "q"
+        "q",
+        "limit",
+        "offset"
       ]
     },
     {

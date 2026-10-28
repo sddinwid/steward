@@ -68,7 +68,7 @@ export function inspectWorkflowGraph(value:unknown, fields:WorkflowFields): Work
     }
     if(n.kind==='condition')try{if(validateWorkflowExpression(n.condition,fields)!=='boolean')issue('WORKFLOW_CONDITION_BOOLEAN_REQUIRED',n.id);}catch{issue('WORKFLOW_CONDITION_INVALID',n.id);}
     if(n.kind==='wait'&&(!Number.isSafeInteger(n.waitMs)||n.waitMs!<1||n.waitMs!>limits.elapsedMs))issue('WORKFLOW_WAIT_INVALID',n.id);
-    if(n.kind==='approval'&&(typeof n.approverPermission!=='string'||!/^steward\.automation\.[a-z.-]{1,60}$/.test(n.approverPermission)
+    if(n.kind==='approval'&&(typeof n.approverPermission!=='string'||!/^[a-z][a-z0-9.-]{0,79}\.[a-z][a-z0-9.-]{0,59}$/.test(n.approverPermission)
       ||typeof n.separateInitiator!=='boolean'||!Number.isSafeInteger(n.expiresAfterMs)||n.expiresAfterMs!<1000||n.expiresAfterMs!>limits.elapsedMs))issue('WORKFLOW_APPROVAL_INVALID',n.id);
   }
   const incoming=new Map<string,WorkflowEdge[]>(),outgoing=new Map<string,WorkflowEdge[]>(),edgeKeys=new Set<string>();
@@ -110,4 +110,11 @@ export function inspectWorkflowGraph(value:unknown, fields:WorkflowFields): Work
 export function validateWorkflowGraph(value:unknown,fields:WorkflowFields): asserts value is WorkflowGraph {
   const issues=inspectWorkflowGraph(value,fields);
   if(issues.length)throw new Error(issues.map(i=>i.code+(i.nodeId?':'+i.nodeId:'')).join('; '));
+}
+
+/** Immutable module publication and exact human review retained by an execution. */
+export interface WorkflowPublicationReference {
+  moduleId:string;moduleInstallationId:string;packageDigest:string;
+  publicationId:string;definitionDigest:string;reviewId:string;reviewerId:string;
+  reviewExpiresAt:string;
 }

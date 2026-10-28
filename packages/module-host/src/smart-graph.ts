@@ -13,6 +13,13 @@ export interface SmartGraphPlan {
   complete: boolean;
   suspended: boolean;
 }
+/** Leave no operation a longer transport deadline than the remaining graph
+ * budget. An uncertain timed-out effect still uses the issuance journal. */
+export function graphCallTimeout(startedAt:number,elapsedMs:number,now=Date.now()):number{
+  if(!Number.isSafeInteger(startedAt)||!Number.isSafeInteger(now)||!Number.isSafeInteger(elapsedMs)
+    ||startedAt<0||now<startedAt||elapsedMs<1||elapsedMs>31*86400000||now-startedAt>=elapsedMs)throw Error('WORKFLOW_TIME_BUDGET');
+  return Math.min(4000,elapsedMs-(now-startedAt));
+}
 export function graphCommandId(executionId:string,nodeId:string):string {
   if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(executionId)
     || !/^[a-z][a-z0-9-]{0,47}$/.test(nodeId))throw Error('WORKFLOW_COMMAND_IDENTITY_INVALID');

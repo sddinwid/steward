@@ -1,6 +1,6 @@
 import {verifyWorkflowPublication,type VerifiedWorkflowPublication} from './workflow-authority.js';
 import {prepareGraphStep,persistGraphState} from './smart-graph-runtime.js';
-import {graphCommandId} from './smart-graph.js';
+import {graphCommandId,graphCallTimeout} from './smart-graph.js';
 import {materializeWorkflowInput,evaluateWorkflowExpression,type WorkflowObservation} from '@steward/module-sdk';
 import {atLeast,capabilityConfigured,consumerCapabilityConfigured} from '@steward/module-sdk';
 import {protectSimulationRoute,recordSimulationDenial} from './simulation-routing.js';
@@ -40,6 +40,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       if(!step)throw new Error('INVALID_WORKFLOW_STEP');
       const binding=(await db.query("SELECT * FROM smart_bindings WHERE binding_id=$1 AND consumer_id=$2 AND state IN ('approved','retained')",[step.bindingId,w.consumer_id])).rows[0];
       if(!binding)throw new Error('BINDING_REQUIRES_RECONCILIATION');
+      if(graphFrame&&(binding.peer_grant_id||binding.source_program_id||binding.destination_program_id))throw Error('WORKFLOW_SCOPED_BINDING_REQUIRES_GOVERNANCE');
       const local=(await db.query("SELECT COALESCE((SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'),entity_id) AS entity_id FROM platform_installation WHERE singleton AND installation_id=$1",[installationId])).rows[0];
       if(!local||binding.entity_id!==local.entity_id)throw new Error('ENTITY_SCOPE_MISMATCH');
       if(!(await db.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND enabled AND role='local_admin'",[binding.actor_id])).rowCount)throw new Error('APPROVAL_REVOKED');
@@ -51,6 +52,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
       if(binding.provider_installation_id!==target.operation_id)throw new Error('PROVIDER_REINSTALLED_REVIEW_REQUIRED');
       const verified=(descriptor:Parameters<typeof verifyPackage>[0])=>{try{return verifyPackage(descriptor,trust).manifest;}catch{throw new Error('PACKAGE_TRUST_REVOKED');}};
       const sm=verified(source.descriptor),tm=verified(target.descriptor);
+      if(graphFrame&&(tm.programServices||tm.economicServices))throw Error('WORKFLOW_SCOPED_PROVIDER_REQUIRES_GOVERNANCE');
       if(digest(canonical(target.descriptor))!==binding.package_digest)throw new Error('PROVIDER_UPGRADED_REVIEW_REQUIRED');
       const requirement=sm.smart?.consumes.find(r=>r.capabilityId===binding.capability_id),capability=tm.smart?.provides.find(c=>c.capabilityId===binding.capability_id);
       if(!requirement||canonical(requirement)!==canonical(binding.requirement)||!capability)throw new Error('CONTRACT_CHANGED_REVIEW_REQUIRED');
@@ -76,6 +78,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         if(receipt?.state==='responded')response=receipt.response;
         else await pool.query("INSERT INTO smart_attempts(command_id,execution_id,step,state) VALUES($1,$2,$3,'issued')",[commandId,e.execution_id,e.step]);
       }
+      const operationTimeout=graphFrame&&publication?graphCallTimeout(new Date(e.created_at).getTime(),publication.graph.limits.elapsedMs):4000;
       issued = true;
       if(!response&&op.mode==='durable'){
         if(!tm.integration)throw new Error('DURABLE_ENDPOINT_MISSING');
@@ -84,12 +87,12 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
         for(const previousStep of previous){const prior=(await db.query('SELECT provider_id FROM smart_bindings WHERE binding_id=$1',[previousStep.bindingId])).rows[0];if(prior?.provider_id===target.module_id)sequence++;}
         const envelope:IntegrationCommand={protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence,occurredAt:new Date(e.created_at).toISOString(),payload:input,...(atLeast(tm.minimumPlatformVersion,'0.15.0')?{capability:{capabilityId:capability.capabilityId,operation:op.name}}:{})};
         await protectSimulationRoute(db,envelope,sm,tm,target.configuration);
-        response=await call(tm.moduleId,'POST',tm.integration.inboxPath,envelope,{'x-steward-integration-source':sm.moduleId,'x-steward-installation':installationId,'x-steward-capability':capability.capabilityId},4000,{workerInstallationId:installationId,entityId:binding.entity_id,moduleId:sm.moduleId,moduleInstallationId:source.operation_id,packageDigest:digest(canonical(source.descriptor))});
+        response=await call(tm.moduleId,'POST',tm.integration.inboxPath,envelope,{'x-steward-integration-source':sm.moduleId,'x-steward-installation':installationId,'x-steward-capability':capability.capabilityId},operationTimeout,{workerInstallationId:installationId,entityId:binding.entity_id,moduleId:sm.moduleId,moduleInstallationId:source.operation_id,packageDigest:digest(canonical(source.descriptor))});
       }else if(!response){
         const api=tm.api.find(a=>a.operationId===op.command&&!a.path.includes(':'));
         if(!api||api.permission!==op.permission)throw new Error('SYNC_ENDPOINT_MISSING');
         await protectSimulationRoute(db,{protocol:INTEGRATION_PROTOCOL,commandId,sourceModuleId:sm.moduleId,targetModuleId:tm.moduleId,command:op.command,version:1,aggregateId:e.execution_id,sequence:e.step+1,occurredAt:new Date(e.created_at).toISOString(),payload:input},sm,tm,target.configuration);
-        response=await call(tm.moduleId,api.method,api.path,api.method==='GET'?undefined:{...input,requestId:commandId},{'x-steward-actor':e.actor_id,'x-steward-permissions':JSON.stringify([op.permission]),'x-steward-installation':installationId},4000);
+        response=await call(tm.moduleId,api.method,api.path,api.method==='GET'?undefined:{...input,requestId:commandId},{'x-steward-actor':e.actor_id,'x-steward-permissions':JSON.stringify([op.permission]),'x-steward-installation':installationId},operationTimeout);
       }
       if(!retrySafe)await pool.query("UPDATE smart_attempts SET state='responded',response=$1,updated_at=now() WHERE command_id=$2",[response,commandId]);
       if(response.status>=200&&response.status<300){
@@ -117,7 +120,7 @@ export async function executeSmartStep(pool:pg.Pool,installationId:string,trust:
     }catch(error){
       const raw=(error as Error).message,code=/^[A-Z_]{1,80}$/.test(raw)?raw:'PROVIDER_UNAVAILABLE';
       // Durable inbox receipts make transport retries safe, with a strict attempt budget.
-      if(code==='PROVIDER_UNAVAILABLE'&&(!issued||retrySafe)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
+      if(['PROVIDER_UNAVAILABLE','WORKFLOW_PUBLICATION_UNAVAILABLE'].includes(code)&&(!issued||retrySafe)&&e.attempts<3){await db.query("UPDATE smart_executions SET state='pending',attempts=$1,error_code=$2,next_attempt_at=now()+interval '5 seconds',updated_at=now() WHERE execution_id=$3",[e.attempts+1,code,e.execution_id]);await history('retry_scheduled',{step:e.step,code});}
       else await suspend(code==='PROVIDER_UNAVAILABLE'&&issued&&!retrySafe?'UNCERTAIN_OUTCOME_RECONCILE':code);
     }
     await db.query('COMMIT');

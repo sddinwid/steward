@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {type WorkflowGraph} from '@steward/module-sdk';
-import {planSmartGraph,graphCommandId,type SmartGraphProgress} from './smart-graph.js';
+import {planSmartGraph,graphCommandId,graphCallTimeout,type SmartGraphProgress} from './smart-graph.js';
 const graph:WorkflowGraph={graphVersion:1,limits:{elapsedMs:60000,maxParallel:2,maxActions:4},nodes:[
   {id:'start',kind:'trigger',label:'Start'}, {id:'condition',kind:'condition',label:'Choose',condition:{literal:true}},
   {id:'yes',kind:'wait',label:'Yes',waitMs:10},{id:'no',kind:'wait',label:'No',waitMs:10},
@@ -10,6 +10,12 @@ const graph:WorkflowGraph={graphVersion:1,limits:{elapsedMs:60000,maxParallel:2,
   {from:'start',to:'condition',port:'next'},{from:'condition',to:'yes',port:'true'},{from:'condition',to:'no',port:'false'},
   {from:'yes',to:'join',port:'next'},{from:'no',to:'join',port:'next'},{from:'join',to:'done',port:'next'}]};
 const completed=(...ports:NonNullable<SmartGraphProgress['selectedPorts']>):SmartGraphProgress=>({state:'completed',selectedPorts:ports});
+
+test('provider deadlines cannot outlive the remaining graph budget or accept a reversed clock',()=>{
+  assert.equal(graphCallTimeout(1000,60000,1000),4000);
+  assert.equal(graphCallTimeout(1000,60000,60999),1);
+  for(const args of [[1000,60000,61000],[1000,60000,999],[1000,0,1000],[1000,Infinity,1000]])assert.throws(()=>graphCallTimeout(args[0]!,args[1]!,args[2]!),/WORKFLOW_TIME_BUDGET/);
+});
 test('graph scheduling follows selected conditions and joins settle skipped paths',()=>{
   assert.deepEqual(planSmartGraph(graph,{}).ready,['start']);
   const state:Record<string,SmartGraphProgress>={start:completed('next'),condition:completed('true')};

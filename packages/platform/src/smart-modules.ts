@@ -1,3 +1,4 @@
+import {workflowRoutes} from './workflow-routes.js';
 import {capabilityConfigured} from '@steward/module-sdk';
 import type pg from 'pg';
 import { canonical, digest, verifyPackage, resolveCapability, validateCapabilityValue, type PublisherTrust, type CapabilityProvider, type CapabilityRequirement } from '@steward/module-sdk';
@@ -14,6 +15,7 @@ const uuid = { type: 'string', format: 'uuid' };
 const identifier = { type: 'string', pattern: '^[a-z][a-z0-9.-]{0,79}$' };
 const body = (properties: object, required = Object.keys(properties)) => ({ body: { type: 'object', additionalProperties: false, required, properties } });
 export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Authentication, identity: InstallationConfig, broker: Broker, trust: () => Promise<PublisherTrust>,governance?:{peers:ReturnType<typeof createPeerRegistry>;assertProgram:(actorId:string,moduleId:string,programId:string)=>Promise<void>}) {
+  await workflowRoutes(app,pool,auth,identity,broker,trust);
   async function admin(req: Parameters<Authentication['session']>[0], mutate = false) { const a = await auth.session(req,mutate); if (a.role !== 'local_admin') fail(403,'Worker-local Smart Modules administrator required'); return a; }
   // Governance follows the persisted enrolled legal entity, independently of Master availability.
   async function entityId(){return (await pool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0]?.entity_id??identity.entity.entityId;}
@@ -66,7 +68,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
   app.addHook('onClose',async()=>{clearInterval(timer);});
   app.get('/api/v8/smart-modules',async req => {
     await admin(req); const { rows,providers,remoteProviders } = await registry();
-    return { entityId: await entityId(), providers,remoteProviders,peerGrants:(await pool.query("SELECT grant_id,signed_grant->'payload' AS scope FROM smart_peer_grants WHERE state='approved' AND local_side='source' ORDER BY approved_at DESC LIMIT 100")).rows, consumers: rows.filter(r => r.manifest?.smart?.consumes.length).map(r => ({ moduleId:r.module_id, requirements:r.manifest.smart.consumes })),
+    return { entityId: await entityId(), providers,remoteProviders,workflowSources:rows.filter(r=>r.state==='active'&&r.manifest?.workflowServices&&!r.manifest.programServices&&!r.manifest.economicServices).map(r=>({moduleId:r.module_id,name:r.manifest.name,moduleInstallationId:r.operation_id,packageDigest:digest(canonical(r.descriptor)),publicationPath:r.manifest.api.find((a:any)=>a.operationId===r.manifest.workflowServices.publicationOperationId).path,publicationQuery:r.manifest.api.find((a:any)=>a.operationId===r.manifest.workflowServices.publicationOperationId).query??[]})),peerGrants:(await pool.query("SELECT grant_id,signed_grant->'payload' AS scope FROM smart_peer_grants WHERE state='approved' AND local_side='source' ORDER BY approved_at DESC LIMIT 100")).rows, consumers: rows.filter(r => r.manifest?.smart?.consumes.length).map(r => ({ moduleId:r.module_id, requirements:r.manifest.smart.consumes })),
       bindings:(await pool.query('SELECT * FROM smart_bindings ORDER BY created_at DESC LIMIT 100')).rows,
       workflows:(await pool.query('SELECT * FROM smart_workflows ORDER BY created_at DESC LIMIT 100')).rows,
       executions:(await pool.query('SELECT execution_id,workflow_id,state,step,attempts,error_code,created_at,updated_at FROM smart_executions ORDER BY created_at DESC LIMIT 100')).rows,
@@ -132,7 +134,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
   app.post<{Params:{id:string};Body:{action:'approve'|'activate'|'disable';reason:string}}>('/api/v8/smart-modules/workflows/:id/lifecycle',{schema:{params:{type:'object',additionalProperties:false,required:['id'],properties:{id:uuid}},...body({action:{type:'string',enum:['approve','activate','disable']},reason:{type:'string',minLength:20,maxLength:1000}})}},async req=>{
     const a=await admin(req,true);return transaction(pool,async db=>{
       await db.query('SELECT pg_advisory_xact_lock(8080001)');
-      const w=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1 FOR UPDATE',[req.params.id])).rows[0];if(!w)fail(404,'Workflow not found');
+      const w=(await db.query('SELECT * FROM smart_workflows WHERE workflow_id=$1 FOR UPDATE',[req.params.id])).rows[0];if(!w)fail(404,'Workflow not found');if(w.definition.format==='module-graph-v1')fail(409,'Module graphs require their publication-aware lifecycle');
       const next=req.body.action==='approve'?'approved':req.body.action==='activate'?'active':'disabled';
       if(next==='approved'&&w.state!=='proposed'||next==='active'&&w.state!=='approved')fail(409,'Workflow must be proposed, reviewed and approved before activation');
       if(w.scope_program_id){if(!governance)fail(403,'Programme authority unavailable');await governance.assertProgram(a.account_id,w.consumer_id,w.scope_program_id);}
@@ -144,7 +146,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
   app.post<{Body:{executionId:string;workflowId:string;inputs:unknown[]}}>('/api/v8/smart-modules/execute',{schema:body({executionId:uuid,workflowId:uuid,inputs:{type:'array',minItems:1,maxItems:16,items:{type:'object'}}})},async req=>{
     const a=await admin(req,true),b=req.body;const {rows,providers}=await registry();
     return transaction(pool,async db=>{
-      const w=(await db.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND accepting_new FOR UPDATE",[b.workflowId])).rows[0];if(!w)fail(409,'Workflow is not active');
+      const w=(await db.query("SELECT * FROM smart_workflows WHERE workflow_id=$1 AND state='active' AND accepting_new FOR UPDATE",[b.workflowId])).rows[0];if(!w)fail(409,'Workflow is not active');if(w.definition.format==='module-graph-v1')fail(409,'Module graphs require their publication-aware execution API');
       if(w.scope_program_id)fail(409,'Programme service workflows execute through their module-owned durable operations; generic execution is unavailable');
       if(w.definition.steps.length!==b.inputs.length)fail(400,'One input is required per declared step');
       for(let i=0;i<b.inputs.length;i++){

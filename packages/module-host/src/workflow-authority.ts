@@ -1,13 +1,9 @@
 import type pg from 'pg';
-import {canonical,digest,verifyPackage,validateWorkflowGraph,type PublisherTrust,type WorkflowGraph,type WorkflowFields} from '@steward/module-sdk';
+import {canonical,digest,verifyPackage,validateWorkflowGraph,type PublisherTrust,type WorkflowGraph,type WorkflowFields,type WorkflowPublicationReference} from '@steward/module-sdk';
 
 /** An execution projection retains these exact identities. A later approval,
  * package or installation is not silently substituted into existing work. */
-export interface WorkflowPublicationPin {
-  moduleId:string;moduleInstallationId:string;packageDigest:string;
-  publicationId:string;definitionDigest:string;reviewId:string;reviewerId:string;
-  reviewExpiresAt:string;
-}
+export type WorkflowPublicationPin = WorkflowPublicationReference;
 type Call=(id:string,method:string,path:string,body?:unknown,headers?:Record<string,string>,timeout?:number)=>Promise<{status:number;value:any}>;
 export interface VerifiedWorkflowPublication {
   contractVersion:1;workflowId:string;version:number;name:string;description:string;
@@ -34,6 +30,7 @@ export async function verifyWorkflowPublication(db:Pick<pg.Pool,'query'>,trust:P
   requireAuthority(source.operation_id===p.moduleInstallationId&&digest(canonical(source.descriptor))===p.packageDigest,'WORKFLOW_SOURCE_CHANGED_REVIEW_REQUIRED');
   let manifest;
   try{manifest=verifyPackage(source.descriptor,trust).manifest;}catch{throw Error('WORKFLOW_SOURCE_TRUST_REVOKED');}
+  requireAuthority(!manifest.programServices&&!manifest.economicServices,'WORKFLOW_SCOPED_SOURCE_REQUIRES_GOVERNANCE');
   const service=manifest.workflowServices,review=manifest.approvalServices;
   const operation=manifest.api.find(o=>o.operationId===service?.publicationOperationId);
   requireAuthority(service&&review&&operation?.method==='GET'&&operation.query?.includes('q'),'WORKFLOW_PUBLICATION_SERVICE_UNDECLARED');
@@ -47,6 +44,7 @@ export async function verifyWorkflowPublication(db:Pick<pg.Pool,'query'>,trust:P
   requireAuthority(response.status===200&&Array.isArray(response.value?.records)&&response.value.records.length===1,'WORKFLOW_PUBLICATION_UNAVAILABLE');
   const row=response.value.records[0],definition=row?.definition,r=row?.review;
   requireAuthority(row?.id===p.publicationId&&row.ownerEntityId===scope.entityId,'WORKFLOW_PUBLICATION_SCOPE_MISMATCH');
+  requireAuthority(row.executionAllowed===true,'WORKFLOW_SOURCE_POLICY_REVIEW_REQUIRED');
   requireAuthority(definition&&Buffer.byteLength(canonical(definition))<=98304&&row.definitionDigest===p.definitionDigest&&digest(canonical(definition))===p.definitionDigest,'WORKFLOW_PUBLICATION_CHANGED');
   requireAuthority(r?.id===p.reviewId&&r.decision==='approve'&&r.reviewerId===p.reviewerId&&r.expiresAt===p.reviewExpiresAt,'WORKFLOW_REVIEW_CHANGED_REVIEW_REQUIRED');
   requireAuthority([row.publishedBy,row.authorId,row.editorId].every(v=>typeof v==='string'&&uuid.test(v))

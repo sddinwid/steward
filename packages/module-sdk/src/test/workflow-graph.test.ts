@@ -26,6 +26,7 @@ test('approvals require explicit rejection and expiry paths and bounded policy',
   graph.edges[1]={from:'reserve',to:'done',port:'approved'};
   graph.edges.push({from:'reserve',to:'rejected',port:'rejected'},{from:'reserve',to:'expired',port:'expired'});
   assert.deepEqual(inspectWorkflowGraph(graph,{}),[]);
+  graph.nodes[1]!.approverPermission='example.independent-module.review';assert.deepEqual(inspectWorkflowGraph(graph,{}),[]);
   graph.nodes[1]!.expiresAfterMs=60001;assert.ok(inspectWorkflowGraph(graph,{}).some(i=>i.code==='WORKFLOW_APPROVAL_INVALID'));
 });
 test('bounded parallel branch and explicit join validate without implicit provider selection',()=>{

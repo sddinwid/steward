@@ -44,6 +44,7 @@ try{
  await check('exact signed publication and separate current reviewer resolve through the authoritative module API',async()=>{const d=await verify();assert.deepEqual(d.graph,graph);assert.equal(d.workflowId,created.id);assert.equal(digest(canonical(d)),pin.definitionDigest);});
  await check('another entity and altered source definition are rejected rather than trusted from projection',async()=>{
   await assert.rejects(()=>verify({entityId:randomUUID()}),/WORKFLOW_PUBLICATION_SCOPE_MISMATCH/);
+  await assert.rejects(()=>verify({},async(...args)=>{const r=await transport(...args);r.value.records[0].executionAllowed=false;return r;}),/WORKFLOW_SOURCE_POLICY_REVIEW_REQUIRED/);
   await assert.rejects(()=>verify({},async(...args)=>{const r=await transport(...args);r.value.records[0].definition.name='Forged';return r;}),/WORKFLOW_PUBLICATION_CHANGED/);
  });
  await check('reinstallation, package replacement and configuration mismatch require review before transport',async()=>{
@@ -84,8 +85,15 @@ try{
     publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();return pin;
   }});
  }
+ if(process.argv.includes('--governance')){
+  const {exerciseWorkflowGovernance}=await import('./workflow-governance-checks.mjs');
+  await exerciseWorkflowGovernance({check,metadata,installationId,entityId,author,reviewer,manifest,trust,transport,verify,api,publish:async graph=>{
+    const created=(await api('POST','/workflows',{recordKey:randomUUID(),name:'Governance '+randomUUID(),description:'Real session and CSRF governance fixture; no installed provider.',graph})).record;
+    publicationId=(await api('POST','/publish/'+created.id,{revision:created.revision,requestId:randomUUID()})).publicationId;await review('approve');pin=await readPin();return pin;
+  }});
+ }
  report.status=report.checks.every(c=>c.status==='passed')?'passed':'failed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{
  await app?.close();await metadata?.end();await moduleDb?.end();try{docker(['rm','-f',container]);}catch{}await unlink(secretFile).catch(()=>{});
- await mkdir('artifacts',{recursive:true});await writeFile(process.argv.includes('--runtime')?'artifacts/phase16-graph-runtime.json':'artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
+ await mkdir('artifacts',{recursive:true});await writeFile(process.argv.includes('--runtime')?'artifacts/phase16-graph-runtime.json':process.argv.includes('--governance')?'artifacts/phase16-workflow-governance.json':'artifacts/phase16-workflow-authority.json',JSON.stringify(report,null,2)+'\n');
 }

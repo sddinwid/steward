@@ -258,3 +258,80 @@ upgrade and final release gates still need implementation/acceptance. In
 particular, existing Inventory reservation commands enforce Sales ownership;
 synthetic receipt tests must not be represented as real Inventory automation.
 The 1,147-test full run predates this coordinator checkpoint.
+
+## Authenticated governance and generic UI checkpoint
+
+New Worker `/api/v16/workflows` routes import an exact module publication, activate
+or suspend it, queue an idempotent manual execution, record current human step
+decisions, cancel without rollback, and list minimized progress. They use existing
+sessions/CSRF, SSMA tables, compatibility resolution and signed module broker.
+Legacy workflow endpoints explicitly reject graph lifecycle/execution requests.
+Import does not activate. Activating one definition does not disable an unrelated
+definition from the same module. Programme, financial and peer-scoped graph actions
+are explicitly denied pending integration with their established scoped paths;
+existing scoped legacy workflows remain unchanged.
+
+The host broker verifies module-owned publications through their declared API.
+Current module policy can block an old publication when limits tighten without
+rewriting its definition. The coordinator retries temporary publication-service
+outages with its existing bounded retry policy. Source/reviewer replacement or
+revocation remains a denial, not an automatic substitution.
+
+The shared UI now offers publication selection, read-only graph inspection,
+import/activation/suspension, manual starts, progress, decisions and cancellation.
+Its sources come from the existing verified SSMA registry. Unconfirmed starts
+retain their execution identity for retries. Module forms/navigation still use the
+generic signed renderer. Approval permission is now supplied by signed module
+metadata instead of a hardcoded Automation permission; publication independently
+enforces that declaration. The current governance panel is an administrator view;
+module-user decision authorization is tested through the API.
+
+Actual targeted results (not a replacement for the final full regression):
+
+- SDK: **53 passed** (`phase16-governance-sdk-tests.log`).
+- Automation definitions/policy: **10 passed** (`phase16-policy-module-tests.log`).
+- Publication + graph kernel: **19 passed** (`phase16-publication-recovery-tests.log`).
+- Publication + real session/CSRF governance: **14 passed**
+  (`phase16-policy-governance-tests.log`). Broker transport is injected into real
+  module APIs and independent databases; this is not installed-host acceptance.
+- Platform: **98 passed** (`phase16-governance-platform-tests.log`).
+- Shared presentation: **24 passed** (`phase16-governance-presentation-tests.log`).
+- Legacy SSMA plus authenticated browser: **12 Node checks passed**, comprising
+  11 backend checks and one grouped browser workflow
+  (`phase16-governance-legacy-browser.log`).
+- Designer component: **5 Chromium checks passed**
+  (`phase16-governance-designer-browser.log`).
+- Governance component: **5 Chromium checks passed**, including a lost-response
+  retry with the identical execution ID (`phase16-governance-browser-policy-rerun.log`).
+  Its browser responses are explicitly simulated; separate API tests use actual
+  authentication. The narrow-screen screenshot was visually inspected.
+- SDK, host, platform, UI, Automation, Master web and Worker web targeted builds pass.
+
+Retained UI failures: optional-property TypeScript mismatch in
+`phase16-generic-approval-ui-build.log`, and a Windows cp1252 middle-dot mismatch
+in the first governance browser fixture (`phase16-workflow-governance-component-encoding-failure.json`).
+The latter also exposed an invalid loading-label byte in the generic renderer;
+changed text files now validate as UTF-8. Corrected builds/browser checks pass.
+
+No operator upgrade, account/password change, signed module installation, live
+connector operation or release promotion was performed. Governed event
+subscriptions, installed business scenarios, simultaneous provider dispatch,
+authenticated installed graph browser acceptance, final outage/upgrade/install
+acceptance and release packaging remain open. The complete 1,147-test run still
+refers specifically to commit `7df0f62`, before these later changes.
+
+### Transport and discovery follow-up
+
+Absolute HTTP abort deadlines now include module-call preparation time and cannot
+be extended by a continuously streaming response. Host tests: **31 passed**
+(`phase16-http-budget-tests.log`), including three native HTTP transport tests.
+Publication lists contain paginated metadata; exact authorized queries retain the
+full immutable definition. Pagination controls use signed supported query names.
+Automation tests: **11 passed** (`phase16-publication-pagination-tests.log`).
+Final targeted reruns: publication/governance **14 passed**, publication/kernel
+**19 passed**, governance browser **5 passed**, platform/UI builds passed
+(`phase16-{governance,runtime}-final-checkpoint.log`,
+`phase16-governance-final-{platform-build,ui-build,browser}.log`).
+Selected existing deployment smoke checks passed for Master and all three Workers,
+including distinct databases and identical Worker images
+(`phase16-governance-selected-smoke.log`). This did not deploy Phase 16.
