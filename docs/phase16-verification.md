@@ -593,3 +593,26 @@ verification passed with 60 selected containers and zero unexpected containers;
 source migration verification passed all 10 checks, including trusted legacy
 provenance (`phase16-recovery-source-migrations.json`). These are preservation
 checks on the unchanged deployed release, not a Phase 16 upgrade.
+
+### Uninterrupted regression rerun passed
+
+Clean code commit `d3c3d1db85cc5d29b24f6eaaf59541174131efd0` completed
+root `npm test` uninterrupted with exit 0: **1,222 tests / 76 Node test summaries,
+1,222 passed, 0 failed, 0 cancelled, 0 skipped**. Completed at
+2026-10-28T21:04:14.8009735Z. Evidence:
+`phase16-replay-migration-full-regressions.log` and
+`phase16-replay-migration-full-result.json`. These counts exclude additional
+plain-output script checks rather than guessing a combined count. The preceding
+full build passed at `8afcfc3`; the only code correction afterward was migration
+registration, rebuilt and verified by the platform and actual upgrade tests.
+No claim is made of a fresh complete build at the corrected commit.
+
+The first failed full run recorded **217 passed / 1 failed** across its completed
+Node summaries; it remains a failure, not overwritten by this successful rerun.
+Seven governance component browser checks also passed separately.
+
+This is a verified intermediate foundation. Automation has not been installed on
+the selected operator stack. Real business trigger/action packages, bounded
+parallel dispatch, the required installed scenarios, candidate packaging,
+data-preserving upgrade and final release acceptance remain unfinished. No
+`v0.16.0` tag or Phase 16 GitHub push has been made.
