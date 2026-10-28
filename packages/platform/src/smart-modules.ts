@@ -7,6 +7,7 @@ import { fail } from './security/crypto.js';
 import { audit, transaction } from './security/store.js';
 import type { createModuleBroker } from './module-broker.js';
 import type {createPeerRegistry} from './peer-registry.js';
+import {boundedRegistryMap,singleRegistryFlight} from './smart-registry.js';
 
 type Broker = Awaited<ReturnType<typeof createModuleBroker>>;
 const uuid = { type: 'string', format: 'uuid' };
@@ -22,15 +23,18 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
       try { return { ...row, manifest: verifyPackage(row.descriptor,publishers).manifest }; } catch { return { ...row, manifest: null }; }
     });
   }
-  async function registry() {
-    const rows = await installed(), providers: CapabilityProvider[] = [];
-    for (const row of rows) {
+  async function scanRegistry() {
+    const rows = await installed(), providers: CapabilityProvider[] = [],enrolledEntityId=await entityId();
+    const states=await boundedRegistryMap(rows,async row=>{
       let state: CapabilityProvider['state'] = row.state === 'active' ? 'active' : row.state === 'failed' ? 'failed' : 'inactive';
       if (state === 'active' && row.manifest?.smart?.provides.length) {
         try { if ((await broker('inspect',row.descriptor,row.configuration)).status !== 200) state = 'unavailable'; } catch { state = 'unavailable'; }
       }
+      return state;
+    });
+    for (const [index,row] of rows.entries()) {
       for (const capability of row.manifest?.smart?.provides ?? []) {
-        const provider: CapabilityProvider = { moduleId: row.module_id, moduleVersion: row.version, installationId: row.operation_id, entityId: await entityId(), packageDigest: digest(canonical(row.descriptor)), state,
+        const provider: CapabilityProvider = { moduleId: row.module_id, moduleVersion: row.version, installationId: row.operation_id, entityId: enrolledEntityId, packageDigest: digest(canonical(row.descriptor)), state:states[index]!,
           configured: capabilityConfigured(row.manifest,row.configuration,capability), capability };
         providers.push(provider);
       }
@@ -49,6 +53,7 @@ export async function smartModuleRoutes(app: SecureApp, pool: pg.Pool, auth: Aut
     }
     return { rows, providers,remoteProviders };
   }
+  const registry=singleRegistryFlight(scanRegistry);
   function requirement(rows: any[], consumerId: string, capabilityId: string): CapabilityRequirement {
     const consumer = rows.find(r => r.module_id === consumerId);
     if (!consumer?.manifest || consumer.state !== 'active') fail(409,'Consumer is not active or trusted');

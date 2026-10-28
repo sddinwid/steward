@@ -86,7 +86,15 @@ try{
  const app=Fastify({logger:false,...(tls?{https:tls}:{})});apps.push(app);
  const auth=authentication(app,db,origin);
  const unavailable=new Set();
- await smartModuleRoutes(app,db,auth,identity,async(_op,d)=>({status:unavailable.has(d.payload.manifest.moduleId)?503:200,value:{}}),async()=>trust);
+ const registryProbe={delay:0,active:0,maximum:0,calls:[],failures:new Set(),throws:new Set()};
+ await smartModuleRoutes(app,db,auth,identity,async(_op,d)=>{
+  const id=d.payload.manifest.moduleId;
+  if(id.startsWith('example.registry-')&&id!=='example.registry-consumer'){
+   registryProbe.calls.push(id);registryProbe.active++;registryProbe.maximum=Math.max(registryProbe.maximum,registryProbe.active);
+   try{if(registryProbe.delay)await delay(registryProbe.delay+(Number(id.slice(-2))%3)*20);if(registryProbe.throws.has(id))throw Error('Deliberate synthetic health transport failure');return{status:registryProbe.failures.has(id)?503:200,value:{}};}finally{registryProbe.active--;}
+  }
+  return{status:unavailable.has(id)?503:200,value:{}};
+ },async()=>trust);
  app.setErrorHandler((e,_req,reply)=>reply.code(e.statusCode??500).send({error:e.message}));
  if(browserMode){
    const {build}=await import('vite');
@@ -231,6 +239,39 @@ try{
   for(let n=0;n<2;n++){const c=command(destinations[n]),r=await routeSmartCommand(db,c,manifests[sourceId].m,trust,installationId,undefined,async(...args)=>verified.push(args));assert.equal(r.command.targetModuleId,providers[n]);assert.equal(r.scope.destinationProgramId,destinations[n]);if(n===0)await assert.rejects(routeSmartCommand(db,{...c,commandId:randomUUID(),sequence:2,payload:{...c.payload,programId:destinations[1]}},manifests[sourceId].m,trust,installationId,undefined,async()=>{}),/WORKFLOW_APPROVAL_REQUIRED/);}
   assert.equal((await db.query("SELECT count(*)::int n FROM smart_bindings WHERE consumer_id=$1 AND state='approved'",[sourceId])).rows[0].n,2);assert.equal(verified.length,4);
   const duplicate=(await db.query('SELECT * FROM smart_bindings WHERE binding_id=$1',[bindings[0]])).rows[0];await assert.rejects(db.query("INSERT INTO smart_bindings SELECT $1,consumer_id,capability_id,provider_id,provider_installation_id,package_digest,requirement,capability,actor_id,entity_id,state,revision,reason,created_at,updated_at,peer_installation_id,peer_grant_id,source_program_id,destination_program_id,purpose,expires_at FROM smart_bindings WHERE binding_id=$2",[randomUUID(),duplicate.binding_id]),e=>e.code==='23505');
+ });
+ await test('many delayed real registry inspections are bounded, shared, ordered and atomically fail closed',async()=>{
+  const ids=[];const probeCapability='registry.probe.primary';
+  try{
+   for(let n=0;n<16;n++){
+    const id='example.registry-'+String(n).padStart(2,'0'),m=manifest(id,true);ids.push(id);
+    m.smart.provides=[{...structuredClone(m.smart.provides[0]),capabilityId:'registry.probe.secondary'},{...structuredClone(m.smart.provides[0]),capabilityId:probeCapability}];
+    const signed=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+digest(id),manifest:m},secret);if(n===13)signed.payload.manifest.description+=' deliberately invalid signature';
+    await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,$3,$4,$5)",[id,signed,{integrationsEnabled:n!==11},n===14?'installed':n===15?'failed':'active',randomUUID()]);
+   }
+   const consumerId='example.registry-consumer',consumer=manifest(consumerId);consumer.smart.consumes=structuredClone(consumer.smart.consumes);consumer.smart.consumes[0].capabilityId=probeCapability;ids.push(consumerId);const signed=signPackage({formatVersion:1,publisherId:'test-only',imageId:'sha256:'+digest(consumerId),manifest:consumer},secret);
+   await db.query("INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,'1.0.0',$2,$3,'active',$4)",[consumerId,signed,{integrationsEnabled:true},randomUUID()]);
+   await api(''); // Complete any older scan before measuring a fresh one.
+   registryProbe.calls=[];registryProbe.maximum=0;registryProbe.delay=900;registryProbe.failures.add(ids[3]);registryProbe.throws.add(ids[7]);
+   const originalQuery=db.query.bind(db);let entityQueries=0;
+   db.query=(...args)=>{if(typeof args[0]==='string'&&args[0].startsWith("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'"))entityQueries++;return originalQuery(...args);};
+   let results,elapsed;
+   try{
+    const start=performance.now(),requests=Promise.all([api(''),api(''),api('')]);await delay(100);
+    const before=(await originalQuery("SELECT state FROM smart_providers WHERE module_id=$1 ORDER BY capability_id",[ids[3]])).rows;assert(before.length===2&&before.every(r=>r.state==='active'),'Readers see prior complete cache until refreshed scan commits');
+    results=await requests;elapsed=performance.now()-start;
+   }finally{db.query=originalQuery;}
+   assert(registryProbe.maximum>1&&registryProbe.maximum<=8,'Real broker calls must be parallel but bounded');assert.equal(registryProbe.active,0);assert.equal(registryProbe.calls.length,13,'Exactly one health inspection per trusted active module across concurrent requests');assert.equal(new Set(registryProbe.calls).size,13);assert(elapsed<6000,'Thirteen delayed inspections would exceed ten seconds serially');assert.equal(entityQueries,4,'One local entity snapshot per scan plus one response entity per GET');
+   report.registryConcurrency={bound:8,maximum:registryProbe.maximum,inspectedTrustedActiveModules:registryProbe.calls.length,simultaneousAuthenticatedRequests:3,delayedBatchMs:Math.round(elapsed),serialMinimumMs:13*900,entityQueries,singleFreshScan:true};
+   const local=results[0].providers.filter(p=>p.moduleId.startsWith('example.registry-'));assert.equal(canonical(results[0].providers),canonical(results[1].providers));assert.equal(canonical(results[0].providers),canonical(results[2].providers));
+   const expected=ids.slice(0,16).filter((_id,n)=>n!==13).flatMap(moduleId=>['registry.probe.secondary',probeCapability].map(capabilityId=>moduleId+'/'+capabilityId));assert.deepEqual(local.map(p=>p.moduleId+'/'+p.capability.capabilityId),expected,'Signed module/capability order is independent of completion order');
+   for(const id of [ids[3],ids[7]])assert(local.filter(p=>p.moduleId===id).every(p=>p.state==='unavailable'));
+   assert(local.filter(p=>p.moduleId===ids[11]).every(p=>p.configured===false));assert(local.filter(p=>p.moduleId===ids[14]).every(p=>p.state==='inactive'));assert(local.filter(p=>p.moduleId===ids[15]).every(p=>p.state==='failed'));
+   registryProbe.delay=0;
+   for(const providerId of [ids[3],ids[7],ids[11],ids[13],ids[14],ids[15]]){const result=await api('/resolve','POST',{consumerId,capabilityId:probeCapability,preferredProvider:providerId});assert.equal(result.state,'unavailable');assert.equal(result.selected,null);}
+   const beforeCalls=registryProbe.calls.length;await api('','GET',undefined,user,403);assert.equal(registryProbe.calls.length,beforeCalls,'Unauthorized account cannot trigger discovery');
+   const cached=(await db.query("SELECT module_id,state,configured FROM smart_providers WHERE module_id=ANY($1::text[]) ORDER BY module_id,capability_id",[ids])).rows;assert.equal(cached.length,30);assert(cached.filter(p=>p.module_id===ids[3]||p.module_id===ids[7]).every(p=>p.state==='unavailable'));
+  }finally{registryProbe.delay=0;registryProbe.failures.clear();registryProbe.throws.clear();await db.query('DELETE FROM smart_providers WHERE module_id=ANY($1::text[])',[ids]);await db.query('DELETE FROM module_installations WHERE module_id=ANY($1::text[])',[ids]);}
  });
  if(browserMode)await test('browser performs discovery, explicit provider approval, retained-state reload and unavailable-state inspection',async()=>{
    const {chromium}=await import('playwright');const browser=await chromium.launch({headless:true});
