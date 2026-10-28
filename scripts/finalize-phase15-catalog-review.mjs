@@ -20,6 +20,7 @@ if(!values['execute-authorized'])throw Error('Explicit operator readiness and ac
 assert(values.report&&/^[a-f0-9]{64}$/.test(values['reviewed-narrative-sha256']??''),'Supply exact reviewed narrative digest after human inspection');
 const root=path.resolve(fileURLToPath(new URL('..',import.meta.url))),sourceFile=path.resolve(values.report),sourceText=await readFile(sourceFile,'utf8'),native=JSON.parse(sourceText);
 assert.equal(native.status,'awaiting-review');assert.equal(native.findingDeferred,true);assert(!native.findingId&&native.deliveries.length===0,'Deferred report cannot already contain finding or acknowledgement');assert.equal(native.purpose,'simulation');assert.equal(native.investigationStatus,'completed');assert.equal(native.testModel,false);assert.equal(native.configurationRestored,true);assert.deepEqual(native.cleanupErrors,[]);
+const nativeCatalogAnalyses=native.result.analyses.filter(a=>a.catalogCalculationId);assert(nativeCatalogAnalyses.length);assert.equal(native.catalogCalculationId,nativeCatalogAnalyses.at(-1).catalogCalculationId,'Finding endpoint publishes the LAST Catalog analysis; reviewed calculation must match it');
 const load=relative=>import(pathToFileURL(path.join(root,relative)).href),{canonical,digest}=await load('packages/module-sdk/dist/index.js'),{validateCatalogNarrative,newCatalogPlan}=await load('packages/platform/dist/catalog-investigation.js'),{recomputePublishedContribution}=await load('packages/platform/dist/catalog-intelligence-calculation.js');
 assert.equal(digest(native.result.narrative),native.reviewNarrativeDigest);assert.equal(values['reviewed-narrative-sha256'],native.reviewNarrativeDigest,'Review must refer to this exact immutable narrative');
 const selection=JSON.parse(await readFile(path.join(root,'.steward/operator/selection.json'),'utf8')),directory=path.resolve(values.directory??selection.directory);assert.equal(directory,path.resolve(selection.directory));
@@ -33,7 +34,7 @@ try{
  async function validateCurrent(){
   const live=(await api('master','/api/v5/analyst/investigations/'+native.investigationId)).value;assert.equal(live.investigation.status,'completed');assert.equal(live.investigation.test_model,false);assert.equal(canonical(live.investigation.result),canonical(native.result),'Same investigation result and exact original narrative required');
   validateCatalogNarrative(live.investigation.result,newCatalogPlan('simulation'),live.investigation.result.analyses);
-  const analysis=live.investigation.result.analyses.find(a=>a.catalogCalculationId===native.catalogCalculationId);assert(analysis);assert.deepEqual(new Set(analysis.supportingReferences.map(canonical)),sourceKeys);
+  const analysis=live.investigation.result.analyses.filter(a=>a.catalogCalculationId).at(-1);assert(analysis);assert.equal(analysis.catalogCalculationId,native.catalogCalculationId,'Current LAST Catalog analysis must be the explicitly reviewed calculation');assert.deepEqual(new Set(analysis.supportingReferences.map(canonical)),sourceKeys);
   const calculation=(await api('master','/api/v15/catalog-intelligence/calculations/'+native.catalogCalculationId)).value;assert.deepEqual(new Set(calculation.sourceReferences.map(canonical)),sourceKeys);
   for(const source of native.sources){
    assert(manifest.instances.some(i=>i.role==='worker'&&i.installationId===source.reference.installationId));let offset=0,publication,evidence=[],complete=false;
@@ -42,7 +43,7 @@ try{
   }
   return live;
  }
- let live=await validateCurrent();const {operatorCatalogBrowserSession}=await load('scripts/phase15-operator-catalog-browser-session.mjs');session=await operatorCatalogBrowserSession();
+ let live=await validateCurrent();const {operatorCatalogBrowserSession}=await load('scripts/phase15-operator-catalog-browser-session.mjs');report.screenshotPrefix='phase15-i-human-review-'+native.investigationId;session=await operatorCatalogBrowserSession(report.screenshotPrefix);
  // Freshness is checked again after UI login; server publication independently revalidates too.
  live=await validateCurrent();
  if(live.investigation.finding_id){assert(report.publicationAttempt,'Unexpected preexisting finding; reconcile without adopting it');assert(!report.findingId||report.findingId===live.investigation.finding_id);report.findingId=live.investigation.finding_id;}
