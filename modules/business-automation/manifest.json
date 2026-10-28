@@ -69,6 +69,15 @@
       "method": "GET",
       "path": "/workflow-status",
       "permission": "steward.automation.read"
+    },
+    {
+      "operationId": "triggerContracts",
+      "method": "GET",
+      "path": "/trigger-contracts",
+      "permission": "steward.automation.read",
+      "query": [
+        "q"
+      ]
     }
   ],
   "ui": [
@@ -101,6 +110,18 @@
           "type": "string",
           "required": true,
           "format": "multiline"
+        },
+        {
+          "name": "triggerSource",
+          "label": "Trigger source",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "triggerContracts",
+            "valueField": "id",
+            "labelField": "name"
+          },
+          "default": "manual"
         },
         {
           "name": "graph",

@@ -26,7 +26,7 @@ try{
  validateManifest(manifest);await mkdir(directory,{recursive:true});privateDirectory(directory);await writeFile(secretFile,'POSTGRES_PASSWORD='+password+'\n',{mode:0o600});docker(['run','--rm','-d','--name',container,'--env-file',secretFile,'-p','127.0.0.1::5432','postgres:17.10-alpine']);
  const port=Number(JSON.parse(docker(['inspect',container]))[0].NetworkSettings.Ports['5432/tcp'][0].HostPort);pool=new pg.Pool({host:'127.0.0.1',port,user:'postgres',password});for(let n=0;;n++){try{await pool.query('SELECT 1');break;}catch(e){if(n===40)throw e;await delay(250);}}
  const sql=await readFile('modules/business-automation/migrations/001-foundation.sql','utf8');assert.equal(digest(sql),manifest.persistence.migrations[0].sha256);await pool.query(sql);
- const start=(scope=entityId,limit=600000)=>createBusinessServer(pool,token,{installationId,entityId:scope,configuration:{maxElapsedMs:limit,maxParallel:2}},automation(manifest),async()=>1,async()=>{});app=start();
+ const start=(scope=entityId,limit=600000,declaredManifest=manifest)=>createBusinessServer(pool,token,{installationId,entityId:scope,configuration:{maxElapsedMs:limit,maxParallel:2}},automation(declaredManifest),async()=>1,async()=>{});app=start();
  await check('independent module denies missing gateway authentication and local permissions',async()=>{
   assert.equal((await app.inject({method:'GET',url:'/workflows'})).statusCode,401);await request('GET','/workflows',undefined,403,author,[]);
  });
@@ -85,6 +85,21 @@ try{
   const page=await request('GET','/publications?limit=1&offset=0');assert.equal(page.records.length,1);assert.equal(page.records[0].definition,undefined);
   const detail=(await request('GET','/publications?q='+published.publicationId)).records[0];assert(detail.definition.graph);assert.equal(detail.definitionDigest,published.definitionDigest);
   await request('GET','/publications?limit=21',undefined,400);await request('GET','/publications?offset=-1',undefined,400);
+ });
+ await check('trigger discovery cannot turn an undeclared event or user-supplied schema into publication authority',async()=>{
+  const choices=await request('GET','/trigger-contracts');assert.deepEqual(choices.records.map(r=>r.id),['manual']);
+  await request('POST','/workflows',{...draft,recordKey:randomUUID(),triggerSource:'unapproved.source/private.changed'},422);
+  await request('POST','/workflows',{...draft,recordKey:randomUUID(),trigger:{kind:'event',input:{}}},400);
+ });
+ await check('declared event publications retain the exact signed input contract, field sensitivity and immutable history',async()=>{
+  const eventManifest=structuredClone(manifest),requirement=eventManifest.smart.consumes[0],input={type:'object',additionalProperties:false,required:['itemId','quantity'],properties:{itemId:{type:'string'},quantity:{type:'integer',minimum:0}}};
+  requirement.events=[{name:'stock.changed',schema:input}];requirement.maximumSensitivity='restricted';validateManifest(eventManifest);
+  await app.close();app=start(entityId,600000,eventManifest);const choice=requirement.capabilityId+'/stock.changed';
+  const selected=(await request('GET','/trigger-contracts?q='+encodeURIComponent(choice))).records[0];assert.deepEqual(selected.trigger.input,input);assert.equal(selected.sensitivity,'restricted');
+  const eventGraph={graphVersion:1,nodes:[{id:'start',kind:'trigger',label:'Stock event'},{id:'condition',kind:'condition',label:'Below threshold',condition:{op:'lt',args:[{field:'trigger.quantity'},{literal:5}]}},{id:'yes',kind:'completion',label:'Below threshold'},{id:'no',kind:'completion',label:'No action'}],edges:[{from:'start',to:'condition',port:'next'},{from:'condition',to:'yes',port:'true'},{from:'condition',to:'no',port:'false'}],limits:{elapsedMs:60000,maxParallel:1,maxActions:1}};
+  const r=(await request('POST','/workflows',{recordKey:randomUUID(),name:'Declared event fixture',description:'Synthetic signed requirement fixture, no provider admission or execution.',triggerSource:choice,graph:eventGraph},201)).record;
+  const publication=await request('POST','/publish/'+r.id,{revision:r.revision,requestId:randomUUID()}),before=(await request('GET','/publications?q='+publication.publicationId)).records[0];assert.equal(before.executionAllowed,true);assert.equal(before.definition.trigger.kind,'event');assert.equal(before.definition.trigger.capabilityId,requirement.capabilityId);assert.deepEqual(before.definition.trigger.input,input);assert.equal(before.definition.fields['trigger.quantity'].sensitivity,'restricted');
+  await app.close();app=start();const after=(await request('GET','/publications?q='+publication.publicationId)).records[0];assert.equal(after.executionAllowed,false);assert.deepEqual(after.definition,before.definition);assert.equal(after.definitionDigest,before.definitionDigest);
  });
  report.status=report.checks.every(c=>c.status==='passed')?'passed':'failed';
 }catch(e){report.status='failed';report.error=e.message;process.exitCode=1;}finally{await app?.close();await pool?.end();try{docker(['rm','-f',container]);}catch{}await unlink(secretFile).catch(()=>{});await mkdir('artifacts',{recursive:true});await writeFile('artifacts/phase16-automation-definitions.json',JSON.stringify(report,null,2)+'\n');}

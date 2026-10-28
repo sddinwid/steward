@@ -397,3 +397,29 @@ The accepted Phase 15 evidence ZIP still hashes to
 
 A final uninterrupted full regression remains mandatory after implementation.
 No Phase 16 deployment, release promotion, tag or push is claimed.
+
+## Event publication definition checkpoint
+
+Automation drafts now select a manual trigger or an event from their signed
+consumer requirements. A read-only declared API supplies the generic SSDS trigger
+selector; the default remains an explicitly authorized manual start. Publications
+retain the exact event input schema and conservative declared sensitivity. An
+unknown event or caller-supplied schema cannot become authority, and removing the
+declaration blocks the publication while preserving its original bytes. Existing
+manual publications remain compatible. Current distributed Automation metadata
+has no event requirement yet; installed provider event capabilities, subscription
+admission and host polling are the next integration checkpoint. The host still
+refuses event execution until that governed path is implemented.
+
+Automation: **13 passed** (`phase16-event-publication-tests.log`). Module build
+passed. Publication/governance **14 passed** and publication/runtime **19 passed**
+(`phase16-event-definition-{governance,runtime}-regression.log`).
+
+The 11 remaining root regression commands after the earlier Catalog migration
+failure were run on clean commit `57f2c2a1c4286212920db729ba238f51f1944c5b`:
+**202 tests passed**, zero failed (`phase16-receipts-tail-regressions.log` and
+`phase16-receipts-tail-result.json`). This tail run is explicitly not an
+uninterrupted full regression. Single-stack audit at 19:42 UTC confirmed the
+selected operator's **60 containers**, zero unexpected Steward containers
+(`phase16-receipts-single-stack.log`). No operator mutation, live commerce action,
+Phase 16 tag or push occurred.
