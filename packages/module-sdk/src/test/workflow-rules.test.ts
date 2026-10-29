@@ -58,6 +58,14 @@ test('arithmetic rejects overflow, zero division and silent rounding', () => {
   assert.throws(()=>run({op:'divide',args:[literal(1),literal(0)]}),/EXACT_DIVISION/);
   assert.throws(()=>run({op:'divide',args:[literal(7),literal(2)]}),/EXACT_DIVISION/);
 });
+test('authoritative replication stream names preserve underscore provenance without accepting arbitrary paths', () => {
+  for(const streamId of ['sales_demand','inventory_replenishment','mission_aggregates_v1','workflow-triggers']) {
+    assert.equal(run(quantity,{'trigger.quantity':{...observation(7),source:{...source,streamId}}}),7);
+  }
+  for(const streamId of ['sales/demand','sales demand','Sales_demand','sales_demand;DROP','a_'+'b'.repeat(49)]) {
+    assert.throws(()=>run(quantity,{'trigger.quantity':{...observation(7),source:{...source,streamId}}}),/PROVENANCE_INVALID/);
+  }
+});
 test('strict types prevent coercion and policy relaxation', () => {
   assert.throws(()=>validateWorkflowExpression({op:'eq',args:[literal(1),{literal:'1'}]},fields),/TYPE_MISMATCH/);
   assert.throws(()=>run(quantity,{'trigger.quantity':observation(true)}),/TYPE_MISMATCH/);

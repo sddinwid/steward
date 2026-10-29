@@ -148,7 +148,9 @@ export function evaluateWorkflowExpression(expression: WorkflowExpression, field
       requireRule([s.entityId, s.installationId, s.moduleInstallationId, s.recordId].every(id =>
         typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))
         && typeof s.moduleId === 'string' && /^[a-z][a-z0-9.-]{0,79}$/.test(s.moduleId)
-        && typeof s.streamId === 'string' && /^[a-z][a-z0-9.-]{0,79}$/.test(s.streamId)
+        // Replicated business streams use SQL-safe underscores; internal graph
+        // observations retain their existing dotted/hyphenated namespace.
+        && typeof s.streamId === 'string' && (/^[a-z][a-z0-9_]{0,49}$/.test(s.streamId) || /^[a-z][a-z0-9.-]{0,79}$/.test(s.streamId))
         && typeof s.packageDigest === 'string' && /^[a-f0-9]{64}$/.test(s.packageDigest)
         && Number.isSafeInteger(s.revision) && s.revision >= 1, 'WORKFLOW_PROVENANCE_INVALID');
       requireRule(Number.isSafeInteger(observed.observedAt) && observed.observedAt >= 0

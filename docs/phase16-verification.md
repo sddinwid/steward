@@ -1132,3 +1132,36 @@ The dispatcher now routes v16 directly to `/api/v16/`, retaining existing auth,
 CSRF, same-origin credentials, retry behavior and timeout policies. UI build and
 **5/5 presentation/routing tests passed**. A new committed candidate and installed
 rerun are required. Phase 16 remains **unreleased**; no v0.16.0 tag or push.
+
+### Routing-fixed candidate acceptance and business-stream defect
+
+Candidate source `a497d4680592888384c8e3e06468f1c25b1c587e` passed its full build
+and uninterrupted regression suite: **1,286/1,286 tests**, 80 summaries, no failures,
+skips or cancellations (`phase16-routing-fixed-full-*`). Its actual selected
+upgrade preserved 45 module databases, 693 protected tables, 168 private files
+and seven original volumes. The installed browser workflow then passed import,
+activation, execution, history and suspension with separate publication review;
+execution `4dfe946b-27cc-46e0-bc6a-23a72b7ccf2d` completed. Evidence:
+`phase16-selected-upgrade.json`, `phase16-installed-workflow-ui.json` and screenshot.
+
+The next installed Sales event scenario **failed** before any business effect:
+execution `86b58289-b241-5e9e-a258-757c239ff8c3` suspended with
+`WORKFLOW_PROVENANCE_INVALID`. The signed Sales stream is `sales_demand`, but the
+rule evaluator incorrectly applied a stream-name grammar excluding underscores.
+Event capture and delivery succeeded; the rule evaluator rejected initialization.
+The synthetic order, failed execution and receipt remain preserved; the workflow
+and subscription were suspended and temporary module configurations restored.
+See `phase16-installed-sales-event-provenance-failure.json/.log`.
+
+The correction accepts the existing bounded replication stream grammar alongside
+the existing internal observation namespace. UUIDs, package digest, entity scope,
+revision and freshness requirements remain unchanged. **65/65 SDK tests** and
+**16/16 event-admission tests** passed, including actual fixture capture/execution
+with an underscore-named signed stream. The corrected candidate still requires
+installed business acceptance; these targeted results do not close that gate.
+
+The guarded clean-install runner now supports explicit
+`STEWARD_ACCEPTANCE_RELEASE=0.16.0` with a matching phase directory and release
+manifest, preserving its original Phase 15 default and exact selected-container
+restoration. Its five non-mutating readiness/recovery guard tests passed. Actual
+Phase 16 clean installation remains pending.
