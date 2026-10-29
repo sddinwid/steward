@@ -122,7 +122,7 @@ not required to inspect their results.
 
 README and CHANGELOG describe the accepted capabilities and preserve historical
 entries. README contains exactly one designated package version for each of 21
-modules, with separately verified installed versions. All 73 local links across
+modules, with separately verified installed versions. All 74 local links across
 README, CHANGELOG and Phase 16 guides resolve. Documented scripts/package commands
 exist and were exercised by the recorded regression or deployment procedures.
 The Mermaid architecture renders with 11 nodes; the shorter secondary Worker
@@ -148,6 +148,17 @@ in [release artifacts](phase16-release-artifacts.json). The archive retains
 successful results, earlier failed attempts and staged acceptance helpers; it
 excludes private deployments, credentials, database dumps and node_modules.
 Archive presence does not turn historical failed reports into passing evidence.
+
+Final promotion and accepted redeployment passed with the exact same images and
+payload checksums. The selected installation references accepted manifest
+`2ce71c8254d947d9ca042ee64d59871fd275a27402ac005e485de846c1def0af`.
+The post-promotion preservation check retained 45 module databases, 693 tables,
+177 private files (including the two later acceptance-state files) and seven
+volumes. Ordinary root `docker compose up -d --wait`, all four installation smoke
+checks, accepted-manifest inventory verification and single-stack checks passed.
+The final resource sample was 4.72 GiB with no loaded Ollama model.
+The separate promotion archive supplements the immutable main evidence archive;
+[promotion results](phase16-release-promotion.json) record these final checks.
 
 ## Limitations
 

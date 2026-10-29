@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "version": "0.16.0",
+  "sourceCommit": "a03d9f4f4ffba794c20381da6066f1af4207bcc6",
+  "acceptanceEvidenceCommit": "8cf907f603ec618ea22010d26508266b79a9b4ff",
+  "verifiedCandidateManifestSha256": "875c64cfeb6b200e888d5ba65cdc8e1112ca65f7e167ba757434cf0b847533d1",
+  "acceptedManifestSha256": "2ce71c8254d947d9ca042ee64d59871fd275a27402ac005e485de846c1def0af",
+  "selectedInstallationReferencesAcceptedManifest": true,
+  "all21MandatoryGatesPassed": true,
+  "payloadAndImageIdentitiesUnchanged": true,
+  "acceptedRedeployment": {
+    "status": "passed",
+    "preservedVolumes": 7,
+    "preservedModuleDatabases": 45,
+    "protectedTables": 693,
+    "preservedPrivateFiles": 177,
+    "finishedAt": "2026-10-29T02:34:45.856Z"
+  },
+  "documentedRootComposeStartup": "passed",
+  "allInstallationSmoke": "passed",
+  "acceptedInventoryVerification": "passed",
+  "containers": 61,
+  "coreContainers": 16,
+  "moduleContainers": 45,
+  "memoryGiB": 4.72,
+  "loadedOllamaModels": 0,
+  "previousReleasePreserved": true,
+  "noPush": true,
+  "finishedAt": "2026-10-29T02:37:34.533Z"
+}

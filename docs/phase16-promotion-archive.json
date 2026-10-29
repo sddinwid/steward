@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "archive": "artifacts/releases/steward-0.16.0-promotion-a03d9f4.zip",
+  "sha256": "e9810c7cf8543660c894f07b3f5a5dcb762b5b7323749404e1c4398acce63c76",
+  "files": 24,
+  "bytes": 119858,
+  "checks": [
+    "Exact post-promotion manifest and installed marker",
+    "All file SHA256 and ZIP CRC checks passed",
+    "Credential/private-key/token scan passed; no private files or dumps included"
+  ],
+  "finishedAt": "2026-10-29T02:38:26.776324+00:00"
+}

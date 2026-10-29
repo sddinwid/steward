@@ -71,5 +71,9 @@
   "evidenceChecksumFile": "artifacts/releases/steward-0.16.0-evidence-a03d9f4.zip.sha256",
   "archiveVerification": "docs/phase16-evidence-archive.json",
   "promotionVerification": "docs/phase16-release-promotion.json",
-  "note": "Built payload and final acceptance evidence are distinct commits. Promotion preserves every payload checksum and image identity. No private deployments or database dumps are distributed."
+  "note": "Built payload and final acceptance evidence are distinct commits. Promotion preserves every payload checksum and image identity. No private deployments or database dumps are distributed.",
+  "acceptedManifestSha256": "2ce71c8254d947d9ca042ee64d59871fd275a27402ac005e485de846c1def0af",
+  "acceptanceEvidenceCommit": "8cf907f603ec618ea22010d26508266b79a9b4ff",
+  "postPromotionArchive": "artifacts/releases/steward-0.16.0-promotion-a03d9f4.zip",
+  "postPromotionArchiveVerification": "docs/phase16-promotion-archive.json"
 }

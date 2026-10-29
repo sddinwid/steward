@@ -1276,3 +1276,13 @@ identities and archive checksums are in `phase16-release-artifacts.json`. The
 local release tag identifies the final evidence commit; the built payload remains
 the verified `a03d9f4` source. No Phase 16 branch or tag was pushed. Detailed
 boundaries and retained failures are in `phase16-final-acceptance.md`.
+
+Promotion preserved all payload hashes and images. The accepted manifest is
+`2ce71c8254d947d9ca042ee64d59871fd275a27402ac005e485de846c1def0af`;
+the selected installation now records that exact checksum. Accepted redeployment
+and root Docker Compose startup passed, preserving 45 module databases, 693 tables,
+177 private files and seven volumes. Final smoke and single-stack checks passed:
+61 containers, approximately 4.72 GiB sampled memory, no loaded Ollama model.
+The additional two private files are retained acceptance state created after the
+earlier 175-file candidate baseline, not changed credentials. Promotion evidence
+is recorded separately so the original 677-file evidence archive stays immutable.
