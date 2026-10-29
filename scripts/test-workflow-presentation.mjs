@@ -3,10 +3,17 @@ import assert from 'node:assert/strict';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {ModuleFormField} from '../packages/ui/dist/module-field.js';
+import {applicationApiTarget} from '../packages/ui/dist/api-routing.js';
 import {workflowBindingChoices,workflowTriggerFields,workflowActionFields} from '../packages/ui/dist/workflow-discovery.js';
 const c={capabilityId:'inventory.stock.reserve',version:'1.0.0',sensitivity:'business',operations:[{name:'reserve',permission:'provider.write',input:{type:'object'},output:{type:'object'}}]};
 const b={binding_id:'binding',consumer_id:'example.automation',provider_id:'example.inventory',provider_installation_id:'installation',package_digest:'digest',capability_id:c.capabilityId,state:'approved',capability:c};
 const p={moduleId:b.provider_id,installationId:b.provider_installation_id,packageDigest:b.package_digest,entityId:'entity',state:'active',configured:true,capability:c};
+
+test('application routing sends installed workflow operations to v16 rather than nesting them under authentication v2',()=>{
+ for(const route of ['/v16/workflows','/v16/workflows/import','/v16/workflows/execute','/v16/workflows/event-subscriptions','/v16/workflows/executions/example/reviews'])assert.deepEqual(applicationApiTarget(route),{url:'/api'+route,timeoutMs:90000});
+ for(const version of [3,4,5,8,13,14,15])assert.deepEqual(applicationApiTarget('/v'+version+'/records?q=exact%20value'),{url:'/api/v'+version+'/records?q=exact%20value',timeoutMs:90000});
+ for(const route of ['/auth/login','/auth/session','/worker/status','/v160/workflows'])assert.deepEqual(applicationApiTarget(route),{url:'/api/v2'+route,timeoutMs:15000});
+});
 test('workflow discovery presents only this consumer and current original provider identity',()=>{
  const registry={entityId:'entity',providers:[p],bindings:[b,{...b,consumer_id:'another.consumer'}]};
  assert.equal(workflowBindingChoices(registry,b.consumer_id).length,1);

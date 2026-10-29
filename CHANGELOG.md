@@ -6,7 +6,7 @@ Add future bug fixes under **Unreleased** until they are accepted into a version
 
 ## Unreleased — Phase 16 / target v0.16.0
 
-Branch: `codex/phase16-business-automation`. No accepted Phase 16 release, operator upgrade or GitHub push. Existing accepted v0.15.0 deployment remains selected.
+Branch: `codex/phase16-business-automation`. No accepted Phase 16 release or GitHub push. The existing selected installation has been upgraded to candidate `18b0ae7`, with data preservation verified; final workflow and release acceptance remain incomplete.
 
 ### Added
 
@@ -15,12 +15,16 @@ Branch: `codex/phase16-business-automation`. No accepted Phase 16 release, opera
 - Worker-local governed import, activation, suspension, approvals, cancellation and durable graph progress through the existing SSMA coordinator.
 - Shared-outbox event capture, governed subscriptions, subscriber-specific execution identities, source provenance, causal handling, bounded retry and dead letters.
 - Subscription suspension/resumption and explicit replay UI/API with current authorization and stable replay-request identities.
-- Sales source package 1.6.0: optional `sales.orders.workflow` inspection/reservation/fulfillment and existing-stream event contracts. Default-off configuration defers local reservations to approved workflows; existing Sales/Inventory and Catalog/Pricing authority is retained. Commercial channel production is excluded. This package is not yet installed on the selected operator.
+- Sales source package 1.6.0: optional `sales.orders.workflow` inspection/reservation/fulfillment and existing-stream event contracts. Default-off configuration defers local reservations to approved workflows; existing Sales/Inventory and Catalog/Pricing authority is retained. Commercial channel production is excluded. This package is installed on Worker 1 for Phase 16 acceptance; Workers 2/3 retain their previous versions.
 
 - Procurement source package 1.4.0: optional duplicate-safe replenishment/proposal drafts, original-source status inspection and existing-stream status events. Financial approval and purchasing transitions remain human-controlled.
 - Business Automation internal notification inbox: authorized reviewers, recipient-only reads/acknowledgments, expiry, duplicate-safe delivery and source isolation. No external email/SMS and no arbitrary participant/business payloads. Installed acceptance remains pending.
 
 ### Fixes and material checkpoints
+
+- Connected signed trigger and action-field discovery to the actual generic module form, including bounded collection handling (Automation 1.0.1). The complete module-form browser fixture now checks stale and failed discovery.
+- Corrected the shared frontend API dispatcher so Workflow governance requests use `/api/v16/` rather than the nonexistent `/api/v2/v16/` route. Installed acceptance found this after successful creation, publication and separate review; execution validation is being rerun.
+
 
 | Commit | Change | Verification boundary |
 | --- | --- | --- |

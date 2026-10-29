@@ -6,7 +6,7 @@ Each Worker Steward runs local business operations through independently install
 
 **Accepted release: v0.15.0 — Universal Catalog and Pricing Management.** All eighteen mandatory acceptance gates passed. The selected operator installation was upgraded in place, preserving accounts, identities, credentials, module databases, provider obligations and volumes. This is a verified synthetic MVP, not a claim of commercial production readiness.
 
-**Development: Phase 16 — Business Automation & Workflow Designer, targeting v0.16.0.** Implementation is in progress on `codex/phase16-business-automation`; there is no v0.16.0 release or accepted Phase 16 deployment. The root package version is 0.16.0 for candidate preparation; development source on this branch is not an accepted release payload.
+**Development: Phase 16 — Business Automation & Workflow Designer, targeting v0.16.0.** Implementation is in progress on `codex/phase16-business-automation`; there is no accepted v0.16.0 release. A Phase 16 candidate is installed for acceptance; its verified upgrade is not completed release acceptance. The root package version is 0.16.0 for candidate preparation; development source on this branch is not an accepted release payload.
 
 See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint summaries. Detailed verification ledgers retain failed attempts, corrected reruns and exact evidence identities.
 
@@ -16,10 +16,10 @@ See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint s
 | --- | --- |
 | Accepted platform | v0.15.0; tag commit `300e4caeb876b51ee92ff7f9ecc2d4c5582cd72f` |
 | Accepted build source | `4c07ffb0980e891f917f1755ff380e4241219f40`; build and acceptance-evidence commits are distinct |
-| Selected operator | Accepted v0.15.0; last verified topology: one stack, 60 containers (16 core and 44 module containers) |
+| Selected operator | Phase 16 candidate `18b0ae7` upgraded in place with preservation checks passed; one stack, 61 containers (16 core and 45 modules). Final release acceptance remains incomplete |
 | Catalog / Pricing | Catalog 1.4.0 and Pricing Management 1.3.1 installed on all three Workers |
 | Phase 16 source | Governed definitions, generic designer/preview, durable parallel execution, events, Sales/Inventory/Procurement and internal notifications implemented in source; installed acceptance incomplete |
-| Phase 16 installation | Business Automation is packaged but not installed; signed Inventory 1.7.0, Sales 1.6.0 and Procurement 1.4.0 candidates do not imply installed upgrades |
+| Phase 16 installation | Worker 1: Inventory 1.7.0, Sales 1.6.0, Procurement 1.4.0 and Automation 1.0.1 installed; Workers 2/3 retain their previous packages. Workflow execution acceptance is still in progress |
 
 Release acceptance and preservation evidence: [Phase 15 final acceptance](docs/phase15-final-acceptance.md), [release gates](docs/phase15-release-gates.json), [installation and upgrade procedure](docs/phase15-release.md), and [presenter guide](docs/phase15-demo.md). Some procedural documents retain candidate-stage instructions; the final acceptance report and accepted distribution manifest establish release status.
 

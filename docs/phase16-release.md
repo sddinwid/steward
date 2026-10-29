@@ -13,7 +13,7 @@ node scripts/release.mjs pack --version 0.16.0 --candidate --directory <deployme
 node scripts/release.mjs verify --bundle <new-candidate-directory>
 ```
 
-Publish Inventory 1.7.0, Sales 1.6.0, Procurement 1.4.0 and Business Automation 1.0.0 as the exact new module versions listed in `phase16-module-versions.json` before packaging, using `node scripts/publish-module.mjs modules/<name> <deployment>`. Reuse existing trusted immutable packages. Assets and Operations retain their original signed legacy migration declarations; do not republish their unchanged source manifests. Candidate images include the full source commit in their tags. Existing image/version identities cannot be overwritten.
+Publish Inventory 1.7.0, Sales 1.6.0, Procurement 1.4.0 and Business Automation 1.0.1 as the exact new module versions listed in `phase16-module-versions.json` before packaging, using `node scripts/publish-module.mjs modules/<name> <deployment>`. Reuse existing trusted immutable packages. Assets and Operations retain their original signed legacy migration declarations; do not republish their unchanged source manifests. Candidate images include the full source commit in their tags. Existing image/version identities cannot be overwritten.
 
 ## Selected in-place upgrade
 

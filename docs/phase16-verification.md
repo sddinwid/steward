@@ -1069,3 +1069,66 @@ submission. Evidence: `phase16-trigger-metadata-sdk-tests.log`,
 corrected without weakening validation; their earlier evidence remains retained.
 These results do not establish installed workflows, completed regression or
 release acceptance. A fresh committed-source full gate and candidate are required.
+
+### Committed candidate 18b0ae7: full regression and actual preserved upgrade
+
+Source `18b0ae7cc989f7e35d28c56722b7776552f0f7e1`: complete build and
+uninterrupted `npm test` passed **1,285/1,285 tests across 80 summaries**, zero
+failures/cancellations/skips (`phase16-form-fixed-full-{result,counts}.json` and
+logs). Browser fixtures passed **21 checks**: 8 designer, 6 actual generic
+ModuleConsole form and 7 governance. These fixture results do not replace installed
+acceptance. Source migration integrity also passed against the signed catalogue.
+
+Candidate `steward-0.16.0-candidate-18b0ae7` built, packaged and verified, manifest
+SHA-256 `2ccc4f78fcb051696e272678091ade70313439481bb441d3d102af1c5fca7d4a`.
+Actual read-only/network-disabled API containers reported runtime 0.16.0.
+Automation 1.0.1 was separately signed with image
+`sha256:f519d2bd1aa13a8c58c7c77a184337162b243a9d10ce8c13d6f0db2a29c84b59`.
+
+The selected in-place core upgrade passed: **44 module databases, 666 protected
+tables, 165 private files and 7 original volumes preserved**, original core
+accounts/identities/enrollment/bindings/analytical records unchanged. Exact image
+checks, schema 24, single-stack topology and subsequent smoke checks passed.
+Evidence: `phase16-selected-upgrade.json`, `phase16-selected-upgrade-18b0ae7.log`.
+Before image selection, the release CLI saved complete private configuration and
+four PostgreSQL dumps. All four dumps were independently restored into disposable,
+network-disabled PostgreSQL containers: **48 databases total**, with original
+accounts, identities, enrollment and core/module migration histories checked.
+Cleanup completed without errors (`phase16-real-backup-restore.json`).
+
+Actual Module Manager UI installed/upgraded Worker 1 Inventory **1.7.0**, Sales
+**1.6.0**, Procurement **1.4.0**, Automation **1.0.1**. The prior installed versions
+were Inventory 1.3.2, Sales 1.3.2 and Procurement 1.0.2, not the latest versions
+packaged in v0.15. Workers 2/3 retained their exact prior module identities,
+versions and configurations. Result: **61 selected containers**, none unexpected
+(`phase16-installed-modules.json`, `phase16-installed-single-stack.log`).
+
+Two preservation-verifier assumptions were corrected, with red evidence retained:
+1. Signed additive migrations may add tables and append migration rows. Verification
+   now checks every original row, the exact original migration timestamp/checksum
+   prefix, complete signed target sequence and checksum-verified declared additions.
+2. Historical signed Sales migration 007 increments order revisions and recomputes
+   projections from receipt evidence. Its exact SQL was independently replayed on
+   a restored pre-upgrade backup. All actual upgraded legacy tables matched that
+   replay. Original business payloads and timestamps were unchanged; only the
+   declared revision/projection changes occurred. No accepted-price receipt was
+   invented. See `phase16-sales-signed-migration-replay.json` and the retained
+   `phase16-installed-modules-*-failure` artifacts. No applied SQL was rewritten.
+A browser fixture expected the wrong heading; it was corrected to the existing
+SSDS navigation label, **Workflow Designer**, and the installed screen passed.
+
+### Installed import failure: shared frontend API dispatcher
+
+Installed browser acceptance created and published a synthetic workflow, rejected
+its author's self-review, and accepted a separate existing reviewer's UI approval.
+Import then failed. Captured browser requests established the actual cause:
+`POST /api/v2/v16/workflows/import` returned **404**. The shared SecurityConsole
+API dispatcher had not been extended for v16; component fixtures supplied their
+own API callbacks and therefore did not cover this boundary. Evidence:
+`phase16-import-browser-diagnostic.json/.png`, retained failed installed UI reports.
+No execution was started by these failed imports.
+
+The dispatcher now routes v16 directly to `/api/v16/`, retaining existing auth,
+CSRF, same-origin credentials, retry behavior and timeout policies. UI build and
+**5/5 presentation/routing tests passed**. A new committed candidate and installed
+rerun are required. Phase 16 remains **unreleased**; no v0.16.0 tag or push.
