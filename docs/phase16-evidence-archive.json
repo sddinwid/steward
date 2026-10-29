@@ -1,0 +1,14 @@
+{
+  "status": "passed",
+  "archive": "artifacts/releases/steward-0.16.0-evidence-a03d9f4.zip",
+  "sha256": "f7a983205b8ce367c0a295247cd1ee65737636ff8a3aa890b004461dd4c2fe42",
+  "bytes": 12877673,
+  "files": 677,
+  "checks": [
+    "Every archive member SHA256 verified after reading ZIP",
+    "ZIP CRC verified",
+    "No symlinks, private deployment, database dump or node_modules included",
+    "Credential/private-key/token patterns checked in every text member"
+  ],
+  "finishedAt": "2026-10-29T02:28:32.693163+00:00"
+}

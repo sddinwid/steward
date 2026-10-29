@@ -1,6 +1,9 @@
-# Phase 16 candidate installation and recovery
+# Phase 16 installation and recovery
 
-Phase 16 remains a candidate until every mandatory gate in `phase16-release-gates.json` passes. Do not promote or tag an incomplete candidate.
+v0.16.0 acceptance is recorded in [the final report](phase16-final-acceptance.md).
+The procedures below retain explicit candidate preparation and promotion steps.
+Every mandatory gate in `phase16-release-gates.json` must pass before promotion
+or tagging; a passing build alone is not release acceptance.
 
 ## Build and verify
 

@@ -1,7 +1,7 @@
 # Workflow operations and recovery
 
-Status: implementation guide for the Phase 16 candidate. Installed acceptance is
-recorded separately in the verification ledger; this guide is not acceptance evidence.
+User/presenter guide for v0.16.0. Actual installed acceptance and limitations are
+recorded in [the final report](phase16-final-acceptance.md).
 
 ## Authority and prerequisites
 
@@ -85,7 +85,7 @@ must remain visible as waiting, retrying, suspended or reconciliation-required w
 
 Keep the selected deployment, original volumes and private configuration. Use the
 existing release CLI backup/upgrade process; do not run `docker compose down -v`.
-The candidate adds an HTTPS Workflow routing overlay after Catalog. It rejects a
+The release adds an HTTPS Workflow routing overlay after Catalog. It rejects a
 changed identity or custom routing instead of overwriting that configuration.
 
 After an interrupted upgrade, retain the private backup and candidate evidence.

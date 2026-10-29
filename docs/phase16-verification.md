@@ -1209,3 +1209,70 @@ verifier incorrectly paginated the intentionally bounded Stock Ledger reservatio
 query. Its failure is retained; the helper now uses that endpoint's actual bounded
 contract. Completing this rerun, clean installation, final documentation, archive
 and release promotion remain mandatory. Phase 16 is not yet accepted or tagged.
+
+## Final source regression and recovery continuation — 2026-10-28
+
+- Candidate source `a03d9f4f4ffba794c20381da6066f1af4207bcc6` changes only the
+  deterministic provider-context clock test and this ledger relative to `04ec54f`.
+  Production age/future tolerance remains 30 seconds / 5 seconds. The full build
+  and uninterrupted `npm test` passed: **1,287 tests across 80 summaries**, zero
+  failures, cancellations or skips (`phase16-final-full-*` artifacts).
+- Signed migration integrity reran on committed final source: **10/10**, 89 frozen
+  SQL migrations including four retained legacy declarations and Automation 001.
+  No applied SQL was rewritten (`phase16-final-source-migrations.json`).
+- Provider substitution completed in the installed browser: four checks, no
+  browser or HTTP errors. Approved Inventory → Stock Ledger → Inventory changes
+  apply to new work; existing reservations remained at their original providers.
+  Stock Ledger's legacy bounded listing was insufficient for exact readback, so
+  verification used a read-only query of the original reservation. Business
+  mutations remained authorized application operations. Failed verifier attempts
+  remain preserved (`phase16-provider-browser*.json`).
+- Master-outage acceptance passed: all Workers remained available, a synthetic
+  Catalog record/publication and its queued projection survived Worker restart,
+  and the exact evidence synchronized after Master returned. Protected records
+  and original service identities remained intact (`phase16-outage.json`).
+- Docker Desktop's Windows bind-mount layer returned EIO for both a new secret
+  and the ordinary README. This interrupted the first clean-install attempt and
+  its core-container restoration. The failed environment and report were retained.
+  After the uninterrupted regression completed, an orderly Docker Desktop restart
+  repaired the mount layer. All **61 original container IDs, images and mounts**
+  were restored, all four installations passed readiness/identity checks, and
+  single-stack topology passed (`phase16-desktop-mount-recovery.json`). No reset,
+  volume deletion, credential changes or permission relaxation was performed.
+- Scientific verification then passed: **88 Python tests**, actual authenticated
+  network-isolated HTTP calculation, and **28 governance checks**. One upstream
+  Starlette/httpx deprecation warning remains. Mount-failure logs remain separate.
+- The checksummed `a03d9f4` distribution passed package verification and actual
+  compiled Master/Worker runtime version checks. README architecture rendered
+  successfully with Mermaid (11 nodes). Clean installation is retrying against
+  that same candidate; final selected deployment, documentation and promotion
+  gates remain open until their recorded checks complete.
+
+## Final acceptance — 2026-10-28
+
+The final `a03d9f4` candidate passed clean installation (six major checks),
+13 deployed Phase 4 checks, 11 MCP/test-provider checks, six independent-module
+creation/recovery checks and post-redeployment readback. Exact original operator
+containers/selection were restored without cleanup errors. The final in-place
+upgrade then passed preservation of 45 module databases, 693 protected tables,
+175 private files, seven volumes, original identities and signed migration history.
+
+An additional installed UI workflow completed while Master API/web/science were
+stopped. Separate review, import, activation, execution, history and suspension
+all worked locally. The initial cleanup smoke sampled Master before readiness;
+its failure is retained. Subsequent actual smoke/topology passed without replay.
+Final Shopify identity/product reads and Printify GET receipts passed; all three
+private profile files and disabled production flags remained unchanged.
+
+Final-source full regression remains 1,287/1,287; only release documentation and
+evidence changed afterward. Final release/inventory contracts passed 11 checks.
+README/CHANGELOG, 21-module inventory, Mermaid rendering, documentation links,
+commands and credential scanning were verified. The selected deployment has
+61 containers, seven original volumes, approximately 4.11 GiB sampled memory and
+no loaded Ollama model. Root Compose pins the exact candidate image digests.
+
+All 21 mandatory gates are recorded in `phase16-release-gates.json`; artifact
+identities and archive checksums are in `phase16-release-artifacts.json`. The
+local release tag identifies the final evidence commit; the built payload remains
+the verified `a03d9f4` source. No Phase 16 branch or tag was pushed. Detailed
+boundaries and retained failures are in `phase16-final-acceptance.md`.

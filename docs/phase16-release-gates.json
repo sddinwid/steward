@@ -1,133 +1,202 @@
 {
   "$schema": "phase16-release-gates.schema.json",
   "version": "0.16.0",
-  "status": "unverified",
+  "status": "passed",
   "gates": [
     {
       "id": "contracts",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-full-regressions.log"
+      ]
     },
     {
       "id": "designer",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-workflow-ui.json",
+        "artifacts/phase16-provenance-workflow-browser.log"
+      ]
     },
     {
       "id": "events",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-sales-event-corrected.json",
+        "artifacts/phase16-installed-threshold-business.json"
+      ]
     },
     {
       "id": "sales",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-sales-event-corrected.json"
+      ]
     },
     {
       "id": "procurement",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-threshold-business.json"
+      ]
     },
     {
       "id": "notifications",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-threshold-business.json"
+      ]
     },
     {
       "id": "parallel",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-threshold-business.json",
+        "artifacts/phase16-final-full-regressions.log"
+      ]
     },
     {
       "id": "security",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-full-regressions.log",
+        "artifacts/phase16-installed-mcp.json"
+      ]
     },
     {
       "id": "mcp",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-mcp.json"
+      ]
     },
     {
       "id": "installed-scenarios",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-installed-workflow-ui.json",
+        "artifacts/phase16-installed-sales-event-corrected.json",
+        "artifacts/phase16-installed-threshold-business.json"
+      ]
     },
     {
       "id": "browser",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-business-history-browser.json",
+        "artifacts/phase16-provider-browser.json",
+        "artifacts/phase16-provenance-workflow-browser.log",
+        "artifacts/phase16-provenance-governance-browser.log"
+      ]
     },
     {
       "id": "outage",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-outage.json",
+        "artifacts/phase16-installed-sales-event-corrected.json",
+        "artifacts/phase16-installed-offline-workflow.json"
+      ]
     },
     {
       "id": "provider-substitution",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-provider-browser.json"
+      ]
     },
     {
       "id": "installation",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-clean-installation.json",
+        "artifacts/phase16-final-clean-modules.json",
+        "artifacts/phase16-final-clean-modules-readback.json"
+      ]
     },
     {
       "id": "upgrade",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-selected-upgrade.json"
+      ]
     },
     {
       "id": "preservation",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-selected-upgrade.json",
+        "artifacts/phase16-real-backup-restore.json",
+        "artifacts/phase16-sales-signed-migration-replay.json",
+        "artifacts/phase16-final-source-migrations.json",
+        "artifacts/phase16-final-deployment.json"
+      ]
     },
     {
       "id": "regressions",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-full-result.json",
+        "artifacts/phase16-final-full-counts.json"
+      ]
     },
     {
       "id": "science",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-scientific-restored.log",
+        "artifacts/phase16-final-scientific-governance.log",
+        "artifacts/phase16-final-scientific-http.json"
+      ]
     },
     {
       "id": "live-catalog",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-live-catalog.json"
+      ]
     },
     {
       "id": "documentation",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-documentation-verification.json",
+        "artifacts/phase16-mermaid-verification.json",
+        "artifacts/phase16-final-inventory-verification.json"
+      ]
     },
     {
       "id": "release",
       "mandatory": true,
-      "status": "unverified",
-      "evidence": []
+      "status": "passed",
+      "evidence": [
+        "artifacts/phase16-final-package-verification.json",
+        "artifacts/phase16-runtime-image-verification.json",
+        "artifacts/phase16-final-deployment.json",
+        "artifacts/phase16-evidence-archive-verification.json"
+      ]
     }
-  ]
+  ],
+  "sourceCommit": "a03d9f4f4ffba794c20381da6066f1af4207bcc6",
+  "verifiedCandidateManifestSha256": "875c64cfeb6b200e888d5ba65cdc8e1112ca65f7e167ba757434cf0b847533d1"
 }

@@ -4,9 +4,15 @@ This file summarizes user-visible releases, patches and material unreleased chan
 
 Add future bug fixes under **Unreleased** until they are accepted into a versioned release. For each release or patch, record changes, compatibility/upgrade impact, verification and known limitations. Keep module package versions separate from platform release versions. Do not assign a tag or release date to an unverified checkpoint.
 
-## Unreleased — Phase 16 / target v0.16.0
+## Unreleased
 
-Branch: `codex/phase16-business-automation`. No accepted Phase 16 release or GitHub push. The existing selected installation has been upgraded to candidate `18b0ae7`, with data preservation verified; final workflow and release acceptance remain incomplete.
+No unreleased changes recorded.
+
+## v0.16.0 — Business Automation & Workflow Designer — 2026-10-28
+
+Administrators can design and preview workflows using installed module capabilities, obtain separate human review, and automate authorized Sales/Inventory continuation, Procurement drafts and internal notifications. Durable execution preserves provider ownership, approvals and business records through retries and outages.
+
+Built source: `a03d9f4f4ffba794c20381da6066f1af4207bcc6`. All 21 mandatory acceptance gates passed; the original operator installation remains selected with 61 containers and seven preserved volumes. No Phase 16 branch or tag was pushed. See [final acceptance](docs/phase16-final-acceptance.md) and [release procedure](docs/phase16-release.md).
 
 ### Added
 
@@ -18,12 +24,16 @@ Branch: `codex/phase16-business-automation`. No accepted Phase 16 release or Git
 - Sales source package 1.6.0: optional `sales.orders.workflow` inspection/reservation/fulfillment and existing-stream event contracts. Default-off configuration defers local reservations to approved workflows; existing Sales/Inventory and Catalog/Pricing authority is retained. Commercial channel production is excluded. This package is installed on Worker 1 for Phase 16 acceptance; Workers 2/3 retain their previous versions.
 
 - Procurement source package 1.4.0: optional duplicate-safe replenishment/proposal drafts, original-source status inspection and existing-stream status events. Financial approval and purchasing transitions remain human-controlled.
-- Business Automation internal notification inbox: authorized reviewers, recipient-only reads/acknowledgments, expiry, duplicate-safe delivery and source isolation. No external email/SMS and no arbitrary participant/business payloads. Installed acceptance remains pending.
+- Business Automation internal notification inbox: authorized reviewers, recipient-only reads/acknowledgments, expiry, duplicate-safe delivery and source isolation. No external email/SMS and no arbitrary participant/business payloads. Installed threshold/approval/parallel delivery and recipient acknowledgment passed.
 
 ### Fixes and material checkpoints
 
+- Corrected existing-stream workflow provenance validation without relaxing entity, revision or digest checks. Actual event-driven Sales fulfillment and interruption recovery passed.
+- Made the provider-context boundary test deterministic with a frozen clock; original production tolerances remain unchanged.
+- Recovered a Docker Desktop bind-mount EIO through an orderly engine restart; all original containers, identities and volumes were retained. Failed acceptance attempts remain in the verification ledger.
+
 - Connected signed trigger and action-field discovery to the actual generic module form, including bounded collection handling (Automation 1.0.1). The complete module-form browser fixture now checks stale and failed discovery.
-- Corrected the shared frontend API dispatcher so Workflow governance requests use `/api/v16/` rather than the nonexistent `/api/v2/v16/` route. Installed acceptance found this after successful creation, publication and separate review; execution validation is being rerun.
+- Corrected the shared frontend API dispatcher so Workflow governance requests use `/api/v16/` rather than the nonexistent `/api/v2/v16/` route. Installed acceptance found this after successful creation, publication and separate review; the corrected installed workflow and recovery reruns passed.
 
 
 | Commit | Change | Verification boundary |
@@ -47,7 +57,7 @@ The first recovery full run failed the migration registration check (217 passed,
 
 A pre-deployment check caught a stale shared runtime version that would reject Phase 16 modules. The runtime constant and build/package verification guards were corrected; prior development candidates are retained as rejected evidence, not deployed releases.
 
-Procurement, internal notifications, bounded parallel dispatch, designer previews and Inventory shortage capabilities are implemented in source. Still pending: installed scenarios, outage/recovery and substitution acceptance, final regression completion, accepted release packaging and retained-deployment upgrade. See the [Phase 16 verification ledger](docs/phase16-verification.md) and [contracts](docs/phase16-workflow-contracts.md).
+Procurement, internal notifications, bounded parallel dispatch, designer previews and Inventory shortage capabilities passed installed acceptance. Final-source `a03d9f4` passed the full build and **1,287 Node tests / 80 summaries**; scientific verification passed **88 Python tests**, authenticated HTTP calculation and **28 governance checks**. The 21 component browser checks are separate from actual installed workflow/history/provider-substitution checks. Clean installation, repeated provisioning and backup restoration passed. The final selected upgrade preserved 45 module databases, 693 protected tables, 175 private files and all seven volumes. Final read-only Shopify/Printify checks passed; no live order or production commands were sent. Internal notifications do not send external email/SMS, and Procurement drafts do not authorize purchases. See the [Phase 16 verification ledger](docs/phase16-verification.md) and [contracts](docs/phase16-workflow-contracts.md).
 
 ## v0.15.0 — Universal Catalog and Pricing Management
 
