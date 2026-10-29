@@ -1165,3 +1165,47 @@ The guarded clean-install runner now supports explicit
 manifest, preserving its original Phase 15 default and exact selected-container
 restoration. Its five non-mutating readiness/recovery guard tests passed. Actual
 Phase 16 clean installation remains pending.
+
+### Installed acceptance on candidate 04ec54f
+
+The corrected candidate passed its actual selected upgrade, preserving 45 module
+databases, 693 protected tables, 171 private files and all seven volumes. No
+module package or installation identity changed during that core upgrade.
+
+- Sales event execution `c7275f76-2068-534a-a2ef-dbee6acc399d` completed after
+  restarting the original module-host container during its durable wait. Exactly
+  one fulfillment consumed three Inventory units, leaving quantity seven and zero
+  reserved. Accepted synthetic revenue remained USD 3.00. Evidence:
+  `phase16-installed-sales-event-corrected.json`.
+- Inventory threshold execution `c141a700-cc09-555a-af95-1e256d3ee7da` completed
+  after separate human approval. Independent Procurement and notification branches
+  joined successfully: one draft for four units and a recipient-acknowledged
+  internal notice. Self-approval was rejected. No purchase or production occurred.
+  Evidence: `phase16-installed-threshold-business.json`.
+- Installed browser history displayed both completed graphs and their individual
+  step states without JavaScript errors (`phase16-business-history-browser.json`
+  and screenshots). Generic designer/form/governance browser checks passed 21/21.
+- Authenticated TLS MCP discovered and invoked both read-only workflow status tools;
+  unauthenticated access was rejected. No workflow mutation tools were exposed.
+  An initial timeout and a verifier's incorrect one-tool expectation remain in
+  separate failure artifacts; the corrected rerun passed.
+- Shopify development-store identity/product reads and fresh Printify GET catalog
+  receipts passed, with private profile bytes, connector identities, configurations,
+  historical unavailable profiles and disabled production flags preserved. The
+  first attempt's login HTTP 500 remains recorded separately.
+- Signed source migration integrity passed 10/10 checks. The full build passed.
+
+The uninterrupted regression run on 04ec54f stopped at a pre-existing test timing
+race in `test-installed-provider-context.mjs`: a timestamp 5,001 milliseconds in
+the future could become admissible after more than one millisecond elapsed before
+evaluation. The test now freezes Date and explicitly verifies both permitted
+boundaries and their immediately rejected neighbors. Production code and its
+30-second age / 5-second future tolerance are unchanged. The affected seven tests
+passed twice; a new uninterrupted full run is still required. The failed run is
+retained under `phase16-provenance-fixed-full-*`.
+
+Provider-substitution browser acceptance reached both approved providers but its
+verifier incorrectly paginated the intentionally bounded Stock Ledger reservations
+query. Its failure is retained; the helper now uses that endpoint's actual bounded
+contract. Completing this rerun, clean installation, final documentation, archive
+and release promotion remain mandatory. Phase 16 is not yet accepted or tagged.

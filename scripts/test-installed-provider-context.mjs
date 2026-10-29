@@ -53,9 +53,12 @@ test('too many compatible providers produce bounded incomplete context, never a 
  const h=await raw(rows);assert(Buffer.byteLength(h)<=4096);const p=parsed(h);assert.equal(p.complete,false);assert.deepEqual(p.providers,[]);
 });
 
-test('private provider snapshots reject stale, future, duplicate, foreign-body and oversized frames',async()=>{
+test('private provider snapshots reject stale, future, duplicate, foreign-body and oversized frames',async t=>{
  const value=JSON.parse(await raw([row]));const reject=v=>assert.throws(()=>parsed(JSON.stringify(v)),/context unavailable/);
- reject({...value,issuedAt:Date.now()-30001});reject({...value,issuedAt:Date.now()+5001});
+ const now=Date.now();t.mock.timers.enable({apis:['Date'],now});
+ assert.equal(parsed(JSON.stringify({...value,issuedAt:now-30000})).complete,true);
+ assert.equal(parsed(JSON.stringify({...value,issuedAt:now+5000})).complete,true);
+ reject({...value,issuedAt:now-30001});reject({...value,issuedAt:now+5001});
  reject({...value,entityId:randomUUID()});reject({...value,providers:[...value.providers,...value.providers]});
  reject({...value,complete:false});reject({...value,providers:[[value.providers[0][0],value.providers[0][1],'bad',value.providers[0][3],value.providers[0][4]]]});
  reject({...value,providers:[value.providers[0].slice(0,4)]});reject({...value,providers:[value.providers[0],[...value.providers[0].slice(0,4),'c'.repeat(64)]]});
