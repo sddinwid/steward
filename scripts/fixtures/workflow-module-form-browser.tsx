@@ -12,7 +12,7 @@ async function request(path:string,method='GET',body?:unknown):Promise<any>{fixt
  if(path==='/v3/modules/discovery')return{modules:[module]};
  if(path==='/v8/smart-modules')return{entityId,providers:[{moduleId:'example.resource',installationId,packageDigest:'a'.repeat(64),entityId,state:'active',configured:true,capability}],bindings:[{binding_id:bindingId,consumer_id:moduleId,provider_id:'example.resource',provider_installation_id:installationId,package_digest:'a'.repeat(64),capability_id:capability.capabilityId,state:'approved',capability,requirement:{maximumSensitivity:'business'}}]};
  if(path.startsWith('/v3/modules/'+moduleId+'/api/event-contracts')){const q=new URL(path,'https://fixture.invalid').searchParams.get('q');if(q&&fixture.fail)throw Error('SYNTHETIC_TRIGGER_DISCOVERY_FAILURE');if(q==='changed'&&fixture.slow)await new Promise(r=>setTimeout(r,400));return{records:q?records.filter(r=>r.id===q):records};}
- if(path==='/v3/modules/'+moduleId+'/api/drafts'){if(method==='POST'){fixture.saved=body;return{record:{id:crypto.randomUUID(),revision:1,...body as object}};}return{records:[]};}
+ if(path==='/v3/modules/'+moduleId+'/api/drafts'){if(method==='POST'){fixture.saved=body;return{record:{id:crypto.randomUUID(),revision:1,...body as object}};}return{records:[{id:"existing-draft",name:"Existing workflow",definition:{nodes:[],edges:[]}}]};}
  throw Error('Unexpected fixture request: '+path);
 }
 createRoot(document.getElementById('root')!).render(<main className="application-shell"><div className="content"><h1>Full generic module form fixture</h1><p>Synthetic gateway responses; no installed runtime or business effects.</p><ModuleConsole api={request} administrator mode="business" screenKey={moduleId+'/drafts'}/></div></main>);

@@ -39,3 +39,13 @@ test('action output choices require current approved bindings and supported decl
  for(const altered of [{...registry,bindings:[{...b,state:'revoked',capability}]},{...registry,providers:[{...p,capability,installationId:'replaced'}]}])assert.deepEqual(workflowActionFields(graph,workflowBindingChoices(altered,b.consumer_id),60000),{});
  assert.deepEqual(workflowActionFields({nodes:[{...graph.nodes[0],operation:'undeclared'}]},workflowBindingChoices(registry,b.consumer_id),60000),{});
 });
+
+import {WorkflowDesigner} from '../packages/ui/dist/workflow-designer.js';
+test('capability loading is announced as progress, while actual discovery failures remain alerts',()=>{
+ const props={value:{graphVersion:1,nodes:[{id:'start',kind:'trigger',label:'Start'},{id:'complete',kind:'completion',label:'Complete'}],edges:[{from:'start',to:'complete',port:'next'}],limits:{elapsedMs:600000,maxParallel:1,maxActions:16}},onChange:()=>{},bindings:[],fields:{}};
+ const loading=renderToStaticMarkup(createElement(WorkflowDesigner,{...props,discoveryLoading:true}));
+ assert.match(loading,/role="status"/);assert.doesNotMatch(loading,/role="alert"/);
+ assert.match(loading,/<button[^>]*disabled=""[^>]*>Run synthetic dry-run/);
+ const failure=renderToStaticMarkup(createElement(WorkflowDesigner,{...props,discoveryError:'Discovery unavailable'}));
+ assert.match(failure,/role="alert"/);assert.match(failure,/Discovery unavailable/);
+});

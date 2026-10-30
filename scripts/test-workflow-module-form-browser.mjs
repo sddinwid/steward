@@ -14,6 +14,10 @@ try{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1280,height:900}});page.on('pageerror',e=>report.pageErrors.push(e.message));await page.goto('http://127.0.0.1:'+server.address().port);
  await check('generic module form discovers scalar fields through signed metadata',async()=>{
+  await page.getByText('Existing workflow',{exact:true}).waitFor();
+  assert.equal(await page.getByText('Existing workflow',{exact:true}).isVisible(),true);
+  assert.equal(await page.locator('.workflow-record-form').getAttribute('open'),null);
+  await page.getByText('Create workflow',{exact:true}).click();
   await page.getByLabel('Workflow name',{exact:true}).fill('Module form discovery');
   await page.getByRole('button',{name:'Use starter workflow'}).click();
   await page.getByLabel('New step type').selectOption('condition');await page.getByRole('button',{name:'Add step',exact:true}).click();

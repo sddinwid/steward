@@ -59,3 +59,29 @@ test('module save confirms persisted values and never presents rejected or stale
  for(const code of ['CONNECTOR_EGRESS_GRANT_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_REQUIRED','CONNECTOR_PRIVATE_CONFIGURATION_INVALID'])assert(configurationErrorMessage(code).startsWith('Not saved.'));
  assert(!configurationErrorMessage('private-value').includes('private-value'));
 });
+
+import {moduleInstallAction} from '../packages/ui/dist/module-configuration.js';
+import {contextualScreenLabel} from '../packages/ui/dist/presentation.js';
+import {findingTitle} from '../packages/ui/dist/intelligence.js';
+test('package actions distinguish numeric upgrades, installed versions and retained older packages',()=>{
+ assert.equal(moduleInstallAction(undefined,'1.0.0').label,'Install');
+ assert.equal(moduleInstallAction({version:'1.9.0',state:'active'},'1.10.0').label,'Upgrade to');
+ for(const version of ['1.8.0','1.9.0','invalid']){
+  assert.equal(moduleInstallAction({version:'1.9.0',state:'active'},version).enabled,false);
+  assert.throws(()=>moduleInstallIntent({version:'1.9.0',state:'active'},version));
+ }
+ assert.equal(moduleInstallAction({version:'1.9.0',state:'failed'},'1.8.0').label,'Recover');
+});
+test('ambiguous navigation includes discovered module names only within the same workspace',()=>{
+ const screen={screenId:'connection',navigationLabel:'Connection',workspace:'administration'};
+ const a={name:'Alpha',ui:[screen]},b={name:'Beta',ui:[screen]};
+ assert.match(contextualScreenLabel([a,b],a,screen),/Alpha/);
+ assert.equal(contextualScreenLabel([a],a,screen),'Connection');
+ assert.equal(contextualScreenLabel([a,{...b,ui:[{...screen,workspace:'developer'}]}],a,screen),'Connection');
+});
+test('finding headings use retained evidence without fabricating a title',()=>{
+ assert.equal(findingTitle({explanation:'  Inventory   needs review  '}),'Inventory needs review');
+ assert.equal(findingTitle({explanation:'Detail'},{title:'Investigation'}),'Investigation');
+ assert.equal(findingTitle({}),'Business finding');
+ assert(findingTitle({explanation:'a'.repeat(200)}).length<=120);
+});

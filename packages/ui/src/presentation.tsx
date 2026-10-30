@@ -6,6 +6,11 @@ export const humanize=(value:string)=>value.replace(/([a-z])([A-Z])/g,'$1 $2').r
 export function screenLabel(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
  const label=humanize(s.navigationLabel).replace(/^Sales /,'').replace(/^Procurement Requisition$/,'Purchase Requisitions').replace(/^Workforce (People|Person)$/,'Workforce Directory').replace(/^Printify Job$/,'Production Orders');return label.replace(/\bJob\b/g,'Production Orders').replace(/\bOrder\b/g,'Orders').replace(/\bProduct\b/g,'Products').replace(/\bCustomer\b/g,'Customers').replace(/\bSupplier\b/g,'Suppliers').replace(/\bPerson\b/g,'People').replace(/\bFacility\b/g,'Facilities').replace(/\bMapping\b/g,'Product Mapping');
 }
+export function contextualScreenLabel(modules:DiscoveredModule[],m:DiscoveredModule,s:ScreenContribution){
+ const label=screenLabel(m,s),workspace=(screen:ScreenContribution,owner:DiscoveredModule)=>['Connections','Administration'].includes(screenGroup(owner,screen))?'administration':screenGroup(owner,screen)==='Integration diagnostics'?'developer':'business';
+ const matches=modules.flatMap(owner=>owner.ui.filter(screen=>screenLabel(owner,screen)===label&&workspace(screen,owner)===workspace(s,m)).map(()=>owner));
+ return matches.length>1?label+' · '+m.name:label;
+}
 export function screenGroup(m:Pick<DiscoveredModule,'name'>,s:ScreenContribution){
  if(s.workspace==='administration')return 'Administration';if(s.workspace==='developer')return 'Integration diagnostics';
  if(s.navigationGroup)return s.navigationGroup;

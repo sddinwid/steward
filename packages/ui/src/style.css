@@ -49,3 +49,5 @@ textarea { width:100%; min-height:7rem; padding:.6rem; font:inherit; } pre { whi
 .workflow-designer button{white-space:normal;overflow-wrap:anywhere;max-width:100%}
 .workflow-designer li{overflow-wrap:anywhere;margin:8px 0}
 .workflow-designer .form-grid>*{min-width:0;max-width:100%}
+
+.relationship-scroll{max-width:100%;overflow-x:auto}.relationship-scroll>.analytical-plot{min-width:640px}.module-console .record-form{margin:0}.workflow-record-form>summary{cursor:pointer;font-weight:600;padding:12px 0}

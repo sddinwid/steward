@@ -11,12 +11,28 @@ export function configurationErrorMessage(code:string):string {
  return guidance[code]??'Save could not be confirmed. Refresh the saved settings before retrying. Your form may still contain unsaved changes.';
 }
 const ordered=(v:any):any=>Array.isArray(v)?v.map(ordered):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,ordered(v[k])])):v;
-/** Presentation flags only; the API still validates versions, state and authority. */
-export function moduleInstallIntent(installed:{version:string;state:string;operationId?:string}|undefined,version:string){
+type InstalledModule = {version:string;state:string;operationId?:string};
+/** Match the numeric three-part versions accepted by signed module manifests. */
+function versionOrder(a:string,b:string):number|null {
+ if(!/^\d+\.\d+\.\d+$/.test(a)||!/^\d+\.\d+\.\d+$/.test(b))return null;
+ const left=a.split('.').map(BigInt),right=b.split('.').map(BigInt);
+ for(let i=0;i<3;i++){if(left[i]!>right[i]!)return 1;if(left[i]!<right[i]!)return -1;}return 0;
+}
+/** Presentation eligibility only; the server retains package and lifecycle authority. */
+export function moduleInstallAction(installed:InstalledModule|undefined,version:string){
+ if(!installed)return {label:'Install',enabled:true,reason:''};
+ const order=versionOrder(version,installed.version),recover=['failed','installing'].includes(installed.state);
+ if(order===null)return {label:'Unavailable',enabled:false,reason:'Package versions cannot be compared.'};
+ if(recover)return {label:'Recover',enabled:true,reason:order>0?'Recover with a newer package version.':order===0?'Retry the original installation operation.':'Recover with a retained compatible package; server recovery checks still apply.'};
+ if(order<0)return {label:'Older version',enabled:false,reason:'Installed version '+installed.version+' is newer. Downgrades are not offered here.'};
+ if(order===0)return {label:'Installed',enabled:false,reason:'This version is already installed. Manage its configuration and activation above.'};
+ return {label:'Upgrade to',enabled:true,reason:''};
+}
+export function moduleInstallIntent(installed:InstalledModule|undefined,version:string){
+ const action=moduleInstallAction(installed,version);
+ if(!action.enabled)throw Error(action.reason);
  const recover=!!installed&&['failed','installing'].includes(installed.state);
- const a=version.split('.').map(Number),b=installed?.version.split('.').map(Number);
- const newer=!!b&&a.some((v,i)=>v>b[i]!&&a.slice(0,i).every((n,j)=>n===b[j]));
- return{upgrade:!!installed&&installed.version!==version&&(!recover||newer),...(recover?{recover:true}:{}),...(recover&&installed.version===version&&installed.operationId?{operationId:installed.operationId}:{})};
+ return{upgrade:!!installed&&versionOrder(version,installed.version)===1,...(recover?{recover:true}:{}),...(recover&&installed.version===version&&installed.operationId?{operationId:installed.operationId}:{})};
 }
 export async function saveModuleConfiguration(api:(path:string,method?:string,body?:unknown)=>Promise<any>,moduleId:string,configuration:unknown){
  const result=await api(`/v3/modules/${encodeURIComponent(moduleId)}/configuration`,'PUT',{configuration});

@@ -15,9 +15,9 @@ const kinds=Object.keys(names) as WorkflowNode['kind'][];
 
 /** A generic data-only SSDS field. No provider code/assets are loaded. Choices
  * must come from authenticated signed-registry discovery, never graph contents. */
-export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindings=[],discoveryError='',states={},approvalPermission=''}:{
+export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindings=[],discoveryError='',discoveryLoading=false,states={},approvalPermission=''}:{
   value:unknown;onChange:(graph:WorkflowGraph)=>void;readOnly?:boolean;fields?:WorkflowFields;
-  bindings?:WorkflowBindingChoice[];discoveryError?:string;states?:Record<string,string>;approvalPermission?:string;
+  bindings?:WorkflowBindingChoice[];discoveryError?:string;discoveryLoading?:boolean;states?:Record<string,string>;approvalPermission?:string;
 }){
   const instanceId=useId(),[selected,setSelected]=useState(''),[kind,setKind]=useState<WorkflowNode['kind']>('action');
   const [from,setFrom]=useState(''),[to,setTo]=useState(''),[port,setPort]=useState<WorkflowEdge['port']>('next');
@@ -57,7 +57,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
     {!validShape&&value?<p role="alert" className="form-error">The saved graph could not be read. It has not been replaced. Reload the record before editing.</p>:null}
     {!validShape&&!readOnly?<p>This starter graph is not saved. <button type="button" onClick={()=>change(initial())}>Use starter workflow</button></p>:null}
     {!readOnly?<details className="module-object"><summary>Reusable workflow templates</summary><p>Templates replace only this draft graph. Configure every action and obtain publication and activation reviews; a template grants no authority.</p><label>Workflow template<select aria-label="Workflow template" value={template} onChange={e=>setTemplate(e.target.value)}><option value="sequential">Sequential action</option><option value="review">Human review before an action</option><option value="parallel">Two independent branches and a join</option></select></label><button type="button" onClick={applyTemplate}>Replace draft with selected template</button></details>:null}
-    {discoveryError?<p role="alert" className="form-error">Capability discovery unavailable: {discoveryError}</p>:null}
+    {discoveryLoading?<p role="status">Loading current workflow capabilities and trigger fields.</p>:null}{discoveryError?<p role="alert" className="form-error">Capability discovery unavailable: {discoveryError}</p>:null}
     {error?<p role="alert" className="form-error">{error}</p>:null}
     <div style={{overflowX:'auto',maxWidth:'100%'}}><svg viewBox={`0 0 800 ${Math.max(100,Math.ceil(graph.nodes.length/3)*100)}`} style={{width:'100%',minWidth:420,maxHeight:650}} role="img" aria-labelledby={fieldId+'-title'}>
       <title id={fieldId+'-title'}>Workflow connections. Select a step in the keyboard-accessible list below to edit it.</title>
@@ -80,7 +80,7 @@ export function WorkflowDesigner({value,onChange,readOnly=false,fields={},bindin
     </fieldset>:null}
     <h4>Connections</h4><ul>{graph.edges.map((edge,i)=><li key={i}>{edge.from} → {edge.to} ({edge.port}) {!readOnly?<button type="button" onClick={()=>change({...graph,edges:graph.edges.filter((_,index)=>index!==i)})}>Remove connection {i+1}</button>:null}</li>)}</ul>
     {!readOnly?<div className="form-grid"><label>From step<select value={from} onChange={e=>setFrom(e.target.value)}><option value="">Choose</option>{graph.nodes.map(n=><option key={n.id} value={n.id}>{n.label}</option>)}</select></label><label>Outcome<select value={port} onChange={e=>setPort(e.target.value as WorkflowEdge['port'])}>{['next','true','false','approved','rejected','expired','lane'].map(p=><option key={p}>{p}</option>)}</select></label><label>To step<select value={to} onChange={e=>setTo(e.target.value)}><option value="">Choose</option>{graph.nodes.map(n=><option key={n.id} value={n.id}>{n.label}</option>)}</select></label><button type="button" disabled={!from||!to||from===to||graph.edges.length>=64} onClick={()=>change({...graph,edges:[...graph.edges,{from,to,port}]})}>Connect steps</button></div>:null}
-    <WorkflowPreview graph={graph} fields={fields} bindings={bindings} disabled={!validShape||Boolean(error)||Boolean(discoveryError)}/>
+    <WorkflowPreview graph={graph} fields={fields} bindings={bindings} disabled={!validShape||Boolean(error)||Boolean(discoveryError)||discoveryLoading}/>
     <details><summary>Validation ({issues.length} issues)</summary>{issues.length?<ul>{issues.map((i,n)=><li key={n}>{i.nodeId?i.nodeId+': ':''}{i.code.replace('WORKFLOW_','').toLowerCase().replaceAll('_',' ')}</li>)}</ul>:<p>Graph structure is valid. Publication still requires server-side contract and authority checks.</p>}</details>
   </section>;
 }
