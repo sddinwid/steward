@@ -26,5 +26,9 @@ export function orderCostEvidence(order:Data,confirmedCurrency:unknown){
  const lines=Array.isArray(order.line_items)?order.line_items:[];
  const complete=!!currency&&items.every(l=>l.identityStatus==='unique')&&lines.length>0&&lines.every((l:Data)=>l.quantity===1&&money(l.cost)!==null&&money(l.shipping_cost)!==null);
  const sum=(key:string)=>{const n=lines.reduce((s:bigint,l:Data)=>s+BigInt(l[key]),0n);return n<=BigInt(Number.MAX_SAFE_INTEGER)?Number(n):null;};
- return{currency,currencyBasis:order.currency===currency&&currency?'provider':currency?'administrator-confirmed':'unknown',productionCostCents:complete?sum('cost'):null,shippingCostCents:complete?sum('shipping_cost'):null,basis:complete&&lines.every((l:Data)=>l.status==='fulfilled')?'provider-recorded':'incomplete',allocation:complete?'Unit-quantity lines; documented cost and shipping_cost fields':'Unknown: missing amounts/currency or multi-quantity allocation',reference:'https://developers.printify.com/#orders'};
+ const itemShippingCostCents=complete?sum('shipping_cost'):null;
+ // Order shipping includes charges absent from item shipping. Never add both.
+ const shippingCostCents=currency?money(order.total_shipping):null;
+ const shippingAdjustmentCents=shippingCostCents!==null&&itemShippingCostCents!==null?shippingCostCents-itemShippingCostCents:null;
+ return{currency,currencyBasis:order.currency===currency&&currency?'provider':currency?'administrator-confirmed':'unknown',productionCostCents:complete?sum('cost'):null,shippingCostCents,itemShippingCostCents,shippingAdjustmentCents,shippingBasis:shippingCostCents===null?'unknown':'provider-order-total',basis:complete&&shippingCostCents!==null&&lines.every((l:Data)=>l.status==='fulfilled')?'provider-recorded':'incomplete',allocation:complete?'Production and item shipping: unit-quantity lines; order shipping: total_shipping; adjustment is unallocated':'Unknown: missing amounts/currency or multi-quantity allocation',reference:'https://developers.printify.com/#orders'};
 }

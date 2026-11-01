@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.15.0",

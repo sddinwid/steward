@@ -14,7 +14,7 @@ test('invalid, fractional and oversized monetary values cannot become usable cos
 test('currency conflict and malformed currency do not silently use configuration',()=>{for(const currency of ['EUR','invalid'])assert.equal(orderItemCosts({currency,line_items:[line]},'USD')[0].currency,null);assert.equal(orderItemCosts({line_items:[line]},undefined)[0].currency,null);assert.equal(orderItemCosts({line_items:[line]},'USD')[0].currencyBasis,'administrator-confirmed');});
 test('fulfilled cost evidence is provider-recorded but never declared settled',()=>{const [i]=orderItemCosts({currency:'USD',line_items:[{...line,status:'fulfilled',fulfilled_at:'2026-11-01T12:00:00Z'}]},'USD');assert.equal(i.basis,'provider-recorded');assert.equal(i.fulfilledAt,'2026-11-01T12:00:00Z');assert(!('settled' in i));});
 test('reordered lines preserve identities and duplicates remain ambiguous without double counting',()=>{const b={...line,variant_id:2,metadata:{external_id:'other'}};assert.deepEqual(orderItemCosts({line_items:[line,b]},'USD'),orderItemCosts({line_items:[b,line]},'USD'));const o={line_items:[line,line]};assert(orderItemCosts(o,'USD').every(i=>i.identityStatus==='ambiguous'));assert.equal(orderCostEvidence(o,'USD').productionCostCents,null);});
-test('safe unit-line totals agree with item observations',()=>{const o={line_items:[line,{...line,variant_id:2,metadata:{external_id:'other'},cost:2000}]};assert.equal(orderCostEvidence(o,'USD').productionCostCents,3050);assert.equal(orderCostEvidence(o,'USD').shippingCostCents,800);});
+test('safe unit-line totals agree with item observations',()=>{const o={total_shipping:800,line_items:[line,{...line,variant_id:2,metadata:{external_id:'other'},cost:2000}]};assert.equal(orderCostEvidence(o,'USD').productionCostCents,3050);assert.equal(orderCostEvidence(o,'USD').shippingCostCents,800);});
 test('line matching never uses positions, titles or coincident prices; split/reprint ambiguity is retained',()=>{
  const item=orderItemCosts({line_items:[line]},'USD')[0],v={remoteOrderId:'remote',item,isReprint:false};
  const view=items=>itemCostView({data:{costStatus:'complete',costResult:{items}}},{data:{lines:[{remoteLineId:'gid://shopify/LineItem/7'}]}});
@@ -31,4 +31,17 @@ test('native fulfillment view requires cost permission and includes source prove
  const def=withOrderObservations({queries:[{path:'/external-orders',run:async()=>({records:[{id:'record',revision:2,itemCostsObservedAt:'2026-11-01T00:00:00Z',itemCostEvidence:[{productionCostCents:100}]}]})}]});
  const denied=await def.queries[0].run({permissions:[]});assert(!('itemCostEvidence' in denied.records[0]));
  const allowed=await def.queries[0].run({permissions:['cee.printify.cost.read']});assert.equal(allowed.records[0].itemCostEvidence.sourceRevision,2);assert.equal(allowed.records[0].itemCostEvidence.observedAt,'2026-11-01T00:00:00Z');
+});
+test('order shipping includes unallocated adjustments without changing or double counting item evidence',()=>{
+ const o={total_shipping:769,total_tax:0,line_items:[{...line,cost:640,shipping_cost:729}]};
+ const e=orderCostEvidence(o,'USD');assert.equal(e.shippingCostCents,769);assert.equal(e.itemShippingCostCents,729);assert.equal(e.shippingAdjustmentCents,40);assert.equal(e.productionCostCents+e.shippingCostCents,1409);assert.equal(orderItemCosts(o,'USD')[0].shippingCostCents,729);
+ const multi=orderCostEvidence({total_shipping:840,line_items:[line,{...line,variant_id:2}]},'USD');assert.equal(multi.itemShippingCostCents,800);assert.equal(multi.shippingCostCents,840);assert.equal(multi.shippingAdjustmentCents,40);
+});
+test('missing or invalid order totals stay unknown even when item shipping exists',()=>{
+ for(const total_shipping of [undefined,null,-1,1.5,'769',Number.MAX_SAFE_INTEGER+1]){const e=orderCostEvidence({total_shipping,line_items:[line]},'USD');assert.equal(e.shippingCostCents,null);assert.equal(e.shippingAdjustmentCents,null);assert.equal(e.itemShippingCostCents,400);assert.equal(e.basis,'incomplete');}
+ const zero=orderCostEvidence({total_shipping:0,line_items:[line]},'USD');assert.equal(zero.shippingCostCents,0);assert.equal(zero.shippingAdjustmentCents,-400);
+});
+test('order totals do not invent missing item allocation or currency',()=>{
+ const o={total_shipping:769,line_items:[{...line,quantity:2}]};const e=orderCostEvidence(o,'USD');assert.equal(e.shippingCostCents,769);assert.equal(e.itemShippingCostCents,null);assert.equal(e.shippingAdjustmentCents,null);assert.equal(e.productionCostCents,null);
+ assert.equal(orderCostEvidence(o,undefined).shippingCostCents,null);assert.equal(orderCostEvidence({...o,currency:'EUR'},'USD').shippingCostCents,null);
 });

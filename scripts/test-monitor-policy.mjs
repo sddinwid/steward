@@ -57,7 +57,7 @@ test('pagination retains bounded same-snapshot evidence and rejects reordering, 
 });
 test('Printify evidence never treats retail total_price as cost or invents quantity allocation/currency',()=>{
  assert.equal(orderCostEvidence({total_price:9999},null).productionCostCents,null);
- const o={currency:'USD',line_items:[{quantity:1,cost:1000,shipping_cost:400,status:'fulfilled'}]};
+ const o={currency:'USD',total_shipping:400,line_items:[{quantity:1,cost:1000,shipping_cost:400,status:'fulfilled'}]};
  assert.equal(orderCostEvidence(o,null).productionCostCents,1000);assert.equal(orderCostEvidence(o,null).basis,'provider-recorded');
  assert.equal(orderCostEvidence({...o,line_items:[{...o.line_items[0],quantity:2}]},null).productionCostCents,null);
  assert.equal(orderCostEvidence({...o,currency:undefined},null).productionCostCents,null);
