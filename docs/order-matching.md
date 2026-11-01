@@ -1,5 +1,9 @@
 # Read-only Shopify–Printify order matching
 
+This records the original 1.4.0 matching increment. For the 1.5.0 automatic
+monitoring policy, local exception inbox and financial evidence, see
+[Automatic order monitoring](automatic-order-monitoring.md).
+
 Modules Shopify 1.4.0 and Printify 1.4.0 add an optional, entity-local SSMA
 `commerce.printify.orders.read` capability. It reads cached observations only.
 It never submits production, imports Sales orders, or changes external orders.
