@@ -1,4 +1,5 @@
 import {withOrderObservations} from './order-observations.js';
+import {orderCostEvidence} from './order-costs.js';
 import {withProductionCostEvidence} from './cost-evidence.js';
 import {withExternalCatalog} from './external-catalog.js';
 import {synchronizePrintifyCatalog} from './catalog-sync.js';
@@ -46,7 +47,7 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
   const external=await pages(s,'orders');
   await transaction(pool,async db=>{const ctx=context(db,runtime);for(const o of external){const data={sourceId:connectionSource(s.connectionId,String(o.id)),remoteSourceId:String(o.id),connectionId:s.connectionId,externalId:String(o.external_id??o.metadata?.shop_order_id??'Unknown'),ownership:String(o.external_id??'').startsWith(runtime.installationId+':')?'Steward authorized':'Native/external · monitor only',status:String(o.status),tracking:(o.shipments??[]).map((s:Data)=>String(s.number??'Unknown')),currency:o.currency??null,
    // Keep provider references distinct; neither is assumed to be a Shopify ID.
-   providerExternalId:o.external_id==null?null:String(o.external_id),shopOrderId:o.metadata?.shop_order_id==null?null:String(o.metadata.shop_order_id),shopOrderLabel:o.metadata?.shop_order_label==null?null:String(o.metadata.shop_order_label),shopId:String(s.shopId),
+    providerExternalId:o.external_id==null?null:String(o.external_id),shopOrderId:o.metadata?.shop_order_id==null?null:String(o.metadata.shop_order_id),shopOrderLabel:o.metadata?.shop_order_label==null?null:String(o.metadata.shop_order_label),shopId:String(s.shopId),costEvidence:orderCostEvidence(o,s.mode==='live'?s.costCurrency:runtime.configuration.currency),
    sourceCreatedAt:typeof o.created_at==='string'&&Number.isFinite(Date.parse(o.created_at))?o.created_at:null,sourceUpdatedAt:typeof o.updated_at==='string'&&Number.isFinite(Date.parse(o.updated_at))?o.updated_at:null,
    lines:(o.line_items??[]).map((l:Data)=>({productId:l.product_id==null?null:String(l.product_id),variantId:l.variant_id??null,quantity:l.quantity??null})),
    shipments:(o.shipments??[]).map((shipment:Data)=>({carrier:shipment.carrier??null,number:shipment.number??null,shippedAt:shipment.shipped_at??null,deliveredAt:shipment.delivered_at??null}))};const old=await find(ctx,'external-order',data.sourceId);if(old?.data.sourceUpdatedAt&&(!data.sourceUpdatedAt||old.data.sourceUpdatedAt>data.sourceUpdatedAt))continue;if(!old||canonical(old.data)!==canonical(data))await save(ctx,'external-order',data.sourceId,data,old);}});

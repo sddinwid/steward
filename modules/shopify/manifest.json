@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "name": "Shopify",
   "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.15.0",
@@ -229,6 +229,50 @@
       "operationId": "refreshOrderMatch",
       "method": "POST",
       "path": "/refresh-order-match/:id",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listMonitorPolicies",
+      "method": "GET",
+      "path": "/monitor-policies",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "createMonitorPolicy",
+      "method": "POST",
+      "path": "/monitor-policies",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "updateMonitorPolicy",
+      "method": "PUT",
+      "path": "/monitor-policies/:id",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listMonitorConditions",
+      "method": "GET",
+      "path": "/monitor-conditions",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "ackMonitorCondition",
+      "method": "POST",
+      "path": "/acknowledge-monitor-condition/:id",
       "permission": "cee.shopify.configure"
     }
   ],
@@ -838,6 +882,13 @@
           "type": "string",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "financialEvidence",
+          "label": "financialEvidence",
+          "type": "json",
+          "required": false,
+          "readOnly": true
         }
       ],
       "columns": [
@@ -849,7 +900,8 @@
         "observedAt",
         "expiresAt",
         "nextOffset",
-        "basis"
+        "basis",
+        "financialEvidence"
       ],
       "createOperation": "createOrderMatch",
       "actions": [
@@ -859,6 +911,223 @@
         }
       ],
       "formVersion": 1
+    },
+    {
+      "screenId": "monitor-policies",
+      "title": "Order Monitoring Policies",
+      "navigationLabel": "Order Monitoring Policies",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "administration",
+      "listOperation": "listMonitorPolicies",
+      "createOperation": "createMonitorPolicy",
+      "updateOperation": "updateMonitorPolicy",
+      "formVersion": 1,
+      "fields": [
+        {
+          "name": "key",
+          "label": "key",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "associationId",
+          "label": "associationId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOrderAssociation",
+            "valueField": "id",
+            "labelField": "shopifyConnectionId"
+          }
+        },
+        {
+          "name": "enabled",
+          "label": "enabled",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "name": "intervalSeconds",
+          "label": "intervalSeconds",
+          "type": "number",
+          "required": true,
+          "default": 300,
+          "minimum": 60,
+          "maximum": 86400
+        },
+        {
+          "name": "batchSize",
+          "label": "batchSize",
+          "type": "number",
+          "required": true,
+          "default": 10,
+          "minimum": 1,
+          "maximum": 20
+        },
+        {
+          "name": "graceSeconds",
+          "label": "graceSeconds",
+          "type": "number",
+          "required": true,
+          "default": 1800,
+          "minimum": 60,
+          "maximum": 604800
+        },
+        {
+          "name": "freshnessSeconds",
+          "label": "freshnessSeconds",
+          "type": "number",
+          "required": true,
+          "default": 300,
+          "minimum": 60,
+          "maximum": 300
+        },
+        {
+          "name": "delaySeconds",
+          "label": "delaySeconds",
+          "type": "number",
+          "required": true,
+          "default": 172800,
+          "minimum": 60,
+          "maximum": 2592000
+        },
+        {
+          "name": "includePending",
+          "label": "includePending",
+          "type": "boolean",
+          "required": true,
+          "default": true
+        },
+        {
+          "name": "includeKnownTest",
+          "label": "includeKnownTest",
+          "type": "boolean",
+          "required": true,
+          "default": false
+        },
+        {
+          "name": "approvedBy",
+          "label": "approvedBy",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lastRunAt",
+          "label": "lastRunAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "nextRunAt",
+          "label": "nextRunAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "associationId",
+        "enabled",
+        "intervalSeconds",
+        "graceSeconds",
+        "approvedBy",
+        "lastRunAt",
+        "nextRunAt"
+      ]
+    },
+    {
+      "screenId": "monitor-conditions",
+      "title": "Order Monitoring Exceptions",
+      "navigationLabel": "Order Monitoring Exceptions",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "business",
+      "listOperation": "listMonitorConditions",
+      "formVersion": 1,
+      "fields": [
+        {
+          "name": "order",
+          "label": "order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "episode",
+          "label": "episode",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "openedAt",
+          "label": "openedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedAt",
+          "label": "observedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "acknowledgedAt",
+          "label": "acknowledgedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "resolvedAt",
+          "label": "resolvedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "order",
+        "code",
+        "explanation",
+        "status",
+        "episode",
+        "observedAt",
+        "acknowledgedAt",
+        "resolvedAt"
+      ],
+      "actions": [
+        {
+          "label": "Acknowledge exception",
+          "operationId": "ackMonitorCondition"
+        }
+      ]
     }
   ],
   "configurationSchema": {

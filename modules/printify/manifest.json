@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.15.0",
@@ -416,6 +416,13 @@
           "type": "string",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "costEvidence",
+          "label": "Order cost evidence",
+          "type": "json",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -423,7 +430,8 @@
         "ownership",
         "status",
         "tracking",
-        "currency"
+        "currency",
+        "costEvidence"
       ]
     },
     {

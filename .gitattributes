@@ -41,3 +41,8 @@ modules/sales/migrations/009-analytical-publications.sql text eol=crlf
 # Preserve their existing exact working bytes in Git; no text conversion is safe.
 modules/catalog/migrations/003-external-catalog.sql -text
 modules/pricing/migrations/002-cost-evidence.sql -text
+
+# Order matching 1.4.0 was signed/applied with CRLF bytes. Preserve them in
+# clean checkouts without changing either SQL contents or recorded checksums.
+modules/shopify/migrations/006-order-monitoring.sql text eol=crlf
+modules/printify/migrations/007-order-observations.sql text eol=crlf

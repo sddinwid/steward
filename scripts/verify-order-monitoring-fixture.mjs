@@ -27,4 +27,29 @@ export async function verifyOrderMonitoring({test,worker}){
  await test('monitoring pagination does not report truncated results as complete',async()=>{const r=await remote({...cmd,payload:{...cmd.payload,limit:1}});assert.equal(r.items.length,1);assert.equal(r.nextOffset,1);await assert.rejects(remote({...cmd,payload:{...cmd.payload,limit:21}}));});
  await test('monitoring outage and expired observations never imply missing orders',async()=>{await print.pool.query("UPDATE printify_order_sync SET status='unavailable' WHERE connection_id='monitor-store'");let r=await remote(cmd);assert.equal(r.status,'unavailable');assert.equal(r.items.length,0);await print.pool.query("UPDATE printify_order_sync SET status='ready',observed_at=now()-interval '10 minutes' WHERE connection_id='monitor-store'");r=await remote(cmd);assert.equal(r.status,'stale');await print.pool.query("UPDATE printify_order_sync SET observed_at=now() WHERE connection_id='monitor-store'");r=await remote(cmd);assert.equal(r.items.length,2);});
  await test('monitoring outbox contains only governed observation requests',async()=>{const rows=(await shop.pool.query("SELECT envelope FROM integration_outbox WHERE envelope->>'aggregateId'=$1",[match.id])).rows;assert(rows.length>0);assert(rows.every(r=>r.envelope.command==='order-observations.lookup'&&r.envelope.capability.providerConstraint.packageDigest===provider.packageDigest));});
+ let policy,automatic,condition;
+ await test('approved monitoring policy discovers orders and deduplicates durable requests',async()=>{
+  policy=await create('monitor-policy',{key:randomUUID(),associationId:association.id,enabled:true,intervalSeconds:60,batchSize:20,graceSeconds:600,freshnessSeconds:300,delaySeconds:3600,includePending:true,includeKnownTest:false});
+  await local(c=>def.tick(c));
+  automatic=(await shop.pool.query("SELECT * FROM business_records WHERE kind='order-match' AND data->>'policyId'=$1",[policy.id])).rows[0];assert(automatic);const first=await command(automatic.id);
+  await local(c=>def.tick(c));assert.equal((await command(automatic.id)).commandId,first.commandId);
+  await ack(first,await reply(first));
+ });
+ await test('automatic conditions deduplicate, acknowledge and survive repeated ticks',async()=>{
+  await local(async c=>{const p=await find(c,'monitor-policy',policy.key);await save(c,p.kind,p.key,{...p.data,nextRunAt:null},p);await def.tick(c);});
+  condition=(await shop.pool.query("SELECT * FROM business_records WHERE kind='commerce-condition' AND data->>'sourceId'=$1 AND data->>'code'='production_hold'",[automatic.id])).rows[0];assert(condition);assert.equal(condition.data.episode,1);assert.equal(condition.data.approved,false);
+  await local(c=>def.actions.find(a=>a.path==='/acknowledge-monitor-condition/:id').run(condition,c));
+  await local(c=>def.tick(c));const unchanged=await local(c=>find(c,condition.kind,condition.key));assert.equal(unchanged.data.episode,1);assert(unchanged.data.acknowledgedAt);
+ });
+ await test('policy configuration rejects association substitution and duplicate policies',async()=>{
+  await assert.rejects(create('monitor-policy',{...policy.data,key:randomUUID()}),/already has/);
+  await assert.rejects(local(c=>def.resources.find(r=>r.kind==='monitor-policy').prepare({...policy.data,associationId:randomUUID()},policy,c)));
+ });
+ await test('monitoring recovery resolves episodes and a recurrence creates exactly one new episode',async()=>{
+  const refresh=async()=>{await local(async c=>{const r=await find(c,'order-match',automatic.key);if(r.data.status!=='pending')await def.actions[0].run(r,c);});const cmd=await command(automatic.id);await ack(cmd,await reply(cmd));await local(async c=>{const p=await find(c,'monitor-policy',policy.key);await save(c,p.kind,p.key,{...p.data,nextRunAt:null},p);await def.tick(c);});};
+  await print.pool.query("UPDATE business_records SET data=jsonb_set(data,'{status}','\"fulfilled\"'),revision=revision+1 WHERE kind='external-order' AND data->>'connectionId'='monitor-store'");
+  await refresh();let r=await local(c=>find(c,condition.kind,condition.key));assert.equal(r.data.active,false);assert.equal(r.data.status,'resolved');
+  await print.pool.query("UPDATE business_records SET data=jsonb_set(data,'{status}','\"on-hold\"'),revision=revision+1 WHERE kind='external-order' AND data->>'connectionId'='monitor-store'");
+  await refresh();r=await local(c=>find(c,condition.kind,condition.key));assert.equal(r.data.active,true);assert.equal(r.data.episode,2);assert.equal(r.data.acknowledgedAt,null);
+ });
 }

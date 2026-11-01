@@ -31,5 +31,5 @@ export async function connectorConditions(ctx:Context,provider:'shopify'|'printi
 export async function publishConnectorConditions(ctx:Context,provider:'shopify'|'printify'){
  const issues=await connectorConditions(ctx,provider),keys=new Set<string>();
  for(const issue of issues){const key=digest(issue.sourceId+':'+issue.code),old=await find(ctx,'commerce-condition',key);keys.add(key);const data={contractVersion:1,approved:ctx.config.publishOperationalAlerts===true,active:true,...issue};if(!old||canonical(old.data)!==canonical(data))await save(ctx,'commerce-condition',key,data,old);}
- for(const old of await records(ctx,'commerce-condition'))if(!keys.has(old.key)){const data={...old.data,active:false,approved:ctx.config.publishOperationalAlerts===true};if(canonical(old.data)!==canonical(data))await save(ctx,'commerce-condition',old.key,data,old);}
+ for(const old of await records(ctx,'commerce-condition'))if(old.data.origin!=='order-monitoring'&&!keys.has(old.key)){const data={...old.data,active:false,approved:ctx.config.publishOperationalAlerts===true};if(canonical(old.data)!==canonical(data))await save(ctx,'commerce-condition',old.key,data,old);}
 }
