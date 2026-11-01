@@ -1,5 +1,5 @@
 import {withOrderObservations} from './order-observations.js';
-import {orderCostEvidence} from './order-costs.js';
+import {orderCostEvidence,orderItemCosts} from './order-costs.js';
 import {withProductionCostEvidence} from './cost-evidence.js';
 import {withExternalCatalog} from './external-catalog.js';
 import {synchronizePrintifyCatalog} from './catalog-sync.js';
@@ -49,8 +49,9 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
    // Keep provider references distinct; neither is assumed to be a Shopify ID.
     providerExternalId:o.external_id==null?null:String(o.external_id),shopOrderId:o.metadata?.shop_order_id==null?null:String(o.metadata.shop_order_id),shopOrderLabel:o.metadata?.shop_order_label==null?null:String(o.metadata.shop_order_label),shopId:String(s.shopId),costEvidence:orderCostEvidence(o,s.mode==='live'?s.costCurrency:runtime.configuration.currency),
    sourceCreatedAt:typeof o.created_at==='string'&&Number.isFinite(Date.parse(o.created_at))?o.created_at:null,sourceUpdatedAt:typeof o.updated_at==='string'&&Number.isFinite(Date.parse(o.updated_at))?o.updated_at:null,
+   itemCostEvidence:orderItemCosts(o,s.mode==='live'?s.costCurrency:runtime.configuration.currency),isReprint:typeof o.metadata?.is_reprint==='boolean'?o.metadata.is_reprint:null,
    lines:(o.line_items??[]).map((l:Data)=>({productId:l.product_id==null?null:String(l.product_id),variantId:l.variant_id??null,quantity:l.quantity??null})),
-   shipments:(o.shipments??[]).map((shipment:Data)=>({carrier:shipment.carrier??null,number:shipment.number??null,shippedAt:shipment.shipped_at??null,deliveredAt:shipment.delivered_at??null}))};const old=await find(ctx,'external-order',data.sourceId);if(old?.data.sourceUpdatedAt&&(!data.sourceUpdatedAt||old.data.sourceUpdatedAt>data.sourceUpdatedAt))continue;if(!old||canonical(old.data)!==canonical(data))await save(ctx,'external-order',data.sourceId,data,old);}});
+   shipments:(o.shipments??[]).map((shipment:Data)=>({carrier:shipment.carrier??null,number:shipment.number??null,shippedAt:shipment.shipped_at??null,deliveredAt:shipment.delivered_at??null}))};const old=await find(ctx,'external-order',data.sourceId);if(old?.data.sourceUpdatedAt&&(!data.sourceUpdatedAt||old.data.sourceUpdatedAt>data.sourceUpdatedAt))continue;const {itemCostsObservedAt,...prior}=old?.data??{};if(!old||canonical(prior)!==canonical(data))await save(ctx,'external-order',data.sourceId,{...data,itemCostsObservedAt:new Date().toISOString()},old);}});
   await pool.query("INSERT INTO printify_order_sync(connection_id,status,observed_at,order_ids) VALUES($1,'ready',now(),$2) ON CONFLICT(connection_id) DO UPDATE SET status='ready',observed_at=excluded.observed_at,order_ids=excluded.order_ids",[s.connectionId,JSON.stringify(external.map(o=>String(o.id)))]);
   for(const job of jobs){try{await reconcileJob(pool,runtime,s,job,external);}catch(e){await jobPatch(pool,runtime,job.key,{error:e instanceof ConnectorError?e.code:'EXTERNAL_OUTCOME_REQUIRES_RECONCILIATION'});}}
   await connectorState(pool,runtime,'available');

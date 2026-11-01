@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';
 import {transaction,save,find} from '../packages/business-kit/dist/index.js';import {context,orderReadCapabilityId} from '../packages/commerce-kit/dist/index.js';import {withOrderMonitoring,combinedOrders} from '../modules/shopify/dist/order-monitoring.js';import {orderObservationsReceive} from '../modules/printify/dist/order-observations.js';
+import {orderItemCostsReceive} from '../modules/printify/dist/order-observations.js';
+import {orderItemCosts} from '../modules/printify/dist/order-costs.js';
 export async function verifyOrderMonitoring({test,worker}){
  const shop=worker('cee.shopify'),print=worker('cee.printify'),entityId=randomUUID(),pin=id=>({workerInstallationId:shop.runtime.installationId,entityId,moduleId:id,moduleInstallationId:randomUUID(),packageDigest:'a'.repeat(64)}),own=pin('cee.shopify'),provider=pin('cee.printify');
  const ctx=(db,w,p)=>({...context(db,w.runtime),entityId,providerIdentity:p,actor:'synthetic-admin',permissions:['cee.shopify.configure']});const def=withOrderMonitoring({resources:[],actions:[],queries:[]});
@@ -51,5 +53,30 @@ export async function verifyOrderMonitoring({test,worker}){
   await refresh();let r=await local(c=>find(c,condition.kind,condition.key));assert.equal(r.data.active,false);assert.equal(r.data.status,'resolved');
   await print.pool.query("UPDATE business_records SET data=jsonb_set(data,'{status}','\"on-hold\"'),revision=revision+1 WHERE kind='external-order' AND data->>'connectionId'='monitor-store'");
   await refresh();r=await local(c=>find(c,condition.kind,condition.key));assert.equal(r.data.active,true);assert.equal(r.data.episode,2);assert.equal(r.data.acknowledgedAt,null);
+ });
+ let costCommand,costBody;
+ const readCosts=(cmd,extra={})=>transaction(print.pool,db=>orderItemCostsReceive(cmd,{...ctx(db,print,provider),incomingProviderIdentity:own,config:{...print.runtime.configuration,costReadEnabled:true},...extra}));
+ await test('item cost requests use separate pinned read capability and retain authoritative source references',async()=>{
+  await transaction(print.pool,async db=>{const c=ctx(db,print,provider);for(let n=0;n<2;n++){const r=await find(c,'external-order','monitor-'+n);await save(c,r.kind,r.key,{...r.data,itemCostEvidence:orderItemCosts({line_items:[{product_id:'p'+n,variant_id:1,quantity:1,cost:100+n,shipping_cost:20,status:'on-hold'}]},'USD'),isReprint:false},r);}});
+  const value=await local(async c=>def.actions.find(a=>a.path==='/read-order-item-costs/:id').run(await find(c,'order-match',automatic.key),{...c,permissions:['cee.shopify.cost.read']}));
+  costCommand=(await shop.pool.query('SELECT envelope FROM integration_outbox WHERE command_id=$1',[value.record.costCommandId])).rows[0].envelope;
+  assert.equal(costCommand.command,'order-costs.lookup');assert.equal(costCommand.capability.providerConstraint.packageDigest,provider.packageDigest);
+  costBody=await readCosts(costCommand);assert.equal(costBody.items.length,2);assert.equal(costBody.items[0].sourceStreamId,'printify_order_item_costs_v1');assert.equal(costBody.items[0].item.productionCostCents,100);
+ });
+ await test('item costs reject disabled permissions, absent authority and wrong original stores',async()=>{
+  await assert.rejects(readCosts(costCommand,{config:{...print.runtime.configuration,costReadEnabled:false}}));await assert.rejects(readCosts(costCommand,{incomingProviderIdentity:undefined}));await assert.rejects(readCosts(costCommand,{entityId:randomUUID()}));await assert.rejects(readCosts({...costCommand,payload:{...costCommand.payload,accountId:'foreign'}}));
+  await assert.rejects(local(async c=>def.actions.find(a=>a.path==='/read-order-item-costs/:id').run(await find(c,'order-match',automatic.key),c)),/permission/);
+ });
+ await test('cost receipts deduplicate and general matching reads cannot disclose cost detail',async()=>{
+  const result={...costBody,_steward:{providerModuleId:provider.moduleId,providerInstallationId:provider.moduleInstallationId,packageDigest:provider.packageDigest}};
+  await assert.rejects(ack(costCommand,{...result,_steward:{...result._steward,packageDigest:'c'.repeat(64)}}));await ack(costCommand,result);await ack(costCommand,result);await assert.rejects(ack(costCommand,{...result,status:'unavailable'}));
+  const hidden=(await local(c=>combinedOrders(c))).records.find(r=>r.id===automatic.id);assert.equal(hidden.supplierItemCosts.status,'permission_required');assert(!('costResult' in hidden));
+  const visible=(await local(c=>combinedOrders({...c,permissions:['cee.shopify.cost.read']}))).records.find(r=>r.id===automatic.id);assert.equal(visible.supplierItemCosts.items.length,2);assert(visible.supplierItemCosts.items.every(i=>i.shopifyLineMatch==='unmatched'));
+  const stored=await local(c=>find(c,'order-match',automatic.key));assert(!('costResult' in stored.data));
+ });
+ await test('cost pagination is bounded and outages do not invent zero supplier cost',async()=>{
+  const page=await readCosts({...costCommand,payload:{...costCommand.payload,limit:1}});assert.equal(page.items.length,1);assert.equal(page.nextOffset,1);
+  await print.pool.query("UPDATE printify_order_sync SET status='unavailable' WHERE connection_id='monitor-store'");const result=await readCosts(costCommand);assert.equal(result.status,'unavailable');assert.equal(result.items.length,0);
+  await print.pool.query("UPDATE printify_order_sync SET status='ready',observed_at=now() WHERE connection_id='monitor-store'");
  });
 }

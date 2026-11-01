@@ -1,6 +1,6 @@
 import {ensure,type Context,type Data,type Definition} from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue,type IntegrationCommand} from '@steward/module-sdk';
-import {orderReadCapabilityId,orderReadOperations} from '@steward/commerce-kit';
+import {orderReadCapabilityId,orderReadOperations,orderItemCostCapabilityId,orderItemCostOperation} from '@steward/commerce-kit';
 export async function orderConnections(ctx:Context){
  const rows=(await ctx.db.query("SELECT b.key,b.data,s.status,s.observed_at FROM business_records b LEFT JOIN printify_order_sync s ON s.connection_id=b.key WHERE b.kind='connector-identity' ORDER BY b.key LIMIT 101")).rows;ensure(rows.length<=100,'Order connection bound exceeded',413);
  return rows.map(r=>{const observedAt=r.observed_at?new Date(r.observed_at).toISOString():null,expiresAt=observedAt?new Date(Date.parse(observedAt)+300000).toISOString():null;return{connectionId:r.key,accountId:String(r.data.shopId),mode:r.data.mode,originDigest:digest(canonical(r.data)),state:r.data.mode!==ctx.config.mode||!r.status?'unavailable':r.status!=='ready'?r.status:!expiresAt||Date.parse(expiresAt)<=Date.now()?'stale':'ready',observedAt,expiresAt};});
@@ -15,4 +15,18 @@ export async function orderObservationsReceive(command:IntegrationCommand,ctx:Co
  result={contractVersion:1,connection,status,shopOrderId:b.shopOrderId,items,nextOffset};}
  validateCapabilityValue(result,op.output);return result;
 }
-export function withOrderObservations(def:Definition):Definition{const old=def.receive;return{...def,receive:async(command,ctx)=>{const r=await orderObservationsReceive(command,ctx);if(r)return r;ensure(old,'Unsupported operation',403);return old(command,ctx);}};}
+export async function orderItemCostsReceive(command:IntegrationCommand,ctx:Context):Promise<Data|null>{
+ if(command.command!==orderItemCostOperation.name)return null;
+ const p=ctx.providerIdentity,c=ctx.incomingProviderIdentity;ensure(ctx.config.costReadEnabled===true&&p&&c&&!ctx.peerScope&&p.moduleId==='cee.printify'&&p.workerInstallationId===ctx.installationId&&p.entityId===ctx.entityId&&c.workerInstallationId===ctx.installationId&&c.entityId===ctx.entityId&&c.moduleId===command.sourceModuleId&&command.capability?.capabilityId===orderItemCostCapabilityId,'Local governed order cost read unavailable',403);
+ validateCapabilityValue(command.payload,orderItemCostOperation.input);const b=command.payload as Data,connection=(await orderConnections(ctx)).find(c=>c.connectionId===b.connectionId);
+ ensure(connection&&connection.accountId===b.accountId&&connection.originDigest===b.originDigest,'Original cost store identity changed',409);
+ let items:Data[]=[],nextOffset=null,status=connection.state==='ready'?'ok':connection.state;
+ if(status==='ok'){
+  const missing=(await ctx.db.query("SELECT 1 FROM business_records b JOIN printify_order_sync s ON s.connection_id=$1 WHERE b.kind='external-order' AND b.data->>'connectionId'=$1 AND b.data->>'shopOrderId'=$2 AND s.order_ids ? (b.data->>'remoteSourceId') AND (NOT b.data ? 'itemCostEvidence' OR jsonb_array_length(b.data->'itemCostEvidence')=0) LIMIT 1",[b.connectionId,b.shopOrderId])).rows.length;
+  if(missing)status='incomplete';
+  const rows=(await ctx.db.query("SELECT b.id,b.revision,b.data,l.item FROM business_records b JOIN printify_order_sync s ON s.connection_id=$1 CROSS JOIN LATERAL jsonb_array_elements(coalesce(b.data->'itemCostEvidence','[]')) WITH ORDINALITY l(item,n) WHERE b.kind='external-order' AND b.data->>'connectionId'=$1 AND b.data->>'shopOrderId'=$2 AND s.order_ids ? (b.data->>'remoteSourceId') ORDER BY b.key,l.n LIMIT $3 OFFSET $4",[b.connectionId,b.shopOrderId,b.limit+1,b.offset])).rows;
+  nextOffset=rows.length>b.limit?b.offset+b.limit:null;items=rows.slice(0,b.limit).map(r=>({sourceRecordId:r.id,sourceRevision:Number(r.revision),sourceStreamId:'printify_order_item_costs_v1',remoteOrderId:r.data.remoteSourceId,shopOrderId:r.data.shopOrderId,isReprint:r.data.isReprint??null,sourceUpdatedAt:r.data.sourceUpdatedAt??null,item:r.item}));
+ }
+ const result={contractVersion:1,connection,status,shopOrderId:b.shopOrderId,items,nextOffset};validateCapabilityValue(result,orderItemCostOperation.output);return result;
+}
+export function withOrderObservations(def:Definition):Definition{const native=def.queries?.find(q=>q.path==='/external-orders');if(native){const read=native.run;native.run=async(c,q)=>{const result=await read(c,q);if(!c.permissions.includes('cee.printify.cost.read'))result.records=result.records.map((r:Data)=>{const {itemCostEvidence,...visible}=r;return visible;});else result.records=result.records.map((r:Data)=>({...r,itemCostEvidence:{sourceRecordId:r.id,sourceRevision:r.revision,sourceStreamId:'printify_order_item_costs_v1',observedAt:r.itemCostsObservedAt??null,items:r.itemCostEvidence??[]}}));return result;};}const old=def.receive;return{...def,receive:async(command,ctx)=>{const r=await orderItemCostsReceive(command,ctx)??await orderObservationsReceive(command,ctx);if(r)return r;ensure(old,'Unsupported operation',403);return old(command,ctx);}};}
