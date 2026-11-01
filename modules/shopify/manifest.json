@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "name": "Shopify",
   "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.15.0",
