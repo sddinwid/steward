@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.printify",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "name": "Printify",
   "description": "Independent SSMA printify module; simulator/live mode and authority remain explicit.",
   "minimumPlatformVersion": "0.15.0",
@@ -655,7 +655,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 6,
+    "schemaVersion": 7,
     "migrations": [
       {
         "version": 1,
@@ -680,6 +680,10 @@
       {
         "version": 6,
         "sha256": "54b6aa0e30d0023d9b4b9f45e7e86f334f82ac287cc0ca511339850e1891064a"
+      },
+      {
+        "version": 7,
+        "sha256": "21e9c459bd433951224f2315b829aecf9ee24f4b2a70217517012ac146c37d10"
       }
     ],
     "destructiveRollback": false
@@ -3483,6 +3487,391 @@
         "ownership": "provider",
         "configuration": {
           "costReadEnabled": true
+        }
+      },
+      {
+        "capabilityId": "commerce.printify.orders.read",
+        "contract": "steward.order-observations",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "order-observations.connections",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "connectionId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "accountId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "mode": {
+                        "enum": [
+                          "live",
+                          "simulator"
+                        ]
+                      },
+                      "originDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "state": {
+                        "enum": [
+                          "ready",
+                          "stale",
+                          "unavailable",
+                          "incomplete"
+                        ]
+                      },
+                      "observedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "expiresAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "connectionId",
+                      "accountId",
+                      "mode",
+                      "originDigest",
+                      "state",
+                      "observedAt",
+                      "expiresAt"
+                    ]
+                  },
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connections",
+                "nextOffset"
+              ]
+            },
+            "permission": "cee.printify.read",
+            "command": "order-observations.connections",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          },
+          {
+            "name": "order-observations.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connectionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "originDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connectionId",
+                "accountId",
+                "originDigest",
+                "shopOrderId",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "connectionId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "mode": {
+                      "enum": [
+                        "live",
+                        "simulator"
+                      ]
+                    },
+                    "originDigest": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "state": {
+                      "enum": [
+                        "ready",
+                        "stale",
+                        "unavailable",
+                        "incomplete"
+                      ]
+                    },
+                    "observedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "expiresAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "connectionId",
+                    "accountId",
+                    "mode",
+                    "originDigest",
+                    "state",
+                    "observedAt",
+                    "expiresAt"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "ok",
+                    "stale",
+                    "unavailable",
+                    "incomplete"
+                  ]
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sourceRecordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "sourceStreamId": {
+                        "const": "printify_order_observations_v1"
+                      },
+                      "sourceRevision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "remoteOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "shopOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "tracking": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "pattern": "\\S"
+                        },
+                        "maxItems": 40
+                      },
+                      "currency": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-Z]{3}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sourceRecordId",
+                      "sourceStreamId",
+                      "sourceRevision",
+                      "remoteOrderId",
+                      "shopOrderId",
+                      "status",
+                      "tracking",
+                      "currency"
+                    ]
+                  },
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connection",
+                "status",
+                "shopOrderId",
+                "items",
+                "nextOffset"
+              ]
+            },
+            "permission": "cee.printify.read",
+            "command": "order-observations.lookup",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider",
+        "configuration": {
+          "catalogReadEnabled": true
         }
       }
     ],

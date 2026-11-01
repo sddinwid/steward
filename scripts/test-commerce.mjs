@@ -1,3 +1,4 @@
+import {verifyOrderMonitoring} from './verify-order-monitoring-fixture.mjs';
 import {simulationRoutingMigration} from '../packages/module-host/dist/simulation-routing.js';
 import {verifyShopifyLive} from './shopify-live-acceptance.mjs';
 import {connectionSource,context} from '../packages/commerce-kit/dist/index.js';
@@ -210,6 +211,7 @@ try{
   }
  });
 
+ await verifyOrderMonitoring({test,worker});
  await verifyShopifyLive({test,worker,core,read,secretFiles,db});
 }finally{
  for(const app of apps.reverse())await app.close();for(const child of processes){child.kill();await Promise.race([new Promise(r=>child.once('exit',r)),delay(2000)]);}for(const pool of pools.reverse())await pool.end();try{docker(['rm','-f',container]);}catch{}

@@ -1,0 +1,1 @@
+CREATE TABLE printify_order_sync(connection_id text PRIMARY KEY, status text NOT NULL CHECK(status IN ('ready','unavailable','incomplete')), observed_at timestamptz, order_ids jsonb NOT NULL DEFAULT '[]');

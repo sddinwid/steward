@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "name": "Shopify",
   "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.15.0",
@@ -141,6 +141,95 @@
         "fields",
         "q"
       ]
+    },
+    {
+      "operationId": "listOrderDiscovery",
+      "method": "GET",
+      "path": "/order-discovery",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "createOrderDiscovery",
+      "method": "POST",
+      "path": "/order-discovery",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listOrderAssociation",
+      "method": "GET",
+      "path": "/order-associations",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "createOrderAssociation",
+      "method": "POST",
+      "path": "/order-associations",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listOrderMatch",
+      "method": "GET",
+      "path": "/order-matches",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "createOrderMatch",
+      "method": "POST",
+      "path": "/order-matches",
+      "permission": "cee.shopify.configure"
+    },
+    {
+      "operationId": "listOrderProviderProfiles",
+      "method": "GET",
+      "path": "/order-provider-profiles",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "listCombinedOrders",
+      "method": "GET",
+      "path": "/combined-orders",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "refreshOrderMatch",
+      "method": "POST",
+      "path": "/refresh-order-match/:id",
+      "permission": "cee.shopify.configure"
     }
   ],
   "ui": [
@@ -534,6 +623,242 @@
         "sourceVariantId",
         "observedQuantity"
       ]
+    },
+    {
+      "screenId": "order-discovery",
+      "title": "Discover Printify Order Stores",
+      "navigationLabel": "Discover Printify Order Stores",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "administration",
+      "listOperation": "listOrderDiscovery",
+      "fields": [
+        {
+          "name": "key",
+          "label": "key",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "offset",
+          "label": "offset",
+          "type": "number",
+          "required": true,
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100000
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "nextOffset",
+          "label": "nextOffset",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "status",
+        "nextOffset"
+      ],
+      "createOperation": "createOrderDiscovery",
+      "formVersion": 1
+    },
+    {
+      "screenId": "order-association",
+      "title": "Order Store Associations",
+      "navigationLabel": "Order Store Associations",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "administration",
+      "listOperation": "listOrderAssociation",
+      "fields": [
+        {
+          "name": "key",
+          "label": "key",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "shopifyConnectionId",
+          "label": "shopifyConnectionId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listLiveConnection",
+            "valueField": "connectionId",
+            "labelField": "shopDomain"
+          }
+        },
+        {
+          "name": "profileId",
+          "label": "profileId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOrderProviderProfiles",
+            "valueField": "id",
+            "labelField": "label"
+          }
+        },
+        {
+          "name": "connection",
+          "label": "connection",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "approvedBy",
+          "label": "approvedBy",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "shopifyConnectionId",
+        "connection",
+        "approvedBy"
+      ],
+      "createOperation": "createOrderAssociation",
+      "formVersion": 1
+    },
+    {
+      "screenId": "combined-orders",
+      "title": "Shopify and Printify Orders",
+      "navigationLabel": "Shopify and Printify Orders",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "business",
+      "listOperation": "listCombinedOrders",
+      "fields": [
+        {
+          "name": "key",
+          "label": "key",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "associationId",
+          "label": "associationId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOrderAssociation",
+            "valueField": "id",
+            "labelField": "shopifyConnectionId"
+          }
+        },
+        {
+          "name": "orderId",
+          "label": "orderId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listorder",
+            "valueField": "id",
+            "labelField": "remoteSourceId"
+          }
+        },
+        {
+          "name": "offset",
+          "label": "offset",
+          "type": "number",
+          "required": true,
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100000
+        },
+        {
+          "name": "orderName",
+          "label": "orderName",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "paymentStatus",
+          "label": "paymentStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "fulfillmentStatus",
+          "label": "fulfillmentStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "printifyOrders",
+          "label": "printifyOrders",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedAt",
+          "label": "observedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "expiresAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "nextOffset",
+          "label": "nextOffset",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "basis",
+          "label": "basis",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "orderName",
+        "paymentStatus",
+        "fulfillmentStatus",
+        "status",
+        "printifyOrders",
+        "observedAt",
+        "expiresAt",
+        "nextOffset",
+        "basis"
+      ],
+      "createOperation": "createOrderMatch",
+      "actions": [
+        {
+          "label": "Refresh observations",
+          "operationId": "refreshOrderMatch"
+        }
+      ],
+      "formVersion": 1
     }
   ],
   "configurationSchema": {
@@ -589,7 +914,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 5,
+    "schemaVersion": 6,
     "migrations": [
       {
         "version": 1,
@@ -610,6 +935,10 @@
       {
         "version": 5,
         "sha256": "8638f137c0470a4512758eadec4f7cd82388e798a8bd787635ea8aed134c409e"
+      },
+      {
+        "version": 6,
+        "sha256": "8c9dc6198344289b18327d4b23f8514ff0134c15bc3fa093c1187f4e6e0bfecd"
       }
     ],
     "destructiveRollback": false
@@ -2466,6 +2795,381 @@
         "configuration": {
           "integrationsEnabled": true,
           "mode": "simulator"
+        }
+      },
+      {
+        "capabilityId": "commerce.printify.orders.read",
+        "contract": "steward.order-observations",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "order-observations.connections",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "connectionId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "accountId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "mode": {
+                        "enum": [
+                          "live",
+                          "simulator"
+                        ]
+                      },
+                      "originDigest": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "state": {
+                        "enum": [
+                          "ready",
+                          "stale",
+                          "unavailable",
+                          "incomplete"
+                        ]
+                      },
+                      "observedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "expiresAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "connectionId",
+                      "accountId",
+                      "mode",
+                      "originDigest",
+                      "state",
+                      "observedAt",
+                      "expiresAt"
+                    ]
+                  },
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connections",
+                "nextOffset"
+              ]
+            }
+          },
+          {
+            "name": "order-observations.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connectionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "originDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connectionId",
+                "accountId",
+                "originDigest",
+                "shopOrderId",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "connectionId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "mode": {
+                      "enum": [
+                        "live",
+                        "simulator"
+                      ]
+                    },
+                    "originDigest": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "state": {
+                      "enum": [
+                        "ready",
+                        "stale",
+                        "unavailable",
+                        "incomplete"
+                      ]
+                    },
+                    "observedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "expiresAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "connectionId",
+                    "accountId",
+                    "mode",
+                    "originDigest",
+                    "state",
+                    "observedAt",
+                    "expiresAt"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "ok",
+                    "stale",
+                    "unavailable",
+                    "incomplete"
+                  ]
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sourceRecordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "sourceStreamId": {
+                        "const": "printify_order_observations_v1"
+                      },
+                      "sourceRevision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "remoteOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "shopOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "tracking": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 200,
+                          "pattern": "\\S"
+                        },
+                        "maxItems": 40
+                      },
+                      "currency": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "pattern": "^[A-Z]{3}$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sourceRecordId",
+                      "sourceStreamId",
+                      "sourceRevision",
+                      "remoteOrderId",
+                      "shopOrderId",
+                      "status",
+                      "tracking",
+                      "currency"
+                    ]
+                  },
+                  "maxItems": 20
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connection",
+                "status",
+                "shopOrderId",
+                "items",
+                "nextOffset"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true,
+        "configuration": {
+          "integrationsEnabled": true
         }
       }
     ],

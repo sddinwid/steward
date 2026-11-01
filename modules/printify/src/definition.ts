@@ -1,3 +1,4 @@
+import {withOrderObservations} from './order-observations.js';
 import {withProductionCostEvidence} from './cost-evidence.js';
 import {withExternalCatalog} from './external-catalog.js';
 import {synchronizePrintifyCatalog} from './catalog-sync.js';
@@ -8,7 +9,7 @@ import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,tran
 import {canonical,digest,validateCapabilityValue,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyPrintify,remote,ConnectorError,context,connectorState,issued,reconciled,page,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withProductionCostEvidence(withExternalCatalog({manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
+export function printify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withOrderObservations(withProductionCostEvidence(withExternalCatalog({manifest,resources:[{kind:'mapping',path:'/mappings',key:'sku',schema:object({sku:text(80),productId:text(),variantId:{type:'integer',minimum:1}}),prepare:async(b,old,ctx)=>{
  const p=await find(ctx,'product',b.productId);ensure(p?.data.variants.some((v:Data)=>v.id===b.variantId&&v.isEnabled),'Unknown or unavailable Printify variant');ensure(!old||canonical(old.data)===canonical(b)||!(await records(ctx,'job')).some(j=>j.data.lines.some((l:Data)=>l.sku===b.sku)),'Used variant mapping is immutable; reconcile existing jobs before replacement',409);return b;
 }}],actions:[{path:'/authorize/:id',kind:'job',permission:manifest.moduleId+'.production.authorize',run:async(r,ctx)=>{
  ensure(ctx.config.productionEnabled===true,'Production is disabled in module configuration',403);ensure(r.data.status==='awaiting_authorization','Job is not awaiting authorization',409);
@@ -25,7 +26,7 @@ export function printify(manifest:ModulePackageManifest,secretFile?:string):Defi
  const raw=Buffer.from(String(b.bodyBase64??''),'base64');ensure(raw.length<=131072&&raw.toString('base64')===b.bodyBase64,'Invalid Printify webhook signature',403);
  const body=JSON.parse(raw.toString());const s=(await connectorConnections('printify',ctx.config.mode,secretFile)).find(s=>s.shopId===String(body.resource?.shop_id));ensure(s&&verifyPrintify(raw,s.webhookSecret,b.headers?.['x-pfy-signature']),'Invalid Printify webhook identity or signature',403);body.id=connectionSource(s.connectionId,body.id);ensure(manifest.connector!.webhookTopics.includes(body.type)&&String(body.resource?.shop_id)===s.shopId&&typeof body.id==='string'&&body.id.length<=120,'Printify webhook scope mismatch',403);
  const hash=digest(raw.toString()),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[body.id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[body.id,hash]);return{accepted:true,replay:false};
- }}));}
+ }})));}
 async function mapLines(ctx:Context,lines:Data[]){const result=[];let connection:string|undefined;for(const l of lines){const m=await find(ctx,'mapping',l.sku);ensure(m,'Explicit Printify SKU/variant mapping required');const p=await find(ctx,'product',m.data.productId),v=p?.data.variants.find((v:Data)=>v.id===m.data.variantId&&v.isEnabled);ensure(v,'Mapped Printify variant unavailable');ensure(connection===undefined||connection===(p!.data.connectionId??'default'),'Production lines must belong to one supplier connection');connection=p!.data.connectionId??'default';result.push({product_id:p!.data.remoteSourceId??m.data.productId,variant_id:m.data.variantId,quantity:l.quantity});}return result;}
 export function validatePrintifyCurrency(secret:Data,currency:string){if(secret.mode==='live'&&secret.costCurrency!==currency)throw new ConnectorError('CONNECTOR_COST_CURRENCY_CONFIRMATION_REQUIRED');}
 
@@ -49,9 +50,10 @@ async function pollConnection(pool:pg.Pool,runtime:Data,secretFile:string|undefi
    sourceCreatedAt:typeof o.created_at==='string'&&Number.isFinite(Date.parse(o.created_at))?o.created_at:null,sourceUpdatedAt:typeof o.updated_at==='string'&&Number.isFinite(Date.parse(o.updated_at))?o.updated_at:null,
    lines:(o.line_items??[]).map((l:Data)=>({productId:l.product_id==null?null:String(l.product_id),variantId:l.variant_id??null,quantity:l.quantity??null})),
    shipments:(o.shipments??[]).map((shipment:Data)=>({carrier:shipment.carrier??null,number:shipment.number??null,shippedAt:shipment.shipped_at??null,deliveredAt:shipment.delivered_at??null}))};const old=await find(ctx,'external-order',data.sourceId);if(old?.data.sourceUpdatedAt&&(!data.sourceUpdatedAt||old.data.sourceUpdatedAt>data.sourceUpdatedAt))continue;if(!old||canonical(old.data)!==canonical(data))await save(ctx,'external-order',data.sourceId,data,old);}});
+  await pool.query("INSERT INTO printify_order_sync(connection_id,status,observed_at,order_ids) VALUES($1,'ready',now(),$2) ON CONFLICT(connection_id) DO UPDATE SET status='ready',observed_at=excluded.observed_at,order_ids=excluded.order_ids",[s.connectionId,JSON.stringify(external.map(o=>String(o.id)))]);
   for(const job of jobs){try{await reconcileJob(pool,runtime,s,job,external);}catch(e){await jobPatch(pool,runtime,job.key,{error:e instanceof ConnectorError?e.code:'EXTERNAL_OUTCOME_REQUIRES_RECONCILIATION'});}}
   await connectorState(pool,runtime,'available');
- }catch(e){if(!catalogSynced)await catalogSyncUnavailable(pool,s.connectionId,'PRINTIFY_CATALOG_READ_UNAVAILABLE');deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
+ }catch(e){await pool.query("INSERT INTO printify_order_sync(connection_id,status) VALUES($1,'unavailable') ON CONFLICT(connection_id) DO UPDATE SET status='unavailable'",[s.connectionId]);if(!catalogSynced)await catalogSyncUnavailable(pool,s.connectionId,'PRINTIFY_CATALOG_READ_UNAVAILABLE');deferPoll(pool,runtime,(e instanceof ConnectorError&&e.retryable)?5000:30000);await connectorState(pool,runtime,'connection_unavailable',e instanceof ConnectorError?e.code:'CONNECTOR_CONFIGURATION_OR_DATA_INVALID');}
  finally{if(acquired)await lock.query('SELECT pg_advisory_unlock(8148001)').catch(()=>{});lock.release();}
 }
 async function reconcileJob(pool:pg.Pool,runtime:Data,s:Data,job:any,external:Data[]){

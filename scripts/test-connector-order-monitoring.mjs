@@ -12,3 +12,7 @@ test('read-only order pagination retains identity and exact money without dispat
 test('order permission is checked before fetching orders',async()=>{const f=fixture({denied:true});await assert.rejects(f.client.orders(secret),/SHOPIFY_READ_ORDERS_SCOPE_REQUIRED/);assert.equal(f.calls.length,1);});
 test('incomplete line items reject the entire observation batch',async()=>{await assert.rejects(fixture({partial:true}).client.orders(secret),/SHOPIFY_ORDER_LINES_INCOMPLETE/);});
 test('repeated cursors reject the entire observation batch',async()=>{await assert.rejects(fixture({loop:true}).client.orders(secret),/SHOPIFY_ORDER_CURSOR_INVALID/);});
+import {orderMatchState,orderReadOperations} from '../packages/commerce-kit/dist/index.js';
+import {validateCapabilityValue} from '../packages/module-sdk/dist/index.js';
+test('matching differentiates incomplete, stale, unavailable and successful empty results',()=>{assert.equal(orderMatchState('ok',[],null),'no_observed_match');assert.equal(orderMatchState('ok',[{}],null),'matched');assert.equal(orderMatchState('ok',[{}],20),'incomplete');for(const state of ['stale','unavailable','incomplete'])assert.equal(orderMatchState(state,[],null),state);});
+test('closed observation contract rejects arbitrary filters and unbounded queries',()=>{const op=orderReadOperations[0];assert.throws(()=>validateCapabilityValue({contractVersion:1,offset:0,limit:100},op.input));assert.throws(()=>validateCapabilityValue({contractVersion:1,offset:0,limit:20,sql:'untrusted'},op.input));});

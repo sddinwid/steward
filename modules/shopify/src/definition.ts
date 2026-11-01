@@ -1,3 +1,4 @@
+import {withOrderMonitoring} from './order-monitoring.js';
 import {withExternalCatalog} from './external-catalog.js';
 import {recordCatalogSync,catalogSyncUnavailable,catalogConnectionsConfigured} from './catalog-provenance.js';
 import {liveActions,liveProfileResource,liveBackground,productCatalog,productVariants} from './live.js';
@@ -9,7 +10,7 @@ import {ensure,find,save,records,publicRecord,enqueueCapability,object,text,tran
 import {canonical,digest,type ModulePackageManifest} from '@steward/module-sdk';
 import {connectorSecret,verifyHmac,graphql,ConnectorError,context,connectorState,issued,reconciled,page,cents,contracts} from '@steward/commerce-kit';
 import type pg from 'pg';
-export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withExternalCatalog({manifest,resources:[liveProfileResource,{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
+export function shopify(manifest:ModulePackageManifest,secretFile?:string):Definition{return withOrderMonitoring(withExternalCatalog({manifest,resources:[liveProfileResource,{kind:'mapping',path:'/mappings',key:'sourceVariantId',schema:object({sourceVariantId:text(),sku:text(80)}),prepare:async(b,old,ctx)=>{
  ensure((await records(ctx,'product')).some(p=>p.data.variants.some((v:Data)=>v.sourceVariantId===b.sourceVariantId)),'Unknown Shopify variant');
  ensure(!old||old.data.sku===b.sku||!(await records(ctx,'order')).some(o=>o.data.lines.some((l:Data)=>l.sourceVariantId===b.sourceVariantId)&&o.data.dispatchStatus!=='not_dispatched'),'A used mapping requires explicit order reconciliation',409);return b;
 }}],actions:[...liveActions,{path:'/dispatch/:id',kind:'order',permission:manifest.moduleId+'.write',run:async(r,ctx)=>{
@@ -28,7 +29,7 @@ export function shopify(manifest:ModulePackageManifest,secretFile?:string):Defin
  ensure(verifyHmac(raw,s.webhookSecret,h['x-shopify-hmac-sha256'])&&h['x-shopify-shop-domain']===s.shopDomain&&h['x-shopify-api-version']==='2026-10'&&manifest.connector!.webhookTopics.includes(h['x-shopify-topic']),'Invalid Shopify webhook identity or signature',403);
  if(ctx.config.mode==='live')ensure(['products/create','products/update','products/delete'].includes(h['x-shopify-topic']),'SHOPIFY_LIVE_WEBHOOK_TOPIC_NOT_ENABLED',403);
  const id=h['x-shopify-webhook-id'];ensure(typeof id==='string'&&/^[a-f0-9-]{36}$/.test(id),'Invalid event identity',400);return remember(ctx,connectionSource(s.connectionId,id),raw);
- }});}
+ }}));}
 async function remember(ctx:Context,id:string,raw:Buffer){const hash=createHash('sha256').update(raw).digest('hex'),old=(await ctx.db.query('SELECT digest FROM connector_events WHERE event_id=$1',[id])).rows[0];if(old){ensure(old.digest===hash,'Webhook identity conflict',409);return{accepted:true,replay:true};}JSON.parse(raw.toString());await ctx.db.query('INSERT INTO connector_events(event_id,digest) VALUES($1,$2)',[id,hash]);return{accepted:true,replay:false};}
 async function normalize(ctx:Context,data:Data){const lines=[];for(const l of data.lines){const m=await find(ctx,'mapping',l.sourceVariantId);ensure(m,'Explicit local mapping required for every Shopify variant');lines.push({sourceVariantId:l.sourceVariantId,sku:m.data.sku,quantity:l.quantity,unitPriceCents:l.unitPriceCents,lineRevenueCents:l.lineRevenueCents});}return{sourceId:data.sourceId,sourceCreatedAt:data.sourceCreatedAt,sourceUpdatedAt:data.sourceUpdatedAt,channel:'shopify',currency:data.currency,financialStatus:data.financialStatus,fulfillmentStatus:data.fulfillmentStatus,canceled:data.canceled,refundCents:data.refundCents,lines};}
 const productsQuery=`query StewardProducts($first:Int!,$after:String){products(first:$first,after:$after){nodes{id title status updatedAt variants(first:100){nodes{id sku inventoryQuantity inventoryItem{id inventoryLevels(first:20){nodes{location{id} quantities(names:["available"]){name quantity}}}}} pageInfo{hasNextPage}}} pageInfo{hasNextPage endCursor}}}`;

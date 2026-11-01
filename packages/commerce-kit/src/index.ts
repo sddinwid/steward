@@ -3,3 +3,4 @@ export * from './remote.js';
 export * from './store.js';
 export * from './intelligence.js';
 export * from './monitoring.js';
+export * from './order-observations.js';
