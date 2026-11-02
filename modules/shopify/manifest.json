@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "name": "Shopify",
   "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.15.0",
@@ -280,6 +280,72 @@
       "method": "POST",
       "path": "/read-order-item-costs/:id",
       "permission": "cee.shopify.cost.read"
+    },
+    {
+      "operationId": "historicalOrders",
+      "method": "GET",
+      "path": "/historical-orders",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status",
+        "fields"
+      ]
+    },
+    {
+      "operationId": "historicalConditions",
+      "method": "GET",
+      "path": "/historical-conditions",
+      "permission": "cee.shopify.read",
+      "query": [
+        "limit",
+        "offset",
+        "fields",
+        "status",
+        "q"
+      ]
+    },
+    {
+      "operationId": "readOrderTotals",
+      "path": "/read-order-totals/:id",
+      "permission": "cee.shopify.cost.read",
+      "method": "POST"
+    },
+    {
+      "operationId": "publishMonitoredOrder",
+      "path": "/publish-monitored-order/:id",
+      "permission": "cee.shopify.configure",
+      "method": "POST"
+    },
+    {
+      "operationId": "withdrawMonitoredOrder",
+      "path": "/withdraw-monitored-order/:id",
+      "permission": "cee.shopify.configure",
+      "method": "POST"
+    },
+    {
+      "operationId": "publishMonitorCondition",
+      "path": "/publish-monitor-condition/:id",
+      "permission": "cee.shopify.configure",
+      "method": "POST"
+    },
+    {
+      "operationId": "withdrawMonitorCondition",
+      "path": "/withdraw-monitor-condition/:id",
+      "permission": "cee.shopify.configure",
+      "method": "POST"
+    },
+    {
+      "operationId": "storeOverview",
+      "method": "GET",
+      "path": "/store-overview",
+      "permission": "cee.shopify.cost.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
     }
   ],
   "ui": [
@@ -358,6 +424,34 @@
           "type": "json",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "ordersSyncedAt",
+          "label": "ordersSyncedAt",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "recoveryStatus",
+          "label": "recoveryStatus",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "nextRetryAt",
+          "label": "nextRetryAt",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "retryAttempts",
+          "label": "retryAttempts",
+          "type": "number",
+          "readOnly": true,
+          "required": false
         }
       ],
       "columns": [
@@ -367,7 +461,11 @@
         "statusMessage",
         "error",
         "verifiedAt",
-        "syncedAt"
+        "syncedAt",
+        "ordersSyncedAt",
+        "recoveryStatus",
+        "nextRetryAt",
+        "retryAttempts"
       ],
       "actions": [
         {
@@ -902,6 +1000,13 @@
           "type": "json",
           "readOnly": true,
           "required": false
+        },
+        {
+          "name": "publicationStatus",
+          "label": "Master publication",
+          "type": "string",
+          "required": false,
+          "readOnly": true
         }
       ],
       "columns": [
@@ -915,9 +1020,9 @@
         "nextOffset",
         "basis",
         "financialEvidence",
-        "supplierItemCosts"
+        "supplierItemCosts",
+        "publicationStatus"
       ],
-      "createOperation": "createOrderMatch",
       "actions": [
         {
           "label": "Refresh observations",
@@ -926,6 +1031,19 @@
         {
           "label": "Read item costs / next page",
           "operationId": "readOrderItemCosts"
+        },
+        {
+          "label": "Read order totals / next page",
+          "operationId": "readOrderTotals"
+        },
+        {
+          "label": "Approve Master observation updates",
+          "operationId": "publishMonitoredOrder",
+          "confirmation": "Approve this current order’s financial observations and future updates for Master analysis? No provider order is changed."
+        },
+        {
+          "label": "Withdraw Master observations",
+          "operationId": "withdrawMonitoredOrder"
         }
       ],
       "formVersion": 1
@@ -1045,6 +1163,12 @@
           "type": "string",
           "required": false,
           "readOnly": true
+        },
+        {
+          "name": "collectCosts",
+          "label": "Automatically read order cost evidence",
+          "type": "boolean",
+          "required": false
         }
       ],
       "columns": [
@@ -1054,7 +1178,8 @@
         "graceSeconds",
         "approvedBy",
         "lastRunAt",
-        "nextRunAt"
+        "nextRunAt",
+        "collectCosts"
       ]
     },
     {
@@ -1144,7 +1269,371 @@
         {
           "label": "Acknowledge exception",
           "operationId": "ackMonitorCondition"
+        },
+        {
+          "label": "Approve condition notifications",
+          "operationId": "publishMonitorCondition",
+          "confirmation": "Approve publication of this condition and future episodes to Master? Master monitoring policy separately controls notification delivery."
+        },
+        {
+          "label": "Withdraw condition notifications",
+          "operationId": "withdrawMonitorCondition"
         }
+      ]
+    },
+    {
+      "screenId": "historical-orders",
+      "title": "Historical Shopify and Printify orders",
+      "navigationLabel": "Historical Shopify and Printify orders",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "business",
+      "listOperation": "historicalOrders",
+      "fields": [
+        {
+          "name": "key",
+          "label": "key",
+          "type": "string",
+          "required": true,
+          "generate": "uuid"
+        },
+        {
+          "name": "associationId",
+          "label": "associationId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listOrderAssociation",
+            "valueField": "id",
+            "labelField": "shopifyConnectionId"
+          }
+        },
+        {
+          "name": "orderId",
+          "label": "orderId",
+          "type": "string",
+          "required": true,
+          "reference": {
+            "operationId": "listorder",
+            "valueField": "id",
+            "labelField": "remoteSourceId"
+          }
+        },
+        {
+          "name": "offset",
+          "label": "offset",
+          "type": "number",
+          "required": true,
+          "default": 0,
+          "minimum": 0,
+          "maximum": 100000
+        },
+        {
+          "name": "orderName",
+          "label": "orderName",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "paymentStatus",
+          "label": "paymentStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "fulfillmentStatus",
+          "label": "fulfillmentStatus",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "printifyOrders",
+          "label": "printifyOrders",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedAt",
+          "label": "observedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "expiresAt",
+          "label": "expiresAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "nextOffset",
+          "label": "nextOffset",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "basis",
+          "label": "basis",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "financialEvidence",
+          "label": "financialEvidence",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "supplierItemCosts",
+          "label": "Supplier item costs",
+          "type": "json",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "orderName",
+        "paymentStatus",
+        "fulfillmentStatus",
+        "status",
+        "printifyOrders",
+        "observedAt",
+        "expiresAt",
+        "nextOffset",
+        "basis",
+        "financialEvidence",
+        "supplierItemCosts"
+      ],
+      "actions": [],
+      "formVersion": 1
+    },
+    {
+      "screenId": "historical-conditions",
+      "title": "Historical monitoring conditions",
+      "navigationLabel": "Historical monitoring conditions",
+      "navigationGroup": "Shopify Commerce",
+      "workspace": "business",
+      "listOperation": "historicalConditions",
+      "formVersion": 1,
+      "fields": [
+        {
+          "name": "order",
+          "label": "order",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "code",
+          "label": "code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "episode",
+          "label": "episode",
+          "type": "number",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "openedAt",
+          "label": "openedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "observedAt",
+          "label": "observedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "acknowledgedAt",
+          "label": "acknowledgedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "resolvedAt",
+          "label": "resolvedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "order",
+        "code",
+        "explanation",
+        "status",
+        "episode",
+        "observedAt",
+        "acknowledgedAt",
+        "resolvedAt"
+      ],
+      "actions": []
+    },
+    {
+      "screenId": "store-overview",
+      "title": "Monitored Store Overview",
+      "navigationLabel": "Monitored Store Overview",
+      "listOperation": "storeOverview",
+      "fields": [
+        {
+          "name": "orderName",
+          "label": "Order",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "paymentStatus",
+          "label": "Payment status",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "fulfillmentStatus",
+          "label": "Shopify fulfillment",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "freshness",
+          "label": "Evidence freshness",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "bookedMerchandiseCents",
+          "label": "Booked merchandise",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "productionCostCents",
+          "label": "Observed production cost",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "shippingCostCents",
+          "label": "Order shipping",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "itemShippingCostCents",
+          "label": "Item shipping",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "shippingAdjustmentCents",
+          "label": "Unallocated shipping adjustment",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "knownFulfillmentCostCents",
+          "label": "Observed production and shipping",
+          "type": "number",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "costCoverage",
+          "label": "Cost coverage",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "shopifyObservedAt",
+          "label": "Shopify last observed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "printifyObservedAt",
+          "label": "Printify last observed",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "supplierOrders",
+          "label": "Supplier evidence",
+          "type": "json",
+          "readOnly": true,
+          "required": false
+        },
+        {
+          "name": "basis",
+          "label": "Limitations",
+          "type": "string",
+          "readOnly": true,
+          "required": false
+        }
+      ],
+      "columns": [
+        "orderName",
+        "paymentStatus",
+        "fulfillmentStatus",
+        "freshness",
+        "bookedMerchandiseCents",
+        "productionCostCents",
+        "shippingCostCents",
+        "itemShippingCostCents",
+        "shippingAdjustmentCents",
+        "knownFulfillmentCostCents",
+        "costCoverage",
+        "shopifyObservedAt",
+        "printifyObservedAt",
+        "supplierOrders",
+        "basis"
       ]
     }
   ],
@@ -1201,7 +1690,7 @@
   },
   "persistence": {
     "isolation": "dedicated-database",
-    "schemaVersion": 6,
+    "schemaVersion": 7,
     "migrations": [
       {
         "version": 1,
@@ -1226,6 +1715,10 @@
       {
         "version": 6,
         "sha256": "8c9dc6198344289b18327d4b23f8514ff0134c15bc3fa093c1187f4e6e0bfecd"
+      },
+      {
+        "version": 7,
+        "sha256": "aff2430a2df238cd8792309345d64250cef44c8faf98a29dd3d4595cade07b89"
       }
     ],
     "destructiveRollback": false
@@ -3938,6 +4431,352 @@
         "configuration": {
           "integrationsEnabled": true
         }
+      },
+      {
+        "capabilityId": "commerce.printify.order-totals.read",
+        "contract": "steward.order-totals",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "order-totals.lookup",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connectionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "accountId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "originDigest": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "pattern": "^[0-9]+$"
+                },
+                "offset": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 20
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connectionId",
+                "accountId",
+                "originDigest",
+                "shopOrderId",
+                "offset",
+                "limit"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "contractVersion": {
+                  "const": 1
+                },
+                "connection": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "connectionId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "accountId": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 120,
+                      "pattern": "\\S"
+                    },
+                    "mode": {
+                      "enum": [
+                        "live",
+                        "simulator"
+                      ]
+                    },
+                    "originDigest": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "state": {
+                      "enum": [
+                        "ready",
+                        "stale",
+                        "unavailable",
+                        "incomplete"
+                      ]
+                    },
+                    "observedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "expiresAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40,
+                          "pattern": "\\S"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "connectionId",
+                    "accountId",
+                    "mode",
+                    "originDigest",
+                    "state",
+                    "observedAt",
+                    "expiresAt"
+                  ]
+                },
+                "status": {
+                  "enum": [
+                    "ok",
+                    "stale",
+                    "unavailable",
+                    "incomplete"
+                  ]
+                },
+                "shopOrderId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120,
+                  "pattern": "\\S"
+                },
+                "items": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "sourceRecordId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "sourceRevision": {
+                        "type": "integer",
+                        "minimum": 1
+                      },
+                      "sourceStreamId": {
+                        "const": "printify_order_totals_v1"
+                      },
+                      "remoteOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "shopOrderId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 120,
+                        "pattern": "\\S"
+                      },
+                      "status": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 80,
+                        "pattern": "\\S"
+                      },
+                      "isReprint": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "observedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 40,
+                            "pattern": "\\S"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "cost": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "currency": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "pattern": "^[A-Z]{3}$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "currencyBasis": {
+                            "enum": [
+                              "provider",
+                              "administrator-confirmed",
+                              "unknown"
+                            ]
+                          },
+                          "productionCostCents": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shippingCostCents": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "itemShippingCostCents": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shippingAdjustmentCents": {
+                            "anyOf": [
+                              {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "shippingBasis": {
+                            "enum": [
+                              "unknown",
+                              "provider-order-total"
+                            ]
+                          },
+                          "basis": {
+                            "enum": [
+                              "provider-recorded",
+                              "incomplete"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "currency",
+                          "currencyBasis",
+                          "productionCostCents",
+                          "shippingCostCents",
+                          "itemShippingCostCents",
+                          "shippingAdjustmentCents",
+                          "shippingBasis",
+                          "basis"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "sourceRecordId",
+                      "sourceRevision",
+                      "sourceStreamId",
+                      "remoteOrderId",
+                      "shopOrderId",
+                      "status",
+                      "isReprint",
+                      "observedAt",
+                      "cost"
+                    ]
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 100000
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "contractVersion",
+                "connection",
+                "status",
+                "shopOrderId",
+                "items",
+                "nextOffset"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true,
+        "configuration": {
+          "integrationsEnabled": true
+        }
       }
     ],
     "prerequisites": {
@@ -3988,6 +4827,17 @@
       {
         "streamId": "commerce_exceptions",
         "table": "commerce_exceptions",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "monitored_commerce_v1",
+        "table": "monitored_commerce_v1",
         "idColumn": "id",
         "revisionColumn": "revision",
         "columns": [

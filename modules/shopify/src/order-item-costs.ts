@@ -1,3 +1,4 @@
+import {requireCurrentMatch} from './monitor-current.js';
 import {ensure,get,find,save,enqueueCapability,publicRecord,type Context,type Data,type Definition,type RecordValue,type ProviderIdentity} from '@steward/business-kit';
 import {canonical,digest,validateCapabilityValue} from '@steward/module-sdk';
 import {orderItemCostCapabilityId,orderItemCostOperation} from '@steward/commerce-kit';
@@ -13,7 +14,7 @@ export function itemCostView(r:RecordValue,order:RecordValue){
 }
 export function withOrderItemCosts(def:Definition,hooks:{original:(c:Context,r:RecordValue)=>void;receipt:(c:Context,b:Data)=>ProviderIdentity}):Definition{
  def.actions.push({path:'/read-order-item-costs/:id',kind:'order-match',concurrency:'current-state',permission:'cee.shopify.cost.read',run:async(r,c)=>{
-  hooks.original(c,r);ensure(c.permissions.includes('cee.shopify.cost.read'),'Order cost read permission required',403);ensure(r.data.costStatus!=='pending'||Date.now()-Date.parse(r.data.costRequestedAt)>300000,'Cost read pending',409);
+  hooks.original(c,r);await requireCurrentMatch(c,r);ensure(c.permissions.includes('cee.shopify.cost.read'),'Order cost read permission required',403);ensure(r.data.costStatus!=='pending'||Date.now()-Date.parse(r.data.costRequestedAt)>300000,'Cost read pending',409);
   const a=await get(c,'order-association',r.data.associationId);hooks.original(c,a);const o=await get(c,'order',r.data.orderId),identity=await find(c,'connector-identity',a.data.shopifyConnectionId);
   ensure(o.data.connectionId===a.data.shopifyConnectionId&&identity&&same(identity.data,a.data.shopifyIdentity),'Original order/store identity required',403);const match=/^gid:\/\/shopify\/Order\/([0-9]+)$/.exec(o.data.remoteSourceId);ensure(match,'Shopify order identity required');
   const stored=await find(c,'order-item-cost-read',r.id),prior=stored?.data.result;

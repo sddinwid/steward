@@ -1,3 +1,5 @@
+import {orderTotalsReceive} from '../modules/printify/dist/order-totals.js';
+import {orderCostEvidence} from '../modules/printify/dist/order-costs.js';
 import assert from 'node:assert/strict';import {randomUUID} from 'node:crypto';
 import {transaction,save,find} from '../packages/business-kit/dist/index.js';import {context,orderReadCapabilityId} from '../packages/commerce-kit/dist/index.js';import {withOrderMonitoring,combinedOrders} from '../modules/shopify/dist/order-monitoring.js';import {orderObservationsReceive} from '../modules/printify/dist/order-observations.js';
 import {orderItemCostsReceive} from '../modules/printify/dist/order-observations.js';
@@ -10,7 +12,7 @@ export async function verifyOrderMonitoring({test,worker}){
  const command=async id=>(await shop.pool.query("SELECT envelope FROM integration_outbox WHERE envelope->>'aggregateId'=$1 ORDER BY (envelope->>'sequence')::int DESC LIMIT 1",[id])).rows[0].envelope;
  const reply=async cmd=>{const body=await remote(cmd);return{...body,_steward:{providerModuleId:provider.moduleId,providerInstallationId:provider.moduleInstallationId,packageDigest:provider.packageDigest}};};
  const ack=(cmd,result)=>local(c=>def.acknowledge(cmd,'delivered',result,c));
- let association,order,match,cmd,result;
+ let association,order,match,cmd,result,policy;
  await test('monitoring provider rejects absent sender and foreign entity authority',async()=>{const c={command:'order-observations.connections',sourceModuleId:'cee.shopify',capability:{capabilityId:orderReadCapabilityId},payload:{contractVersion:1,offset:0,limit:20}};await assert.rejects(remote(c,{incomingProviderIdentity:undefined}));await assert.rejects(remote(c,{entityId:randomUUID()}));});
  await test('monitoring discovers scoped simulator stores and creates immutable association',async()=>{
   await transaction(print.pool,async db=>{const c=ctx(db,print,provider);await save(c,'connector-identity','monitor-store',{mode:'simulator',shopId:'monitor-account'});await db.query("INSERT INTO printify_order_sync VALUES('monitor-store','ready',now(),'[]')");});
@@ -18,6 +20,7 @@ export async function verifyOrderMonitoring({test,worker}){
   await local(async c=>{await save(c,'connector-identity','monitor-shop',{mode:'simulator',shopId:'shop'});await save(c,'live-connection','monitor-shop',{ordersStatus:'synced',ordersSyncedAt:new Date().toISOString()});});
   const profile=(await shop.pool.query("SELECT id FROM business_records WHERE kind='order-provider-profile' AND data->'connection'->>'connectionId'='monitor-store'")).rows[0];association=await create('order-association',{key:randomUUID(),shopifyConnectionId:'monitor-shop',profileId:profile.id});
   await assert.rejects(local(c=>def.resources.find(r=>r.kind==='order-association').prepare({},association,c)));
+  policy=await create('monitor-policy',{key:randomUUID(),associationId:association.id,enabled:true,intervalSeconds:60,batchSize:20,graceSeconds:600,freshnessSeconds:300,delaySeconds:3600,includePending:true,includeKnownTest:false});
   order=await local(c=>save(c,'order','monitor-order',{connectionId:'monitor-shop',remoteSourceId:'gid://shopify/Order/777',orderName:'#TEST',financialStatus:'pending',fulfillmentStatus:'UNFULFILLED'}));
  });
  await test('monitoring fresh empty lookup is distinct from an unavailable source',async()=>{match=await create('order-match',{key:randomUUID(),associationId:association.id,orderId:order.id,offset:0});cmd=await command(match.id);result=await reply(cmd);await ack(cmd,result);const rows=await local(c=>combinedOrders(c));assert.equal(rows.records.find(r=>r.id===match.id).status,'no_observed_match');});
@@ -29,9 +32,9 @@ export async function verifyOrderMonitoring({test,worker}){
  await test('monitoring pagination does not report truncated results as complete',async()=>{const r=await remote({...cmd,payload:{...cmd.payload,limit:1}});assert.equal(r.items.length,1);assert.equal(r.nextOffset,1);await assert.rejects(remote({...cmd,payload:{...cmd.payload,limit:21}}));});
  await test('monitoring outage and expired observations never imply missing orders',async()=>{await print.pool.query("UPDATE printify_order_sync SET status='unavailable' WHERE connection_id='monitor-store'");let r=await remote(cmd);assert.equal(r.status,'unavailable');assert.equal(r.items.length,0);await print.pool.query("UPDATE printify_order_sync SET status='ready',observed_at=now()-interval '10 minutes' WHERE connection_id='monitor-store'");r=await remote(cmd);assert.equal(r.status,'stale');await print.pool.query("UPDATE printify_order_sync SET observed_at=now() WHERE connection_id='monitor-store'");r=await remote(cmd);assert.equal(r.items.length,2);});
  await test('monitoring outbox contains only governed observation requests',async()=>{const rows=(await shop.pool.query("SELECT envelope FROM integration_outbox WHERE envelope->>'aggregateId'=$1",[match.id])).rows;assert(rows.length>0);assert(rows.every(r=>r.envelope.command==='order-observations.lookup'&&r.envelope.capability.providerConstraint.packageDigest===provider.packageDigest));});
- let policy,automatic,condition;
+ let automatic,condition;
  await test('approved monitoring policy discovers orders and deduplicates durable requests',async()=>{
-  policy=await create('monitor-policy',{key:randomUUID(),associationId:association.id,enabled:true,intervalSeconds:60,batchSize:20,graceSeconds:600,freshnessSeconds:300,delaySeconds:3600,includePending:true,includeKnownTest:false});
+
   await local(c=>def.tick(c));
   automatic=(await shop.pool.query("SELECT * FROM business_records WHERE kind='order-match' AND data->>'policyId'=$1",[policy.id])).rows[0];assert(automatic);const first=await command(automatic.id);
   await local(c=>def.tick(c));assert.equal((await command(automatic.id)).commandId,first.commandId);
@@ -79,4 +82,28 @@ export async function verifyOrderMonitoring({test,worker}){
   await print.pool.query("UPDATE printify_order_sync SET status='unavailable' WHERE connection_id='monitor-store'");const result=await readCosts(costCommand);assert.equal(result.status,'unavailable');assert.equal(result.items.length,0);
   await print.pool.query("UPDATE printify_order_sync SET status='ready',observed_at=now() WHERE connection_id='monitor-store'");
  });
+ let totalCommand,totalBody;
+ await test('order totals capability preserves order shipping, cost provenance and pinned authorization',async()=>{
+  await transaction(print.pool,async db=>{const c=ctx(db,print,provider);for(let n=0;n<2;n++){const r=await find(c,'external-order','monitor-'+n);await save(c,r.kind,r.key,{...r.data,costEvidence:orderCostEvidence({total_shipping:60,line_items:[{quantity:1,cost:100,shipping_cost:20}]},'USD'),itemCostsObservedAt:new Date().toISOString()},r);}});
+  const response=await local(async c=>def.actions.find(a=>a.path==='/read-order-totals/:id').run(await find(c,'order-match',automatic.key),{...c,permissions:['cee.shopify.cost.read']}));
+  totalCommand=(await shop.pool.query('SELECT envelope FROM integration_outbox WHERE command_id=$1',[response.record.totalCommandId])).rows[0].envelope;
+  const readTotal=extra=>transaction(print.pool,db=>orderTotalsReceive(totalCommand,{...ctx(db,print,provider),incomingProviderIdentity:own,config:{...print.runtime.configuration,costReadEnabled:true},...extra}));
+  await assert.rejects(readTotal({incomingProviderIdentity:undefined}));await assert.rejects(readTotal({entityId:randomUUID()}));await assert.rejects(readTotal({config:{costReadEnabled:false}}));totalBody=await readTotal({});assert.equal(totalBody.items.length,2);assert.equal(totalBody.items[0].cost.shippingCostCents,60);assert.equal(totalBody.items[0].cost.shippingAdjustmentCents,40);
+  const receipt={...totalBody,_steward:{providerModuleId:provider.moduleId,providerInstallationId:provider.moduleInstallationId,packageDigest:provider.packageDigest}};await ack(totalCommand,receipt);await ack(totalCommand,receipt);await assert.rejects(ack(totalCommand,{...receipt,status:'unavailable'}));
+ });
+ await test('publication is explicit, shaped, withdrawable and isolated from operational Sales',async()=>{
+  await local(async c=>{const r=await find(c,'order','monitor-order');await save(c,r.kind,r.key,{...r.data,currency:'USD',sourceCreatedAt:new Date().toISOString(),lines:[{quantity:1,unitPriceCents:1000,lineRevenueCents:1000}]},r);});
+  assert.equal(Number((await shop.pool.query('SELECT count(*) FROM monitored_commerce_v1')).rows[0].count),0);
+  const publish=def.actions.find(a=>a.path==='/publish-monitored-order/:id');await assert.rejects(local(async c=>publish.run(await find(c,'order-match',automatic.key),c)),/permission/);
+  await local(async c=>publish.run(await find(c,'order-match',automatic.key),{...c,permissions:['cee.shopify.configure','cee.shopify.cost.read']}));
+  let projection=(await shop.pool.query('SELECT projection FROM monitored_commerce_v1')).rows[0].projection;assert.equal(projection.approved,true);assert(!('customer' in projection));assert.equal(projection.shippingCostCents,120);
+  await local(async c=>def.actions.find(a=>a.path==='/withdraw-monitored-order/:id').run(await find(c,'order-match',automatic.key),{...c,permissions:['cee.shopify.configure','cee.shopify.cost.read']}));projection=(await shop.pool.query('SELECT projection FROM monitored_commerce_v1')).rows[0].projection;assert.equal(projection.approved,false);
+ });
+ await test('current and historical views separate without erasing active historical conditions',async()=>{
+  await local(async c=>{const p=await find(c,'monitor-policy',policy.key);await save(c,p.kind,p.key,{...p.data,enabled:false},p);});
+  assert.equal((await local(c=>combinedOrders(c))).records.length,0);assert((await local(c=>combinedOrders(c,{history:'true'}))).records.length>0);
+  await assert.rejects(local(async c=>def.actions[0].run(await find(c,'order-match',automatic.key),c)),/Historical/);
+  const old=await local(c=>find(c,condition.kind,condition.key));assert(old);const history=await local(c=>def.queries.find(q=>q.path==='/historical-conditions').run(c,{}));assert(history.records.some(r=>r.id===old.id&&r.historical&&r.originalStatus===old.data.status));
+ });
+
 }

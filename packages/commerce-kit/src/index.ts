@@ -5,3 +5,4 @@ export * from './intelligence.js';
 export * from './monitoring.js';
 export * from './order-observations.js';
 export * from './order-item-costs.js';
+export * from './order-total-costs.js';
