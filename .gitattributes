@@ -46,3 +46,6 @@ modules/pricing/migrations/002-cost-evidence.sql -text
 # clean checkouts without changing either SQL contents or recorded checksums.
 modules/shopify/migrations/006-order-monitoring.sql text eol=crlf
 modules/printify/migrations/007-order-observations.sql text eol=crlf
+
+# Monitored commerce 1.7.0 signed bytes contain mixed endings; preserve exactly.
+modules/shopify/migrations/007-monitored-commerce.sql -text
