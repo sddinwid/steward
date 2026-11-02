@@ -35,3 +35,7 @@ node scripts/verify-single-stack.mjs
 ```
 
 Deployment must use signed immutable new module packages, a clean committed source, selected-installation backups and image-bound egress approval. Preserve old SQL migration bytes and retained provider obligations. This document describes behavior; actual acceptance results are recorded separately.
+
+## Acceptance evidence
+
+See [the monitoring acceptance report](monitored-commerce-verification.md) for actual tests, browser checks, live read-only evidence, rejected model attempts, the accepted Qwen investigation, deployment digests and limitations.
