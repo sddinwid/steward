@@ -47,6 +47,7 @@ export function resourcePage(records:any[], raw:unknown) {
 export function modelToolResult(name:string,result:any,compact=false) {
   if(!result.structuredContent)return result;
   let data=result.structuredContent.data;
+  if(name==='query_monitored_commerce'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:{records:data.records.map((r:any)=>({reference:r.reference,currency:r.currency,paymentStatus:r.paymentStatus,fulfillmentStatus:r.fulfillmentStatus,current:r.current,costCoverage:r.costCoverage})),total:data.total,nextOffset:data.nextOffset,evidenceRule:'Copy the complete reference objects into analyze_monitored_commerce sources. Obtain money only from its deterministic displayAmounts. Full original evidence remains retained in activity.'}}};
   if(name.includes('catalog')||data?.catalogCalculationId){const {scopeReferences,report,...view}=data;if(view.calculation){const {report,...calculation}=view.calculation;view.calculation=calculation;}return{...(result.isError?{isError:true}:{}),structuredContent:{...result.structuredContent,data:view}};}
   if(name==='query_economic_outcomes'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicOutcomes(data)}};
   if(name==='query_economic_summaries'&&Array.isArray(data?.records))return{structuredContent:{...result.structuredContent,data:compactEconomicSummaries(data)}};

@@ -33,7 +33,8 @@ export function profileInstructions(profile: InvestigationProfile): string | und
 }
 
 // Planning narrows discovered read-only tools; it never adds authority or fabricates arguments.
-export function commerceStageTools<T extends {name:string}>(tools:T[],entitiesObserved:boolean,evidenceObserved:boolean):T[]{
+export function commerceStageTools<T extends {name:string}>(tools:T[],entitiesObserved:boolean,evidenceObserved:boolean,monitoredEvidenceObserved=false):T[]{
+  if(entitiesObserved&&monitoredEvidenceObserved)return tools.filter(t=>['query_monitored_commerce','analyze_monitored_commerce'].includes(t.name));
   return tools.filter(t=>!entitiesObserved?t.name==='list_entities':t.name!=='list_entities'&&(evidenceObserved||t.name!=='analyze_commerce_by_id'));
 }
 
