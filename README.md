@@ -194,5 +194,6 @@ Preserve identities, secrets, module authority and original provider obligations
 ### Store Marketing increment
 
 The independently packaged Store Marketing module adds campaign and budget planning, human action records, and read-only aggregate Google Analytics 4 reporting. It does not execute ads or establish attribution or profit. [Setup and operating guide](docs/store-marketing.md) covers service-account/property access, private files, explicit store mapping and image-bound egress. [Verification ledger](docs/marketing-verification.md) distinguishes implementation, deployed state and unverified Google-account/live gates. This increment does not change the v0.16.0 release inventory below.
-`Store Marketing 1.0.3` is installed on Worker 3 as an additional signed increment. Google Analytics authentication and empty read-only reports are verified; populated reporting, store instrumentation and marketing investigation remain separate gates. The released v0.16.0 inventory is unchanged.
+`Store Marketing 1.0.4` is installed on Worker 3 as an additional signed increment. Google Analytics authentication and empty read-only reports are verified; populated reporting, store instrumentation and marketing investigation remain separate gates. The released v0.16.0 inventory is unchanged.
+
 

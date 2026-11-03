@@ -70,3 +70,5 @@ node scripts/verify-single-stack.mjs
 `test:marketing` uses an isolated temporary PostgreSQL container and explicit GA4 fixtures, with cleanup. It never inserts simulated Analytics results into the operator installation. Gate 3 requires real access, actual allowlisted reports, comparison with the corresponding GA4 UI, evidence review, and separately authorized publication/delivery. Without those prerequisites, report live acceptance as not configured/unverified.
 
 No Google Ads, Meta, Search Console, email/SMS, social publishing, automatic spending, Shopify theme changes, fulfillment, accounting, or commercial OAuth installation is included.
+
+Snapshot presentation (1.0.4): Business → Store Marketing → Snapshots shows report contents, usefulness, next steps and Master sharing state before opening source evidence. Empty reports are setup evidence, not proof of zero activity. Reports appear newest first; old and qualified evidence remains preserved and labeled.
