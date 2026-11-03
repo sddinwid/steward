@@ -98,3 +98,13 @@ scripts/test-marketing-api.mjs
 
 Final gate invocation mistakes (missing provenance arguments and then a dirty documentation tree with --committed) failed closed. Their logs are retained; final committed-source validation uses the existing signed catalog/trust after the documentation commit.
 
+
+## GA4 empty-response patch — 2026-11-02 Pacific
+
+Store Marketing 1.0.3 is now installed and active on Worker 3. Google omitted `rowCount` and `rows` for an empty report; the connector incorrectly rejected that valid response. Missing count now defaults to zero, while explicit malformed counts and nonempty rows without a count still fail. No SQL migration, core image or shared UI changed.
+
+Verification: marketing build passed; 35 tests, 12 isolated API checks and 3 fixture browser checks passed (`marketing-102-tests.log`). Signed Docker build succeeded from `8fd6845`; deployed browser verified the overview displays `connected no data`. Actual Google authentication, property compatibility, traffic and event report requests succeeded for the operator-approved property. Returned reports contain no rows, with USD and America/Los_Angeles metadata. Evidence: `artifacts/marketing-103-live.json` and `marketing-103-live-browser.png`. Empty results do not establish Shopify instrumentation or zero visitors. Real populated reporting, comparison with GA4 UI and evidence-backed investigation remain unverified. No publication or finding was created.
+
+The rejected 1.0.2 image had an old Docker version label and was never signed or installed; its build log is retained. Corrected labels were published as 1.0.3, preserving that failed artifact. Upgrade initially left the module installed rather than active; the established lifecycle activation completed before live verification. Existing connection identity, approved property/store, reporting dates and Live configuration were preserved. Worker operational and Marketing databases plus private/module configurations were backed up; private recovery location is recorded in `.steward/marketing-102-backup-location.json`. The existing image-bound egress grant was renewed through the authorized upgrade CLI. One stack, 62 containers remains running.
+
+Signed Marketing image: `sha256:47c6d86ae6314e26aa74232d5ea6c9c44e6425a2fcc91a7010762f6733dc7646`. No push or release tag.
