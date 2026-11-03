@@ -21,5 +21,5 @@ COPY modules/marketing/package.json modules/marketing/manifest.json ./
 COPY modules/marketing/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="cee.marketing" steward.module.version="1.0.1" steward.module.sdk="1"
+LABEL steward.module.id="cee.marketing" steward.module.version="1.0.3" steward.module.sdk="1"
 CMD ["node","dist/index.js"]
