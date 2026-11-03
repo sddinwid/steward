@@ -25,6 +25,12 @@ Release acceptance and preservation evidence: [Phase 16 final acceptance](docs/p
 
 Phase 15 was subsequently published to the private GitHub repository as the Phase 16 prerequisite. Remote reference verification is recorded in the [Phase 16 verification ledger](docs/phase16-verification.md). Phase 16 development has not been pushed.
 
+## Store-management UI increment status
+
+The latest UI increment is **partially deployed, not fully accepted**. Master reporting labels, separation from AI status, pagination and sanitized provider diagnostics are running. The new module navigation and action metadata passed isolated tests, but installing the signed module patches invalidated package-bound monitoring ownership. The original Shopify1.7.0, Sales1.5.0 and Store Marketing1.0.4 packages and identities have been restored on Worker3. The selected installation now has 62 containers and its original seven volumes.
+
+Worker3's three monitored orders remain available. The upgrade automatically withdrew the previously approved #1002 Master observation and one condition; restoring those publications requires human review. No live order was changed. Candidate module versions must not be reinstalled without an approved preservation plan. See [UI integration verification](docs/store-ui-integration-verification.md) for deployed versus candidate functionality, failed acceptance evidence, recovery and next steps. This does not change the accepted v0.16.0 release inventory.
+
 ## Run the existing installation
 
 From the repository root, after selecting an existing installation:
