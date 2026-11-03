@@ -45,6 +45,9 @@ export function ga4Client(send:GoogleTransport=googleTransport,auth:Ga4Authentic
   const rows:MarketingSnapshot['rows']=[],qualifications=new Set<string>();let timezone='UNKNOWN',currency='UNKNOWN',expected:number|undefined;
   for(let offset=0;offset<1000;offset+=250){
    const r=await call('runReport',{dateRanges:[{startDate:from,endDate:to}],dimensions,metrics,limit:250,offset,orderBys:dimensions.map(d=>({dimension:{dimensionName:d.name}})),...(kind==='events'?{dimensionFilter:{filter:{fieldName:'eventName',inListFilter:{values:[...MARKETING_EVENTS],caseSensitive:true}}}}:{})});
+   // Protobuf JSON omits default scalar fields: an absent rowCount means zero.
+   // Explicit null/invalid counts and nonempty rows with an omitted count still fail validation.
+   if(!Object.hasOwn(r,'rowCount'))r.rowCount=0;
    if(r.dimensionHeaders?.map((v:Json)=>v.name).join()!==dimensions.map(v=>v.name).join()||r.metricHeaders?.map((v:Json)=>v.name).join()!==metrics.map(v=>v.name).join()||!Number.isSafeInteger(r.rowCount)||r.rowCount<0||!Array.isArray(r.rows??[]))throw new Ga4Error('GA4_RESPONSE_INVALID');
    if(expected!==undefined&&expected!==r.rowCount)throw new Ga4Error('GA4_REPORT_CHANGED',true);expected=r.rowCount;if((r.rows??[]).length>250||rows.length+(r.rows??[]).length>r.rowCount)throw new Ga4Error('GA4_RESPONSE_INVALID');
    const meta=r.metadata??{};if(!meta.timeZone||!meta.currencyCode)qualifications.add('metadata-missing');

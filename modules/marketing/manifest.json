@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.marketing",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "Store Marketing",
   "description": "Campaign planning and explicitly approved aggregate GA4 observations. No advertising execution, attribution or accounting.",
   "minimumPlatformVersion": "0.16.0",
