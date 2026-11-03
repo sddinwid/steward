@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.shopify",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "name": "Shopify",
   "description": "Existing SSMA Shopify adapter. Live mode is read-only development-store identity and catalog verification; simulator fulfillment retains its governed workflow.",
   "minimumPlatformVersion": "0.15.0",
@@ -222,7 +222,8 @@
         "offset",
         "q",
         "status",
-        "fields"
+        "fields",
+        "recordId"
       ]
     },
     {
@@ -266,7 +267,8 @@
         "offset",
         "fields",
         "status",
-        "q"
+        "q",
+        "recordId"
       ]
     },
     {
@@ -677,7 +679,11 @@
       "actions": [
         {
           "label": "Dispatch authorized order",
-          "operationId": "dispatch"
+          "operationId": "dispatch",
+          "availableModes": [
+            "simulator"
+          ],
+          "unavailableReason": "Live orders are monitored here. Fulfillment is managed by your store and provider."
         }
       ]
     },
@@ -1046,7 +1052,15 @@
           "operationId": "withdrawMonitoredOrder"
         }
       ],
-      "formVersion": 1
+      "formVersion": 1,
+      "contextFilter": "recordId",
+      "rowLinks": [
+        {
+          "screenId": "monitor-conditions",
+          "label": "Review order exceptions",
+          "recordField": "orderId"
+        }
+      ]
     },
     {
       "screenId": "monitor-policies",
@@ -1278,6 +1292,21 @@
         {
           "label": "Withdraw condition notifications",
           "operationId": "withdrawMonitorCondition"
+        }
+      ],
+      "contextFilter": "recordId",
+      "rowLinks": [
+        {
+          "screenId": "combined-orders",
+          "label": "Return to order evidence",
+          "recordField": "sourceRecordId"
+        }
+      ],
+      "related": [
+        {
+          "moduleId": "cee.shopify",
+          "screenId": "store-overview",
+          "label": "Store overview"
         }
       ]
     },
@@ -1634,6 +1663,17 @@
         "printifyObservedAt",
         "supplierOrders",
         "basis"
+      ],
+      "workspace": "business",
+      "entry": {
+        "description": "Review Shopify orders, Printify fulfillment, cost coverage and exceptions."
+      },
+      "rowLinks": [
+        {
+          "screenId": "combined-orders",
+          "label": "Review this order",
+          "recordField": "orderRecordId"
+        }
       ]
     }
   ],

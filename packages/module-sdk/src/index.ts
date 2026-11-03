@@ -14,7 +14,7 @@ export const SDK_VERSION = 1;
 export { outboxSql, captureSql } from './outbox.js';
 export { boundedLookup } from './network.js';
 export * from './integration.js';
-export const QUERY_PARAMETERS=['limit','offset','fields','from','to','status','q'] as const;
+export const QUERY_PARAMETERS=['limit','offset','fields','from','to','status','q','recordId'] as const;
 export interface ApiContribution { operationId: string; method: 'GET' | 'POST' | 'PUT'; path: string; permission: string; query?: (typeof QUERY_PARAMETERS[number])[] }
 /** Versioned, data-only forms. Nested fields are bounded by validateManifest. */
 export interface ModuleFormField {
@@ -27,11 +27,15 @@ export interface ModuleFormField {
 export interface ScreenContribution {
   workspace?: 'business'|'administration'|'developer'; refreshMs?:number; currencyReference?:string;
   formVersion?:1; navigationGroup?:string;
+  entry?:{description:string};
+  contextFilter?:'recordId';
+  related?:{moduleId:string;screenId:string;label:string}[];
+  rowLinks?:{screenId:string;label:string;recordField:string}[];
   preview?:{version:1;operationId:string;submitLabel?:string};
   screenId: string; title: string; navigationLabel: string;
   listOperation?: string; createOperation?: string; updateOperation?: string;
   fields: ModuleFormField[]; columns: string[];
-  actions?:{label:string;operationId:string;confirmation?:string}[];
+  actions?:{label:string;operationId:string;confirmation?:string;availableModes?:('simulator'|'live')[];unavailableReason?:string}[];
 }
 export interface ModulePackageManifest {
   /** Read-only source of immutable publications; discovery grants no execution authority. */
@@ -107,8 +111,13 @@ function validateScreens(m:ModulePackageManifest) {
   check(Array.isArray(m.ui)&&m.ui.length<=(atLeast(m.minimumPlatformVersion,'0.13.0')?20:10));
   check(new Set(m.ui.map(s=>s.screenId)).size===m.ui.length);
   for(const s of m.ui){
-    check(onlyKeys(s,['screenId','title','navigationLabel','listOperation','createOperation','updateOperation','fields','columns','actions','workspace','refreshMs','currencyReference','formVersion','navigationGroup','preview']));
+    check(onlyKeys(s,['screenId','title','navigationLabel','listOperation','createOperation','updateOperation','fields','columns','actions','workspace','refreshMs','currencyReference','formVersion','navigationGroup','preview','entry','contextFilter','related','rowLinks']));
     check(/^[a-z][a-z0-9-]{0,49}$/.test(s.screenId)&&typeof s.title==='string'&&typeof s.navigationLabel==='string');
+    const label=(v:unknown)=>typeof v==='string'&&v.length>0&&v.length<=240&&!/[\u0000-\u001f]/.test(v);
+    check(s.entry===undefined||onlyKeys(s.entry,['description'])&&label(s.entry.description)&&s.workspace==='business');
+    check(s.contextFilter===undefined||s.contextFilter==='recordId'&&m.api.some(a=>a.operationId===s.listOperation&&a.method==='GET'&&a.query?.includes('recordId')));
+    check(s.related===undefined||Array.isArray(s.related)&&s.related.length<=4&&s.related.every(n=>onlyKeys(n,['moduleId','screenId','label'])&&/^[a-z][a-z0-9.-]{1,79}$/.test(n.moduleId)&&/^[a-z][a-z0-9-]{0,49}$/.test(n.screenId)&&label(n.label)));
+    check(s.rowLinks===undefined||Array.isArray(s.rowLinks)&&s.rowLinks.length<=4&&s.rowLinks.every(n=>onlyKeys(n,['screenId','label','recordField'])&&label(n.label)&&safeName(n.recordField)&&m.ui.some(t=>t.screenId===n.screenId&&t.contextFilter==='recordId'&&m.api.some(a=>a.operationId===t.listOperation&&a.method==='GET'&&a.query?.includes('recordId')))));
     check(s.workspace===undefined||['business','administration','developer'].includes(s.workspace));
     check(s.refreshMs===undefined||Number.isInteger(s.refreshMs)&&s.refreshMs>=2000&&s.refreshMs<=60000);
     check(s.formVersion===undefined||modern&&s.formVersion===1);
@@ -141,7 +150,7 @@ function validateScreens(m:ModulePackageManifest) {
     };
     fields(s.fields,0);
     check(Array.isArray(s.columns)&&s.columns.every(c=>s.fields.some(f=>f.name===c)));
-    check(s.actions===undefined||Array.isArray(s.actions)&&s.actions.length<=12&&s.actions.every(a=>onlyKeys(a,['label','operationId','confirmation'])&&typeof a.label==='string'&&a.label.length<=100&&(a.confirmation===undefined||typeof a.confirmation==='string'&&a.confirmation.length<=500)&&m.api.some(op=>op.operationId===a.operationId&&op.method==='POST'&&op.path.endsWith('/:id'))));
+    check(s.actions===undefined||Array.isArray(s.actions)&&s.actions.length<=12&&s.actions.every(a=>onlyKeys(a,['label','operationId','confirmation','availableModes','unavailableReason'])&&(a.availableModes===undefined||Array.isArray(a.availableModes)&&a.availableModes.length>0&&a.availableModes.length<=2&&a.availableModes.every(v=>['simulator','live'].includes(v))&&typeof a.unavailableReason==='string'&&a.unavailableReason.length>0&&a.unavailableReason.length<=240)&&(a.unavailableReason===undefined||a.availableModes!==undefined)&&typeof a.label==='string'&&a.label.length<=100&&(a.confirmation===undefined||typeof a.confirmation==='string'&&a.confirmation.length<=500)&&m.api.some(op=>op.operationId===a.operationId&&op.method==='POST'&&op.path.endsWith('/:id'))));
   }
 }
 export function validateManifest(m: ModulePackageManifest): void {

@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.marketing",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "name": "Store Marketing",
   "description": "Campaign planning and explicitly approved aggregate GA4 observations. No advertising execution, attribution or accounting.",
   "minimumPlatformVersion": "0.16.0",
@@ -276,7 +276,10 @@
         "complete",
         "retrievedAt",
         "qualifications"
-      ]
+      ],
+      "entry": {
+        "description": "Check Analytics collection, inspect reports and plan marketing follow-up."
+      }
     },
     {
       "screenId": "campaigns",

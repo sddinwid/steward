@@ -47,8 +47,8 @@ export function withMonitoringPolicy(def:Definition,request:(c:Context,r:RecordV
  }});
  const conditionQuery=async(c:Context,q:Record<string,string>={},history=false)=>{
   const limit=Number(q.limit??20),offset=Number(q.offset??0);ensure(Number.isInteger(limit)&&limit>0&&limit<=20&&Number.isInteger(offset)&&offset>=0&&offset<=100000,'Invalid page');
-  const active=await currentAssociations(c),matches=new Map((await records(c,'order-match')).map(m=>[m.id,m]));
-  const rows=(await records(c,'commerce-condition')).filter(r=>r.data.origin==='order-monitoring').flatMap(r=>{const m=matches.get(r.data.sourceId),current=!!m&&active.has(m.data.associationId)&&same(r.data.owner,local(c));return current===!history?[{...publicRecord(r),historical:!current,current,status:current?r.data.status:'historical',originalStatus:r.data.status}]:[];});
+  if(q.recordId)ensure(/^[0-9a-f-]{36}$/i.test(q.recordId),'Invalid order reference');const active=await currentAssociations(c),matches=new Map((await records(c,'order-match')).map(m=>[m.id,m]));
+  const rows=(await records(c,'commerce-condition')).filter(r=>r.data.origin==='order-monitoring'&&(!q.recordId||r.data.sourceRecordId===q.recordId)).flatMap(r=>{const m=matches.get(r.data.sourceId),current=!!m&&active.has(m.data.associationId)&&same(r.data.owner,local(c));return current===!history?[{...publicRecord(r),historical:!current,current,status:current?r.data.status:'historical',originalStatus:r.data.status}]:[];});
   return{records:rows.slice(offset,offset+limit),nextOffset:offset+limit<rows.length?offset+limit:null};
  };
  def.queries??=[];def.queries.push({path:'/monitor-conditions',run:(c,q)=>conditionQuery(c,q)},{path:'/historical-conditions',run:(c,q)=>conditionQuery(c,q,true)});

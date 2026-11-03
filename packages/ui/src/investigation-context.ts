@@ -1,0 +1,4 @@
+export interface InvestigationContext {capability:'commerce-performance'|'marketing-performance';prompt:string}
+const key=(accountId:string)=>'steward.investigation-context.'+accountId;
+export function storeInvestigationContext(storage:Storage,accountId:string,value:InvestigationContext){if(!accountId||value.prompt.length>4000||!['commerce-performance','marketing-performance'].includes(value.capability))throw Error('Invalid investigation context');storage.setItem(key(accountId),JSON.stringify(value));}
+export function takeInvestigationContext(storage:Storage,accountId:string):InvestigationContext|undefined{const text=storage.getItem(key(accountId));storage.removeItem(key(accountId));if(!text)return;try{const v=JSON.parse(text);if(['commerce-performance','marketing-performance'].includes(v.capability)&&typeof v.prompt==='string'&&v.prompt.length<=4000)return v;}catch{}return;}

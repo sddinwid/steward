@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.16.0",
@@ -432,7 +432,7 @@
   "ui": [
     {
       "screenId": "customer",
-      "title": "Sales \u2014 customer",
+      "title": "Sales — customer",
       "navigationLabel": "sales customer",
       "listOperation": "listCustomer",
       "createOperation": "createCustomer",
@@ -476,7 +476,7 @@
     },
     {
       "screenId": "order",
-      "title": "Sales \u2014 order",
+      "title": "Sales — order",
       "navigationLabel": "sales order",
       "listOperation": "listOrder",
       "createOperation": "createOrder",
@@ -621,7 +621,7 @@
     },
     {
       "screenId": "fulfillment",
-      "title": "Sales \u2014 fulfillment",
+      "title": "Sales — fulfillment",
       "navigationLabel": "sales fulfillment",
       "listOperation": "listFulfillment",
       "createOperation": "createFulfillment",
@@ -740,8 +740,8 @@
     },
     {
       "screenId": "commerce-intelligence",
-      "title": "Commerce intelligence",
-      "navigationLabel": "Commerce intelligence",
+      "title": "Sales Commerce Intelligence",
+      "navigationLabel": "Sales Commerce Intelligence",
       "listOperation": "commerceIntelligence",
       "fields": [
         {
@@ -874,6 +874,13 @@
         "exceptions",
         "explanation",
         "sourceReference"
+      ],
+      "related": [
+        {
+          "moduleId": "cee.shopify",
+          "screenId": "store-overview",
+          "label": "View monitored Shopify and Printify orders"
+        }
       ]
     },
     {

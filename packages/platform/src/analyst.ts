@@ -1,3 +1,4 @@
+import {providerConfigurationReason} from './provider-configuration-status.js';
 import {marketingFinalizationInstruction,validateMarketingNarrative} from './marketing-analysis.js';
 import {monitoredFinalizationInstruction,validateMonitoredNarrative} from './monitored-commerce.js';
 import {newCatalogPlan,catalogStageTools,catalogStageInstruction,catalogModelInput,observeCatalogTool,validateCatalogArguments,validateCatalogNarrative,catalogComparisonComplete,validateCatalogFactualSummary,catalogRecommendationModelInput,catalogRecommendationInstruction,combineCatalogNarratives,type CatalogNarrative,catalogInvestigationContext} from './catalog-investigation.js';
@@ -89,7 +90,7 @@ export async function analystRoutes(app:SecureApp,pool:pg.Pool,auth:Authenticati
   }
   app.get('/api/v5/analyst/config',async req=>{await actor(req);try{const c=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));return{configured:true,provider:c.provider,model:c.model,testModel:c.testModel,maxSteps:c.maxSteps,maxToolCalls:c.maxToolCalls};}catch{return{configured:false,error:'MODEL_NOT_CONFIGURED'};}});
   app.get('/api/v5/analyst/provider-status',async req=>{
-    await actor(req);let c;try{c=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));}catch{return{state:'not-configured',configured:false};}
+    await actor(req);let c;try{c=modelConfigSchema.parse(JSON.parse(await readFile(process.env.STEWARD_ANALYST_FILE??'','utf8')));}catch(e){return{state:'not-configured',configured:false,reason:providerConfigurationReason(Boolean(process.env.STEWARD_ANALYST_FILE),e)};}
     try{const endpoint=new URL(c.endpoint);if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.hash||endpoint.search)throw Error();
       // Probe only the operator-configured endpoint. Never send a model prompt or expose credentials.
       if(c.provider==='ollama')endpoint.pathname='/api/tags';

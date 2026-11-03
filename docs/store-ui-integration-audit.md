@@ -1,0 +1,77 @@
+# Store management UI integration audit — 2026-11-03
+
+Read-only audit of the selected operator installation, source HEAD a61a92b. No application code, provider configuration, permissions, publication, orders, findings or deployment changed. Browser sign-in used the existing authorized presenter accounts. GET views can refresh their ordinary observations; background synchronization was left running. No production, publish, acknowledge or model-investigation action was executed.
+
+## Evidence and scope
+
+Fifteen running screens examined: Worker Business Overview, Monitored Store Overview, Shopify Orders, combined Shopify/Printify Orders, Native Printify Fulfillment, Sales Commerce Intelligence, Order Monitoring Exceptions, Marketing Overview, Snapshots, Conditions, Findings; Master Executive Overview, Reports, Analyst and Findings. All completed their observed loads without HTTP >=400 API responses. This establishes page accessibility, not mutation or end-to-end workflow acceptance. Initial short captures included loading states; settled captures supersede them. Transient company-name fallback labels disappeared when the authorized entity request completed and are not recorded as persistent authorization defects.
+
+Evidence: `artifacts/store-ui-audit-settled.json` and `artifacts/ui-audit-settled-*.png`; initial captures retained as `store-ui-audit.json`. Actual observed data: three monitored Shopify orders (#1001–#1003), two paid and one pending, one supplier fulfilled/shipped, one order with incomplete cost evidence. #1002 retains USD 6.40 production, 7.69 order shipping, 7.29 item shipping and 0.40 unallocated shipping adjustment. Combined screen shows #1002 approved for Master, #1001/#1003 private. Master Reports shows the approved USD 18.99 monitored order and USD 14.09 known fulfillment costs separately from synthetic Sales cohorts. This supports existing publication/projection visibility, not a new publication/delivery test.
+
+## Prioritized findings and smallest changes
+
+### 1. Live dispatch action is offered even though it is prohibited (P1)
+
+Observed: each live monitor-only Shopify order displays “Dispatch authorized order”. Source `modules/shopify/src/definition.ts:16` rejects this operation in live mode with SHOPIFY_LIVE_READ_ONLY. The backend boundary is correct; the UI advertises an impossible action. No dispatch was clicked.
+
+Files: `modules/shopify/manifest.json`, `packages/module-sdk/src/index.ts`, `packages/ui/src/modules.tsx`; discovery shaping in `packages/platform/src/module-manager.ts` only if mode context is not already exposed. Add a small optional signed action-availability declaration for supported runtime modes (or equivalent server-derived authorized availability), validate it and render unavailable actions with a short explanation. Preserve legacy declarations and backend checks. Do not special-case Shopify in the generic renderer. A separately versioned signed Shopify package and compatible core release artifacts are required if extending the manifest. Relevant checks: SDK manifest validation; shared renderer action visibility; `scripts/test-order-monitoring-actions.mjs` and `scripts/test-shopify-live.mjs`. Prove live dispatch remains rejected server-side; simulator action remains available.
+
+### 2. Master exception metric has misleading scope (P1)
+
+Observed: Executive Overview says “Active source exceptions: 0” while Worker has active order monitoring conditions. Source confirms `conditions=simulation.conditions.filter(...)` in `packages/ui/src/executive-workspace.tsx`; it is not an aggregate of all monitoring sources. Private Worker conditions must not be counted at Master.
+
+Smallest correction: label the existing metric “Active simulation exceptions” and explain its scope. If adding commerce coverage, query the existing authorized `/v4/commerce-monitor` projection and display a separate approved-commerce metric; never infer the number of unpublished Worker conditions. Files: `packages/ui/src/executive-workspace.tsx`, `scripts/test-intelligence-presentation.mjs` (or existing executable executive UI fixture). No database or new subsystem required. Failure of commerce loading must show unknown/unavailable, not zero.
+
+### 3. Store management has no clear starting point (P1 usability)
+
+Observed: Worker Business Overview offers 147 application links across 15 modules, plus account/company information. It has no current store/marketing status or task prioritization. Existing Monitored Store Overview already supplies useful order/freshness/cost coverage metrics and three related screen links. Marketing Overview supplies four links. Neither is elevated as an entry point.
+
+Reuse: report-v2 rendering and verified discovered manifests. Smallest extensible improvement: optional signed overview/entry-point metadata, with title and purpose, to distinguish module summaries from the complete application directory. Start with links to existing authorized overviews; do not build another analytics aggregation service or invent metrics by scraping arbitrary module endpoints. Keep the full directory as secondary navigation. Optional later summary operations must be declared bounded GET operations, independently loaded with explicit stale/error state.
+
+Files: `packages/module-sdk/src/index.ts` (optional metadata + validation), `packages/ui/src/modules.tsx` (render contributed entry cards), `packages/ui/src/security.tsx` (landing composition), `modules/shopify/manifest.json`, `modules/marketing/manifest.json`. `packages/ui/src/style.css` only for necessary responsive layout. Preserve legacy modules without metadata. SDK tests, module presentation/browser fixtures, module-absent/permission-denied cases and signed-package upgrade acceptance are required.
+
+### 4. Order → exception → evidence requires manual searching (P1 usability)
+
+Observed: Monitored Store Overview has three page-level links but no per-order links. Shopify Orders uses opaque source references. Combined Orders provides human order names and costs, but no links to related conditions or supplier records. Exception rows use opaque order references and long collapsed explanations. These screens contain zero contextual anchor links in their main record areas.
+
+Existing contract: `ModuleReportView` supports same-module page navigation; ScreenContribution fields/actions do not support a read-only row-navigation contract. `ModuleScreen` has local query/pagination state; the route currently identifies only a module/screen.
+
+Smallest bounded path: add optional signed same-module row links and exact record-context routing, then connect Shopify store overview → combined order → order conditions. Resolve stable IDs returned by the module; do not join by display order name alone. Consume route context only through declared GET filters, reset it on navigation, and fail clearly when a target is absent/unauthorized. Keep all authorization server-side. Avoid arbitrary URLs, injected markup, cross-database reads and production calls. Cross-module Printify deep linking is a later extension requiring exact provider installation and remote order identity; existing combined evidence can serve the first path.
+
+Files: `packages/module-sdk/src/index.ts`; `packages/ui/src/modules.tsx`; `packages/ui/src/security.tsx`; `modules/shopify/manifest.json`; `modules/shopify/src/monitor-report.ts` (stable row identity already includes orderRecordId); `modules/shopify/src/order-monitoring.ts` (declared exact order filtering); `modules/shopify/src/monitor-policy.ts` (condition filter/labels). Tests: `scripts/test-connector-order-monitoring.mjs`, `scripts/test-monitored-commerce.mjs`, shared navigation/browser tests. Verify two orders, filtered pagination, absent ID, unauthorized target and back navigation without leaking record context. Preserve original provider obligations.
+
+### 5. Sales “Commerce Intelligence” appears to be the store dashboard (P2)
+
+Observed: it is empty on Worker 3, while Monitored Store Overview contains three orders. Source `modules/sales/src/intelligence.ts` analyzes Sales-owned records, not connector observations. This separation is intentional and must remain. The empty view does not explain that source boundary or offer a destination for monitored store evidence.
+
+Smallest fix: clarify module contribution label and empty-state guidance, using an optional generic authorized related-screen mechanism if a cross-module link is added. Files: `modules/sales/manifest.json`, `modules/sales/src/intelligence.ts`; existing shared navigation work only if needed. Do not import native Shopify orders into Sales merely to populate a screen. Verify optional Shopify absence and a genuinely empty Sales cohort. Signed Sales patch required; no SQL change expected.
+
+### 6. Evidence → Master → recommendation is fragmented (P2)
+
+Observed: Worker combined rows show private/approved state and Master correctly shows the approved #1002 observation. Marketing rows remain local and Master explains that no approved marketing reports exist. Master Reports nevertheless carries an “AI Analyst” heading/provider panel before deterministic reporting. Master commerce cards omit a prominent human order name and offer only expandable evidence. Worker Findings renders long generic reviews with no related-source links; historical synthetic recommendations dominate the page. Master has an existing completed real Ollama commerce investigation in its catalog, but this audit did not run another one.
+
+Files: `packages/ui/src/analyst.tsx` (separate Reports heading/provider placement), `packages/ui/src/reports.tsx` (source identity + conditional investigation entry point), `packages/ui/src/marketing-reports.tsx` (actual UI pagination instead of advising MCP after first 20), `packages/ui/src/findings.tsx`, `packages/ui/src/intelligence.tsx` (source-specific review context and scoped links). Reuse the same authorized navigation contract rather than hardcoded provider screens. Keep human review/publication explicit. Stable references must include entity, installation, module, stream, record and revision. No automatic publication or finding creation. Actual reviewed finding delivery/acknowledgment is a later authorized acceptance scenario, not proven by read-only browsing.
+
+### 7. Current AI and GA4 prerequisites are separate operational gates
+
+Observed: Master reports “No AI provider configured”; historical Ollama runs remain visible. `packages/platform/src/analyst.ts:91` maps missing, unreadable and invalid configuration to the same not-configured response. This audit did not inspect private model values, reconfigure the provider or load a model. Diagnose the selected mounted configuration before promising a new investigation. Optional UI diagnostic improvement should distinguish sanitized failure categories without exposing secret paths/content. Files: `packages/platform/src/analyst.ts`, `packages/ui/src/provider-status.tsx`.
+
+GA4 is connected but still has empty reports. Automatic reads retain multiple snapshots for the same fixed November 1–20 window. This is not evidence of populated measurements. Future end date and fixed-window refresh should be explained in `modules/marketing/src/definition.ts` / signed manifest; do not silently change the user's date range. Tracking, consent and processing remain external setup checks. Marketing conditions being empty is not proof of no issue; the monitoring policy may be disabled. Repeated snapshots could later be grouped by period/report while preserving immutable history, but that is not needed to fix the store order path.
+
+## Recommended next bounded coding task
+
+First correct the impossible live action and the inaccurately scoped Master metric. Then implement **one generic authorized order-navigation path**: Monitored Store Overview → selected combined order → selected order's monitoring conditions → return to that order. Include plain labels and evidence freshness; preserve financial unknowns and the 40-cent shipping adjustment. Test the actual three orders using only reads. Deliver the entry-point improvement as a following small increment once the destination path is useful. No new business module, financial engine, fulfillment logic or AI subsystem is necessary.
+
+Do not bundle all seven findings into a broad redesign. Shared-contract changes need backward-compatibility checks, signed package version increments and selected-stack backups/upgrade acceptance. A visual-only local label fix does not justify a complete historical regression rerun; use affected tests plus deployed browser acceptance. Explicitly preserve the independent module renderer.
+
+## Verification limits
+
+Audit only: no builds, mutation tests, paid orders, new model investigations or publication/acknowledgment executed. Fifteen settled screens loaded, no observed failing API responses. This does not establish all buttons work or that lower-permission accounts have appropriate presentation. Source-derived behavior is explicitly identified above. Initial loading artifacts are not application failures. Final one-stack check is recorded separately; no deployment changes made. Working tree contains only this new report; no commit or push requested for the audit.
+
+## Implementation checkpoint — deployment pending
+
+The bounded implementation adds optional signed overview entries, related screen links, exact-record links and action mode availability. Live dispatch stays prohibited server-side; its executable UI action is suppressed. Master explicitly labels the existing simulation-only count. The Worker landing page elevates declared overviews above a collapsible application directory. Shopify overview → combined order → exceptions → return uses local order IDs and declared GET filters. Sales reporting explains its ownership boundary and resolves its related Shopify destination through authorized discovery. Master marketing adds bounded pagination. Reports are separated from AI status; approved order observations identify their supplied remote order ID and can prepare an account-scoped investigation question without executing it. Provider diagnostics distinguish missing path/file, unreadable and invalid configuration; read-only inspection found invalid provider/model/endpoint/apiKeyFile fields. Marketing explains fixed/future windows, empty measurements and disabled monitoring.
+
+No new model or measurement setup was performed. Existing published projections do not contain the human Shopify order number, so Master displays the supplied Shopify remote order ID rather than inventing a number. Arbitrary historical finding-to-Worker record deep links remain deferred: references identify original stream records/revisions, which cannot safely be treated as current local order IDs or trusted Worker URLs. Existing retained evidence and investigation links remain available; approved observation cards explain that limitation. Core authorization and immutable historical evidence are unchanged.
+
+Focused validation is passing; final signed deployment, preservation and browser results will be appended after execution.
