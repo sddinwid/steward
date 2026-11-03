@@ -36,3 +36,12 @@ test('valid numeric-offset IANA timezone names work; invented timezones fail clo
 
 test('Google omitted zero rowCount and rows is a valid empty report',async()=>{for(const kind of ['traffic','events']){const c=ga4Client(async(p,b)=>{if(p.endsWith('checkCompatibility'))return compatible(b);const r=response(b);delete r.rowCount;delete r.rows;return r;},auth);const s=await c.report(credential,kind,'2026-10-01','2026-10-01');assert.deepEqual(s.rows,[]);assert(s.complete);}});
 test('omitted count with rows and explicit malformed counts remain rejected',async()=>{for(const count of [undefined,null,-1,'0',0.5]){const c=ga4Client(async(p,b)=>{if(p.endsWith('checkCompatibility'))return compatible(b);const r=response(b,{rowCount:count});if(count===undefined)delete r.rowCount;return r;},auth);await assert.rejects(c.report(credential,'traffic','2026-10-01','2026-10-01'),{code:'GA4_RESPONSE_INVALID'});}});
+
+
+test('snapshot summaries explain empty, populated, stale and qualified evidence without invented outcomes',async()=>{
+ const {snapshotPresentation:p}=await import('../dist/snapshot-presentation.js');const s={kind:'traffic',from:'2026-10-01',to:'2026-10-02',rows:[],complete:true,qualifications:[],retrievedAt:'2026-10-03T00:00:00Z',expiresAt:'2026-10-04T00:00:00Z'};
+ const now=Date.parse('2026-10-03T01:00:00Z');let v=p(s,'Local only',true,now);assert.equal(v.contents,'No reporting data returned');assert.match(v.guidance,/does not prove zero visitors/);assert.equal(v.sharing,'Local only');
+ v=p({...s,rows:[{dimension:'Direct',count:2},{dimension:'Direct',count:3},{dimension:'Organic Search',count:4}]},'Published to Master',true,now);assert.equal(v.contents,'9 reported sessions across 2 channels');assert.equal(v.usefulness,'Available for evidence review');
+ v=p({...s,kind:'events',rows:[{dimension:'purchase',count:2}]},'Withdrawn',false,Date.parse('2026-10-05'));assert.equal(v.contents,'2 purchase events');assert(!v.contents.includes('0'));assert.match(v.guidance,/not unique shoppers/);assert.match(v.usefulness,/Previous property/);assert.match(v.usefulness,/Outdated/);assert.equal(v.sharing,'Withdrawn');
+ v=p({...s,complete:false,qualifications:['thresholded']},'Local only',true,now);assert.match(v.usefulness,/thresholded/);
+});

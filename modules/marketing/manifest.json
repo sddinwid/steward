@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.marketing",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "name": "Store Marketing",
   "description": "Campaign planning and explicitly approved aggregate GA4 observations. No advertising execution, attribution or accounting.",
   "minimumPlatformVersion": "0.16.0",
@@ -734,14 +734,69 @@
       "listOperation": "snapshots",
       "fields": [
         {
+          "name": "reportTitle",
+          "label": "Report",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "period",
+          "label": "Reporting dates",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "contents",
+          "label": "What it contains",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "usefulness",
+          "label": "Usefulness",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "guidance",
+          "label": "Why open it / next step",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "sharing",
+          "label": "Master access",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "retrievedAt",
+          "label": "Retrieved at",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
           "name": "snapshot",
-          "label": "Snapshot",
+          "label": "Evidence",
           "type": "json",
           "required": false,
           "readOnly": true
         }
       ],
       "columns": [
+        "reportTitle",
+        "period",
+        "contents",
+        "usefulness",
+        "guidance",
+        "sharing",
         "snapshot"
       ],
       "actions": [
