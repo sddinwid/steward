@@ -1,0 +1,9 @@
+import {useEffect,useState} from 'react';
+import {ReadableValue} from './presentation.js';
+import type {Api} from './workspaces.js';
+/** Approved aggregate projections only; operational planning remains Worker-owned. */
+export function MarketingReports({api}:{api:Api}){
+ const [data,setData]=useState<any>(),[error,setError]=useState('');
+ useEffect(()=>{void api('/v4/marketing').then(setData).catch(e=>setError(e.message));},[api]);
+ return <section aria-label="Approved marketing observations"><h2>Marketing measurement</h2><p>Explicitly published GA4 aggregate observations. Campaign budgets are plans, not actual ad spend. Event counts are not a sequential funnel, attribution, ROAS or profit.</p>{error?<p role="alert">{error}</p>:!data?<p role="status">Loading marketing evidence…</p>:!data.records.length?<p>No approved marketing reports in your authorized scope. Configure GA4 on the owning Worker and explicitly publish reports.</p>:data.records.map((r:any)=><article className="entity-card" key={r.reference.installationId+':'+r.reference.recordId}><h3>{r.snapshot.kind==='traffic'?'Daily reported sessions by channel':'Daily tracked ecommerce event occurrences'}</h3><p>{r.snapshot.from} to {r.snapshot.to} · {r.snapshot.timezone} · {r.current?'Within observation freshness window':'Stale observation'} · {r.snapshot.complete?'Complete retrieved report':'Qualified or partial report'}</p><p>Property {r.snapshot.propertyId} · {r.snapshot.storeOrigin}. Reporting currency: {r.snapshot.currency}; no revenue is imported.</p><details><summary>Counts, qualifications and exact source evidence</summary><ReadableValue value={r.snapshot}/><ReadableValue value={r.reference}/></details></article>)}{data?.nextOffset!==null&&data?.nextOffset!==undefined?<p>Showing the first 20 approved reports; use the bounded marketing MCP query for later pages.</p>:null}</section>;
+}

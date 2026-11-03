@@ -1,0 +1,901 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "cee.marketing",
+  "version": "1.0.0",
+  "name": "Store Marketing",
+  "description": "Campaign planning and explicitly approved aggregate GA4 observations. No advertising execution, attribution or accounting.",
+  "minimumPlatformVersion": "0.16.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "listcampaign",
+      "method": "GET",
+      "path": "/campaigns",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createcampaign",
+      "method": "POST",
+      "path": "/campaigns",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "updatecampaign",
+      "method": "PUT",
+      "path": "/campaigns/:id",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "listbudget",
+      "method": "GET",
+      "path": "/budgets",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createbudget",
+      "method": "POST",
+      "path": "/budgets",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "updatebudget",
+      "method": "PUT",
+      "path": "/budgets/:id",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "listaction",
+      "method": "GET",
+      "path": "/actions",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createaction",
+      "method": "POST",
+      "path": "/actions",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "updateaction",
+      "method": "PUT",
+      "path": "/actions/:id",
+      "permission": "cee.marketing.write"
+    },
+    {
+      "operationId": "listconnection",
+      "method": "GET",
+      "path": "/connections",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createconnection",
+      "method": "POST",
+      "path": "/connections",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "updateconnection",
+      "method": "PUT",
+      "path": "/connections/:id",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "listpolicy",
+      "method": "GET",
+      "path": "/policies",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "createpolicy",
+      "method": "POST",
+      "path": "/policies",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "updatepolicy",
+      "method": "PUT",
+      "path": "/policies/:id",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "snapshots",
+      "method": "GET",
+      "path": "/snapshots",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "conditions",
+      "method": "GET",
+      "path": "/conditions",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "overview",
+      "method": "GET",
+      "path": "/overview",
+      "permission": "cee.marketing.read",
+      "query": [
+        "limit",
+        "offset"
+      ]
+    },
+    {
+      "operationId": "reviewBudget",
+      "method": "POST",
+      "path": "/review-budget/:id",
+      "permission": "cee.marketing.approve"
+    },
+    {
+      "operationId": "approveConnection",
+      "method": "POST",
+      "path": "/approve-connection/:id",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "testConnection",
+      "method": "POST",
+      "path": "/test-connection/:id",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "syncConnection",
+      "method": "POST",
+      "path": "/sync-connection/:id",
+      "permission": "cee.marketing.configure"
+    },
+    {
+      "operationId": "publishSnapshot",
+      "method": "POST",
+      "path": "/publish-snapshot/:id",
+      "permission": "cee.marketing.publish"
+    },
+    {
+      "operationId": "withdrawSnapshot",
+      "method": "POST",
+      "path": "/withdraw-snapshot/:id",
+      "permission": "cee.marketing.publish"
+    },
+    {
+      "operationId": "publishCondition",
+      "method": "POST",
+      "path": "/publish-condition/:id",
+      "permission": "cee.marketing.publish"
+    },
+    {
+      "operationId": "withdrawCondition",
+      "method": "POST",
+      "path": "/withdraw-condition/:id",
+      "permission": "cee.marketing.publish"
+    },
+    {
+      "operationId": "acknowledgeCondition",
+      "method": "POST",
+      "path": "/acknowledge-condition/:id",
+      "permission": "cee.marketing.approve"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "overview",
+      "title": "Marketing Overview",
+      "navigationLabel": "Marketing Overview",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "overview",
+      "fields": [
+        {
+          "name": "kind",
+          "label": "Kind",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "from",
+          "label": "From",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "to",
+          "label": "To",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "complete",
+          "label": "Complete",
+          "type": "boolean",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "retrievedAt",
+          "label": "Retrieved At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "qualifications",
+          "label": "Qualifications",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "kind",
+        "from",
+        "to",
+        "complete",
+        "retrievedAt",
+        "qualifications"
+      ]
+    },
+    {
+      "screenId": "campaigns",
+      "title": "Campaigns and Tracking Links",
+      "navigationLabel": "Campaigns and Tracking Links",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listcampaign",
+      "createOperation": "createcampaign",
+      "updateOperation": "updatecampaign",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "objective",
+          "label": "Objective",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "channel",
+          "label": "Channel",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "draft",
+            "reviewed",
+            "active-plan",
+            "closed"
+          ]
+        },
+        {
+          "name": "storeOrigin",
+          "label": "Store Origin",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "source",
+          "label": "Source",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "medium",
+          "label": "Medium",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "catalogReference",
+          "label": "Catalog Reference",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "promotionReference",
+          "label": "Promotion Reference",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "trackingUrl",
+          "label": "Generated tracking link",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "referenceBasis",
+          "label": "Reference limitations",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "name",
+        "objective",
+        "channel",
+        "from",
+        "to",
+        "status",
+        "storeOrigin",
+        "source",
+        "medium",
+        "catalogReference",
+        "promotionReference",
+        "trackingUrl",
+        "referenceBasis"
+      ]
+    },
+    {
+      "screenId": "budgets",
+      "title": "Campaign Budget Plans",
+      "navigationLabel": "Campaign Budget Plans",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listbudget",
+      "createOperation": "createbudget",
+      "updateOperation": "updatebudget",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "campaignId",
+          "label": "Campaign Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "currency",
+          "label": "Currency",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "plannedAmountCents",
+          "label": "Planned Amount Cents",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "notes",
+          "label": "Notes",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "basis",
+          "label": "Planning basis",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewer",
+          "label": "reviewer",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reviewedAt",
+          "label": "reviewedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "campaignId",
+        "currency",
+        "from",
+        "to",
+        "plannedAmountCents",
+        "notes",
+        "basis",
+        "status",
+        "reviewer",
+        "reviewedAt"
+      ],
+      "actions": [
+        {
+          "label": "Review Budget",
+          "operationId": "reviewBudget"
+        }
+      ]
+    },
+    {
+      "screenId": "actions",
+      "title": "Marketing Actions",
+      "navigationLabel": "Marketing Actions",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "listaction",
+      "createOperation": "createaction",
+      "updateOperation": "updateaction",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "campaignId",
+          "label": "Campaign Id",
+          "type": "string",
+          "required": false
+        },
+        {
+          "name": "sourceReference",
+          "label": "Source Reference",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "owner",
+          "label": "Owner",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "decision",
+          "label": "Decision",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": true,
+          "enum": [
+            "proposed",
+            "approved-for-human-action",
+            "recorded-complete",
+            "dismissed"
+          ]
+        },
+        {
+          "name": "outcomeNotes",
+          "label": "Outcome Notes",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "columns": [
+        "code",
+        "campaignId",
+        "sourceReference",
+        "owner",
+        "decision",
+        "status",
+        "outcomeNotes"
+      ]
+    },
+    {
+      "screenId": "connections",
+      "title": "Marketing Connection",
+      "navigationLabel": "Marketing Connection",
+      "navigationGroup": "Store Marketing",
+      "workspace": "administration",
+      "formVersion": 1,
+      "listOperation": "listconnection",
+      "updateOperation": "updateconnection",
+      "fields": [
+        {
+          "name": "key",
+          "label": "Key",
+          "type": "string",
+          "required": true,
+          "default": "ga4"
+        },
+        {
+          "name": "propertyId",
+          "label": "Property Id",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "storeOrigin",
+          "label": "Store Origin",
+          "type": "string",
+          "required": true
+        },
+        {
+          "name": "from",
+          "label": "From",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "to",
+          "label": "To",
+          "type": "string",
+          "required": true,
+          "format": "date"
+        },
+        {
+          "name": "automaticRefresh",
+          "label": "Automatic Refresh",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "missingPrerequisite",
+          "label": "Missing Prerequisite",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lastSuccessAt",
+          "label": "Last Success At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "error",
+          "label": "Error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "key",
+        "propertyId",
+        "storeOrigin",
+        "from",
+        "to",
+        "automaticRefresh",
+        "status",
+        "missingPrerequisite",
+        "lastSuccessAt",
+        "error"
+      ],
+      "actions": [
+        {
+          "label": "Approve Connection",
+          "operationId": "approveConnection"
+        },
+        {
+          "label": "Test Connection",
+          "operationId": "testConnection"
+        },
+        {
+          "label": "Sync Connection",
+          "operationId": "syncConnection"
+        }
+      ]
+    },
+    {
+      "screenId": "policies",
+      "title": "Marketing Monitoring Policy",
+      "navigationLabel": "Marketing Monitoring Policy",
+      "navigationGroup": "Store Marketing",
+      "workspace": "administration",
+      "formVersion": 1,
+      "listOperation": "listpolicy",
+      "createOperation": "createpolicy",
+      "updateOperation": "updatepolicy",
+      "fields": [
+        {
+          "name": "key",
+          "label": "Key",
+          "type": "string",
+          "required": true,
+          "default": "marketing"
+        },
+        {
+          "name": "enabled",
+          "label": "Enabled",
+          "type": "boolean",
+          "required": true
+        },
+        {
+          "name": "minimumCount",
+          "label": "Minimum Count",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "changeBasisPoints",
+          "label": "Change Basis Points",
+          "type": "number",
+          "required": true
+        }
+      ],
+      "columns": [
+        "key",
+        "enabled",
+        "minimumCount",
+        "changeBasisPoints"
+      ]
+    },
+    {
+      "screenId": "snapshots",
+      "title": "Snapshots",
+      "navigationLabel": "Snapshots",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "snapshots",
+      "fields": [
+        {
+          "name": "snapshot",
+          "label": "Snapshot",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "snapshot"
+      ],
+      "actions": [
+        {
+          "label": "Publish Snapshot",
+          "operationId": "publishSnapshot",
+          "confirmation": "Publish this specific aggregate evidence to Master Steward?"
+        },
+        {
+          "label": "Withdraw Snapshot",
+          "operationId": "withdrawSnapshot"
+        }
+      ]
+    },
+    {
+      "screenId": "conditions",
+      "title": "Conditions",
+      "navigationLabel": "Conditions",
+      "navigationGroup": "Store Marketing",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "conditions",
+      "fields": [
+        {
+          "name": "code",
+          "label": "Code",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "explanation",
+          "label": "Explanation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "Status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "approved",
+          "label": "Approved",
+          "type": "boolean",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "acknowledgedAt",
+          "label": "Acknowledged At",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "code",
+        "explanation",
+        "status",
+        "approved",
+        "acknowledgedAt"
+      ],
+      "actions": [
+        {
+          "label": "Publish Condition",
+          "operationId": "publishCondition",
+          "confirmation": "Publish this specific aggregate evidence to Master Steward?"
+        },
+        {
+          "label": "Withdraw Condition",
+          "operationId": "withdrawCondition"
+        },
+        {
+          "label": "Acknowledge Condition",
+          "operationId": "acknowledgeCondition"
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": [
+          "not_configured",
+          "live"
+        ],
+        "default": "not_configured"
+      },
+      "currency": {
+        "type": "string",
+        "pattern": "^[A-Z]{3}$",
+        "default": "USD"
+      }
+    },
+    "required": [
+      "mode",
+      "currency"
+    ]
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "b677e3267f8fb1e9ac49e03d3bd7ae9ee2a0106182a917ccf39ae03a59abbe6c"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [
+    {
+      "name": "marketing-comparable-periods",
+      "version": 1
+    }
+  ],
+  "connector": {
+    "version": 1,
+    "provider": "ga4",
+    "webhookTopics": []
+  },
+  "replication": {
+    "contractVersion": 1,
+    "streams": [
+      {
+        "streamId": "marketing_reports_v1",
+        "table": "marketing_reports_v1",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      },
+      {
+        "streamId": "commerce_exceptions",
+        "table": "commerce_exceptions",
+        "idColumn": "id",
+        "revisionColumn": "revision",
+        "columns": [
+          "id",
+          "revision",
+          "projection"
+        ]
+      }
+    ]
+  }
+}

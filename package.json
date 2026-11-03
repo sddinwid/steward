@@ -121,7 +121,9 @@
     "test:workflow:events": "node scripts/test-workflow-authority.mjs --events",
     "test:workflow:governance": "node scripts/test-workflow-authority.mjs --governance",
     "test:workflow:governance:browser": "node scripts/test-workflow-governance-browser.mjs",
-    "test:workflow:notifications": "node scripts/test-workflow-notifications.mjs"
+    "test:workflow:notifications": "node scripts/test-workflow-notifications.mjs",
+    "build:marketing": "npm run build --prefix modules/marketing",
+    "test:marketing": "node --test modules/marketing/test/marketing.test.mjs scripts/test-marketing-analysis.mjs && node scripts/test-marketing-api.mjs --browser"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -11,6 +11,10 @@
     "./workflow": {
       "types": "./dist/workflow.d.ts",
       "default": "./dist/workflow.js"
+    },
+    "./marketing": {
+      "types": "./dist/marketing.d.ts",
+      "default": "./dist/marketing.js"
     }
   },
   "scripts": {

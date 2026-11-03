@@ -55,7 +55,7 @@ export interface ModulePackageManifest {
   analyticalCapabilities: { name: string; version: number }[];
   integration?:IntegrationContract;
   smart?: SmartModuleManifest;
-  connector?: { version:1; provider:'shopify'|'printify'; webhookTopics:string[] };
+  connector?: { version:1; provider:'shopify'|'printify'|'ga4'; webhookTopics:string[] };
   mcpTools?: { name: string; description: string; operationId: string }[];
   replication?: { contractVersion: 1; streams: { streamId: string; table: string; idColumn: string; revisionColumn: string; columns: string[] }[] };
 }
@@ -151,7 +151,7 @@ export function validateManifest(m: ModulePackageManifest): void {
   if(m.programServices&&(!onlyKeys(m.programServices,['contractVersion','domain','syntheticOnly'])||m.programServices.contractVersion!==1||m.programServices.syntheticOnly!==true||!['housing','participant-services','employment','food'].includes(m.programServices.domain)||!atLeast(m.minimumPlatformVersion,'0.13.0')||!m.replication||m.replication.streams.some(s=>!['mission_aggregates_v1','mission_resources_v1'].includes(s.streamId)||s.columns.join(',')!=='id,revision,projection')))reject('Program services require closed aggregate-only disclosure contracts');
   if(m.economicServices&&(m.programServices||!onlyKeys(m.economicServices,['contractVersion','kind','syntheticOnly'])||m.economicServices.contractVersion!==1||m.economicServices.syntheticOnly!==true||!['resource-availability','mission-budget','resource-coordination'].includes(m.economicServices.kind)||!atLeast(m.minimumPlatformVersion,'0.14.0')||m.replication?.streams.some(s=>!['economic_summaries_v1','economic_summary_status_v1'].includes(s.streamId)||s.columns.join(',')!=='id,revision,projection')))reject('Economic services require synthetic, closed summary contracts and platform 0.14.0');
   if(m.simulation&&(!onlyKeys(m.simulation,['version','role'])||m.simulation.version!==1||!['engine','provider','participant'].includes(m.simulation.role)||!atLeast(m.minimumPlatformVersion,'0.11.0')||(['engine','provider'].includes(m.simulation.role)&&m.connector)))reject('Invalid isolated simulation declaration');
-  if(m.connector&&(!onlyKeys(m.connector,['version','provider','webhookTopics'])||m.connector.version!==1||!['shopify','printify'].includes(m.connector.provider)||!atLeast(m.minimumPlatformVersion,'0.8.0')||!Array.isArray(m.connector.webhookTopics)||m.connector.webhookTopics.length>20||m.connector.webhookTopics.some(t=>typeof t!=='string'||! /^[a-z][a-z0-9_-]*(?:[/:][a-z][a-z0-9_-]*)+$/.test(t))))reject('Invalid connector declaration');
+  if(m.connector&&(!onlyKeys(m.connector,['version','provider','webhookTopics'])||m.connector.version!==1||!['shopify','printify','ga4'].includes(m.connector.provider)||!atLeast(m.minimumPlatformVersion,'0.8.0')||!Array.isArray(m.connector.webhookTopics)||m.connector.webhookTopics.length>20||m.connector.webhookTopics.some(t=>typeof t!=='string'||! /^[a-z][a-z0-9_-]*(?:[/:][a-z][a-z0-9_-]*)+$/.test(t))))reject('Invalid connector declaration');
   if(m.api?.some(a=>a.path==='/connector-webhook'))reject('Connector ingress must not be a public module API');
   validateIntegration(m);
   if(m.api?.some(a=>['/integration-inbox','/integration-outbox','/integration-ack'].includes(a.path)))reject('Private integration endpoints must not be public APIs');

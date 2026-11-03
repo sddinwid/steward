@@ -18,10 +18,10 @@ export function parseEgressArguments(args){
  return{options,upgrade};
 }
 export function planUpgradeGrant({id,packageId,expectedImage,installed,candidate,applied,runtime,actual,host,network,expectedNetwork}){
- assert(['cee.shopify','cee.printify'].includes(id),'Unsupported connector');
+ assert(['cee.shopify','cee.printify','cee.marketing'].includes(id),'Unsupported connector');
  assert.equal(packageId,id+'@'+candidate.manifest.version,'Exact upgrade package required');
  assert.equal(candidate.manifest.moduleId,id);assert.equal(installed.manifest.moduleId,id);
- assert.equal(candidate.manifest.connector?.provider,id.slice(4));
+ assert.equal(candidate.manifest.connector?.provider,id==='cee.marketing'?'ga4':id.slice(4));
  assert.equal(candidate.imageId,expectedImage,'Expected image differs from trusted candidate');
  assert.notEqual(candidate.imageId,installed.imageId,'Upgrade requires a new image');
  assert.notEqual(candidate.manifest.version,installed.manifest.version,'Do not rebuild an installed package version');
