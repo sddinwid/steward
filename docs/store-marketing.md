@@ -1,6 +1,6 @@
 # Store Marketing and Google Analytics 4
 
-This bounded increment adds `cee.marketing` 1.0.0. It plans campaigns and reads aggregate GA4 reports; it does not execute advertising, install tracking tags, change prices, or establish attribution or profit. See [verification](marketing-verification.md) for actual deployment and acceptance status.
+This bounded increment adds `cee.marketing` 1.0.1. It plans campaigns and reads aggregate GA4 reports; it does not execute advertising, install tracking tags, change prices, or establish attribution or profit. See [verification](marketing-verification.md) for actual deployment and acceptance status.
 
 ## Ownership and use
 
