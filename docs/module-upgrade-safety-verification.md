@@ -84,20 +84,20 @@ Do not reinstall the UI candidates, relax identity checks, manually rewrite owne
 
 ## Exact changed files
 
-- `EADME.md`
+- `README.md`
+- `docs/adr/0046-module-upgrade-preflight.md`
+- `docs/module-upgrade-safety-verification.md`
 - `docs/store-ui-integration-audit.md`
 - `docs/store-ui-integration-verification.md`
 - `package.json`
 - `packages/module-host/src/index.ts`
 - `packages/module-sdk/src/index.ts`
+- `packages/module-sdk/src/upgrade-safety.ts`
 - `packages/platform/src/module-manager.ts`
+- `packages/platform/src/module-upgrade-preflight.ts`
 - `packages/ui/src/modules.tsx`
 - `scripts/connector-egress-upgrade-policy.mjs`
 - `scripts/fixtures/store-ui-browser.tsx`
 - `scripts/test-connector-egress-upgrade.mjs`
-- `scripts/test-store-ui-browser.mjs`
-- `docs/adr/0046-module-upgrade-preflight.md`
-- `docs/module-upgrade-safety-verification.md`
-- `packages/module-sdk/src/upgrade-safety.ts`
-- `packages/platform/src/module-upgrade-preflight.ts`
 - `scripts/test-module-upgrade-preflight.mjs`
+- `scripts/test-store-ui-browser.mjs`
