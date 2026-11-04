@@ -1,6 +1,6 @@
 // Pure policy for the existing operator egress CLI. Candidate must first pass verifyPackage.
 import assert from 'node:assert/strict';
-import {atLeast} from '../packages/module-sdk/dist/index.js';
+import {atLeast,assertNoModuleIdentityReplacement} from '../packages/module-sdk/dist/index.js';
 export function assertEgressHostVersions({hostProtocolVersion,platformRelease,candidateMinimum}){
  assert(typeof hostProtocolVersion==='string'&&atLeast(hostProtocolVersion,'0.8.1'),'Module host connector-egress protocol support required');
  assert(typeof platformRelease==='string'&&typeof candidateMinimum==='string'&&atLeast(platformRelease,candidateMinimum),'Upgrade the selected running platform image to the candidate minimum platform version first');
@@ -48,5 +48,6 @@ export function planUpgradeGrant({id,packageId,expectedImage,installed,candidate
  const after=structuredClone(host);after.connectorEgress[id]={network:expectedNetwork,imageId:expectedImage};
  const a=structuredClone(host),b=structuredClone(after);delete a.connectorEgress[id];delete b.connectorEgress[id];
  assert.deepEqual(a,b,'Unrelated host field changed');
+ assertNoModuleIdentityReplacement(installed.imageId,candidate.imageId);
  return after;
 }

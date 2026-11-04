@@ -1,3 +1,4 @@
+export * from './upgrade-safety.js';
 export * from './economic-summary.js';
 export * from './workflow-rules.js';
 export * from './workflow-graph.js';

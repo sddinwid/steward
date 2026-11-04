@@ -1,3 +1,4 @@
+import {assertRetainedModulePackage} from '@steward/module-sdk';
 import {pollSharedEventRuntime} from './shared-event-runtime.js';
 import {localEventCaptureSql} from './shared-event-capture.js';
 import {registerWorkflowSubscription,recoverWorkflowSubscription} from './workflow-event-admission.js';
@@ -110,8 +111,9 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   if (inspected.status !== 200) failure('IMAGE_UNAVAILABLE');
   if (inspected.value.Id !== payload.imageId || inspected.value.Config.Labels?.['steward.module.id'] !== id || inspected.value.Config.Labels?.['steward.module.version'] !== m.version) failure('IMAGE_IDENTITY_MISMATCH');
   const base = `${stateRoot}/${slug(id)}`;
-  await mkdir(base, { recursive: true, mode: 0o755 });
   let existing = await state(id);
+  assertRetainedModulePackage(existing,{digest:digest(canonical(descriptor)),version:m.version,imageId:payload.imageId});
+  await mkdir(base, { recursive: true, mode: 0o755 });
   if (!existing) {
     // Write secrets once before creating resources. Retrying never rotates an existing role password.
     const password = randomBytes(32).toString('hex');

@@ -1,8 +1,9 @@
+import {inspectUpgradeDependencies} from './module-upgrade-preflight.js';
 import { createModuleBroker, configurationFailure, boundInstallationRecovery } from './module-broker.js';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { request } from 'node:https';
-import { atLeast, canonical, digest, verifyPackage, validateConfiguration, assertCompatible, operationFor, type ModuleCatalog, type SignedModulePackage, type PublisherTrust } from '@steward/module-sdk';
+import { moduleUpgradeBlockedMessage, atLeast, canonical, digest, verifyPackage, validateConfiguration, assertCompatible, operationFor, type ModuleCatalog, type SignedModulePackage, type PublisherTrust } from '@steward/module-sdk';
 import type { InstallationConfig } from '@steward/contracts';
 import type pg from 'pg';
 import type { Authentication, SecureApp, Account } from './security/auth.js';
@@ -61,11 +62,21 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
         let compatibilityError: string | undefined;
         try { assertCompatible(p.manifest, RELEASE, installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state }))); }
         catch (e) { compatibilityError = (e as Error).message; }
-        return { packageId: p.manifest.moduleId + '@' + p.manifest.version, manifest: p.manifest, imageId: p.imageId, publisherId: p.publisherId, trusted: true, compatible: !compatibilityError, error: compatibilityError };
+        const previous=installed.find(r=>r.module_id===p.manifest.moduleId);const upgradeBlocked=!!previous&&canonical(previous.descriptor)!==canonical(descriptor);
+        return { upgradeBlocked, ...(upgradeBlocked?{upgradeMessage:moduleUpgradeBlockedMessage}:{}), packageId: p.manifest.moduleId + '@' + p.manifest.version, manifest: p.manifest, imageId: p.imageId, publisherId: p.publisherId, trusted: true, compatible: !compatibilityError, error: compatibilityError };
       } catch (e) { return { packageId: descriptor?.payload?.manifest?.moduleId + '@' + descriptor?.payload?.manifest?.version, trusted: false, compatible: false, error: (e as Error).message }; }
     });
     return { available, installed: installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state, manifest: r.descriptor.payload.manifest,
       configuration: r.configuration, operationId: r.operation_id, errorCode: r.error_code, imageId: r.descriptor.payload.imageId })) };
+  });
+  app.get<{Params:{moduleId:string};Querystring:{packageId:string}}>('/api/v3/modules/:moduleId/upgrade-preflight', {schema:{querystring:{type:'object',additionalProperties:false,required:['packageId'],properties:{packageId:{type:'string',maxLength:120}}}}}, async req=>{
+    await admin(req);const {catalog:c,trust}=await catalog();
+    const existing=(await rows()).find(r=>r.module_id===req.params.moduleId);
+    const candidate=c.packages.find(d=>d.payload.manifest.moduleId+'@'+d.payload.manifest.version===req.query.packageId);
+    if(!existing||!candidate||candidate.payload.manifest.moduleId!==req.params.moduleId)fail(404,'Installed module and matching trusted candidate required');
+    verifyPackage(existing.descriptor,trust);verifyPackage(candidate,trust);
+    if(canonical(existing.descriptor)===canonical(candidate))return{allowed:true,scope:'Existing exact package only; no replacement authorized'};
+    return inspectUpgradeDependencies(pool,existing.module_id);
   });
   app.get('/api/v3/modules/discovery', async req => {
     const actor = await auth.session(req);
@@ -118,6 +129,11 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
         return { state: existing.state, moduleId: m.moduleId, operationId: existing.operation_id };
       }
       if (existing && ['failed','installing'].includes(existing.state) && existing.operation_id !== req.body.operationId && !req.body.recover) fail(409, 'Use explicit recovery for an interrupted or failed installation');
+      // Under the existing lifecycle lock, before metadata, audit, broker or runtime mutation.
+      if(existing&&(canonical(existing.descriptor)!==canonical(descriptor)||existing.operation_id!==req.body.operationId)){
+        verifyPackage(existing.descriptor,trust);
+        return reply.code(409).send(await inspectUpgradeDependencies(client,m.moduleId));
+      }
       await client.query(`INSERT INTO module_installations(module_id,version,descriptor,configuration,state,operation_id) VALUES($1,$2,$3,$4,'installing',$5)
         ON CONFLICT(module_id) DO UPDATE SET version=excluded.version,descriptor=excluded.descriptor,configuration=excluded.configuration,state='installing',operation_id=excluded.operation_id,error_code=NULL,updated_at=now()`,
         [m.moduleId, m.version, descriptor, req.body.configuration, req.body.operationId]);
