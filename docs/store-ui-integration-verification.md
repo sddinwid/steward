@@ -1,5 +1,7 @@
 # Store UI integration verification — 2026-11-03
 
+Later bounded execution/deployment acceptance is recorded in [the execution verification ledger](module-upgrade-execution-verification.md). The historical checkpoint and failed evidence below are retained.
+
 ## Result: partial deployment; module acceptance failed
 
 Implementation source: `9ff0a2660ff9b82b456782703c73f9311530b3db`, branch `codex/phase16-business-automation`. Subsequent changes extend isolated browser coverage and documentation only. No tag or push. This is not a completed release or full acceptance claim.

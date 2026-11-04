@@ -1,5 +1,7 @@
 # Module upgrade safety — bounded preventive increment
 
+Later bounded execution/deployment acceptance is recorded in [the execution verification ledger](module-upgrade-execution-verification.md). The historical checkpoint and failed evidence below are retained.
+
 Date: 2026-11-04 UTC (2026-11-03 local). Branch: codex/phase16-business-automation. Baseline HEAD: de84008.
 
 ## Outcome and scope

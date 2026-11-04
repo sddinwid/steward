@@ -1,6 +1,6 @@
 # ADR 0047 — Reviewed execution releases under retained module authority
 
-Status: implementation in progress; not deployment acceptance.
+Status: accepted for bounded maintenance/UI execution. Isolated crash/recovery and selected-operator deployment acceptance passed on 2026-11-04 UTC; see the execution verification ledger.
 
 A provider's original installation operation and signed authority package remain immutable. An execution release is a separately reviewed exact signed binary package allowed to implement that same authority. It is not a provider substitution and does not rebind any obligation. Module Manager displays both identities. Routing, workflow approval, original source references and provider pins continue using the authority package. Newly emitted synchronization events identify the actual execution package and approved plan separately; old events are not relabeled.
 

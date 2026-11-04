@@ -10,6 +10,10 @@ export function executionEgressTarget({plan,row,installationId,entityId,trust,pr
  if(plan.state==='aborting'&&prior){verifyExecutionTransition(prior.transition,row.descriptor,prior.target_descriptor,trust);if(prior.state!=='active'||prior.plan_id!==plan.prior_plan_id||prior.binding.operationId!==row.operation_id||prior.binding.authorityDigest!==digest(canonical(row.descriptor)))throw Error('Prior execution authority mismatch');}
  return plan.state==='aborting'?(prior?.target_descriptor??row.descriptor):plan.target_descriptor;
 }
+export function assertExecutionContainersStopped(containers,{installationId,moduleId,images,state}){
+ if(containers.length>1||(!containers.length&&state==='approved'))throw Error('Expected one stopped owned connector before first execution');
+ for(const actual of containers)if(actual.Config.Labels?.['steward.installation']!==installationId||actual.Config.Labels?.['steward.module']!==moduleId||actual.Config.Labels?.['steward.managed-by']!=='module-host-v1'||!images.includes(actual.Image)||actual.State.Running)throw Error('Connector runtime must be stopped and bound to the exact execution plan');
+}
 export async function configureExecutionEgress(options){
  const planId=options['execution-plan'];if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(planId??''))throw Error('Exact execution plan UUID required');
  const docker=a=>execFileSync('docker',a,{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
@@ -23,6 +27,7 @@ export async function configureExecutionEgress(options){
  const state=read(),trust=JSON.parse(await fs.readFile(path.join(directory,'modules/public/trust.json'),'utf8')),target=executionEgressTarget({...state,installationId:worker.installationId,trust}),payload=verifyPackage(target,trust),identity={project:manifest.project,workerKey:worker.key,installationId:worker.installationId},network=connectorNetworkName(identity,id),grant=host.connectorEgress?.[id];
  if(!grant||grant.network!==network||Object.keys(grant).sort().join(',')!=='imageId,network')throw Error('Existing approved connector network required');
  const approvedImages=[state.row.descriptor.payload.imageId,state.plan.target_descriptor.payload.imageId,...(state.prior?[state.prior.target_descriptor.payload.imageId]:[])];if(!approvedImages.includes(grant.imageId))throw Error('Current image grant is outside this execution plan');
+ const containerIds=docker(['ps','-aq','--filter','label=steward.installation='+worker.installationId,'--filter','label=steward.module='+id]).split('\n').filter(Boolean);assertExecutionContainersStopped(containerIds.map(container=>JSON.parse(docker(['inspect',container]))[0]),{installationId:worker.installationId,moduleId:id,images:approvedImages,state:state.plan.state});
  const inspected=JSON.parse(docker(['network','inspect',network]))[0];validateEgressNetwork(identity,id,inspected);
  for(const container of Object.keys(inspected.Containers??{})){const actual=JSON.parse(docker(['inspect',container]))[0];if(actual.Config.Labels?.['steward.installation']!==worker.installationId||actual.Config.Labels?.['steward.module']!==id||actual.Config.Labels?.['steward.managed-by']!=='module-host-v1'||!approvedImages.includes(actual.Image)||actual.State.Running)throw Error('Connector must be stopped and owned by the exact plan before egress renewal');}
  const image=JSON.parse(docker(['image','inspect',payload.imageId]))[0];if(image.Id!==payload.imageId||image.Config.Labels?.['steward.module.id']!==id||image.Config.Labels?.['steward.module.version']!==payload.manifest.version)throw Error('Execution image identity mismatch');
