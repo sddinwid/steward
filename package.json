@@ -124,7 +124,9 @@
     "test:workflow:notifications": "node scripts/test-workflow-notifications.mjs",
     "build:marketing": "npm run build --prefix modules/marketing",
     "test:marketing": "node --test modules/marketing/test/marketing.test.mjs scripts/test-marketing-analysis.mjs && node scripts/test-marketing-api.mjs --browser",
-    "test:module:upgrade": "node --test scripts/test-module-upgrade-preflight.mjs"
+    "test:module:upgrade": "node --test scripts/test-module-upgrade-preflight.mjs",
+    "test:module:execution": "node --test scripts/test-module-execution-contract.mjs && node scripts/test-module-execution-api.mjs --browser",
+    "test:module:execution:runtime": "node scripts/test-module-execution-runtime.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

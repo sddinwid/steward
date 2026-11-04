@@ -1,0 +1,15 @@
+# ADR 0047 — Reviewed execution releases under retained module authority
+
+Status: implementation in progress; not deployment acceptance.
+
+A provider's original installation operation and signed authority package remain immutable. An execution release is a separately reviewed exact signed binary package allowed to implement that same authority. It is not a provider substitution and does not rebind any obligation. Module Manager displays both identities. Routing, workflow approval, original source references and provider pins continue using the authority package. Newly emitted synchronization events identify the actual execution package and approved plan separately; old events are not relabeled.
+
+The first protocol supports maintenance/UI execution releases only: unchanged module database migrations and replication contracts, unchanged existing write API declarations, no extra write authority, and only read contributions using existing read permissions. Candidate declarations of additional capabilities or configuration do not become active: the retained authority contract continues governing those operations. A publisher-signed module-owned transition declaration binds exact authority and target package digests, supplies bounded declarative read-only assessment of its own database, and explicitly attests backward-compatible execution. No universal alias or override is accepted.
+
+Legacy bootstrap uses that separately signed transition declaration, not a fictional endpoint in the old image. Assessment SQL is generated from validated table/path declarations and executes in a read-only transaction against the module's own database. Core never embeds commerce schemas or reads participant records into its process; only bounded counts and fingerprints leave assessment.
+
+A durable plan binds Worker/entity, original operation/package/configuration, target package, transition, module assessment and governance fingerprint. Preparing a plan quiesces its module under existing lifecycle locks. Review follows preparation; approval and execution recheck the same frozen state. There is one live plan per module. Background work and module-host calls stay paused until commit or abort. Recovery is explicit and idempotent. No migration rollback or business-data restore occurs.
+
+The original authority installation row remains the routing source of truth. The plan journal records the active executable release. The existing gateway resolves UI and permitted read extensions from the verified execution manifest while write authority remains the original contract. Module Host uses the same isolated container/database and original secrets, and attests both authority and execution in runtime metadata. This extends the existing lifecycle, not the integration routing protocol.
+
+Unsupported business-contract changes, migrations, provider substitutions and ambiguous external submissions remain blocked. A failed acceptance gate prevents operator deployment. ADR0046's ordinary replacement guard remains in force; only this exact reviewed execution protocol may select a different executable image.

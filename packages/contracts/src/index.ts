@@ -30,6 +30,7 @@ export interface SynchronizationEnvelope<T = unknown> {
   eventType: string;
   payloadVersion: number;
   correlationId?: string;
+  execution?: {version:1;planId:string;authorityPackageDigest:string;executionPackageDigest:string;imageId:string;moduleVersion:string};
   disclosure?:{contractVersion:1;kind:'program-aggregate';domain:'housing'|'participant-services'|'employment'|'food'}|{contractVersion:1;kind:'economic-summary'|'economic-summary-status';domain:'economic'};
   payload: T;
 }

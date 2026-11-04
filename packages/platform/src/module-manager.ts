@@ -1,3 +1,4 @@
+import {moduleExecutionRoutes,executionPresentation} from './module-executions.js';
 import {inspectUpgradeDependencies} from './module-upgrade-preflight.js';
 import { createModuleBroker, configurationFailure, boundInstallationRecovery } from './module-broker.js';
 import { readFile } from 'node:fs/promises';
@@ -36,6 +37,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     return (await pool.query('SELECT permission FROM module_permissions WHERE account_id=$1 AND module_id=$2', [actor.account_id, moduleId])).rows.map(r => r.permission).filter(p => declared.includes(p));
   }
   const broker = await createModuleBroker(configFile, installation, key);
+  await moduleExecutionRoutes(app,pool,auth,installation.installationId,runtime.catalogFile,async()=>(await catalog()).trust,broker);
   const governance=security?await peerServiceRoutes(app,pool,auth,installation,key,security,broker,async()=>(await catalog()).trust):undefined;
   if(security)await missionWorkerRoutes(app,{pool,broker,trust:async()=>(await catalog()).trust,key,security,identity:installation,auth});
   await smartModuleRoutes(app,pool,auth,installation,broker,async () => (await catalog()).trust,governance);
@@ -66,8 +68,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
         return { upgradeBlocked, ...(upgradeBlocked?{upgradeMessage:moduleUpgradeBlockedMessage}:{}), packageId: p.manifest.moduleId + '@' + p.manifest.version, manifest: p.manifest, imageId: p.imageId, publisherId: p.publisherId, trusted: true, compatible: !compatibilityError, error: compatibilityError };
       } catch (e) { return { packageId: descriptor?.payload?.manifest?.moduleId + '@' + descriptor?.payload?.manifest?.version, trusted: false, compatible: false, error: (e as Error).message }; }
     });
-    return { available, installed: installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state, manifest: r.descriptor.payload.manifest,
-      configuration: r.configuration, operationId: r.operation_id, errorCode: r.error_code, imageId: r.descriptor.payload.imageId })) };
+    return { available, installed: await Promise.all(installed.map(async r => {const execution=await executionPresentation(pool,r,trust);return { moduleId:r.module_id,...execution,state:r.state,configuration:r.configuration,operationId:r.operation_id,errorCode:r.error_code };})) };
   });
   app.get<{Params:{moduleId:string};Querystring:{packageId:string}}>('/api/v3/modules/:moduleId/upgrade-preflight', {schema:{querystring:{type:'object',additionalProperties:false,required:['packageId'],properties:{packageId:{type:'string',maxLength:120}}}}}, async req=>{
     await admin(req);const {catalog:c,trust}=await catalog();
@@ -84,12 +85,12 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
     const modules = [];
     for (const row of await rows()) {
       if (row.state !== 'active') continue;
-      const p = verifyPackage(row.descriptor, trust);
+      const p = {...verifyPackage(row.descriptor, trust),manifest:(await executionPresentation(pool,row,trust)).manifest};
       const allowed = await permissions(actor, row.module_id, p.manifest.api.map(a => a.permission));
       const api = p.manifest.api.filter(a => allowed.includes(a.permission));
       const ui = p.manifest.ui.filter(s => api.some(a => a.operationId === s.listOperation || a.operationId === s.preview?.operationId));
       const mcpTools=(p.manifest.mcpTools??[]).filter(t=>api.some(a=>a.operationId===t.operationId));
-      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: row.version, name: p.manifest.name, api, ui, mcpTools, ...(p.manifest.approvalServices?{approvalServices:p.manifest.approvalServices}:{}), ...(p.manifest.workflowServices?{workflowServices:p.manifest.workflowServices}:{}), ...(p.manifest.programServices?{programServices:p.manifest.programServices}:{}),...(p.manifest.economicServices?{economicServices:p.manifest.economicServices}:{}), ...(['simulator','live'].includes(row.configuration?.mode)?{mode:row.configuration.mode}:{}), ...(typeof row.configuration?.currency==='string'&&/^[A-Z]{3}$/.test(row.configuration.currency)?{currency:row.configuration.currency}:{}) });
+      if (ui.length || mcpTools.length) modules.push({ moduleId: row.module_id, version: (await executionPresentation(pool,row,trust)).version, name: p.manifest.name, api, ui, mcpTools, ...(p.manifest.approvalServices?{approvalServices:p.manifest.approvalServices}:{}), ...(p.manifest.workflowServices?{workflowServices:p.manifest.workflowServices}:{}), ...(p.manifest.programServices?{programServices:p.manifest.programServices}:{}),...(p.manifest.economicServices?{economicServices:p.manifest.economicServices}:{}), ...(['simulator','live'].includes(row.configuration?.mode)?{mode:row.configuration.mode}:{}), ...(typeof row.configuration?.currency==='string'&&/^[A-Z]{3}$/.test(row.configuration.currency)?{currency:row.configuration.currency}:{}) });
     }
     return { modules };
   });
@@ -163,7 +164,7 @@ export async function moduleRoutes(app: SecureApp, pool: pg.Pool, auth: Authenti
       if (!locked) fail(409, 'A module operation is already in progress');
       const installed = await rows(client); const row = installed.find(r => r.module_id === req.params.moduleId);
       if (!row || ['failed', 'installing'].includes(row.state)) fail(409, 'Module installation must complete first');
-      const { trust } = await catalog(); const p = verifyPackage(row.descriptor, trust);
+      const { trust } = await catalog(); const p = {...verifyPackage(row.descriptor, trust),manifest:(await executionPresentation(pool,row,trust)).manifest};
       if (req.body.action === 'activate') assertCompatible(p.manifest, RELEASE, installed.map(r => ({ moduleId: r.module_id, version: r.version, state: r.state })));
       else if (installed.some(r => r.state === 'active' && r.descriptor.payload.manifest.dependencies.some((d: { moduleId: string }) => d.moduleId === row.module_id))) fail(409, 'Deactivate dependent modules first');
       const result = await broker(req.body.action, row.descriptor, row.configuration);

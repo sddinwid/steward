@@ -1,0 +1,2 @@
+import React from 'react';import{createRoot}from'react-dom/client';import{ModuleExecutions}from'../../packages/ui/dist/module-executions.js';import'../../packages/ui/src/style.css';
+const api=async(path:string,method='GET',body?:unknown)=>{const r=await fetch('/api'+path,{method,headers:{'content-type':'application/json'},...(body===undefined?{}:{body:JSON.stringify(body)})});const v=await r.json();if(!r.ok)throw Error(v.error??v.message);return v;};createRoot(document.getElementById('root')!).render(<main><ModuleExecutions api={api} onChanged={async()=>{}}/></main>);

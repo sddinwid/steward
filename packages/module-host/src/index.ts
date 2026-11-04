@@ -1,3 +1,4 @@
+import {verifyExecutionTransition,executionBinding,assertExecutionBinding,assessModule,executionReadApi} from '@steward/module-sdk';
 import {assertRetainedModulePackage} from '@steward/module-sdk';
 import {pollSharedEventRuntime} from './shared-event-runtime.js';
 import {localEventCaptureSql} from './shared-event-capture.js';
@@ -82,7 +83,7 @@ async function callModule(id: string, method: string, path: string, body?: unkno
   const token = (await readFile(`${stateRoot}/${slug(id)}/gateway-token`, 'utf8')).trim();
   const headers:Record<string,string>=publicContextHeaders(context);headers.authorization='Bearer '+token;
   if(incomingIdentity)headers['x-steward-source-identity']=JSON.stringify(incomingIdentity);
-  if(!['/health','/ready','/internal/migrate'].includes(path)){
+  if(!['/health','/ready','/internal/migrate','/internal/execution'].includes(path)){
     Object.assign(headers,await financialAuthorityHeaders(metadataPool,id));
     const installed=(await metadataPool.query('SELECT descriptor,configuration FROM module_installations WHERE module_id=$1',[id])).rows[0];
     if(installed?.descriptor){const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8')),manifest=verifyPackage(installed.descriptor,trust).manifest;Object.assign(headers,await approvalAuthorityHeaders(metadataPool,manifest),await installedProviderHeaders(metadataPool,manifest,installed.configuration,trust));}
@@ -105,14 +106,63 @@ async function connectorEgress(descriptor:SignedModulePackage,configuration:unkn
  if(container){const connected=Object.hasOwn(container.NetworkSettings?.Networks??{},expected);if(connected&&!network)await docker('POST','/networks/'+encodeURIComponent(expected)+'/disconnect',{Container:containerName(id),Force:false});if(network&&!connected)await docker('POST','/networks/'+encodeURIComponent(network)+'/connect',{Container:containerName(id)});}
  return network;
 }
-async function install(descriptor: SignedModulePackage, configuration: unknown, upgrade = false) {
-  const payload = descriptor.payload; const m = payload.manifest; const id = m.moduleId;
+async function executionPlan(planId:string,authority:SignedModulePackage,configuration:unknown){
+ const p=(await metadataPool.query('SELECT * FROM module_execution_plans WHERE plan_id=$1',[planId])).rows[0];
+ const row=(await metadataPool.query('SELECT * FROM module_installations WHERE module_id=$1',[authority.payload.manifest.moduleId])).rows[0];
+ const entity=(await metadataPool.query("SELECT entity_id FROM local_enrollment WHERE singleton AND state='enrolled'")).rows[0];
+ if(!p||!row||!entity||p.module_id!==row.module_id||canonical(authority)!==canonical(row.descriptor)||canonical(configuration)!==canonical(row.configuration))failure('EXECUTION_PLAN_SCOPE_MISMATCH');
+ const trust:PublisherTrust=JSON.parse(await readFile(config.trustFile,'utf8'));verifyExecutionTransition(p.transition,authority,p.target_descriptor,trust);
+ const actual=executionBinding(config.installationId,entity.entity_id,row,p.target_descriptor,p.transition);
+ if(p.state==='active')actual.configurationDigest=p.binding.configurationDigest;
+ assertExecutionBinding(p.binding,actual);
+ if(['approved','installing','installed','activating'].includes(p.state)&&(!p.approved_by||!(await metadataPool.query("SELECT 1 FROM security_accounts WHERE account_id=$1 AND role='local_admin' AND enabled",[p.approved_by])).rowCount))failure('EXECUTION_APPROVAL_REVOKED');
+ return p;
+}
+async function currentExecution(moduleId:string){try{return(await metadataPool.query("SELECT * FROM module_execution_plans WHERE module_id=$1 AND state='active' ORDER BY created_at DESC LIMIT 1",[moduleId])).rows[0];}catch(e){if((e as any).code==='42P01')return undefined;throw e;}}
+async function assessment(p:any){return moduleDatabase(p.module_id,async db=>{await db.query('BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY');try{const expected=(await metadataPool.query('SELECT descriptor FROM module_installations WHERE module_id=$1',[p.module_id])).rows[0].descriptor.payload.manifest.persistence.migrations;const applied=(await db.query('SELECT version,sha256 FROM module_migrations ORDER BY version')).rows;if(canonical(applied)!==canonical(expected))failure('EXECUTION_SCHEMA_HISTORY_MISMATCH');const value=await assessModule(db,p.transition.payload.assessment);await db.query('COMMIT');return value;}catch(e){await db.query('ROLLBACK');throw e;}});}
+async function executionControl(operation:string,planId:string,authority:SignedModulePackage,configuration:unknown){
+ const p=await executionPlan(planId,authority,configuration),id=p.module_id,base=stateRoot+'/'+slug(id);let saved=await state(id);
+ if(!saved)failure('MODULE_NOT_INSTALLED');
+ if(operation==='execution.prepare'){
+  if(p.state!=='preparing')failure('EXECUTION_PLAN_STATE_MISMATCH');
+  await ownedContainer(id);await docker('POST','/containers/'+containerName(id)+'/stop?t=10',undefined,[204,304]);
+  await save(id,{...saved,phase:'quiesced',pendingExecutionPlanId:planId});
+  return{assessment:await assessment(p)};
+ }
+ if(operation==='execution.abort'){
+  if(p.state!=='aborting')failure('EXECUTION_PLAN_STATE_MISMATCH');
+  await install(authority,configuration,true,p,false,true);
+  await docker('POST','/containers/'+containerName(id)+'/start');await ready(id);
+  saved=await state(id);await save(id,{...saved,phase:'active',pendingExecutionPlanId:undefined});return{state:'active'};
+ }
+ if(operation!=='execution.commit'||!['installing','installed','activating','active'].includes(p.state)||!p.approved_by)failure('EXECUTION_PLAN_STATE_MISMATCH');
+ if(saved.executionPlanId===planId&&saved.phase==='active'){await ready(id);return{state:'active'};}
+ if(p.state==='installing'){
+  const observed=await assessment(p);if(observed.blockers.length||observed.digest!==p.assessment?.digest)failure('EXECUTION_ASSESSMENT_CHANGED');
+  await install(authority,configuration,true,p,true);
+  const after=await assessment(p);if(after.digest!==p.assessment.digest)failure('EXECUTION_PREPARATION_CHANGED_DATA');
+  await metadataPool.query("UPDATE module_execution_plans SET state='installed',updated_at=now() WHERE plan_id=$1",[planId]);
+ }
+ await metadataPool.query("UPDATE module_execution_plans SET state='activating',updated_at=now() WHERE plan_id=$1 AND state IN ('installed','activating')",[planId]);
+ const runtime=JSON.parse(await readFile(base+'/runtime.json','utf8'));if(runtime.executionRelease?.planId!==planId)failure('EXECUTION_RUNTIME_MISMATCH');
+ await ownedContainer(id);await docker('POST','/containers/'+containerName(id)+'/stop?t=10',undefined,[204,304]);
+ await atomicJson(base+'/runtime.json',{...runtime,executionQuiesced:false},0o644);
+ await docker('POST','/containers/'+containerName(id)+'/start');await ready(id);
+ const proof=await callModule(id,'GET','/internal/execution');if(proof.status!==200||proof.value.quiesced!==false||proof.value.provenance?.executionPackageDigest!==p.binding.targetDigest||(await callModule(id,'GET','/ready')).status!==200)failure('EXECUTION_ACTIVATION_NOT_READY');
+ saved=await state(id);await save(id,{...saved,phase:'active',executionPlanId:planId,pendingExecutionPlanId:undefined});return{state:'active'};
+}
+async function install(descriptor: SignedModulePackage, configuration: unknown, upgrade = false, execution?:any, quiesced=false, restoring=false) {
+  if(execution)execution=await executionPlan(execution.plan_id,descriptor,configuration);
+  let release=execution;
+  if(restoring)release=execution.prior_plan_id?await executionPlan(execution.prior_plan_id,descriptor,configuration):undefined;
+  const artifact:SignedModulePackage=release?.target_descriptor??descriptor;
+  const payload={...descriptor.payload,imageId:artifact.payload.imageId};const m=descriptor.payload.manifest;const id=m.moduleId;
   const inspected = await docker('GET', '/images/' + payload.imageId + '/json', undefined, [200, 404]);
   if (inspected.status !== 200) failure('IMAGE_UNAVAILABLE');
-  if (inspected.value.Id !== payload.imageId || inspected.value.Config.Labels?.['steward.module.id'] !== id || inspected.value.Config.Labels?.['steward.module.version'] !== m.version) failure('IMAGE_IDENTITY_MISMATCH');
+  if (inspected.value.Id !== payload.imageId || inspected.value.Config.Labels?.['steward.module.id'] !== id || inspected.value.Config.Labels?.['steward.module.version'] !== artifact.payload.manifest.version) failure('IMAGE_IDENTITY_MISMATCH');
   const base = `${stateRoot}/${slug(id)}`;
   let existing = await state(id);
-  assertRetainedModulePackage(existing,{digest:digest(canonical(descriptor)),version:m.version,imageId:payload.imageId});
+  if(!execution)assertRetainedModulePackage(existing,{digest:digest(canonical(descriptor)),version:m.version,imageId:payload.imageId});
   await mkdir(base, { recursive: true, mode: 0o755 });
   if (!existing) {
     // Write secrets once before creating resources. Retrying never rotates an existing role password.
@@ -146,6 +196,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   await atomicJson(base + '/runtime.json', { installationId: config.installationId, moduleId: id, version: m.version,
     ...(sourceIdentity?{sourceIdentity,entityId:(sourceIdentity as any).entity.entityId}:{}),
     ...(providerIdentity?{providerIdentity}:{}),
+    ...(release?{executionQuiesced:quiesced,executionRelease:{planId:release.plan_id,provenance:{version:1,planId:release.plan_id,authorityPackageDigest:digest(canonical(descriptor)),executionPackageDigest:digest(canonical(artifact)),imageId:artifact.payload.imageId,moduleVersion:artifact.payload.manifest.version}}}:{}),
     databaseHost: config.databaseHost, databaseName: db, databaseUser: db, configuration, persistence: m.persistence }, 0o644);
   let container = await ownedContainer(id);
   if (container && container.Image !== payload.imageId) {
@@ -154,7 +205,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
     await docker('DELETE', '/containers/' + containerName(id), undefined, [204]);
     container = undefined;
   }
-  const egress=await connectorEgress(descriptor,configuration,container);
+  const egress=await connectorEgress(artifact,configuration,container);
   if (!container) await docker('POST', '/containers/create?name=' + containerName(id), {
     Image: payload.imageId, User: '1000:1000', Env: ['NODE_ENV=production', 'MODULE_RUNTIME_FILE=/run/module-secrets/runtime.json'],
     Labels: { 'steward.managed-by': 'module-host-v1', 'steward.installation': config.installationId, 'steward.module': id },
@@ -166,6 +217,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
   await save(id, { moduleId: id, phase: 'installing', descriptorDigest: digest(canonical(descriptor)), version: m.version });
   await docker('POST', '/containers/' + containerName(id) + '/start');
   await ready(id);
+  if(release&&quiesced){const proof=await callModule(id,'GET','/internal/execution');if(proof.status!==200||proof.value.version!==1||proof.value.quiesced!==true||proof.value.provenance?.executionPackageDigest!==release.binding.targetDigest)failure('EXECUTION_PROTOCOL_NOT_READY');}
   const migration = await callModule(id, 'POST', '/internal/migrate', {});
   if (migration.status !== 200) {
     await save(id, { moduleId: id, phase: 'failed', version: m.version });
@@ -188,7 +240,7 @@ async function install(descriptor: SignedModulePackage, configuration: unknown, 
     });
   }
   await docker('POST', '/containers/' + containerName(id) + '/stop?t=5', undefined, [204, 304]);
-  await save(id, { moduleId: id, phase: 'installed', version: m.version, imageId: payload.imageId });
+  await save(id, { moduleId: id, phase: 'installed', version: m.version, imageId: payload.imageId,descriptorDigest:digest(canonical(descriptor)),...(release?{executionPlanId:release.plan_id}:{}),...(execution?{pendingExecutionPlanId:execution.plan_id}:{}) });
   return { state: 'installed', schemaVersion: migration.value.schemaVersion };
 }
 app.get('/health', async () => ({ status: 'ok' }));
@@ -203,7 +255,8 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
   const catalog: ModuleCatalog = JSON.parse(await readFile(config.catalogFile, 'utf8'));
   const descriptor = catalog.packages.find(d => d.payload.manifest.moduleId === p.moduleId && d.payload.manifest.version === p.version);
   if (!descriptor) return reply.code(404).send({ error: 'PACKAGE_NOT_AVAILABLE' });
-  const payload = verifyPackage(descriptor, trust);
+  let payload = verifyPackage(descriptor, trust);
+  let executableDescriptor=descriptor;
   validateConfiguration(payload.manifest, p.configuration);
   // Cross-process, transaction-scoped lock: even a broker restart cannot allow overlapping lifecycle actions.
   const client = await pool.connect();
@@ -216,11 +269,15 @@ app.post<{ Body: { payload: any; signature: string } }>('/control', async (req, 
       ? 'SELECT pg_try_advisory_xact_lock_shared(hashtext($1)) AS acquired'
       : 'SELECT pg_try_advisory_xact_lock(hashtext($1)) AS acquired', [p.moduleId]);
     if (!lock.rows[0].acquired) return reply.code(409).send({ error: 'OPERATION_IN_PROGRESS' });
-    if (p.operation === 'install') return await install(descriptor, p.configuration, p.upgrade === true);
+    if(typeof p.operation==='string'&&p.operation.startsWith('execution.'))return await executionControl(p.operation,p.planId,descriptor,p.configuration);
+    const running=await currentExecution(p.moduleId);
+    if(running){await executionPlan(running.plan_id,descriptor,p.operation==='configure'?(await metadataPool.query('SELECT configuration FROM module_installations WHERE module_id=$1',[p.moduleId])).rows[0].configuration:p.configuration);executableDescriptor=running.target_descriptor;payload={...payload,imageId:executableDescriptor.payload.imageId,manifest:{...payload.manifest,api:executionReadApi(descriptor,executableDescriptor)}};}
+    if (p.operation === 'install'){if(running)failure('EXECUTION_RELEASE_USE_RECOVERY');return await install(descriptor, p.configuration, p.upgrade === true);}
     const current = await state(p.moduleId);
     if (!current || current.version !== p.version) failure('MODULE_NOT_INSTALLED');
+    if(current.phase==='quiesced'||current.pendingExecutionPlanId)failure('EXECUTION_RELEASE_PREPARED');
     if(p.operation==='configure'){
-      await connectorEgress(descriptor,p.configuration,await ownedContainer(p.moduleId));
+      await connectorEgress(executableDescriptor,p.configuration,await ownedContainer(p.moduleId));
       if(payload.manifest.connector)await connectorSecret(p.moduleId);
       const file=`${stateRoot}/${slug(p.moduleId)}/runtime.json`,runtime=JSON.parse(await readFile(file,'utf8'));
       await atomicJson(file,{...runtime,configuration:p.configuration},0o644);
@@ -457,19 +514,20 @@ for (const entry of await readdir(stateRoot, { withFileTypes: true })) {
   if (!entry.isDirectory() || !/^m_[0-9a-f]{20}$/.test(entry.name)) continue;
   try {
     const saved = JSON.parse(await readFile(`${stateRoot}/${entry.name}/state.json`, 'utf8'));
-    if (!['active', 'installed', 'disabled'].includes(saved.phase)) continue;
+    if (!['active', 'installed', 'disabled'].includes(saved.phase)||saved.pendingExecutionPlanId) continue;
     const trust: PublisherTrust = JSON.parse(await readFile(config.trustFile, 'utf8'));
     const catalog: ModuleCatalog = JSON.parse(await readFile(config.catalogFile, 'utf8'));
     const descriptor = catalog.packages.find(d => d.payload.manifest.moduleId === saved.moduleId && d.payload.manifest.version === saved.version);
     if (!descriptor || slug(saved.moduleId) !== entry.name) failure('RESTORE_PACKAGE_UNAVAILABLE');
-    const payload = verifyPackage(descriptor, trust);
+    const retained=verifyPackage(descriptor, trust);const release=saved.executionPlanId?await executionPlan(saved.executionPlanId,descriptor,JSON.parse(await readFile(stateRoot+'/'+entry.name+'/runtime.json','utf8')).configuration):undefined;
+    const executableDescriptor:SignedModulePackage=release?.target_descriptor??descriptor;const payload=verifyPackage(executableDescriptor,trust);
     if (payload.imageId !== saved.imageId) failure('RESTORE_PACKAGE_CHANGED');
     const runtime = JSON.parse(await readFile(`${stateRoot}/${entry.name}/runtime.json`, 'utf8'));
-    validateConfiguration(payload.manifest, runtime.configuration);
+    validateConfiguration(retained.manifest, runtime.configuration);
     const container = await ownedContainer(saved.moduleId);
-    if (!container) await install(descriptor, runtime.configuration);
+    if (!container) await install(descriptor, runtime.configuration,!!release,release);
     else if (container.Image !== saved.imageId) failure('RESOURCE_OWNERSHIP_MISMATCH');
-    else await connectorEgress(descriptor,runtime.configuration,container);
+    else await connectorEgress(executableDescriptor,runtime.configuration,container);
     if (saved.phase === 'active') {
       await docker('POST', '/containers/' + containerName(saved.moduleId) + '/start'); await ready(saved.moduleId);
       if ((await callModule(saved.moduleId, 'GET', '/ready')).status !== 200) failure('MODULE_NOT_READY');

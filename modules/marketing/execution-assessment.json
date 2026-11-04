@@ -1,0 +1,34 @@
+{
+  "tables": [
+    "business_audit",
+    "business_records",
+    "business_requests",
+    "commerce_exceptions",
+    "integration_inbox",
+    "integration_outbox",
+    "integration_sequences",
+    "marketing_reports_v1",
+    "module_migrations",
+    "simulation_dataset_epochs",
+    "sync_outbox"
+  ],
+  "blockingChecks": [
+    {
+      "label": "uncertain-business-submission",
+      "table": "business_records",
+      "where": [
+        {
+          "path": [
+            "data",
+            "status"
+          ],
+          "values": [
+            "uncertain",
+            "submission-uncertain",
+            "reconciliation-required"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -31,7 +31,7 @@ The latest UI increment is **partially deployed, not fully accepted**. Master re
 
 Worker3's three monitored orders remain available. The upgrade automatically withdrew the previously approved #1002 Master observation and one condition. The user subsequently authorized restoring #1002, and it is verified on Master; the condition remains withdrawn. No live order was changed. Candidate module versions must not be reinstalled without an approved preservation plan. See [UI integration verification](docs/store-ui-integration-verification.md) for deployed versus candidate functionality, failed acceptance evidence, recovery and next steps. This does not change the accepted v0.16.0 release inventory.
 
-A subsequent [upgrade safety correction](docs/module-upgrade-safety-verification.md) adds a conservative preflight and regression coverage in source. It is **not deployed**: safe continuity requires a module-owned review and transition contract. Do not reinstall the UI candidates or treat source test success as operator upgrade acceptance.
+A subsequent [upgrade safety correction](docs/module-upgrade-safety-verification.md) adds a conservative preflight and regression coverage in source. It is **not deployed**: safe continuity requires a module-owned review and transition contract. Do not reinstall the UI candidates or treat source test success as operator upgrade acceptance. A subsequent [reviewed execution protocol](docs/module-upgrade-execution.md) is being verified; its [execution ledger](docs/module-upgrade-execution-verification.md) distinguishes isolated results from actual operator deployment.
 
 ## Run the existing installation
 

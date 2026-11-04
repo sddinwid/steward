@@ -1,3 +1,4 @@
+export * from './execution-continuity.js';
 export * from './upgrade-safety.js';
 export * from './economic-summary.js';
 export * from './workflow-rules.js';
@@ -39,6 +40,7 @@ export interface ScreenContribution {
   actions?:{label:string;operationId:string;confirmation?:string;availableModes?:('simulator'|'live')[];unavailableReason?:string}[];
 }
 export interface ModulePackageManifest {
+  executionProtocol?:{version:1;quiescence:true;provenance:true};
   /** Read-only source of immutable publications; discovery grants no execution authority. */
   workflowServices?:{contractVersion:1;publicationOperationId:string;triggerDiscovery?:{operationId:string;selectionField:string;maxAgeMs:number}};
   /** Requests a fresh current-reviewer context; it grants no account permission. */
@@ -157,7 +159,8 @@ function validateScreens(m:ModulePackageManifest) {
 export function validateManifest(m: ModulePackageManifest): void {
   if (!m || m.manifestVersion !== 1 || m.sdkVersion !== 1 || !/^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$/.test(m.moduleId) || m.moduleId.length > 80 ||
       !versionPattern.test(m.version) || !versionPattern.test(m.minimumPlatformVersion) || typeof m.name !== 'string' || !m.name.trim() || m.name.length > 120 || typeof m.description !== 'string' || m.description.length > 2000) reject('Invalid module manifest identity or SDK version');
-  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector','simulation','programServices','economicServices','approvalServices','workflowServices'])) reject('Unsupported module manifest fields');
+  if (!onlyKeys(m, ['manifestVersion','sdkVersion','moduleId','version','name','description','minimumPlatformVersion','dependencies','requiredPermissions','api','ui','configurationSchema','persistence','integrationEvents','analyticalCapabilities','replication','mcpTools','integration','smart','connector','simulation','programServices','economicServices','approvalServices','workflowServices','executionProtocol'])) reject('Unsupported module manifest fields');
+  if(m.executionProtocol&&(!onlyKeys(m.executionProtocol,['version','quiescence','provenance'])||m.executionProtocol.version!==1||m.executionProtocol.quiescence!==true||m.executionProtocol.provenance!==true))reject('Invalid execution protocol declaration');
   if(m.programServices&&(!onlyKeys(m.programServices,['contractVersion','domain','syntheticOnly'])||m.programServices.contractVersion!==1||m.programServices.syntheticOnly!==true||!['housing','participant-services','employment','food'].includes(m.programServices.domain)||!atLeast(m.minimumPlatformVersion,'0.13.0')||!m.replication||m.replication.streams.some(s=>!['mission_aggregates_v1','mission_resources_v1'].includes(s.streamId)||s.columns.join(',')!=='id,revision,projection')))reject('Program services require closed aggregate-only disclosure contracts');
   if(m.economicServices&&(m.programServices||!onlyKeys(m.economicServices,['contractVersion','kind','syntheticOnly'])||m.economicServices.contractVersion!==1||m.economicServices.syntheticOnly!==true||!['resource-availability','mission-budget','resource-coordination'].includes(m.economicServices.kind)||!atLeast(m.minimumPlatformVersion,'0.14.0')||m.replication?.streams.some(s=>!['economic_summaries_v1','economic_summary_status_v1'].includes(s.streamId)||s.columns.join(',')!=='id,revision,projection')))reject('Economic services require synthetic, closed summary contracts and platform 0.14.0');
   if(m.simulation&&(!onlyKeys(m.simulation,['version','role'])||m.simulation.version!==1||!['engine','provider','participant'].includes(m.simulation.role)||!atLeast(m.minimumPlatformVersion,'0.11.0')||(['engine','provider'].includes(m.simulation.role)&&m.connector)))reject('Invalid isolated simulation declaration');

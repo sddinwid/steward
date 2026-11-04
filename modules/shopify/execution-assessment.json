@@ -1,0 +1,52 @@
+{
+  "tables": [
+    "business_audit",
+    "business_records",
+    "business_requests",
+    "commerce_exceptions",
+    "connector_events",
+    "connector_issuance",
+    "external_catalog_origins",
+    "external_catalog_sync",
+    "integration_inbox",
+    "integration_outbox",
+    "integration_sequences",
+    "module_migrations",
+    "monitored_commerce_v1",
+    "shopify_monitor_receipts",
+    "sync_outbox"
+  ],
+  "blockingChecks": [
+    {
+      "label": "uncertain-business-submission",
+      "table": "business_records",
+      "where": [
+        {
+          "path": [
+            "data",
+            "status"
+          ],
+          "values": [
+            "uncertain",
+            "submission-uncertain",
+            "reconciliation-required"
+          ]
+        }
+      ]
+    },
+    {
+      "label": "unreconciled-provider-submission",
+      "table": "connector_issuance",
+      "where": [
+        {
+          "path": [
+            "state"
+          ],
+          "values": [
+            "issued"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "tables": [
+    "business_audit",
+    "business_records",
+    "business_requests",
+    "commerce_orders",
+    "commerce_projection_repairs",
+    "integration_inbox",
+    "integration_outbox",
+    "integration_sequences",
+    "module_migrations",
+    "sales_accepted_prices",
+    "sales_analytical_attributions",
+    "sales_confirmation_intents",
+    "sales_demand",
+    "sales_price_reconciliations",
+    "sales_publication_history",
+    "sales_publications",
+    "sales_source_observations",
+    "simulation_dataset_epochs",
+    "sync_outbox"
+  ],
+  "blockingChecks": [
+    {
+      "label": "uncertain-business-submission",
+      "table": "business_records",
+      "where": [
+        {
+          "path": [
+            "data",
+            "status"
+          ],
+          "values": [
+            "uncertain",
+            "submission-uncertain",
+            "reconciliation-required"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -282,6 +282,7 @@ function incomingProviderContext(request:FastifyRequest,ctx:Context,command:Inte
 export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data, definition: Definition, migrate: () => Promise<number>, ready: () => Promise<void>) {
     const app = Fastify({ logger: false, bodyLimit: definition.manifest.connector?196608:49152, requestTimeout: 10000 });
 
+    app.addHook('onRequest',async(req,reply)=>{if(runtime.executionQuiesced&&!['/health','/ready','/internal/migrate','/internal/execution'].includes(req.url))return reply.code(503).send({error:'EXECUTION_RELEASE_PREPARED'});});
     const provider=providerContext(runtime,definition.manifest.moduleId);
     const ctx = (db: pg.PoolClient, request?: FastifyRequest): Context => ({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: String(request?.headers['x-steward-actor'] ?? 'module-runtime'), peerScope:parsePeerScope(request?.headers['x-steward-peer-scope']), permissions: request ? permissions(request) : [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...provider,...financialContext(request),...approvalContext(definition.manifest,request),...installedCapabilityContext(runtime,request?.headers['x-steward-installed-providers']) });
     const accesses = new WeakMap<FastifyRequest, Omit<AccessAuditEvent, 'statusCode' | 'allowed'>>();
@@ -303,7 +304,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
             return reply.code(401).send({ error: 'Module gateway authentication required' });
         const access = accesses.get(request);
         if (access) access.actor = String(request.headers['x-steward-actor'] ?? 'module-runtime');
-        const privatePaths = ['/ready', '/internal/migrate', '/integration-outbox', '/integration-inbox', '/integration-ack', ...(definition.manifest.connector?['/connector-webhook']:[])];
+        const privatePaths = ['/ready', '/internal/migrate', '/internal/execution', '/integration-outbox', '/integration-inbox', '/integration-ack', ...(definition.manifest.connector?['/connector-webhook']:[])];
         if (!op && !privatePaths.includes(request.url))
             return reply.code(403).send({ error: 'Undeclared module operation' });
         if (op && !permissions(request).includes(op.permission))
@@ -328,6 +329,7 @@ export function createBusinessServer(pool: pg.Pool, token: string, runtime: Data
         } finally { db?.release(); }
     });
     app.get('/health', async () => ({ status: 'ok' }));
+    app.get('/internal/execution',async()=>({version:1,quiesced:runtime.executionQuiesced===true,provenance:runtime.executionRelease?.provenance??null}));
     app.get('/ready', async (_req, reply) => { try {
         await ready();
         return { status: 'ready' };
@@ -512,7 +514,8 @@ export function registerIntegrationRoutes(app: FastifyInstance, pool: pg.Pool, r
 }
 export async function startBusinessModule(definition: Definition, background?: (pool:pg.Pool,runtime:Data)=>Promise<void>) {
     const runtime = JSON.parse(await readFile(process.env.MODULE_RUNTIME_FILE!, 'utf8'));
-    const pool = new pg.Pool({ host: runtime.databaseHost, database: runtime.databaseName, user: runtime.databaseUser, password: (await readFile('/run/module-secrets/db-password', 'utf8')).trim(), max: 5, connectionTimeoutMillis: 3000, statement_timeout: 10000 });
+    const pool = new pg.Pool({ host: runtime.databaseHost, database: runtime.databaseName, user: runtime.databaseUser, password: (await readFile('/run/module-secrets/db-password', 'utf8')).trim(), max: 5, connectionTimeoutMillis: 3000, statement_timeout: 10000,
+      ...(runtime.executionRelease?{options:'-c steward.execution_release='+JSON.stringify(runtime.executionRelease.provenance)}:{}) });
     pool.on('error', () => { });
     const migrations = (await readdir('./migrations')).filter(f => /^\d{3}-[a-z-]+\.sql$/.test(f)).sort();
     const migrate = () => transaction(pool, async (db) => {
@@ -537,10 +540,10 @@ export async function startBusinessModule(definition: Definition, background?: (
     const ready = async () => { const identity = (await pool.query('SELECT * FROM module_identity')).rows[0], latest = (await pool.query('SELECT max(version) AS version FROM module_migrations')).rows[0]; ensure(identity?.installation_id === runtime.installationId && identity?.module_id === definition.manifest.moduleId && latest.version === runtime.persistence.schemaVersion, 'Schema or identity mismatch'); };
     const app = createBusinessServer(pool, (await readFile('/run/module-secrets/gateway-token', 'utf8')).trim(), runtime, definition, migrate, ready);
     let ticking = false;
-    const timer = definition.tick ? setInterval(() => { if (ticking)
+    const timer = definition.tick && !runtime.executionQuiesced ? setInterval(() => { if (ticking)
         return; ticking = true; void transaction(pool, db => definition.tick!({ db, config: runtime.configuration, installationId: runtime.installationId, moduleId: definition.manifest.moduleId, actor: 'module-runtime', permissions: [], ...(typeof runtime.entityId === 'string' ? { entityId: runtime.entityId } : {}),...providerContext(runtime,definition.manifest.moduleId) })).catch(() => { }).finally(() => { ticking = false; }); }, 30000).unref() : undefined;
     let working=false;
-    const backgroundTimer=background?setInterval(()=>{if(working)return;working=true;void background(pool,runtime).catch(()=>{}).finally(()=>{working=false;});},2000).unref():undefined;
+    const backgroundTimer=background&&!runtime.executionQuiesced?setInterval(()=>{if(working)return;working=true;void background(pool,runtime).catch(()=>{}).finally(()=>{working=false;});},2000).unref():undefined;
     app.addHook('onClose', async () => { if (timer)
         clearInterval(timer); if(backgroundTimer)clearInterval(backgroundTimer); await pool.end(); });
     for (const signal of ['SIGTERM', 'SIGINT'])

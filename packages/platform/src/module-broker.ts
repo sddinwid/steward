@@ -33,7 +33,7 @@ export async function createModuleBroker(configFile:string,installation:Installa
 
 /** A 409 lock rejection precedes effects. Never retry an uncertain transport or a module business action. */
 export async function retryLifecycleContention<T extends {status:number;value:any}>(operation:string,send:()=>Promise<T>,pause:(ms:number)=>Promise<void>=ms=>new Promise(r=>setTimeout(r,ms))):Promise<T>{
- const lifecycle=['install','activate','deactivate','configure'].includes(operation);for(let attempt=0;;attempt++){const result=await send();if(!lifecycle||result.status!==409||result.value?.error!=='OPERATION_IN_PROGRESS'||attempt>=7)return result;await pause(Math.min(100*2**attempt,800));}
+ const lifecycle=['install','activate','deactivate','configure'].includes(operation)||operation.startsWith('execution.');for(let attempt=0;;attempt++){const result=await send();if(!lifecycle||result.status!==409||result.value?.error!=='OPERATION_IN_PROGRESS'||attempt>=7)return result;await pause(Math.min(100*2**attempt,800));}
 }
 /** Recovered upgrade authority is restricted to the original explicit immutable request identity. */
 export function boundInstallationRecovery(existing:{operation_id:string;state:string}|undefined,request:{operationId:string;recover?:boolean}){return !!existing&&request.recover===true&&existing.operation_id===request.operationId&&['failed','installing'].includes(existing.state);}

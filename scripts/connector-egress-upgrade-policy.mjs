@@ -9,10 +9,11 @@ export function parseEgressArguments(args){
  const options={};
  for(let n=0;n<args.length;n++){
   const key=args[n];if(key==='--revoke'){options.revoke=true;continue;}
-  if(!['--directory','--worker','--subnet','--module','--upgrade-package','--expected-image'].includes(key)||!args[n+1]||args[n+1].startsWith('--'))throw Error('Use --directory, --worker, --module, optional --subnet or --revoke; image upgrade requires --upgrade-package and --expected-image');
+  if(!['--directory','--worker','--subnet','--module','--upgrade-package','--expected-image','--execution-plan'].includes(key)||!args[n+1]||args[n+1].startsWith('--'))throw Error('Use --directory, --worker, --module, optional --subnet or --revoke; image upgrade requires --upgrade-package and --expected-image');
   if(Object.hasOwn(options,key.slice(2)))throw Error('Duplicate option requires explicit correction');
   options[key.slice(2)]=args[++n];
  }
+ if(options['execution-plan']&&(options['upgrade-package']||options['expected-image']||options.subnet||options.revoke))throw Error('Execution plan renewal cannot mix other network changes');
  const upgrade=Boolean(options['upgrade-package']||options['expected-image']);
  if(upgrade&&(!options['upgrade-package']||!options['expected-image']||options.subnet||options.revoke))throw Error('Upgrade approval requires both exact package and image; subnet changes and revoke are forbidden');
  return{options,upgrade};

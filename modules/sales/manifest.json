@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "cee.sales",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "name": "Sales",
   "description": "Independent persistent sales business module. Human authorization is required for approval and ecosystem publication.",
   "minimumPlatformVersion": "0.16.0",
@@ -9221,5 +9221,10 @@
   "approvalServices": {
     "contractVersion": 1,
     "reviewerPermission": "cee.sales.write"
+  },
+  "executionProtocol": {
+    "version": 1,
+    "quiescence": true,
+    "provenance": true
   }
 }
