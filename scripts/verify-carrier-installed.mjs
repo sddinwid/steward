@@ -1,4 +1,4 @@
-// Explicitly installs only the synthetic carrier into the selected Worker 3.
+// Explicitly installs only the synthetic carrier into the selected Worker 2.
 import assert from 'node:assert/strict';
 import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {randomUUID,createHash} from 'node:crypto';
@@ -10,12 +10,12 @@ process.env.STEWARD_SEED_CREDENTIALS_FILE??=path.join(selection.directory,'demo/
 const {api,login,credentials,origin,sessions,waitFor}=await import('./phase4-client.mjs');
 const {docker}=await import('./lib.mjs');
 const {mcp}=await import('./mcp-client.mjs');
-const dir=path.join(selection.directory,'demo/carrier-acceptance');await mkdir(dir,{recursive:true});
+const dir=path.join(selection.directory,'demo/carrier-acceptance-worker-2');await mkdir(dir,{recursive:true});
 const stateFile=path.join(dir,'state.json');let state;try{state=JSON.parse(await readFile(stateFile,'utf8'));}catch(e){if(e.code!=='ENOENT')throw e;state={operationId:randomUUID(),bindingId:randomUUID(),workflowId:randomUUID(),reference:'acceptance-'+randomUUID().slice(0,8)};}
 await writeFile(stateFile,JSON.stringify(state,null,2));
 const report={at:new Date().toISOString(),checks:[],scope:'Installed synthetic carrier only; no external APIs'};
 const pass=s=>{report.checks.push(s);console.log('PASS '+s);};
-const id='steward.carrier.simulator',w='worker-3';
+const id='steward.carrier.simulator',w='worker-2';
 const mod=async(p,method='GET',body,status=200)=>(await api(w,'/api/v3/modules/'+id+'/api'+p,method,body,status)).value;
 const installed=async()=>(await api(w,'/api/v3/modules')).value.installed;
 const snapshot=rows=>rows.filter(m=>m.moduleId!==id).map(m=>({moduleId:m.moduleId,version:m.version,operationId:m.operationId,imageId:m.imageId,configurationHash:createHash('sha256').update(JSON.stringify(m.configuration)).digest('hex')})).sort((a,b)=>a.moduleId.localeCompare(b.moduleId));
@@ -24,10 +24,10 @@ try{
  await login(w,credentials.accounts[w]);
  if(!state.before){state.before=snapshot(await installed());await writeFile(stateFile,JSON.stringify(state,null,2));}
  let m=(await installed()).find(m=>m.moduleId===id);
- if(!m)await api(w,'/api/v3/modules/install','POST',{packageId:id+'@1.0.2',operationId:state.operationId,configuration:{mode:'simulator'}});
- else if(m.version!=='1.0.2'){
+ if(!m)await api(w,'/api/v3/modules/install','POST',{packageId:id+'@1.0.3',operationId:state.operationId,configuration:{mode:'simulator'}});
+ else if(m.version!=='1.0.3'){
   state.upgradeOperationId??=randomUUID();await writeFile(stateFile,JSON.stringify(state,null,2));
-  let plan=(await api(w,'/api/v3/module-executions/prepare','POST',{packageId:id+'@1.0.2',requestId:state.upgradeOperationId})).value;
+  let plan=(await api(w,'/api/v3/module-executions/prepare','POST',{packageId:id+'@1.0.3',requestId:state.upgradeOperationId})).value;
   assert.deepEqual(plan.assessment.blockers,[]);report.upgradeAssessment=plan.assessment;
   if(plan.state==='prepared')await api(w,'/api/v3/module-executions/'+plan.planId,'POST',{action:'approve',assessmentDigest:plan.assessment.digest,reason:'Verified synthetic carrier revision correction; retain all original authority and observations.'});
   if(plan.state!=='active')await api(w,'/api/v3/module-executions/'+plan.planId,'POST',{action:'execute'});
@@ -65,8 +65,9 @@ try{
  await waitFor(async()=>(await smart()).routes.some(route=>route.consumer_id===id&&route.command_id===routed.commandId&&route.state==='delivered'),'governed durable route',90000);pass('Verified registry, resolver, approved binding and active workflow deliver a durable synthetic sync');
  client=await mcp(w);const tools=await client.listTools();const tool=tools.tools.find(t=>t.name.includes('carrier_simulator_shipments'));assert(tool,'Installed MCP discovery');const response=await client.callTool({name:tool.name,arguments:{q:r.id,limit:20,offset:0}});assert(!response.isError);assert(JSON.stringify(response).includes('delivered'));pass('Genuine Worker MCP discovers and reads retained delivered observation');report.mcp={tool:tool.name,response};
  await action('outage');await action('sync-tracking');await waitFor(async()=>(await record()).syncError==='SIMULATED_OUTAGE','outage evidence');assert.equal((await record()).status,'delivered');await action('recover');await waitFor(async()=>!(await record()).syncError,'durable retry recovery',60000);pass('Simulated provider outage preserves local evidence and recovers through persisted retry');
- const containers=docker(['ps','-q','--filter','label=steward.module='+id]).split(/\s+/).filter(Boolean);assert.equal(containers.length,1);docker(['restart',containers[0]]);await waitFor(async()=>{try{return(await record()).status==='delivered';}catch{return false;}},'module restart');pass('Isolated module restart preserves observations and registration');
- assert.deepEqual(snapshot(await installed()),state.before);pass('Existing Worker 3 module versions, identities, images and configuration hashes preserved');
+ const {deployment}=await import('./phase4-client.mjs');
+ const containers=docker(['ps','-q','--filter','label=steward.module='+id,'--filter','label=steward.installation='+deployment.instances.find(i=>i.key===w).installationId]).split(/\s+/).filter(Boolean);assert.equal(containers.length,1);docker(['restart',containers[0]]);await waitFor(async()=>{try{return(await record()).status==='delivered';}catch{return false;}},'module restart');pass('Isolated module restart preserves observations and registration');
+ assert.deepEqual(snapshot(await installed()),state.before);pass('Existing Worker module versions, identities, images and configuration hashes preserved');
  await page.reload();await page.getByRole('cell',{name:state.reference,exact:true}).waitFor();
  const browserSync=page.waitForResponse(response=>response.url().includes('/sync-tracking/')&&response.request().method()==='POST');
  await page.getByRole('button',{name:'Synchronize synthetic observations',exact:true}).click();assert.equal((await browserSync).status(),200);pass('Browser row synchronization succeeds after background revision changes');

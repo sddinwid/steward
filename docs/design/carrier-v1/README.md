@@ -1,6 +1,6 @@
 # Carrier v1 contract-design checkpoint
 
-This folder specifies future implementation. It installs nothing and contains no real or fake carrier adapter. No carrier connection, simulator, UI or MCP tool is implemented here.
+This folder preserves the original design checkpoint. The bounded synthetic implementation now lives in `packages/carrier-kit` and `modules/carrier-simulator`; see [operator documentation](../../carrier-simulator.md). The draft examples here remain specifications; actual executable checks are in `packages/carrier-kit/src/test/carrier.test.ts` and `scripts/test-carrier-simulator.mjs`. Real carrier connectivity remains deferred.
 
 ## Artifacts
 

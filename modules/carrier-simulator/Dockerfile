@@ -20,5 +20,5 @@ COPY modules/carrier-simulator/package.json modules/carrier-simulator/manifest.j
 COPY modules/carrier-simulator/migrations ./migrations
 USER 1000:1000
 EXPOSE 8080
-LABEL steward.module.id="steward.carrier.simulator" steward.module.version="1.0.2" steward.module.sdk="1"
+LABEL steward.module.id="steward.carrier.simulator" steward.module.version="1.0.3" steward.module.sdk="1"
 CMD ["node","dist/index.js"]

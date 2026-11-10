@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import pg from 'pg';
 import { createBusinessServer, transaction, find, save } from '../packages/business-kit/dist/index.js';
-import { validateManifest, resolveCapability } from '../packages/module-sdk/dist/index.js';
+import { validateManifest, resolveCapability, capabilityOutboundEnabled, capabilityInboundEnabled } from '../packages/module-sdk/dist/index.js';
 import { carrierSimulator, carrierBackgroundWith, syntheticTransport, MODULE } from '../modules/carrier-simulator/dist/definition.js';
 
 const runId=randomUUID(),container='steward-carrier-test-'+runId,directory='.steward/carrier-tests/'+runId;
@@ -37,6 +37,10 @@ try{
   let primary;
   await check('manifest: signed SSMA contracts resolve only with same entity and permission',async()=>{
     const cap=manifest.smart.provides.find(c=>c.capabilityId==='shipping.tracking.sync'),req=manifest.smart.consumes[0];
+    assert.equal(capabilityOutboundEnabled(manifest,{mode:'simulator'},cap.capabilityId),true);
+    assert.equal(capabilityInboundEnabled(manifest,{mode:'simulator'},cap.capabilityId),true);
+    assert.equal(capabilityOutboundEnabled(manifest,{mode:'live'},cap.capabilityId),false);
+    assert.equal(capabilityInboundEnabled(manifest,{mode:'live'},cap.capabilityId),false);
     const provider={moduleId:MODULE,packageDigest:'a'.repeat(64),entityId:runtime.entityId,state:'active',configured:true,capability:cap};
     assert.equal(resolveCapability(req,[provider],{entityId:runtime.entityId,permissions:allowed}).state,'resolved');
     assert.equal(resolveCapability(req,[provider],{entityId:randomUUID(),permissions:allowed}).state,'unavailable');

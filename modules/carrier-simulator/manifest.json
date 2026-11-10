@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.carrier.simulator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "Carrier Simulator",
   "description": "Persistent synthetic carrier observations. No external network, carrier account, label or shipping purchase.",
   "minimumPlatformVersion": "0.16.0",
@@ -654,7 +654,10 @@
         "events": [],
         "sensitivity": "business",
         "scope": "entity",
-        "ownership": "provider"
+        "ownership": "provider",
+        "configuration": {
+          "mode": "simulator"
+        }
       },
       {
         "capabilityId": "shipping.tracking.sync",
@@ -699,7 +702,10 @@
         "events": [],
         "sensitivity": "business",
         "scope": "entity",
-        "ownership": "provider"
+        "ownership": "provider",
+        "configuration": {
+          "mode": "simulator"
+        }
       },
       {
         "capabilityId": "shipping.observations.read",
@@ -775,7 +781,10 @@
         "events": [],
         "sensitivity": "business",
         "scope": "entity",
-        "ownership": "provider"
+        "ownership": "provider",
+        "configuration": {
+          "mode": "simulator"
+        }
       }
     ],
     "consumes": [
@@ -817,7 +826,10 @@
         ],
         "events": [],
         "maximumSensitivity": "business",
-        "optional": true
+        "optional": true,
+        "configuration": {
+          "mode": "simulator"
+        }
       }
     ],
     "prerequisites": {
