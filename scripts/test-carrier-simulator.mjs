@@ -55,6 +55,13 @@ try{
     await request('POST','/registrations',{reference:'bad',trackingNumber:'LIVE-TRACK'},400);
     await request('POST','/registrations',{reference:'bad',trackingNumber:'SIM-BAD',entityId:randomUUID()},400);
   });
+  await check('background revisions do not reject commands; request retries remain deduplicated',async()=>{
+    const old=await shipment(primary.id);await sync(primary.id);
+    const body={revision:old.revision,requestId:randomUUID()};
+    const first=await action('recover',old,body);const second=await action('recover',old,body);
+    assert.deepEqual(second,first);assert.equal((await shipment(primary.id)).steps,1);
+    await action('recover',old,{revision:old.revision,requestId:randomUUID()},403,[MODULE+'.read']);
+  });
   await check('simulator: durable lifecycle reaches delivery with immutable evidence',async()=>{
     let r=await sync(primary.id);assert.equal(r.status,'announced');
     for(const expected of ['in_transit','out_for_delivery','delivered']){await action('advance',r);r=await sync(primary.id);assert.equal(r.status,expected);}

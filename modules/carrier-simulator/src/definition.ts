@@ -48,7 +48,9 @@ export function carrierSimulator(manifest: ModulePackageManifest): Definition {
     afterMigrate:async c=>{ authorize(c);if(!await find(c,'connection','simulator'))await save(c,'connection','simulator',{name:'Local carrier simulator',mode:'simulator',status:'synthetic_ready',accountScopeId:randomUUID(),generation:1,synthetic:true}); },
   };
   def.resources.push({kind:'shipment',path:'/registrations',key:'reference',schema:registrationSchema,prepare:prepareRegistration,after:(r,_previous,c)=>initializeProvider(r,c)});
-  const action=(path:string,permission:string,run:(r:RecordValue,c:Context)=>Promise<Data>,kind='shipment')=>def.actions.push({kind,path,permission:MODULE+'.'+permission,run});
+  // These are commands against locked current state, not replacement edits. Background
+  // receipts must not make an otherwise authorized refresh/recovery button unusable.
+  const action=(path:string,permission:string,run:(r:RecordValue,c:Context)=>Promise<Data>,kind='shipment')=>def.actions.push({kind,path,permission:MODULE+'.'+permission,concurrency:'current-state',run});
   action('/sync-tracking/:id','tracking.sync',async(r,c)=>{await owned(c,r.id);return enqueue(c,r);});
   action('/governed-sync/:id','tracking.sync',async(r,c)=>{await owned(c,r.id);return {commandId:await enqueueCapability(c,'shipping.tracking.sync','tracking.sync',r.id,{registrationId:r.id},{expectedProvider:c.providerIdentity!})};});
   for(const change of ['advance','duplicate','late','correct','conflict','unknown-time','outage','recover','partial','throttle']) {

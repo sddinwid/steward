@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.carrier.simulator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Carrier Simulator",
   "description": "Persistent synthetic carrier observations. No external network, carrier account, label or shipping purchase.",
   "minimumPlatformVersion": "0.16.0",
