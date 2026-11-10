@@ -1,4 +1,4 @@
-# Carrier simulator 1.0.1
+# Carrier simulator 1.0.2
 
 This independently packaged module is synthetic only. It makes no UPS/FedEx requests, uses no carrier credentials and cannot purchase labels or schedule pickups. It does not connect to Shopify, Printify, Sales or Master publication.
 
@@ -19,7 +19,7 @@ npm test -w @steward/platform
 
 ## Installation and operation
 
-Publish from a clean committed source checkout using the existing `scripts/publish-module.mjs`, supplying `modules/carrier-simulator` and the selected operator directory. Back up the selected installation before installation. In Worker 3 Administration → Modules install and activate **Carrier Simulator** 1.0.1. Configuration is restricted to `mode: simulator`; this is not an authentication claim.
+Publish from a clean committed source checkout using the existing `scripts/publish-module.mjs`, supplying `modules/carrier-simulator` and the selected operator directory. Back up the selected installation before installation. In Worker 3 Administration → Modules install and activate **Carrier Simulator** 1.0.2. Configuration is restricted to `mode: simulator`; this is not an authentication claim.
 
 Business → Carrier Simulator → Synthetic Shipments accepts a local reference and a tracking number beginning `SIM-`. **Sync tracking** queues a persisted read. **Advance synthetic status** changes synthetic provider evidence; synchronize afterward to ingest it. Other simulator actions introduce duplicates, late events, corrections, ambiguous events, partial results, outages and throttling through that same ingestion path. Recovery clears the injected failure; existing failed jobs retain their history and a new sync may be requested after retry exhaustion.
 

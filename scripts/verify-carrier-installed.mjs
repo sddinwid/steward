@@ -24,10 +24,14 @@ try{
  await login(w,credentials.accounts[w]);
  if(!state.before){state.before=snapshot(await installed());await writeFile(stateFile,JSON.stringify(state,null,2));}
  let m=(await installed()).find(m=>m.moduleId===id);
- if(!m)await api(w,'/api/v3/modules/install','POST',{packageId:id+'@1.0.1',operationId:state.operationId,configuration:{mode:'simulator'}});
- else if(m.version!=='1.0.1'){
+ if(!m)await api(w,'/api/v3/modules/install','POST',{packageId:id+'@1.0.2',operationId:state.operationId,configuration:{mode:'simulator'}});
+ else if(m.version!=='1.0.2'){
   state.upgradeOperationId??=randomUUID();await writeFile(stateFile,JSON.stringify(state,null,2));
-  await api(w,'/api/v3/modules/install','POST',{packageId:id+'@1.0.1',operationId:state.upgradeOperationId,configuration:m.configuration,upgrade:true});
+  let plan=(await api(w,'/api/v3/module-executions/prepare','POST',{packageId:id+'@1.0.2',requestId:state.upgradeOperationId})).value;
+  assert.deepEqual(plan.assessment.blockers,[]);report.upgradeAssessment=plan.assessment;
+  if(plan.state==='prepared')await api(w,'/api/v3/module-executions/'+plan.planId,'POST',{action:'approve',assessmentDigest:plan.assessment.digest,reason:'Verified synthetic carrier revision correction; retain all original authority and observations.'});
+  if(plan.state!=='active')await api(w,'/api/v3/module-executions/'+plan.planId,'POST',{action:'execute'});
+  pass('Existing execution continuity protocol preserves original carrier authority and all assessed tables');
  }
  m=await waitFor(async()=>{const r=(await installed()).find(m=>m.moduleId===id);assert.notEqual(r?.state,'failed');return r&&r.state!=='installing'?r:null;},'signed installation',120000);
  if(m.state!=='active')await api(w,'/api/v3/modules/'+id+'/lifecycle','POST',{action:'activate'});
@@ -42,6 +46,7 @@ try{
  let r=(await mod('/shipments')).records.find(r=>r.reference===state.reference);
  if(!r){await page.getByLabel('Registration reference',{exact:true}).fill(state.reference);await page.getByLabel('Synthetic tracking number (SIM-...)',{exact:true}).fill('SIM-'+state.reference.toUpperCase());await page.getByRole('button',{name:'Create record',exact:true}).click();r=await waitFor(async()=>(await mod('/shipments')).records.find(r=>r.reference===state.reference),'browser registration');}
  state.registrationId=r.id;await writeFile(stateFile,JSON.stringify(state,null,2));
+ await page.getByRole('cell',{name:state.reference,exact:true}).waitFor();
  await page.screenshot({path:path.join(dir,'shipments.png'),fullPage:true});pass('Browser discovers module and creates persistent synthetic tracking registration');
  const record=async()=>(await mod('/shipments?q='+r.id)).records[0];
  const action=async name=>{const current=await record();return mod('/'+name+'/'+r.id,'POST',{revision:current.revision,requestId:randomUUID()});};
@@ -57,11 +62,14 @@ try{
  if(workflow.state==='proposed')await api(w,'/api/v8/smart-modules/workflows/'+state.workflowId+'/lifecycle','POST',{action:'approve',reason:'Approve synthetic carrier-only acceptance workflow.'});
  if(workflow.state!=='active')await api(w,'/api/v8/smart-modules/workflows/'+state.workflowId+'/lifecycle','POST',{action:'activate',reason:'Activate synthetic carrier-only acceptance workflow.'});
  const routed=await action('governed-sync');report.governedCommand=routed;
- await waitFor(async()=>(await smart()).routes.some(route=>route.consumer_id===id&&route.state==='completed'),'governed durable route',90000);pass('Verified registry, resolver, approved binding and active workflow deliver a durable synthetic sync');
+ await waitFor(async()=>(await smart()).routes.some(route=>route.consumer_id===id&&route.command_id===routed.commandId&&route.state==='delivered'),'governed durable route',90000);pass('Verified registry, resolver, approved binding and active workflow deliver a durable synthetic sync');
  client=await mcp(w);const tools=await client.listTools();const tool=tools.tools.find(t=>t.name.includes('carrier_simulator_shipments'));assert(tool,'Installed MCP discovery');const response=await client.callTool({name:tool.name,arguments:{q:r.id,limit:20,offset:0}});assert(!response.isError);assert(JSON.stringify(response).includes('delivered'));pass('Genuine Worker MCP discovers and reads retained delivered observation');report.mcp={tool:tool.name,response};
  await action('outage');await action('sync-tracking');await waitFor(async()=>(await record()).syncError==='SIMULATED_OUTAGE','outage evidence');assert.equal((await record()).status,'delivered');await action('recover');await waitFor(async()=>!(await record()).syncError,'durable retry recovery',60000);pass('Simulated provider outage preserves local evidence and recovers through persisted retry');
  const containers=docker(['ps','-q','--filter','label=steward.module='+id]).split(/\s+/).filter(Boolean);assert.equal(containers.length,1);docker(['restart',containers[0]]);await waitFor(async()=>{try{return(await record()).status==='delivered';}catch{return false;}},'module restart');pass('Isolated module restart preserves observations and registration');
  assert.deepEqual(snapshot(await installed()),state.before);pass('Existing Worker 3 module versions, identities, images and configuration hashes preserved');
- await page.reload();await page.screenshot({path:path.join(dir,'retained-delivery.png'),fullPage:true});
+ await page.reload();await page.getByRole('cell',{name:state.reference,exact:true}).waitFor();
+ const browserSync=page.waitForResponse(response=>response.url().includes('/sync-tracking/')&&response.request().method()==='POST');
+ await page.getByRole('button',{name:'Synchronize synthetic observations',exact:true}).click();assert.equal((await browserSync).status(),200);pass('Browser row synchronization succeeds after background revision changes');
+ await page.getByRole('cell',{name:'Delivered',exact:true}).waitFor();await page.screenshot({path:path.join(dir,'retained-delivery.png'),fullPage:true});
  report.status='passed';
 }catch(e){report.status='failed';report.error=e.message;throw e;}finally{await client?.close();await browser?.close();await writeFile(path.join(dir,'report.json'),JSON.stringify(report,null,2));}

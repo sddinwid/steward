@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "sdkVersion": 1,
   "moduleId": "steward.carrier.simulator",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "Carrier Simulator",
   "description": "Persistent synthetic carrier observations. No external network, carrier account, label or shipping purchase.",
   "minimumPlatformVersion": "0.16.0",
@@ -849,5 +849,10 @@
       "description": "Read retained synthetic carrier attempts. No network request or external carrier authentication.",
       "operationId": "attempts"
     }
-  ]
+  ],
+  "executionProtocol": {
+    "version": 1,
+    "quiescence": true,
+    "provenance": true
+  }
 }

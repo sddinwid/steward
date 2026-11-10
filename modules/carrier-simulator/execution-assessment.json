@@ -1,0 +1,4 @@
+{
+  "tables": ["business_audit", "business_records", "business_requests", "carrier_provider", "carrier_jobs", "carrier_attempts", "carrier_observations", "carrier_receipts", "integration_inbox", "integration_outbox", "integration_sequences", "module_identity", "module_migrations", "simulation_dataset_epochs"],
+  "blockingChecks": []
+}
