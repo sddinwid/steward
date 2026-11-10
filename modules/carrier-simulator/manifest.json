@@ -1,0 +1,853 @@
+{
+  "manifestVersion": 1,
+  "sdkVersion": 1,
+  "moduleId": "steward.carrier.simulator",
+  "version": "1.0.0",
+  "name": "Carrier Simulator",
+  "description": "Persistent synthetic carrier observations. No external network, carrier account, label or shipping purchase.",
+  "minimumPlatformVersion": "0.16.0",
+  "dependencies": [],
+  "requiredPermissions": [
+    "storage.own-database"
+  ],
+  "api": [
+    {
+      "operationId": "shipments",
+      "method": "GET",
+      "path": "/shipments",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "events",
+      "method": "GET",
+      "path": "/events",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "exceptions",
+      "method": "GET",
+      "path": "/exceptions",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "attempts",
+      "method": "GET",
+      "path": "/attempts",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "connections",
+      "method": "GET",
+      "path": "/connections",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "summary",
+      "method": "GET",
+      "path": "/capability-summary",
+      "permission": "steward.carrier.simulator.read",
+      "query": [
+        "limit",
+        "offset",
+        "q",
+        "status"
+      ]
+    },
+    {
+      "operationId": "register",
+      "method": "POST",
+      "path": "/registrations",
+      "permission": "steward.carrier.simulator.tracking.register"
+    },
+    {
+      "operationId": "sync",
+      "method": "POST",
+      "path": "/sync-tracking/:id",
+      "permission": "steward.carrier.simulator.tracking.sync"
+    },
+    {
+      "operationId": "governedSync",
+      "method": "POST",
+      "path": "/governed-sync/:id",
+      "permission": "steward.carrier.simulator.tracking.sync"
+    },
+    {
+      "operationId": "advance",
+      "method": "POST",
+      "path": "/advance/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "duplicate",
+      "method": "POST",
+      "path": "/duplicate/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "late",
+      "method": "POST",
+      "path": "/late/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "correct",
+      "method": "POST",
+      "path": "/correct/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "conflict",
+      "method": "POST",
+      "path": "/conflict/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "unknowntime",
+      "method": "POST",
+      "path": "/unknown-time/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "outage",
+      "method": "POST",
+      "path": "/outage/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "recover",
+      "method": "POST",
+      "path": "/recover/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "partial",
+      "method": "POST",
+      "path": "/partial/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "throttle",
+      "method": "POST",
+      "path": "/throttle/:id",
+      "permission": "steward.carrier.simulator.simulate"
+    },
+    {
+      "operationId": "verify",
+      "method": "POST",
+      "path": "/verify-connection/:id",
+      "permission": "steward.carrier.simulator.configure"
+    },
+    {
+      "operationId": "generation",
+      "method": "POST",
+      "path": "/advance-generation/:id",
+      "permission": "steward.carrier.simulator.configure"
+    }
+  ],
+  "ui": [
+    {
+      "screenId": "shipments",
+      "title": "Synthetic Shipments",
+      "navigationLabel": "Synthetic Shipments",
+      "navigationGroup": "Carrier Simulator",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "shipments",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "Registration reference",
+          "type": "string",
+          "required": true,
+          "readOnly": false
+        },
+        {
+          "name": "trackingNumber",
+          "label": "Synthetic tracking number (SIM-...)",
+          "type": "string",
+          "required": true,
+          "readOnly": false
+        },
+        {
+          "name": "status",
+          "label": "Package status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reconciliation",
+          "label": "Evidence quality",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "fresh",
+          "label": "Fresh",
+          "type": "boolean",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "lastSuccessfulSyncAt",
+          "label": "Last successful retrieval",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "syncError",
+          "label": "Synchronization error",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "coverage",
+          "label": "Response coverage",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "qualifications",
+          "label": "Qualifications",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "scope",
+          "label": "Provider scope",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "shipmentDelivered",
+          "label": "Whole shipment delivered (unknown)",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "reference",
+        "trackingNumber",
+        "status",
+        "reconciliation",
+        "fresh",
+        "syncError"
+      ],
+      "actions": [
+        {
+          "label": "Synchronize synthetic observations",
+          "operationId": "sync"
+        },
+        {
+          "label": "Synchronize via approved SSMA binding",
+          "operationId": "governedSync"
+        },
+        {
+          "label": "Advance synthetic lifecycle",
+          "operationId": "advance",
+          "confirmation": "Advance synthetic lifecycle? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Inject duplicate event",
+          "operationId": "duplicate",
+          "confirmation": "Inject duplicate event? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Inject late event",
+          "operationId": "late",
+          "confirmation": "Inject late event? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Correct latest event to exception",
+          "operationId": "correct",
+          "confirmation": "Correct latest event to exception? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Inject conflicting event",
+          "operationId": "conflict",
+          "confirmation": "Inject conflicting event? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Inject unknown event time",
+          "operationId": "unknowntime",
+          "confirmation": "Inject unknown event time? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Simulate outage",
+          "operationId": "outage",
+          "confirmation": "Simulate outage? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Recover provider",
+          "operationId": "recover",
+          "confirmation": "Recover provider? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Simulate partial response",
+          "operationId": "partial",
+          "confirmation": "Simulate partial response? This changes only the synthetic provider; synchronize afterward."
+        },
+        {
+          "label": "Simulate throttling",
+          "operationId": "throttle",
+          "confirmation": "Simulate throttling? This changes only the synthetic provider; synchronize afterward."
+        }
+      ],
+      "createOperation": "register"
+    },
+    {
+      "screenId": "events",
+      "title": "Tracking Events",
+      "navigationLabel": "Tracking Events",
+      "navigationGroup": "Carrier Simulator",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "events",
+      "fields": [
+        {
+          "name": "registrationId",
+          "label": "registrationId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "eventId",
+          "label": "eventId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "occurredAt",
+          "label": "occurredAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "receivedAt",
+          "label": "receivedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "supersedes",
+          "label": "supersedes",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "registrationId",
+        "eventId",
+        "status",
+        "occurredAt",
+        "receivedAt",
+        "supersedes"
+      ],
+      "actions": []
+    },
+    {
+      "screenId": "attempts",
+      "title": "Synchronization Attempts",
+      "navigationLabel": "Synchronization Attempts",
+      "navigationGroup": "Carrier Simulator",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "attempts",
+      "fields": [
+        {
+          "name": "registrationId",
+          "label": "registrationId",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "outcome",
+          "label": "outcome",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "startedAt",
+          "label": "startedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "completedAt",
+          "label": "completedAt",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "safeErrorCode",
+          "label": "safeErrorCode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "coverage",
+          "label": "coverage",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "registrationId",
+        "outcome",
+        "startedAt",
+        "completedAt",
+        "safeErrorCode",
+        "coverage"
+      ],
+      "actions": []
+    },
+    {
+      "screenId": "exceptions",
+      "title": "Delivery and Sync Exceptions",
+      "navigationLabel": "Delivery and Sync Exceptions",
+      "navigationGroup": "Carrier Simulator",
+      "workspace": "business",
+      "formVersion": 1,
+      "listOperation": "exceptions",
+      "fields": [
+        {
+          "name": "reference",
+          "label": "reference",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "reconciliation",
+          "label": "reconciliation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "syncError",
+          "label": "syncError",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "qualifications",
+          "label": "qualifications",
+          "type": "json",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "reference",
+        "status",
+        "reconciliation",
+        "syncError",
+        "qualifications"
+      ],
+      "actions": []
+    },
+    {
+      "screenId": "connections",
+      "title": "Simulator Connection",
+      "navigationLabel": "Simulator Connection",
+      "navigationGroup": "Carrier Simulator",
+      "workspace": "administration",
+      "formVersion": 1,
+      "listOperation": "connections",
+      "fields": [
+        {
+          "name": "name",
+          "label": "name",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "mode",
+          "label": "mode",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "status",
+          "label": "status",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        },
+        {
+          "name": "generation",
+          "label": "generation",
+          "type": "string",
+          "required": false,
+          "readOnly": true
+        }
+      ],
+      "columns": [
+        "name",
+        "mode",
+        "status",
+        "generation"
+      ],
+      "actions": [
+        {
+          "label": "Verify simulator (no carrier login)",
+          "operationId": "verify"
+        },
+        {
+          "label": "Invalidate in-flight configuration generation",
+          "operationId": "generation",
+          "confirmation": "Invalidate pending synthetic reads?"
+        }
+      ]
+    }
+  ],
+  "configurationSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "mode": {
+        "type": "string",
+        "enum": [
+          "simulator"
+        ],
+        "default": "simulator"
+      }
+    },
+    "required": [
+      "mode"
+    ]
+  },
+  "persistence": {
+    "isolation": "dedicated-database",
+    "schemaVersion": 1,
+    "migrations": [
+      {
+        "version": 1,
+        "sha256": "b26b6f97ddd412f26ba77c7eaded14b43d910dbb3454ba551c5387c747f33e97"
+      }
+    ],
+    "destructiveRollback": false
+  },
+  "integrationEvents": [],
+  "analyticalCapabilities": [],
+  "integration": {
+    "version": 1,
+    "outboxPath": "/integration-outbox",
+    "inboxPath": "/integration-inbox",
+    "acknowledgmentPath": "/integration-ack",
+    "peers": []
+  },
+  "smart": {
+    "version": 1,
+    "provides": [
+      {
+        "capabilityId": "shipping.tracking.register",
+        "contract": "steward.shipping.tracking.register",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "tracking.register",
+            "command": "tracking.register",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "reference": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9-]{1,60}$"
+                },
+                "trackingNumber": {
+                  "type": "string",
+                  "pattern": "^SIM-[A-Z0-9-]{1,40}$"
+                }
+              },
+              "required": [
+                "reference",
+                "trackingNumber"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "registrationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "registrationId"
+              ]
+            },
+            "permission": "steward.carrier.simulator.tracking.register",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      },
+      {
+        "capabilityId": "shipping.tracking.sync",
+        "contract": "steward.shipping.tracking.sync",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "tracking.sync",
+            "command": "tracking.sync",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "registrationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "registrationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "jobId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "jobId"
+              ]
+            },
+            "permission": "steward.carrier.simulator.tracking.sync",
+            "mode": "durable",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      },
+      {
+        "capabilityId": "shipping.observations.read",
+        "contract": "steward.shipping.observations.read",
+        "version": "1.0.0",
+        "operations": [
+          {
+            "name": "tracking.summary",
+            "command": "summary",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {},
+              "required": []
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "synthetic": {
+                  "const": true
+                },
+                "records": {
+                  "type": "array",
+                  "maxItems": 20,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "registrationId": {
+                        "type": "string",
+                        "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                      },
+                      "status": {
+                        "type": "string",
+                        "maxLength": 30
+                      },
+                      "fresh": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "registrationId",
+                      "status",
+                      "fresh"
+                    ]
+                  }
+                },
+                "nextOffset": {
+                  "anyOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "synthetic",
+                "records",
+                "nextOffset"
+              ]
+            },
+            "permission": "steward.carrier.simulator.read",
+            "mode": "sync",
+            "idempotency": "required",
+            "retry": "safe"
+          }
+        ],
+        "events": [],
+        "sensitivity": "business",
+        "scope": "entity",
+        "ownership": "provider"
+      }
+    ],
+    "consumes": [
+      {
+        "capabilityId": "shipping.tracking.sync",
+        "contract": "steward.shipping.tracking.sync",
+        "minimumVersion": "1.0.0",
+        "maximumMajor": 1,
+        "operations": [
+          {
+            "name": "tracking.sync",
+            "input": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "registrationId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "registrationId"
+              ]
+            },
+            "output": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "jobId": {
+                  "type": "string",
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "jobId"
+              ]
+            }
+          }
+        ],
+        "events": [],
+        "maximumSensitivity": "business",
+        "optional": true
+      }
+    ],
+    "prerequisites": {
+      "configuration": {
+        "mode": "simulator"
+      },
+      "requiresActive": true,
+      "requiresHealthy": true
+    }
+  },
+  "mcpTools": [
+    {
+      "name": "carrier_simulator_shipments",
+      "description": "Read retained synthetic carrier shipments. No network request or external carrier authentication.",
+      "operationId": "shipments"
+    },
+    {
+      "name": "carrier_simulator_events",
+      "description": "Read retained synthetic carrier events. No network request or external carrier authentication.",
+      "operationId": "events"
+    },
+    {
+      "name": "carrier_simulator_exceptions",
+      "description": "Read retained synthetic carrier exceptions. No network request or external carrier authentication.",
+      "operationId": "exceptions"
+    },
+    {
+      "name": "carrier_simulator_attempts",
+      "description": "Read retained synthetic carrier attempts. No network request or external carrier authentication.",
+      "operationId": "attempts"
+    }
+  ]
+}

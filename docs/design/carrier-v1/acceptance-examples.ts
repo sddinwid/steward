@@ -1,0 +1,40 @@
+import type { AcceptanceExample } from './contracts.js';
+
+/** Executable tests must be written against the implementation later.
+ * These scenarios specify outcomes; they do not pretend to execute reconciliation.
+ */
+export const acceptanceExamples = [
+  { id: 'duplicate', given: ['An event with provider identity E and digest D is retained'],
+    when: ['Another response contains E with digest D'],
+    expected: ['One logical event', 'Both retrieval attempts retained', 'No duplicated progress notification'] },
+  { id: 'out-of-order', given: ['Delivered event at 12:00 UTC is retained'],
+    when: ['An in-transit event at 09:00 UTC arrives at 13:00 UTC'],
+    expected: ['Both events retained', 'Delivered summary preserved', 'Receipt order does not set status'] },
+  { id: 'correction', given: ['Delivered observation A is retained'],
+    when: ['Documented provider correction B explicitly supersedes A'],
+    expected: ['A retained', 'B references A with correction basis', 'Summary revised with evidence',
+      'No automatic Sales or Inventory changes'] },
+  { id: 'conflict', given: ['Event E has digest A'], when: ['E arrives with digest B without correction semantics'],
+    expected: ['Both observations retained', 'Ambiguity reported', 'No silent overwrite'] },
+  { id: 'missing-time', given: ['Two contradictory events have unknown timezone'], when: ['Reconciliation runs'],
+    expected: ['Original times retained', 'No invented UTC ordering', 'Ambiguity reported'] },
+  { id: 'reuse', given: ['Delivered old registration for number T'], when: ['T is registered for a different shipment cycle'],
+    expected: ['Separate registration', 'No merged history', 'Unresolved cycle blocks conclusive association'] },
+  { id: 'partial', given: ['Existing valid observations'], when: ['Page two fails'],
+    expected: ['Attempt marked partial', 'Validated page evidence retained', 'No deletion of absent events',
+      'No complete-history claim or last-success advancement'] },
+  { id: 'outage', given: ['Fresh evidence expires during outage'], when: ['Carrier times out or returns 429'],
+    expected: ['Last evidence preserved and stale', 'Bounded persisted retry', 'Local reads still work',
+      'No implicit carrier requests from MCP'] },
+  { id: 'scope', given: ['Same tracking number in two entities or account scopes'], when: ['One entity queries events'],
+    expected: ['Only authorized scoped records', 'No cross-scope deduplication', 'Foreign reference rejected'] },
+  { id: 'config-race', given: ['Request started under generation 4'], when: ['Connection changes to generation 5 before response'],
+    expected: ['Attempt marked superseded', 'Response cannot update active evidence'] },
+  { id: 'restart-retry', given: ['Accepted requestId with input digest D'], when: ['Process restarts and request repeats'],
+    expected: ['Same registration/job returned', 'Different input using same requestId rejected',
+      'Expired lease recovered without concurrent duplicate work'] },
+  { id: 'multi-package', given: ['One delivered package, expected package count unknown'], when: ['Summary is requested'],
+    expected: ['Unknown shipment-level completion', 'Package delivery remains visible'] },
+  { id: 'simulator', given: ['Synthetic registered shipment'], when: ['Advance, duplicate, inject correction, restart'],
+    expected: ['Persistent same synthetic shipment', 'Explicit simulator provenance', 'No live authentication claim'] },
+] satisfies AcceptanceExample[];
