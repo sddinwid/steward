@@ -9,8 +9,7 @@
   "dependencies": {
     "@steward/business-kit": "file:../../packages/business-kit",
     "@steward/carrier-kit": "file:../../packages/carrier-kit",
-    "@steward/module-sdk": "file:../../packages/module-sdk",
-    "steward-platform": "file:../.."
+    "@steward/module-sdk": "file:../../packages/module-sdk"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
