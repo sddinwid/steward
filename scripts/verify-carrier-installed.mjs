@@ -71,6 +71,15 @@ try{
  await page.reload();await page.getByRole('cell',{name:state.reference,exact:true}).waitFor();
  const browserSync=page.waitForResponse(response=>response.url().includes('/sync-tracking/')&&response.request().method()==='POST');
  await page.getByRole('button',{name:'Synchronize synthetic observations',exact:true}).click();assert.equal((await browserSync).status(),200);pass('Browser row synchronization succeeds after background revision changes');
- await page.getByRole('cell',{name:'Delivered',exact:true}).waitFor();await page.screenshot({path:path.join(dir,'retained-delivery.png'),fullPage:true});
+ await page.getByRole('cell',{name:'Delivered',exact:true}).waitFor();await page.getByText('Loading records...',{exact:true}).waitFor({state:'hidden'});await page.screenshot({path:path.join(dir,'retained-delivery.png'),fullPage:true});
+ for(const screen of ['Tracking Events','Synchronization Attempts']){
+  await page.getByRole('searchbox',{name:'Find a business page'}).fill(screen);
+  await page.getByRole('link',{name:screen,exact:true}).first().click();
+  await page.getByRole('heading',{name:screen,exact:true}).first().waitFor();
+  await page.getByText('Loading records...',{exact:true}).waitFor({state:'hidden'});
+  await page.locator('tbody tr').first().waitFor();
+  await page.screenshot({path:path.join(dir,screen.replaceAll(' ','-').toLowerCase()+'.png'),fullPage:true});
+ }
+ pass('Browser event and attempt screens expose retained evidence through declared contributions');
  report.status='passed';
 }catch(e){report.status='failed';report.error=e.message;throw e;}finally{await client?.close();await browser?.close();await writeFile(path.join(dir,'report.json'),JSON.stringify(report,null,2));}

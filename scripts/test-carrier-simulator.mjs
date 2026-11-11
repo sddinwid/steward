@@ -59,6 +59,12 @@ try{
     await request('POST','/registrations',{reference:'bad',trackingNumber:'LIVE-TRACK'},400);
     await request('POST','/registrations',{reference:'bad',trackingNumber:'SIM-BAD',entityId:randomUUID()},400);
   });
+  await check('concurrent synchronization shares one durable job and one claimed attempt',async()=>{
+    const r=await create('concurrent');const results=await Promise.all([action('sync-tracking',r),action('sync-tracking',r)]);
+    assert.equal(results[0].jobId,results[1].jobId);time=Math.max(time,Date.now())+1;const before=calls;
+    await Promise.all([background(pool,runtime),background(pool,runtime)]);assert.equal(calls,before+1);
+    assert.equal((await shipment(r.id)).status,'announced');
+  });
   await check('background revisions do not reject commands; request retries remain deduplicated',async()=>{
     const old=await shipment(primary.id);await sync(primary.id);
     const body={revision:old.revision,requestId:randomUUID()};
