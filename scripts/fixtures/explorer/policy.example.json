@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "requests": [
+    {
+      "id": "items",
+      "url": "https://fixture.example/items?page=1",
+      "method": "GET",
+      "kind": "api",
+      "basis": "Controlled local fixture; read-only items handler.",
+      "query": {
+        "page": [
+          "1",
+          "2"
+        ]
+      },
+      "paginationParameter": "page"
+    },
+    {
+      "id": "docs",
+      "url": "https://fixture.example/docs/index",
+      "method": "GET",
+      "kind": "html",
+      "basis": "Controlled local fixture; static documentation handler.",
+      "query": {}
+    }
+  ],
+  "documentation": [
+    {
+      "origin": "https://fixture.example",
+      "pathPrefix": "/docs/",
+      "basis": "Controlled fixture static documentation only."
+    }
+  ],
+  "budgets": {
+    "requests": 25,
+    "pages": 5,
+    "depth": 2,
+    "requestMs": 10000,
+    "overallMs": 300000,
+    "responseBytes": 1048576,
+    "totalBytes": 10485760,
+    "intervalMs": 1000,
+    "concurrency": 1
+  },
+  "retentionDays": 7,
+  "samples": "none"
+}

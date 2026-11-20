@@ -10,6 +10,8 @@ The release payload was built from `a03d9f4f4ffba794c20381da6066f1af4207bcc6`; f
 
 See the [changelog](CHANGELOG.md) for release, patch and unreleased checkpoint summaries. Detailed verification ledgers retain failed attempts, corrected reruns and exact evidence identities.
 
+Development tooling: the [bounded API Explorer and Adapter Draft Generator](docs/api-explorer.md) imports specifications, retrieves explicitly approved read-only evidence and produces quarantined scaffolds. It is not an installed production module; [fixture verification](docs/api-explorer-verification.md) does not establish live provider compatibility.
+
 ## Current release status
 
 | Area | Status |

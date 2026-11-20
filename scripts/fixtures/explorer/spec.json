@@ -1,0 +1,1 @@
+{"openapi":"3.1.0","info":{"title":"Synthetic fixture","version":"1.0.0"},"paths":{"/items":{"$ref":"paths.json#/items"}},"components":{"schemas":{"Example":{"type":"object","properties":{"id":{"type":"string"}}}}}}

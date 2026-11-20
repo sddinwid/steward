@@ -1,0 +1,1 @@
+{"items":{"get":{"operationId":"listItems","responses":{"200":{"description":"Synthetic items; no business semantics verified"}}},"post":{"operationId":"createItem","responses":{"201":{"description":"Mutation deliberately excluded"}}}}}

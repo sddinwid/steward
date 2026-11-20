@@ -7,20 +7,14 @@
   "description": "Persistent item catalog and basic quantities, in an isolated module service and database.",
   "minimumPlatformVersion": "0.16.0",
   "dependencies": [],
-  "requiredPermissions": [
-    "storage.own-database"
-  ],
+  "requiredPermissions": ["storage.own-database"],
   "api": [
     {
       "operationId": "listItems",
       "method": "GET",
       "path": "/items",
       "permission": "cee.inventory.read",
-      "query": [
-        "limit",
-        "offset",
-        "fields"
-      ]
+      "query": ["limit", "offset", "fields"]
     },
     {
       "operationId": "createItem",
@@ -45,10 +39,7 @@
       "method": "GET",
       "path": "/service-stock",
       "permission": "cee.inventory.service.manage",
-      "query": [
-        "limit",
-        "offset"
-      ]
+      "query": ["limit", "offset"]
     },
     {
       "operationId": "createServiceStock",
@@ -67,10 +58,7 @@
       "method": "GET",
       "path": "/service-sources",
       "permission": "cee.inventory.service.manage",
-      "query": [
-        "limit",
-        "offset"
-      ]
+      "query": ["limit", "offset"]
     },
     {
       "operationId": "createServiceSource",
@@ -95,20 +83,14 @@
       "method": "GET",
       "path": "/program-authority",
       "permission": "cee.inventory.service.manage",
-      "query": [
-        "q"
-      ]
+      "query": ["q"]
     },
     {
       "operationId": "itemReferences",
       "method": "GET",
       "path": "/item-references",
       "permission": "cee.inventory.read",
-      "query": [
-        "limit",
-        "offset",
-        "q"
-      ]
+      "query": ["limit", "offset", "q"]
     },
     {
       "operationId": "workflowrequirements",
@@ -169,13 +151,7 @@
           "required": true
         }
       ],
-      "columns": [
-        "sku",
-        "name",
-        "quantity",
-        "availableQuantity",
-        "minStock"
-      ]
+      "columns": ["sku", "name", "quantity", "availableQuantity", "minStock"]
     },
     {
       "workspace": "business",
@@ -226,13 +202,7 @@
           "readOnly": true
         }
       ],
-      "columns": [
-        "name",
-        "quantity",
-        "reserved",
-        "available",
-        "minStock"
-      ]
+      "columns": ["name", "quantity", "reserved", "available", "minStock"]
     },
     {
       "workspace": "administration",
@@ -300,12 +270,7 @@
           "readOnly": true
         }
       ],
-      "columns": [
-        "sourceEntityId",
-        "sourceProgramId",
-        "expiresAt",
-        "status"
-      ],
+      "columns": ["sourceEntityId", "sourceProgramId", "expiresAt", "status"],
       "actions": [
         {
           "label": "Approve supply relationship",
@@ -371,22 +336,13 @@
           "readOnly": true
         }
       ],
-      "columns": [
-        "name",
-        "code",
-        "quantityUnit",
-        "recordRevision",
-        "validUntil",
-        "proof"
-      ]
+      "columns": ["name", "code", "quantityUnit", "recordRevision", "validUntil", "proof"]
     }
   ],
   "configurationSchema": {
     "type": "object",
     "additionalProperties": false,
-    "required": [
-      "quantityUnit"
-    ],
+    "required": ["quantityUnit"],
     "properties": {
       "quantityUnit": {
         "type": "string",
@@ -488,11 +444,7 @@
         "table": "replenishment_requirements",
         "idColumn": "id",
         "revisionColumn": "revision",
-        "columns": [
-          "id",
-          "revision",
-          "projection"
-        ]
+        "columns": ["id", "revision", "projection"]
       }
     ]
   },
@@ -584,17 +536,11 @@
                         "maximum": 100000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "quantity"
-                    ]
+                    "required": ["sku", "quantity"]
                   }
                 }
               },
-              "required": [
-                "orderId",
-                "lines"
-              ]
+              "required": ["orderId", "lines"]
             },
             "output": {
               "type": "object",
@@ -634,19 +580,11 @@
                         "maximum": 1000000000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "requested",
-                      "availableBefore",
-                      "reserved"
-                    ]
+                    "required": ["sku", "requested", "availableBefore", "reserved"]
                   }
                 }
               },
-              "required": [
-                "orderId",
-                "lines"
-              ]
+              "required": ["orderId", "lines"]
             },
             "command": "stock.reserve",
             "permission": "cee.inventory.write",
@@ -665,9 +603,7 @@
                   "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                 }
               },
-              "required": [
-                "orderId"
-              ]
+              "required": ["orderId"]
             },
             "output": {
               "type": "object",
@@ -681,10 +617,7 @@
                   "const": true
                 }
               },
-              "required": [
-                "orderId",
-                "released"
-              ]
+              "required": ["orderId", "released"]
             },
             "command": "stock.release",
             "permission": "cee.inventory.write",
@@ -726,18 +659,11 @@
                         "maximum": 100000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "quantity"
-                    ]
+                    "required": ["sku", "quantity"]
                   }
                 }
               },
-              "required": [
-                "orderId",
-                "fulfillmentId",
-                "lines"
-              ]
+              "required": ["orderId", "fulfillmentId", "lines"]
             },
             "output": {
               "type": "object",
@@ -755,11 +681,7 @@
                   "const": true
                 }
               },
-              "required": [
-                "orderId",
-                "fulfillmentId",
-                "applied"
-              ]
+              "required": ["orderId", "fulfillmentId", "applied"]
             },
             "command": "stock.consume",
             "permission": "cee.inventory.write",
@@ -805,11 +727,7 @@
                   "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
                 }
               },
-              "required": [
-                "programId",
-                "sourceProgramId",
-                "itemId"
-              ]
+              "required": ["programId", "sourceProgramId", "itemId"]
             },
             "output": {
               "type": "object",
@@ -829,11 +747,7 @@
                   "const": true
                 }
               },
-              "required": [
-                "itemId",
-                "availableQuantity",
-                "synthetic"
-              ]
+              "required": ["itemId", "availableQuantity", "synthetic"]
             },
             "command": "service-stock.observe",
             "permission": "cee.inventory.service.manage",
@@ -869,13 +783,7 @@
                   "maximum": 100000000
                 }
               },
-              "required": [
-                "programId",
-                "sourceProgramId",
-                "itemId",
-                "reservationId",
-                "quantity"
-              ]
+              "required": ["programId", "sourceProgramId", "itemId", "reservationId", "quantity"]
             },
             "output": {
               "type": "object",
@@ -901,25 +809,14 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "reserved",
-                    "consumed",
-                    "released"
-                  ]
+                  "enum": ["reserved", "consumed", "released"]
                 },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
                 }
               },
-              "required": [
-                "itemId",
-                "reservationId",
-                "reserved",
-                "consumed",
-                "status",
-                "synthetic"
-              ]
+              "required": ["itemId", "reservationId", "reserved", "consumed", "status", "synthetic"]
             },
             "command": "service-stock.reserve",
             "permission": "cee.inventory.service.manage",
@@ -992,25 +889,14 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "reserved",
-                    "consumed",
-                    "released"
-                  ]
+                  "enum": ["reserved", "consumed", "released"]
                 },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
                 }
               },
-              "required": [
-                "itemId",
-                "reservationId",
-                "reserved",
-                "consumed",
-                "status",
-                "synthetic"
-              ]
+              "required": ["itemId", "reservationId", "reserved", "consumed", "status", "synthetic"]
             },
             "command": "service-stock.consume",
             "permission": "cee.inventory.service.manage",
@@ -1041,12 +927,7 @@
                   "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[1-8][a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$"
                 }
               },
-              "required": [
-                "programId",
-                "sourceProgramId",
-                "itemId",
-                "reservationId"
-              ]
+              "required": ["programId", "sourceProgramId", "itemId", "reservationId"]
             },
             "output": {
               "type": "object",
@@ -1072,25 +953,14 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "reserved",
-                    "consumed",
-                    "released"
-                  ]
+                  "enum": ["reserved", "consumed", "released"]
                 },
                 "synthetic": {
                   "type": "boolean",
                   "const": true
                 }
               },
-              "required": [
-                "itemId",
-                "reservationId",
-                "reserved",
-                "consumed",
-                "status",
-                "synthetic"
-              ]
+              "required": ["itemId", "reservationId", "reserved", "consumed", "status", "synthetic"]
             },
             "command": "service-stock.release",
             "permission": "cee.inventory.service.manage",
@@ -1129,12 +999,7 @@
                   "maximum": 20
                 }
               },
-              "required": [
-                "contractVersion",
-                "query",
-                "offset",
-                "limit"
-              ]
+              "required": ["contractVersion", "query", "offset", "limit"]
             },
             "output": {
               "type": "object",
@@ -1175,10 +1040,7 @@
                       },
                       "status": {
                         "type": "string",
-                        "enum": [
-                          "active",
-                          "inactive"
-                        ]
+                        "enum": ["active", "inactive"]
                       },
                       "definitionDigest": {
                         "type": "string",
@@ -1237,11 +1099,7 @@
                             ]
                           }
                         },
-                        "required": [
-                          "unitOfMeasure",
-                          "quantityScale",
-                          "configurationDigest"
-                        ]
+                        "required": ["unitOfMeasure", "quantityScale", "configurationDigest"]
                       },
                       "stockCapability": {
                         "anyOf": [
@@ -1259,11 +1117,7 @@
                                 "const": "1.0.0"
                               }
                             },
-                            "required": [
-                              "capabilityId",
-                              "contract",
-                              "version"
-                            ]
+                            "required": ["capabilityId", "contract", "version"]
                           },
                           {
                             "type": "null"
@@ -1301,11 +1155,7 @@
                   ]
                 }
               },
-              "required": [
-                "contractVersion",
-                "records",
-                "nextOffset"
-              ]
+              "required": ["contractVersion", "records", "nextOffset"]
             },
             "command": "inventory.items.discover",
             "permission": "cee.inventory.read",
@@ -1327,10 +1177,7 @@
                   "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                 }
               },
-              "required": [
-                "contractVersion",
-                "recordId"
-              ]
+              "required": ["contractVersion", "recordId"]
             },
             "output": {
               "oneOf": [
@@ -1374,10 +1221,7 @@
                         },
                         "status": {
                           "type": "string",
-                          "enum": [
-                            "active",
-                            "inactive"
-                          ]
+                          "enum": ["active", "inactive"]
                         },
                         "definitionDigest": {
                           "type": "string",
@@ -1436,11 +1280,7 @@
                               ]
                             }
                           },
-                          "required": [
-                            "unitOfMeasure",
-                            "quantityScale",
-                            "configurationDigest"
-                          ]
+                          "required": ["unitOfMeasure", "quantityScale", "configurationDigest"]
                         },
                         "stockCapability": {
                           "anyOf": [
@@ -1458,11 +1298,7 @@
                                   "const": "1.0.0"
                                 }
                               },
-                              "required": [
-                                "capabilityId",
-                                "contract",
-                                "version"
-                              ]
+                              "required": ["capabilityId", "contract", "version"]
                             },
                             {
                               "type": "null"
@@ -1485,11 +1321,7 @@
                       ]
                     }
                   },
-                  "required": [
-                    "contractVersion",
-                    "status",
-                    "record"
-                  ]
+                  "required": ["contractVersion", "status", "record"]
                 },
                 {
                   "type": "object",
@@ -1505,11 +1337,7 @@
                       "type": "null"
                     }
                   },
-                  "required": [
-                    "contractVersion",
-                    "status",
-                    "record"
-                  ]
+                  "required": ["contractVersion", "status", "record"]
                 }
               ]
             },
@@ -1561,10 +1389,7 @@
                         "maximum": 100000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "quantity"
-                    ]
+                    "required": ["sku", "quantity"]
                   },
                   "minItems": 1,
                   "maxItems": 40
@@ -1630,29 +1455,16 @@
                             ]
                           }
                         },
-                        "required": [
-                          "unitOfMeasure",
-                          "quantityScale",
-                          "configurationDigest"
-                        ]
+                        "required": ["unitOfMeasure", "quantityScale", "configurationDigest"]
                       }
                     },
-                    "required": [
-                      "sku",
-                      "recordId",
-                      "definitionDigest",
-                      "unitDefinition"
-                    ]
+                    "required": ["sku", "recordId", "definitionDigest", "unitDefinition"]
                   },
                   "minItems": 1,
                   "maxItems": 40
                 }
               },
-              "required": [
-                "orderId",
-                "lines",
-                "definitions"
-              ]
+              "required": ["orderId", "lines", "definitions"]
             },
             "output": {
               "type": "object",
@@ -1690,21 +1502,13 @@
                         "maximum": 1000000000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "requested",
-                      "availableBefore",
-                      "reserved"
-                    ]
+                    "required": ["sku", "requested", "availableBefore", "reserved"]
                   },
                   "minItems": 1,
                   "maxItems": 40
                 }
               },
-              "required": [
-                "orderId",
-                "lines"
-              ]
+              "required": ["orderId", "lines"]
             },
             "command": "stock.verified.reserve",
             "permission": "cee.inventory.write",
@@ -1723,9 +1527,7 @@
                   "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
                 }
               },
-              "required": [
-                "orderId"
-              ]
+              "required": ["orderId"]
             },
             "output": {
               "type": "object",
@@ -1739,10 +1541,7 @@
                   "const": true
                 }
               },
-              "required": [
-                "orderId",
-                "released"
-              ]
+              "required": ["orderId", "released"]
             },
             "command": "stock.verified.release",
             "permission": "cee.inventory.write",
@@ -1782,20 +1581,13 @@
                         "maximum": 100000000
                       }
                     },
-                    "required": [
-                      "sku",
-                      "quantity"
-                    ]
+                    "required": ["sku", "quantity"]
                   },
                   "minItems": 1,
                   "maxItems": 40
                 }
               },
-              "required": [
-                "orderId",
-                "fulfillmentId",
-                "lines"
-              ]
+              "required": ["orderId", "fulfillmentId", "lines"]
             },
             "output": {
               "type": "object",
@@ -1813,11 +1605,7 @@
                   "const": true
                 }
               },
-              "required": [
-                "orderId",
-                "fulfillmentId",
-                "applied"
-              ]
+              "required": ["orderId", "fulfillmentId", "applied"]
             },
             "command": "stock.verified.consume",
             "permission": "cee.inventory.write",
@@ -1891,25 +1679,14 @@
                             "maxLength": 40
                           }
                         },
-                        "required": [
-                          "itemId",
-                          "sku",
-                          "quantity",
-                          "status"
-                        ]
+                        "required": ["itemId", "sku", "quantity", "status"]
                       }
                     },
-                    "required": [
-                      "id",
-                      "revision",
-                      "projection"
-                    ]
+                    "required": ["id", "revision", "projection"]
                   }
                 }
               },
-              "required": [
-                "records"
-              ]
+              "required": ["records"]
             },
             "permission": "cee.inventory.read",
             "mode": "sync",
@@ -1956,19 +1733,10 @@
                       "maxLength": 40
                     }
                   },
-                  "required": [
-                    "itemId",
-                    "sku",
-                    "quantity",
-                    "status"
-                  ]
+                  "required": ["itemId", "sku", "quantity", "status"]
                 }
               },
-              "required": [
-                "id",
-                "revision",
-                "projection"
-              ]
+              "required": ["id", "revision", "projection"]
             },
             "streamId": "replenishment_requirements"
           }

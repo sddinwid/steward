@@ -128,7 +128,11 @@
     "test:module:execution": "node --test scripts/test-module-execution-contract.mjs && node scripts/test-module-execution-api.mjs --browser",
     "test:module:execution:runtime": "node scripts/test-module-execution-runtime.mjs",
     "build:carrier": "npm run build -w @steward/carrier-kit && npm run build --prefix modules/carrier-simulator",
-    "test:carrier": "npm run build:carrier && npm test -w @steward/carrier-kit && node --test scripts/test-carrier-publication.mjs && node scripts/test-carrier-simulator.mjs"
+    "test:carrier": "npm run build:carrier && npm test -w @steward/carrier-kit && node --test scripts/test-carrier-publication.mjs && node scripts/test-carrier-simulator.mjs",
+    "build:explorer": "npm run build -w @steward/module-sdk && npm run build -w @steward/explorer-kit",
+    "test:explorer": "npm run build:explorer && npm test -w @steward/explorer-kit",
+    "explorer": "node packages/explorer-kit/dist/cli.js",
+    "verify:explorer": "npm run build:explorer && node scripts/verify-explorer.mjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -1,0 +1,176 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; base-uri &#39;none&#39;; form-action &#39;none&#39;"><title>Steward exploration evidence</title></head><body><h1>Exploration evidence — not adapter certification</h1><p>Documented means stated in a source. Observed means retrieved within the approved scope. Neither establishes complete history, business semantics or safe write operations.</p><p>No response values or credentials are retained in this report. Empty, incomplete, denied and unavailable results are distinct. Draft contributions require human implementation and review.</p><pre>{
+  &quot;source&quot;: {
+    &quot;source&quot;: {
+      &quot;version&quot;: 1,
+      &quot;id&quot;: &quot;source_c5c916a7c49c3f77&quot;,
+      &quot;kind&quot;: &quot;openapi&quot;,
+      &quot;fingerprint&quot;: &quot;c5c916a7c49c3f774fe48a1d6421bc702ab6a32a5b5c53f0e5a257cb17424168&quot;,
+      &quot;diagnostics&quot;: [],
+      &quot;specificationVersion&quot;: &quot;3.1.0&quot;,
+      &quot;references&quot;: [
+        {
+          &quot;id&quot;: &quot;ref_b6a3b2897c588a8c&quot;,
+          &quot;fingerprint&quot;: &quot;c5c916a7c49c3f774fe48a1d6421bc702ab6a32a5b5c53f0e5a257cb17424168&quot;
+        },
+        {
+          &quot;id&quot;: &quot;ref_f7286367149e6b4d&quot;,
+          &quot;fingerprint&quot;: &quot;02ab9dbec88374ac1f98a2a07b907f55ea663a5658997d43a7ca9466e3d1fe33&quot;
+        }
+      ]
+    },
+    &quot;operations&quot;: [
+      {
+        &quot;id&quot;: &quot;op_0ce1783196c8&quot;,
+        &quot;method&quot;: &quot;GET&quot;,
+        &quot;path&quot;: &quot;/items&quot;,
+        &quot;status&quot;: &quot;review_required&quot;,
+        &quot;parameters&quot;: [],
+        &quot;diagnostics&quot;: [
+          &quot;SAFETY_REQUIRES_OPERATOR_REVIEW&quot;,
+          &quot;RESPONSE_MAPPING_UNVERIFIED&quot;
+        ],
+        &quot;sourceId&quot;: &quot;source_c5c916a7c49c3f77&quot;
+      },
+      {
+        &quot;id&quot;: &quot;op_f51373202ad0&quot;,
+        &quot;method&quot;: &quot;POST&quot;,
+        &quot;path&quot;: &quot;/items&quot;,
+        &quot;status&quot;: &quot;review_required&quot;,
+        &quot;parameters&quot;: [],
+        &quot;diagnostics&quot;: [
+          &quot;SAFETY_REQUIRES_OPERATOR_REVIEW&quot;,
+          &quot;RESPONSE_MAPPING_UNVERIFIED&quot;,
+          &quot;METHOD_NOT_EXECUTABLE&quot;
+        ],
+        &quot;sourceId&quot;: &quot;source_c5c916a7c49c3f77&quot;
+      }
+    ]
+  },
+  &quot;job&quot;: {
+    &quot;state&quot;: &quot;complete&quot;,
+    &quot;requests&quot;: 4,
+    &quot;chargedBytes&quot;: 305,
+    &quot;evidence&quot;: [
+      {
+        &quot;version&quot;: 1,
+        &quot;id&quot;: &quot;b03f316c-cdfc-462e-8f01-93489752683b&quot;,
+        &quot;sourceId&quot;: &quot;items&quot;,
+        &quot;retrievedAt&quot;: &quot;2026-11-11T04:42:44.712Z&quot;,
+        &quot;url&quot;: &quot;https://fixture.example/items&quot;,
+        &quot;urlFingerprint&quot;: &quot;2a716c8c4ead33f2e119840632e1f5b0233cbb22c7c0caa151b9654dad66cf75&quot;,
+        &quot;qualification&quot;: &quot;observed&quot;,
+        &quot;outcome&quot;: &quot;retrieved_scope_only&quot;,
+        &quot;diagnostics&quot;: [
+          &quot;PAGINATION_OBSERVED_NOT_COMPLETE_HISTORY&quot;
+        ],
+        &quot;status&quot;: 200,
+        &quot;contentType&quot;: &quot;application/json&quot;,
+        &quot;fingerprint&quot;: &quot;c8c088dccec0e314173cb6f8c7a602bffd11c2722f5181b1e98115114b10ecb9&quot;,
+        &quot;structure&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;fields&quot;: {
+            &quot;items&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;sampledItems&quot;: 1,
+              &quot;items&quot;: [
+                {
+                  &quot;type&quot;: &quot;object&quot;,
+                  &quot;fields&quot;: {
+                    &quot;id&quot;: &quot;string&quot;,
+                    &quot;redacted_field_1&quot;: &quot;string&quot;,
+                    &quot;value&quot;: &quot;number&quot;
+                  }
+                }
+              ]
+            },
+            &quot;next&quot;: &quot;string&quot;
+          }
+        }
+      },
+      {
+        &quot;version&quot;: 1,
+        &quot;id&quot;: &quot;ea982c3f-67e5-4a0a-9c2a-767ec75e4808&quot;,
+        &quot;sourceId&quot;: &quot;docs&quot;,
+        &quot;retrievedAt&quot;: &quot;2026-11-11T04:42:45.748Z&quot;,
+        &quot;url&quot;: &quot;https://fixture.example/docs/index&quot;,
+        &quot;urlFingerprint&quot;: &quot;034163681d7902d3ab3093891d459c0c292d810014a562e896a53fd5715b9ca2&quot;,
+        &quot;qualification&quot;: &quot;documented&quot;,
+        &quot;outcome&quot;: &quot;retrieved_scope_only&quot;,
+        &quot;diagnostics&quot;: [
+          &quot;UNAPPROVED_DOCUMENTATION&quot;
+        ],
+        &quot;status&quot;: 200,
+        &quot;contentType&quot;: &quot;text/html&quot;,
+        &quot;fingerprint&quot;: &quot;3aa46f1749aae2b6e67d2f33f42144cddad9de706164d8a3729d56484cc9d6f9&quot;,
+        &quot;operations&quot;: [],
+        &quot;structure&quot;: {
+          &quot;kind&quot;: &quot;html&quot;,
+          &quot;specificationVersion&quot;: null
+        }
+      },
+      {
+        &quot;version&quot;: 1,
+        &quot;id&quot;: &quot;36feaad4-bc7e-4dde-b2f9-a37ddd9b5205&quot;,
+        &quot;sourceId&quot;: &quot;items&quot;,
+        &quot;retrievedAt&quot;: &quot;2026-11-11T04:42:46.775Z&quot;,
+        &quot;url&quot;: &quot;https://fixture.example/items&quot;,
+        &quot;urlFingerprint&quot;: &quot;009233b57cf84a76c682eae272bb3c29072f851f3bc5a40039dabd8634de5e20&quot;,
+        &quot;qualification&quot;: &quot;observed&quot;,
+        &quot;outcome&quot;: &quot;retrieved_scope_only&quot;,
+        &quot;diagnostics&quot;: [],
+        &quot;status&quot;: 200,
+        &quot;contentType&quot;: &quot;application/json&quot;,
+        &quot;fingerprint&quot;: &quot;9172f6f02ae5ecbbc5a9e487c33e751478b6207a8db8c534a21c7b404004c0db&quot;,
+        &quot;structure&quot;: {
+          &quot;type&quot;: &quot;object&quot;,
+          &quot;fields&quot;: {
+            &quot;items&quot;: {
+              &quot;type&quot;: &quot;array&quot;,
+              &quot;sampledItems&quot;: 0,
+              &quot;items&quot;: []
+            },
+            &quot;next&quot;: &quot;null&quot;
+          }
+        }
+      },
+      {
+        &quot;version&quot;: 1,
+        &quot;id&quot;: &quot;0a23edd1-a939-4b08-8d21-c3658991cd7b&quot;,
+        &quot;sourceId&quot;: &quot;docs&quot;,
+        &quot;retrievedAt&quot;: &quot;2026-11-11T04:42:47.787Z&quot;,
+        &quot;url&quot;: &quot;https://fixture.example/docs/detail&quot;,
+        &quot;urlFingerprint&quot;: &quot;dd5e2b9c925265b9945c6224a15675f1deb59fec2f613f1654a28ff847a88330&quot;,
+        &quot;qualification&quot;: &quot;documented&quot;,
+        &quot;outcome&quot;: &quot;retrieved_scope_only&quot;,
+        &quot;diagnostics&quot;: [],
+        &quot;status&quot;: 200,
+        &quot;contentType&quot;: &quot;text/markdown&quot;,
+        &quot;fingerprint&quot;: &quot;d721c2cb544c0a339fc6c776dcb5d7c5b2893f8728abf4e96447053307fcf557&quot;,
+        &quot;operations&quot;: [],
+        &quot;structure&quot;: {
+          &quot;kind&quot;: &quot;html&quot;,
+          &quot;specificationVersion&quot;: null
+        }
+      }
+    ]
+  },
+  &quot;safety&quot;: {
+    &quot;methods&quot;: &quot;Explicitly reviewed GET/HEAD only&quot;,
+    &quot;redirects&quot;: &quot;Never followed&quot;,
+    &quot;samples&quot;: &quot;Scalar response values not retained&quot;,
+    &quot;authority&quot;: &quot;Local operator approval; source content cannot grant authority&quot;
+  },
+  &quot;proposedContributions&quot;: [
+    {
+      &quot;operation&quot;: &quot;items&quot;,
+      &quot;api&quot;: &quot;Proposed retained-observation read&quot;,
+      &quot;ui&quot;: &quot;Proposed declarative observation list&quot;,
+      &quot;mcp&quot;: &quot;Proposed retained-evidence query; not registered&quot;
+    }
+  ],
+  &quot;gaps&quot;: [
+    &quot;Authentication renewal, business mappings and persistence remain unimplemented in generated drafts.&quot;,
+    &quot;No semantic SSMA equivalence, external compatibility or production readiness established.&quot;,
+    &quot;Remote references require separately approved retrieval and semantic review.&quot;
+  ]
+}</pre></body></html>
